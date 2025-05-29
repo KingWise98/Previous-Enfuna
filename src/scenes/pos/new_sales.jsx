@@ -272,6 +272,19 @@ const productData = [
   },
   { 
     id: 15, 
+    name: "Head & Shoulders", 
+    category: "Health & Beauty", 
+    subcategory: "Personal Care", 
+    price: 13000, 
+    rating: 4, 
+    stock: 25, 
+    image: "/assets/head.jpeg", 
+    description: "Moisturizing shampoo wash.",
+    barcode: "456783210987",
+    supplier: "Unilever"
+  },
+  { 
+    id: 16, 
     name: "Colgate Toothpaste", 
     category: "Health & Beauty", 
     subcategory: "Oral Care", 
@@ -282,7 +295,33 @@ const productData = [
     description: "Cavity protection toothpaste.",
     barcode: "567894321098",
     supplier: "Colgate-Palmolive"
-  }
+  },
+   { 
+    id: 17, 
+    name: "Tecno Spark 10", 
+    category: "Electronics", 
+    subcategory: "Mobile Phones", 
+    price: 750000, 
+    rating: 4, 
+    stock: 12, 
+    image: "/assets/spark.jpeg", 
+    description: "Affordable smartphone with good camera.",
+    barcode: "147258369"
+  },
+    { 
+    id: 18, 
+    name: "Splash", 
+    category: "Beverages", 
+    subcategory: "Juices", 
+    price: 2500, 
+    rating: 4, 
+    stock: 20, 
+    image: "/assets/splash.jpg", 
+    description: "Tropical fruit juice flavour mango.",
+    barcode: "345678901234",
+    supplier: "Mukwano Group"
+  },
+   
 ];
 
 // Payment Methods
