@@ -71,10 +71,10 @@ import {
   Print as PrintIcon,
   AttachMoney as CashIcon,
   ExpandMore as ExpandMoreIcon,
+  Edit as EditIcon,
 } from "@mui/icons-material";
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-
 
 // Product Data
 const productData = [
@@ -370,6 +370,7 @@ const discountOffers = [
 
 const SalesPage = () => {
   // State Management
+  const [products, setProducts] = useState(productData);
   const [cart, setCart] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState(productData);
   const [category, setCategory] = useState("");
@@ -401,16 +402,16 @@ const SalesPage = () => {
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
   const [cartSearchText, setCartSearchText] = useState("");
   const [cashAmount, setCashAmount] = useState('');
-
   const [showAllProductsInCart, setShowAllProductsInCart] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const navigate = useNavigate();
- 
 
   // Filter Products
   useEffect(() => {
     applyFilters();
-  }, [category, subcategory, minPrice, maxPrice, rating, searchText]);
+  }, [category, subcategory, minPrice, maxPrice, rating, searchText, products]);
 
   const applyFilters = () => {
     const filtered = productData
@@ -430,6 +431,7 @@ const SalesPage = () => {
     Dairy: ["Milk", "Cheese", "Yogurt"],
     Bakery: ["Bread", "Cakes", "Pastries"],
   };
+  
   const renderReceipt = (transaction) => (
     <Box sx={{ p: 3, width: '100%', maxWidth: 400, bgcolor: 'background.paper' }} id="receipt">
       {/* Receipt Header */}
@@ -529,6 +531,7 @@ const SalesPage = () => {
       </Box>
     </Box>
   );
+      
 
   // Handlers
   const handleSearch = (e) => {
@@ -567,7 +570,7 @@ const SalesPage = () => {
 
   const handlePaymentMethodSelect = (method) => {
     setSelectedPaymentMethod(method);
-    setCashAmount(''); // Reset cash amount when changing payment method
+    setCashAmount('');
     if (method.type !== 'cash') {
       const details = {};
       method.fields.forEach(field => {
@@ -576,6 +579,7 @@ const SalesPage = () => {
       setPaymentDetails(details);
     }
   };
+  
   const handlePaymentDetailChange = (field, value) => {
     const updatedDetails = { ...paymentDetails, [field]: value };
     setPaymentDetails(updatedDetails);
@@ -618,7 +622,7 @@ const SalesPage = () => {
     const quantity = parseInt(newQuantity) || 0;
     if (quantity < 1) return;
     
-    const product = productData.find(p => p.id === productId);
+    const product = products.find(p => p.id === productId);
     if (quantity > product.stock) {
       setSnackbarMessage(`Only ${product.stock} items available in stock`);
       setOpenSnackbar(true);
@@ -634,7 +638,7 @@ const SalesPage = () => {
 
   const handleIncreaseQuantity = (productId) => {
     const product = cart.find(item => item.id === productId);
-    const originalProduct = productData.find(p => p.id === productId);
+    const originalProduct = products.find(p => p.id === productId);
     
     if (product.quantity >= originalProduct.stock) {
       setSnackbarMessage(`Only ${originalProduct.stock} items available in stock`);
@@ -659,9 +663,8 @@ const SalesPage = () => {
     );
   };
 
-  // Payment Processing (updated for cash handling)
+  // Payment Processing
   const handleCompleteSale = () => {
-    // Validate cash payment
     if (selectedPaymentMethod?.type === 'cash') {
       const amount = parseFloat(cashAmount) || 0;
       if (amount < totalAmount) {
@@ -690,7 +693,7 @@ const SalesPage = () => {
     };
 
     // Update stock levels
-    const updatedProducts = productData.map(product => {
+    const updatedProducts = products.map(product => {
       const cartItem = cart.find(item => item.id === product.id);
       if (cartItem) {
         return {
@@ -701,6 +704,7 @@ const SalesPage = () => {
       return product;
     });
 
+    setProducts(updatedProducts);
     setPaymentHistory([transaction, ...paymentHistory]);
     setCurrentReceipt(transaction);
     setReceiptModalOpen(true);
@@ -720,12 +724,13 @@ const SalesPage = () => {
     setOpenSnackbar(true);
   };
 
-  // Calculations (same as before)
+  // Calculations
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.discount) / 100 : 0;
   const taxRate = 0.18; // 18% VAT
   const taxAmount = (subtotal - discountAmount) * taxRate;
   const totalAmount = subtotal - discountAmount + taxAmount;
+  
   useEffect(() => {
     if (selectedPaymentMethod?.type === 'cash' && cashAmount) {
       const amount = parseFloat(cashAmount) || 0;
@@ -738,7 +743,7 @@ const SalesPage = () => {
   // Steps for checkout process
   const steps = ['Cart Review', 'Customer Info', 'Payment'];
 
-  // Handle step changes (same as before)
+  // Handle step changes
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
@@ -747,19 +752,137 @@ const SalesPage = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  // Filter cart items based on search text (same as before)
+  // Filter cart items based on search text
   const filteredCartItems = cart.filter(item => 
     item.name.toLowerCase().includes(cartSearchText.toLowerCase())
   );
 
-  // Search all products for adding to cart (same as before)
-  const searchAllProducts = productData.filter(product => 
+  // Search all products for adding to cart
+  const searchAllProducts = products.filter(product => 
     product.name.toLowerCase().includes(cartSearchText.toLowerCase()) &&
     !cart.some(item => item.id === product.id)
   );
 
-  // Render functions for each step (updated for quantity input and cash payment)
-  const renderCartReview = () => (
+  // Product Editing Functions
+  const handleEditProduct = (product) => {
+    setEditingProduct(product);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveProduct = () => {
+    if (!editingProduct) return;
+    
+    const updatedProducts = products.map(p => 
+      p.id === editingProduct.id ? editingProduct : p
+    );
+    
+    setProducts(updatedProducts);
+    setEditModalOpen(false);
+    setEditingProduct(null);
+    setSnackbarMessage("Product updated successfully!");
+    setOpenSnackbar(true);
+  };
+
+  const handleEditFieldChange = (field, value) => {
+    if (!editingProduct) return;
+    
+    setEditingProduct({
+      ...editingProduct,
+      [field]: value
+    });
+  };
+
+  // Render Edit Product Modal
+  const renderEditProductModal = () => (
+    <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)}>
+      <DialogTitle>Edit Product</DialogTitle>
+      <DialogContent>
+        {editingProduct && (
+          <Box sx={{ mt: 2, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+            <TextField
+              label="Product Name"
+              value={editingProduct.name}
+              onChange={(e) => handleEditFieldChange('name', e.target.value)}
+              fullWidth
+              sx={{ gridColumn: 'span 2' }}
+            />
+            
+            <TextField
+              label="Description"
+              value={editingProduct.description}
+              onChange={(e) => handleEditFieldChange('description', e.target.value)}
+              fullWidth
+              multiline
+              rows={3}
+              sx={{ gridColumn: 'span 2' }}
+            />
+            
+            <TextField
+              label="Image URL"
+              value={editingProduct.image}
+              onChange={(e) => handleEditFieldChange('image', e.target.value)}
+              fullWidth
+              sx={{ gridColumn: 'span 2' }}
+            />
+            
+            <TextField
+              label="Price"
+              type="number"
+              value={editingProduct.price}
+              onChange={(e) => handleEditFieldChange('price', parseInt(e.target.value) || 0)}
+              fullWidth
+            />
+            
+            <TextField
+              label="Stock"
+              type="number"
+              value={editingProduct.stock}
+              onChange={(e) => handleEditFieldChange('stock', parseInt(e.target.value) || 0)}
+              fullWidth
+            />
+            
+            <TextField
+              label="Category"
+              value={editingProduct.category}
+              onChange={(e) => handleEditFieldChange('category', e.target.value)}
+              fullWidth
+            />
+            
+            <TextField
+              label="Subcategory"
+              value={editingProduct.subcategory}
+              onChange={(e) => handleEditFieldChange('subcategory', e.target.value)}
+              fullWidth
+            />
+            
+            <TextField
+              label="Barcode"
+              value={editingProduct.barcode}
+              onChange={(e) => handleEditFieldChange('barcode', e.target.value)}
+              fullWidth
+              sx={{ gridColumn: 'span 2' }}
+            />
+            
+            <TextField
+              label="Supplier"
+              value={editingProduct.supplier}
+              onChange={(e) => handleEditFieldChange('supplier', e.target.value)}
+              fullWidth
+              sx={{ gridColumn: 'span 2' }}
+            />
+          </Box>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setEditModalOpen(false)}>Cancel</Button>
+        <Button variant="contained" onClick={handleSaveProduct}>Save Changes</Button>
+      </DialogActions>
+    </Dialog>
+  );
+
+  // Render functions for each step
+ 
+const renderCartReview = () => (
     <Box>
       <TextField
         placeholder="Search items to add to cart..."
@@ -1059,12 +1182,13 @@ const SalesPage = () => {
       )}
     </Box>
   
-  );
-
+    );
   // Main render
-
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
+      {/* Edit Product Modal */}
+      {renderEditProductModal()}
+      
       {/* Header with search and cart */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <TextField
@@ -1088,7 +1212,7 @@ const SalesPage = () => {
             onChange={(e) => setBarcodeInput(e.target.value)}
             onKeyPress={(e) => {
               if (e.key === "Enter" && barcodeInput) {
-                const product = productData.find(
+                const product = products.find(
                   (item) => item.barcode === barcodeInput
                 );
                 if (product) {
@@ -1127,7 +1251,7 @@ const SalesPage = () => {
         </Box>
       </Box>
       
-       {/* Filters */}
+      {/* Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={6} md={3}>
@@ -1215,9 +1339,20 @@ const SalesPage = () => {
                 onClick={() => handleAddToCart(product)}
               />
               <CardContent sx={{ flexGrow: 1 }}>
-                <Typography gutterBottom variant="h6" component="div">
-                  {product.name}
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography gutterBottom variant="h6" component="div">
+                    {product.name}
+                  </Typography>
+                  <IconButton 
+                    size="small" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditProduct(product);
+                    }}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                </Box>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                   {product.category} &gt; {product.subcategory}
                 </Typography>
