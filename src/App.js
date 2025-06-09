@@ -80,6 +80,7 @@ import Dis from "./scenes/pos/dis";
 import Refund from "./scenes/pos/refund";
 import Movement from "./scenes/pos/stock";
 import Products from "./scenes/pos/products";
+import Services from "./scenes/pos/services";
 import Manage_Sales from "./scenes/pos/manage";
 import Inventory_Manage from "./scenes/pos/inventory";
 import Manage_Payments from "./scenes/pos/payments";
@@ -498,6 +499,11 @@ function App() {
               <Route path="/pos/products" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Products />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/services" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Services />
                 </ProtectedRoute>
               } />
               <Route path="/pos/manage" element={
