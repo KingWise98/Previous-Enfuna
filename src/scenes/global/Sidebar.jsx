@@ -78,15 +78,13 @@ const Sidebar = () => {
           <SubMenu title="Point Of Sale (POS)" icon={<ShoppingCartOutlinedIcon />}>
           <Item title="Dashboard" to="/dashboard" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
           <Item title="New Sales" to="/pos/new_sales" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
-  <SubMenu title="Items" icon={<HomeOutlinedIcon />}>
+  <SubMenu title="Products" icon={<HomeOutlinedIcon />}>
+   <Item title="Products" to="/pos/products" icon={<InventoryIcon />} selected={selected} setSelected={setSelected} />
+  <Item title="Services" to="/pos/services" icon={<InventoryIcon />} selected={selected} setSelected={setSelected} />
   
- 
-      <Item title="Favourite" to="/pos/fav" icon={<StarBorderIcon />} selected={selected} setSelected={setSelected} />
-      <Item title="Dessert" to="/pos/dessert" icon={<CakeIcon />} selected={selected} setSelected={setSelected} />
       
-      <Item title="Beverages" to="/pos/beverages" icon={<LocalCafeIcon />} selected={selected} setSelected={setSelected} />
       <Item title="Stock Transfers" to="/pos/stock" icon={<SyncAltIcon />} selected={selected} setSelected={setSelected} />
-      <Item title="Hold Orders" to="/pos/hold" icon={<PauseCircleOutlineIcon />} selected={selected} setSelected={setSelected} />
+      <Item title="Order Management" to="/pos/hold" icon={<PauseCircleOutlineIcon />} selected={selected} setSelected={setSelected} />
       <Item title="Discounts & Promotions" to="/pos/dis" icon={<LocalOfferIcon />} selected={selected} setSelected={setSelected} />
       <Item title="Refunds & Returns" to="/pos/refund" icon={<ReplayIcon />} selected={selected} setSelected={setSelected} />
   </SubMenu>
@@ -111,8 +109,8 @@ const Sidebar = () => {
             
 
   <Item title="Manage Sales" to="/pos/manage" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
-  <Item title="Products" to="/pos/products" icon={<InventoryIcon />} selected={selected} setSelected={setSelected} />
-  <Item title="Services" to="/pos/services" icon={<InventoryIcon />} selected={selected} setSelected={setSelected} />
+   <Item title="Invoices" to="/payment" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
+ 
  
   
   <Item title="Reports" to="/pos/reports" icon={<AssessmentIcon />} selected={selected} setSelected={setSelected} />
