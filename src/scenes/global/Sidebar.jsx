@@ -79,11 +79,11 @@ const Sidebar = () => {
           <Item title="Dashboard" to="/dashboard" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
           <Item title="New Sales" to="/pos/new_sales" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
   <SubMenu title="Products" icon={<HomeOutlinedIcon />}>
-   <Item title="Products" to="/pos/products" icon={<InventoryIcon />} selected={selected} setSelected={setSelected} />
-  <Item title="Services" to="/pos/services" icon={<InventoryIcon />} selected={selected} setSelected={setSelected} />
+   <Item title="Manage Products" to="/pos/products" icon={<StorageIcon />} selected={selected} setSelected={setSelected} />
+  <Item title="Manage Services" to="/pos/services" icon={<AssessmentIcon />} selected={selected} setSelected={setSelected} />
   
       
-      <Item title="Stock Transfers" to="/pos/stock" icon={<SyncAltIcon />} selected={selected} setSelected={setSelected} />
+      
       <Item title="Order Management" to="/pos/hold" icon={<PauseCircleOutlineIcon />} selected={selected} setSelected={setSelected} />
       <Item title="Discounts & Promotions" to="/pos/dis" icon={<LocalOfferIcon />} selected={selected} setSelected={setSelected} />
       <Item title="Refunds & Returns" to="/pos/refund" icon={<ReplayIcon />} selected={selected} setSelected={setSelected} />
@@ -92,12 +92,12 @@ const Sidebar = () => {
   <SubMenu title="User Management" icon={<PeopleOutlinedIcon />}>
               <Item title="Users" to="/pos/user" icon={<PersonAddIcon />} selected={selected} setSelected={setSelected} />
               
-              <Item title="Sales Comission Agent" to="/pos/sales" icon={<GroupAddIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Sales Comission Agent" to="/pos/sales" icon={<StarBorderIcon />} selected={selected} setSelected={setSelected} />
               
             </SubMenu>
 
             <SubMenu title="Contacts" icon={<PersonAddIcon />}>
-            <Item title="Contacts" to="/pos/contacts" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
+            <Item title="Contacts" to="/pos/contacts" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Import Contacts" to="/pos/import_contacts" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
               
               <Item title="Customers" to="/pos/customers" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
@@ -113,7 +113,7 @@ const Sidebar = () => {
  
  
   
-  <Item title="Reports" to="/pos/reports" icon={<AssessmentIcon />} selected={selected} setSelected={setSelected} />
+  <Item title="POS Report" to="/pos/reports" icon={<ReportIcon />} selected={selected} setSelected={setSelected} />
   <Item title="Settings" to="/pos/settings" icon={<SettingsIcon />} selected={selected} setSelected={setSelected} />
 </SubMenu>
 
@@ -133,16 +133,12 @@ const Sidebar = () => {
 
             
               <Item title="Payment listing" to="/payment-listings" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Invoice" to="/payment" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Sales Receipt" to="/payment/receipt" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
              
             </SubMenu>
 
            
-            <SubMenu title="Ledger List" icon={<MenuBookOutlinedIcon />}>
-              <Item title="General Ledger" to="/ledger/list" icon={<MenuBookOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              
-            </SubMenu>
+            <Item title="General Ledger" to="/ledger/list" icon={<MenuBookOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Accounts Payable" to="/reports/payable" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Accounts Receivable" to="/reports/receivable" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <SubMenu title="Transactions" icon={<MenuBookOutlinedIcon />}>
@@ -200,7 +196,7 @@ const Sidebar = () => {
             </SubMenu>
           </SubMenu>
 
-          <SubMenu title="CRM (Customer Relation Management)" icon={<PeopleAltOutlinedIcon />}>
+          <SubMenu title="Empolyee Management" icon={<PeopleAltOutlinedIcon />}>
           
             <Item title="Leads" to="/crm/leads" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Deals" to="/crm/deals" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />

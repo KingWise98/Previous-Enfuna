@@ -25,11 +25,11 @@ import { AddCircle, Cancel, CheckCircle } from "@mui/icons-material";
 
 // Dummy order data
 const ordersData = [
-  { id: 1, orderNumber: "ORD001", customer: "Emma Epayi", contact: "0701234567", orderDate: "2025-03-05", status: "Hold", amount: 5000, orderType: "Delivery", quantity: 3, deliveryTime: "30 mins" },
-  { id: 2, orderNumber: "ORD002", customer: "Nalwoga Peace", contact: "0782345678", orderDate: "2025-03-04", status: "Hold", amount: 3200, orderType: "Takeout", quantity: 5, deliveryTime: "15 mins" },
-  { id: 3, orderNumber: "ORD003", customer: "Akinyi Joan", contact: "0755436789", orderDate: "2025-03-03", status: "Hold", amount: 4500, orderType: "Delivery", quantity: 2, deliveryTime: "45 mins" },
-  { id: 4, orderNumber: "ORD004", customer: "Ssebuufu George", contact: "0709876543", orderDate: "2025-03-02", status: "Released", amount: 2800, orderType: "Takeout", quantity: 4, deliveryTime: "20 mins" },
-  { id: 5, orderNumber: "ORD005", customer: "Kato Samuel", contact: "0771122334", orderDate: "2025-03-01", status: "Hold", amount: 6000, orderType: "Delivery", quantity: 6, deliveryTime: "35 mins" },
+  { id: 1, orderNumber: "ORD001", customer: "Emma Epayi", contact: "0701234567",email: "emma@gmail.com", orderDate: "3/05/25", status: "Hold", amount: 5000, orderType: "Delivery", quantity: 3, deliveryTime: "30 mins" },
+  { id: 2, orderNumber: "ORD002", customer: "Nalwoga Peace", contact: "0782345678",email: "nalwoga@gmail.com", orderDate: "3/05/25", status: "Hold", amount: 3200, orderType: "Takeout", quantity: 5, deliveryTime: "15 mins" },
+  { id: 3, orderNumber: "ORD003", customer: "Akinyi Joan", contact: "0755436789",email: "akinyi@gmail.com", orderDate: "3/05/25", status: "Hold", amount: 4500, orderType: "Delivery", quantity: 2, deliveryTime: "45 mins" },
+  { id: 4, orderNumber: "ORD004", customer: "Ssebuufu George", contact: "0709876543",email: "ssebu@gmail.com", orderDate: "3/05/25", status: "Delivered", amount: 2800, orderType: "Takeout", quantity: 4, deliveryTime: "20 mins" },
+  { id: 5, orderNumber: "ORD005", customer: "Kato Samuel", contact: "0771122334",email: "kato@gmail.com", orderDate: "3/05/25", status: "Hold", amount: 6000, orderType: "Delivery", quantity: 6, deliveryTime: "35 mins" },
 ];
 
 const HoldOrdersPage = () => {
@@ -52,7 +52,7 @@ const HoldOrdersPage = () => {
 
   const handleReleaseOrder = (orderId) => {
     setOrders(orders.map(order =>
-      order.id === orderId ? { ...order, status: "Released" } : order
+      order.id === orderId ? { ...order, status: "Delivered" } : order
     ));
   };
 
@@ -73,6 +73,7 @@ const HoldOrdersPage = () => {
           orderNumber: `ORD00${orders.length + 1}`,
           customer: newOrder.customer,
           contact: newOrder.contact,
+           email: newOrder.email,
           orderDate: newOrder.orderDate || new Date().toISOString().split("T")[0],
           amount: Number(newOrder.amount),
           orderType: newOrder.orderType,
@@ -128,7 +129,7 @@ const HoldOrdersPage = () => {
         >
           <MenuItem value="All">All</MenuItem>
           <MenuItem value="Hold">Hold</MenuItem>
-          <MenuItem value="Released">Released</MenuItem>
+          <MenuItem value="Delivered">Delivered</MenuItem>
         </Select>
       </FormControl>
 
@@ -140,6 +141,7 @@ const HoldOrdersPage = () => {
               <TableCell>Order Number</TableCell>
               <TableCell>Customer</TableCell>
               <TableCell>Contact</TableCell>
+               <TableCell>Email</TableCell>
               <TableCell>Order Date</TableCell>
               <TableCell>Amount (UGX)</TableCell>
               <TableCell>Order Type</TableCell>
@@ -155,6 +157,7 @@ const HoldOrdersPage = () => {
                 <TableCell>{order.orderNumber}</TableCell>
                 <TableCell>{order.customer}</TableCell>
                 <TableCell>{order.contact}</TableCell>
+                <TableCell>{order.email}</TableCell>
                 <TableCell>{order.orderDate}</TableCell>
                 <TableCell>{order.amount.toLocaleString()}</TableCell>
                 <TableCell>{order.orderType}</TableCell>
@@ -174,7 +177,7 @@ const HoldOrdersPage = () => {
                   <IconButton
                     color="success"
                     onClick={() => handleReleaseOrder(order.id)}
-                    disabled={order.status === "Released"}
+                    disabled={order.status === "Delivered"}
                   >
                     <CheckCircle />
                   </IconButton>
@@ -209,6 +212,14 @@ const HoldOrdersPage = () => {
             value={newOrder.contact}
             onChange={handleNewOrderChange}
             name="contact"
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            label="Customer Email"
+            fullWidth
+            value={newOrder.email}
+            onChange={handleNewOrderChange}
+            name="customer"
             sx={{ mb: 2 }}
           />
           <TextField
@@ -271,7 +282,7 @@ const HoldOrdersPage = () => {
               label="Status"
             >
               <MenuItem value="Hold">Hold</MenuItem>
-              <MenuItem value="Released">Released</MenuItem>
+              <MenuItem value="Delivered">Delivered</MenuItem>
             </Select>
           </FormControl>
         </DialogContent>

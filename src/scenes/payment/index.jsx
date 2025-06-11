@@ -9,6 +9,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import DescriptionIcon from "@mui/icons-material/Description";
 import ReceiptIcon from "@mui/icons-material/Receipt";
+import {
+ 
+  Add
+} from '@mui/icons-material';
 
 const Invoices = () => {
   const theme = useTheme();
@@ -150,7 +154,7 @@ const Invoices = () => {
 
   return (
     <Box m="20px">
-      <Header title="DOCUMENT MANAGER" subtitle="Create and manage invoices & quotations" />
+      <Header title="MANAGE INVOICES" subtitle="Create and manage invoices & quotations" />
       
       <Tabs 
         value={documentType} 
@@ -368,6 +372,20 @@ const Invoices = () => {
 
           <Paper elevation={3} sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>Add Items</Typography>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+
+             <Button 
+                           variant="contained" 
+                    startIcon={<AddIcon />}
+                    
+                            href="/pos/services"
+                          >
+                            Create Service
+                          </Button>
+                          </Box>
+                
+                          
+            
             <TextField
               fullWidth
               variant="outlined"

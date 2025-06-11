@@ -119,6 +119,10 @@ const POSDashboard = () => {
     const generateRecentTransactions = () => {
       const statuses = ['Completed', 'Pending', 'Refunded'];
       const methods = ['Cash', 'Credit Card', 'Mobile Payment'];
+      const orders = ['Cash', 'Credit Card', 'Mobile Payment'];
+      const times = ["08:00", "12:30", "15:45"];
+
+
       return Array.from({ length: 10 }, (_, i) => ({
         id: i + 1,
         customer: `Customer ${i + 1}`,
@@ -126,7 +130,9 @@ const POSDashboard = () => {
         items: Math.floor(Math.random() * 10) + 1,
         date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
         status: statuses[Math.floor(Math.random() * statuses.length)],
-        method: methods[Math.floor(Math.random() * methods.length)]
+        method: methods[Math.floor(Math.random() * methods.length)],
+        order: orders[Math.floor(Math.random() * methods.length)],
+        time: times[Math.floor(Math.random() * methods.length)]
       }));
     };
 
@@ -180,7 +186,25 @@ const POSDashboard = () => {
     { field: 'amount', headerName: 'Amount', width: 120 },
     { field: 'items', headerName: 'Items', width: 100 },
     { field: 'date', headerName: 'Date', width: 120 },
+    { field: 'time', headerName: 'Time', width: 120 },
+    { field: 'order', headerName: 'Order Type', width: 120 , renderCell: (params) => (
+        <Box
+          sx={{
+            backgroundColor: params.value === 'Completed' ? '#4caf50' :
+                          params.value === 'Pending' ? '#2196f3' :
+                          '#f44336',
+            color: 'white',
+            padding: '2px 8px',
+            borderRadius: '4px',
+            fontSize: '0.75rem'
+          }}
+        >
+          {params.value}
+        </Box>
+      )
+    },
     { field: 'status', headerName: 'Status', width: 120,
+      
       renderCell: (params) => (
         <Box
           sx={{
@@ -344,9 +368,34 @@ const POSDashboard = () => {
           </Card>
         </Grid>
       </Grid>
+       {/* Recent Transactions */}
+        <Grid item xs={12} md={8}>
+          <Card sx={{ p: 2 }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6">Recent Transactions</Typography>
+              <Button 
+                size="small" 
+                startIcon={<Add />}
+                href="/pos/new_sales"
+              >
+                New Sale
+              </Button>
+            </Box>
+            <Box sx={{ height: 400 }}>
+              <DataGrid
+                rows={recentTransactions}
+                columns={transactionColumns}
+                pageSize={5}
+                rowsPerPageOptions={[5]}
+              />
+            </Box>
+          </Card>
+        </Grid>
 
       {/* Charts Row */}
       <Grid container spacing={3} mb={3}>
+
+        
         {/* Sales Trend Chart */}
         <Grid item xs={12} md={8}>
           <Card sx={{ p: 2, height: '100%' }}>
@@ -437,7 +486,7 @@ const POSDashboard = () => {
                   variant="contained" 
                   startIcon={<Receipt />} 
                   sx={{ mb: 1 }}
-                  href="/payment-listings"
+                  href="/payment"
                 >
                   Invoices
                 </Button>
@@ -480,29 +529,7 @@ const POSDashboard = () => {
 
       {/* Bottom Row */}
       <Grid container spacing={3}>
-        {/* Recent Transactions */}
-        <Grid item xs={12} md={8}>
-          <Card sx={{ p: 2 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6">Recent Transactions</Typography>
-              <Button 
-                size="small" 
-                startIcon={<Add />}
-                href="/pos/new_sales"
-              >
-                New Sale
-              </Button>
-            </Box>
-            <Box sx={{ height: 400 }}>
-              <DataGrid
-                rows={recentTransactions}
-                columns={transactionColumns}
-                pageSize={5}
-                rowsPerPageOptions={[5]}
-              />
-            </Box>
-          </Card>
-        </Grid>
+       
 
         {/* Right Sidebar */}
         <Grid item xs={12} md={4}>
