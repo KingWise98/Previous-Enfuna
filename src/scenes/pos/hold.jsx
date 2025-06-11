@@ -27,9 +27,9 @@ import { AddCircle, Cancel, CheckCircle } from "@mui/icons-material";
 const ordersData = [
   { id: 1, orderNumber: "ORD001", customer: "Emma Epayi", contact: "0701234567",email: "emma@gmail.com", orderDate: "3/05/25", status: "Hold", amount: 5000, orderType: "Delivery", quantity: 3, deliveryTime: "30 mins" },
   { id: 2, orderNumber: "ORD002", customer: "Nalwoga Peace", contact: "0782345678",email: "nalwoga@gmail.com", orderDate: "3/05/25", status: "Hold", amount: 3200, orderType: "Takeout", quantity: 5, deliveryTime: "15 mins" },
-  { id: 3, orderNumber: "ORD003", customer: "Akinyi Joan", contact: "0755436789",email: "akinyi@gmail.com", orderDate: "3/05/25", status: "Hold", amount: 4500, orderType: "Delivery", quantity: 2, deliveryTime: "45 mins" },
+  { id: 3, orderNumber: "ORD003", customer: "Akinyi Joan", contact: "0755436789",email: "akinyi@gmail.com", orderDate: "3/05/25", status: "Ready for Delivery", amount: 4500, orderType: "Delivery", quantity: 2, deliveryTime: "45 mins" },
   { id: 4, orderNumber: "ORD004", customer: "Ssebuufu George", contact: "0709876543",email: "ssebu@gmail.com", orderDate: "3/05/25", status: "Delivered", amount: 2800, orderType: "Takeout", quantity: 4, deliveryTime: "20 mins" },
-  { id: 5, orderNumber: "ORD005", customer: "Kato Samuel", contact: "0771122334",email: "kato@gmail.com", orderDate: "3/05/25", status: "Hold", amount: 6000, orderType: "Delivery", quantity: 6, deliveryTime: "35 mins" },
+  { id: 5, orderNumber: "ORD005", customer: "Kato Samuel", contact: "0771122334",email: "kato@gmail.com", orderDate: "3/05/25", status: "On its Way", amount: 6000, orderType: "Delivery", quantity: 6, deliveryTime: "35 mins" },
 ];
 
 const HoldOrdersPage = () => {
@@ -50,9 +50,9 @@ const HoldOrdersPage = () => {
     setOrderStatusFilter(event.target.value);
   };
 
-  const handleReleaseOrder = (orderId) => {
+  const handleUpdateOrderStatus = (orderId, newStatus) => {
     setOrders(orders.map(order =>
-      order.id === orderId ? { ...order, status: "Delivered" } : order
+      order.id === orderId ? { ...order, status: newStatus } : order
     ));
   };
 
@@ -73,7 +73,7 @@ const HoldOrdersPage = () => {
           orderNumber: `ORD00${orders.length + 1}`,
           customer: newOrder.customer,
           contact: newOrder.contact,
-           email: newOrder.email,
+          email: newOrder.email,
           orderDate: newOrder.orderDate || new Date().toISOString().split("T")[0],
           amount: Number(newOrder.amount),
           orderType: newOrder.orderType,
@@ -98,6 +98,22 @@ const HoldOrdersPage = () => {
   const filteredOrders = orders.filter(
     (order) => orderStatusFilter === "All" || order.status === orderStatusFilter
   );
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Hold":
+        return "orange";
+      case "Ready for Delivery":
+      case "Ready for Pick Up":
+        return "blue";
+      case "On its Way":
+        return "purple";
+      case "Delivered":
+        return "green";
+      default:
+        return "black";
+    }
+  };
 
   return (
     <Box p={3}>
@@ -129,6 +145,9 @@ const HoldOrdersPage = () => {
         >
           <MenuItem value="All">All</MenuItem>
           <MenuItem value="Hold">Hold</MenuItem>
+          <MenuItem value="Ready for Delivery">Ready for Delivery</MenuItem>
+          <MenuItem value="Ready for Pick Up">Ready for Pick Up</MenuItem>
+          <MenuItem value="On its Way">On its Way</MenuItem>
           <MenuItem value="Delivered">Delivered</MenuItem>
         </Select>
       </FormControl>
@@ -141,7 +160,7 @@ const HoldOrdersPage = () => {
               <TableCell>Order Number</TableCell>
               <TableCell>Customer</TableCell>
               <TableCell>Contact</TableCell>
-               <TableCell>Email</TableCell>
+              <TableCell>Email</TableCell>
               <TableCell>Order Date</TableCell>
               <TableCell>Amount (UGX)</TableCell>
               <TableCell>Order Type</TableCell>
@@ -166,7 +185,7 @@ const HoldOrdersPage = () => {
                 <TableCell>
                   <Typography
                     sx={{
-                      color: order.status === "Hold" ? "orange" : "green",
+                      color: getStatusColor(order.status),
                       fontWeight: "bold",
                     }}
                   >
@@ -174,19 +193,38 @@ const HoldOrdersPage = () => {
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <IconButton
-                    color="success"
-                    onClick={() => handleReleaseOrder(order.id)}
-                    disabled={order.status === "Delivered"}
-                  >
-                    <CheckCircle />
-                  </IconButton>
-                  <IconButton
-                    color="error"
-                    onClick={() => handleCancelOrder(order.id)}
-                  >
-                    <Cancel />
-                  </IconButton>
+                  {order.status !== "Delivered" && (
+                    <>
+                      <IconButton
+                        color="success"
+                        onClick={() => {
+                          if (order.orderType === "Delivery") {
+                            if (order.status === "Hold") {
+                              handleUpdateOrderStatus(order.id, "Ready for Delivery");
+                            } else if (order.status === "Ready for Delivery") {
+                              handleUpdateOrderStatus(order.id, "On its Way");
+                            } else {
+                              handleUpdateOrderStatus(order.id, "Delivered");
+                            }
+                          } else {
+                            if (order.status === "Hold") {
+                              handleUpdateOrderStatus(order.id, "Ready for Pick Up");
+                            } else {
+                              handleUpdateOrderStatus(order.id, "Delivered");
+                            }
+                          }
+                        }}
+                      >
+                        <CheckCircle />
+                      </IconButton>
+                      <IconButton
+                        color="error"
+                        onClick={() => handleCancelOrder(order.id)}
+                      >
+                        <Cancel />
+                      </IconButton>
+                    </>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -219,7 +257,7 @@ const HoldOrdersPage = () => {
             fullWidth
             value={newOrder.email}
             onChange={handleNewOrderChange}
-            name="customer"
+            name="email"
             sx={{ mb: 2 }}
           />
           <TextField
@@ -282,6 +320,9 @@ const HoldOrdersPage = () => {
               label="Status"
             >
               <MenuItem value="Hold">Hold</MenuItem>
+              <MenuItem value="Ready for Delivery">Ready for Delivery</MenuItem>
+              <MenuItem value="Ready for Pick Up">Ready for Pick Up</MenuItem>
+              <MenuItem value="On its Way">On its Way</MenuItem>
               <MenuItem value="Delivered">Delivered</MenuItem>
             </Select>
           </FormControl>
