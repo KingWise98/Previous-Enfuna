@@ -64,12 +64,21 @@ const ProductListPage = () => {
   };
 
   const handleCreateProduct = () => {
-    if (Object.values(formData).some((field) => field === "" || field === null)) {
-      setError("Please fill in all fields before submitting.");
+    // Check if required fields are filled
+    const requiredFields = ['name', 'code', 'category', 'brand', 'price', 'unit', 'quantity'];
+    const isMissingField = requiredFields.some(field => !formData[field]);
+    
+    if (isMissingField || !formData.image) {
+      setError("Please fill in all fields and upload an image before submitting.");
       return;
     }
 
-    setProducts([...products, { id: products.length + 1, ...formData }]);
+    const newProduct = {
+      id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
+      ...formData
+    };
+
+    setProducts([...products, newProduct]);
     setFormData({
       image: null,
       imageFile: null,
@@ -94,6 +103,11 @@ const ProductListPage = () => {
 
   // Generate PDF
   const handleDownloadPDF = () => {
+    if (products.length === 0) {
+      alert("No products to export");
+      return;
+    }
+    
     const doc = new jsPDF();
     doc.text("Product List", 10, 10);
     autoTable(doc, {
@@ -113,7 +127,15 @@ const ProductListPage = () => {
 
   // Generate Excel
   const handleDownloadExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(products);
+    if (products.length === 0) {
+      alert("No products to export");
+      return;
+    }
+    
+    // Remove image fields before exporting to Excel
+    const productsForExport = products.map(({ image, imageFile, ...rest }) => rest);
+    
+    const worksheet = XLSX.utils.json_to_sheet(productsForExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
     XLSX.writeFile(workbook, "Product_List.xlsx");
@@ -126,7 +148,16 @@ const ProductListPage = () => {
       flex: 1,
       renderCell: (params) =>
         params.value ? (
-          <img src={params.value} alt="Product" style={{ width: 50, height: 50, borderRadius: 5 }} />
+          <img 
+            src={params.value} 
+            alt="Product" 
+            style={{ 
+              width: 50, 
+              height: 50, 
+              borderRadius: 5,
+              objectFit: 'cover' 
+            }} 
+          />
         ) : (
           "No Image"
         ),
@@ -135,7 +166,12 @@ const ProductListPage = () => {
     { field: "code", headerName: "Code", flex: 1 },
     { field: "category", headerName: "Category", flex: 1 },
     { field: "brand", headerName: "Brand", flex: 1 },
-    { field: "price", headerName: "Price (UGX)", flex: 1 },
+    { 
+      field: "price", 
+      headerName: "Price (UGX)", 
+      flex: 1,
+      valueFormatter: (params) => `UGX ${params.value}`
+    },
     { field: "unit", headerName: "Unit", flex: 1 },
     { field: "quantity", headerName: "Quantity", flex: 1 },
     {
@@ -187,18 +223,103 @@ const ProductListPage = () => {
           }}
         >
           <input {...getInputProps()} />
-          <Typography sx={{ color: isDarkMode ? "white" : "white" }}>
+          <Typography sx={{ color: isDarkMode ? "white" : "black" }}>
             {formData.image ? "Image Selected" : "Drag & drop an image here, or click to select one"}
           </Typography>
 
           {formData.image && (
             <Box mt={1} display="flex" alignItems="center" gap={1}>
-              <img src={formData.image} alt="Preview" style={{ width: 100, height: 100, borderRadius: 5 }} />
+              <img 
+                src={formData.image} 
+                alt="Preview" 
+                style={{ 
+                  width: 100, 
+                  height: 100, 
+                  borderRadius: 5,
+                  objectFit: 'cover'
+                }} 
+              />
               <IconButton color="error" onClick={removeImage}>
                 <Close />
               </IconButton>
             </Box>
           )}
+        </Box>
+
+        {/* Text Fields */}
+        <Box display="grid" gridTemplateColumns="repeat(4, 1fr)" gap={2}>
+          <Box gridColumn="span 1">
+            <TextField
+              fullWidth
+              variant="outlined"
+              label="Name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+            />
+          </Box>
+          <Box gridColumn="span 1">
+            <TextField
+              fullWidth
+              variant="outlined"
+              label="Code"
+              name="code"
+              value={formData.code}
+              onChange={handleChange}
+            />
+          </Box>
+          <Box gridColumn="span 1">
+            <TextField
+              fullWidth
+              variant="outlined"
+              label="Category"
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+            />
+          </Box>
+          <Box gridColumn="span 1">
+            <TextField
+              fullWidth
+              variant="outlined"
+              label="Brand"
+              name="brand"
+              value={formData.brand}
+              onChange={handleChange}
+            />
+          </Box>
+          <Box gridColumn="span 1">
+            <TextField
+              fullWidth
+              variant="outlined"
+              label="Price"
+              name="price"
+              type="number"
+              value={formData.price}
+              onChange={handleChange}
+            />
+          </Box>
+          <Box gridColumn="span 1">
+            <TextField
+              fullWidth
+              variant="outlined"
+              label="Unit"
+              name="unit"
+              value={formData.unit}
+              onChange={handleChange}
+            />
+          </Box>
+          <Box gridColumn="span 1">
+            <TextField
+              fullWidth
+              variant="outlined"
+              label="Quantity"
+              name="quantity"
+              type="number"
+              value={formData.quantity}
+              onChange={handleChange}
+            />
+          </Box>
         </Box>
 
         {error && (
@@ -228,8 +349,14 @@ const ProductListPage = () => {
       </Box>
 
       {/* Product Table */}
-      <Box mt={4} sx={{ height: "60vh" }}>
-        <DataGrid rows={products} columns={columns} />
+      <Box mt={4} sx={{ height: "60vh", width: '100%' }}>
+        <DataGrid 
+          rows={products} 
+          columns={columns} 
+          pageSize={10}
+          rowsPerPageOptions={[10]}
+          disableSelectionOnClick
+        />
       </Box>
     </Box>
   );

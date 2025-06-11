@@ -70,7 +70,7 @@ import Reports from "./scenes/HRM/reports";
 import Timestamp from "./scenes/HRM/timestamp";
 
 // POS
-import Pos_Dashboard from "./scenes/pos/dashboard";
+import Pos_Dashboard from "./scenes/pos/all";
 import New_Sales from "./scenes/pos/new_sales";
 import Favorites from "./scenes/pos/fav";
 import Beverages from "./scenes/pos/beverages";
@@ -451,7 +451,7 @@ function App() {
               } />
 
               {/* POS */}
-              <Route path="/pos/dashboard" element={
+              <Route path="/pos/all" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Pos_Dashboard />
                 </ProtectedRoute>

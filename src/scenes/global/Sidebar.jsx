@@ -74,9 +74,11 @@ const Sidebar = () => {
           <MenuItem onClick={() => setIsCollapsed(!isCollapsed)} icon={<MenuOutlinedIcon />}> 
             {!isCollapsed && <Typography variant="h3">ADMIN</Typography>}
           </MenuItem>
+           <Item title="Business SnapShot" to="/dashboard" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
           <SubMenu title="Point Of Sale (POS)" icon={<ShoppingCartOutlinedIcon />}>
-          <Item title="Dashboard" to="/dashboard" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+         
+          <Item title="Dashboard" to="/pos/all" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
           <Item title="New Sales" to="/pos/new_sales" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
   <SubMenu title="Products" icon={<HomeOutlinedIcon />}>
    <Item title="Manage Products" to="/pos/products" icon={<StorageIcon />} selected={selected} setSelected={setSelected} />
