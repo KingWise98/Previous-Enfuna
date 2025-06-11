@@ -122,7 +122,6 @@ const POSDashboard = () => {
       const orders = ['Cash', 'Credit Card', 'Mobile Payment'];
       const times = ["08:00", "12:30", "15:45"];
 
-
       return Array.from({ length: 10 }, (_, i) => ({
         id: i + 1,
         customer: `Customer ${i + 1}`,
@@ -204,7 +203,6 @@ const POSDashboard = () => {
       )
     },
     { field: 'status', headerName: 'Status', width: 120,
-      
       renderCell: (params) => (
         <Box
           sx={{
@@ -222,6 +220,133 @@ const POSDashboard = () => {
       )
     },
     { field: 'method', headerName: 'Method', width: 130 }
+  ];
+
+  // Columns for top selling products table
+  const topProductsColumns = [
+    { 
+      field: 'image', 
+      headerName: 'Image', 
+      width: 80,
+      renderCell: (params) => (
+        <img 
+          src={params.value} 
+          alt="Product" 
+          style={{ 
+            width: 40, 
+            height: 40, 
+            borderRadius: '4px',
+            objectFit: 'cover'
+          }} 
+        />
+      ),
+      sortable: false
+    },
+    { field: 'name', headerName: 'Product Name', width: 200 },
+    { field: 'category', headerName: 'Category', width: 150 },
+    { 
+      field: 'sales', 
+      headerName: 'Units Sold', 
+      width: 150,
+      renderCell: (params) => (
+        <Typography fontWeight="bold">{params.value}</Typography>
+      )
+    },
+    { 
+      field: 'revenue', 
+      headerName: 'Revenue (UGX)', 
+      width: 150,
+      renderCell: (params) => (
+        <Typography color="success.main">UGX {params.value.toLocaleString()}</Typography>
+      )
+    },
+    { 
+      field: 'rating', 
+      headerName: 'Rating', 
+      width: 120,
+      renderCell: (params) => (
+        <Box display="flex" alignItems="center">
+          <Box sx={{ color: '#ffc107', mr: 0.5 }}>★</Box>
+          <Typography>{params.value}</Typography>
+        </Box>
+      )
+    }
+  ];
+
+  // Columns for inventory alerts table
+  const inventoryAlertsColumns = [
+    { 
+      field: 'image', 
+      headerName: 'Image', 
+      width: 80,
+      renderCell: (params) => (
+        <img 
+          src={params.value} 
+          alt="Product" 
+          style={{ 
+            width: 40, 
+            height: 40, 
+            borderRadius: '4px',
+            objectFit: 'cover'
+          }} 
+        />
+      ),
+      sortable: false
+    },
+    { field: 'name', headerName: 'Product Name', width: 200 },
+    { field: 'category', headerName: 'Category', width: 150 },
+    { 
+      field: 'currentStock', 
+      headerName: 'Current Stock', 
+      width: 150,
+      renderCell: (params) => (
+        <Typography color={params.value < params.row.threshold * 0.2 ? 'error' : 'warning.main'}>
+          {params.value}
+        </Typography>
+      )
+    },
+    { 
+      field: 'threshold', 
+      headerName: 'Threshold', 
+      width: 120,
+      renderCell: (params) => (
+        <Typography>{params.value}</Typography>
+      )
+    },
+    { 
+      field: 'status', 
+      headerName: 'Status', 
+      width: 150,
+      renderCell: (params) => (
+        <Box
+          sx={{
+            backgroundColor: params.row.currentStock < params.row.threshold * 0.2 ? '#f44336' : '#ff9800',
+            color: 'white',
+            padding: '2px 8px',
+            borderRadius: '4px',
+            fontSize: '0.75rem'
+          }}
+        >
+          {params.row.currentStock < params.row.threshold * 0.2 ? 'Critical' : 'Low'}
+        </Box>
+      )
+    },
+    { 
+      field: 'action', 
+      headerName: 'Action', 
+      width: 120,
+      renderCell: (params) => (
+        <Button 
+          size="small" 
+          variant="outlined" 
+          color={params.row.currentStock < params.row.threshold * 0.2 ? 'error' : 'warning'}
+          href="/pos/inventory"
+        >
+          Reorder
+        </Button>
+      ),
+      sortable: false
+    }
   ];
 
   return (
@@ -368,7 +493,9 @@ const POSDashboard = () => {
           </Card>
         </Grid>
       </Grid>
-       {/* Recent Transactions */}
+
+      {/* Recent Transactions */}
+      <Grid container spacing={3} mb={3}>
         <Grid item xs={12} md={8}>
           <Card sx={{ p: 2 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -388,67 +515,6 @@ const POSDashboard = () => {
                 pageSize={5}
                 rowsPerPageOptions={[5]}
               />
-            </Box>
-          </Card>
-        </Grid>
-
-      {/* Charts Row */}
-      <Grid container spacing={3} mb={3}>
-
-        
-        {/* Sales Trend Chart */}
-        <Grid item xs={12} md={8}>
-          <Card sx={{ p: 2, height: '100%' }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6">Sales Trend ({timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)} View)</Typography>
-              <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>View</InputLabel>
-                <Select
-                  value={chartFilter}
-                  label="View"
-                  onChange={(e) => setChartFilter(e.target.value)}
-                >
-                  <MenuItem value="sales">Sales</MenuItem>
-                  <MenuItem value="customers">Customers</MenuItem>
-                  <MenuItem value="returns">Returns</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <Box height={300}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  {chartFilter === 'sales' && (
-                    <Line
-                      type="monotone"
-                      dataKey="sales"
-                      stroke="#2196f3"
-                      activeDot={{ r: 8 }}
-                      name="Sales ($)"
-                    />
-                  )}
-                  {chartFilter === 'customers' && (
-                    <Line
-                      type="monotone"
-                      dataKey="customers"
-                      stroke="#4caf50"
-                      name="Customers"
-                    />
-                  )}
-                  {chartFilter === 'returns' && (
-                    <Line
-                      type="monotone"
-                      dataKey="returns"
-                      stroke="#f44336"
-                      name="Returns ($)"
-                    />
-                  )}
-                </LineChart>
-              </ResponsiveContainer>
             </Box>
           </Card>
         </Grid>
@@ -527,76 +593,161 @@ const POSDashboard = () => {
         </Grid>
       </Grid>
 
+      {/* Charts Row */}
+      <Grid container spacing={3} mb={3}>
+        {/* Sales Trend Chart */}
+        <Grid item xs={12} md={8}>
+          <Card sx={{ p: 2, height: '100%' }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6">Sales Trend ({timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)} View)</Typography>
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>View</InputLabel>
+                <Select
+                  value={chartFilter}
+                  label="View"
+                  onChange={(e) => setChartFilter(e.target.value)}
+                >
+                  <MenuItem value="sales">Sales</MenuItem>
+                  <MenuItem value="customers">Customers</MenuItem>
+                  <MenuItem value="returns">Returns</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            <Box height={300}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={salesData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  {chartFilter === 'sales' && (
+                    <Line
+                      type="monotone"
+                      dataKey="sales"
+                      stroke="#2196f3"
+                      activeDot={{ r: 8 }}
+                      name="Sales ($)"
+                    />
+                  )}
+                  {chartFilter === 'customers' && (
+                    <Line
+                      type="monotone"
+                      dataKey="customers"
+                      stroke="#4caf50"
+                      name="Customers"
+                    />
+                  )}
+                  {chartFilter === 'returns' && (
+                    <Line
+                      type="monotone"
+                      dataKey="returns"
+                      stroke="#f44336"
+                      name="Returns ($)"
+                    />
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
+            </Box>
+          </Card>
+        </Grid>
+
+        {/* Top Selling Products */}
+        <Grid item xs={12} md={4}>
+          <Card sx={{ p: 2, height: '100%' }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6">Top Selling Products</Typography>
+              <Button size="small" href="/pos/products">View All</Button>
+            </Box>
+            <Box sx={{ height: 300 }}>
+              <DataGrid
+                rows={topProducts}
+                columns={topProductsColumns}
+                pageSize={5}
+                rowsPerPageOptions={[5]}
+                disableSelectionOnClick
+                hideFooter={topProducts.length <= 5}
+              />
+            </Box>
+          </Card>
+        </Grid>
+      </Grid>
+
       {/* Bottom Row */}
       <Grid container spacing={3}>
-       
+        {/* Inventory Alerts */}
+        <Grid item xs={12} md={8}>
+          <Card sx={{ p: 2 }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6">Inventory Alerts</Typography>
+              <Button size="small" href="/pos/inventory">Manage Inventory</Button>
+            </Box>
+            <Box sx={{ height: 400 }}>
+              <DataGrid
+                rows={inventoryAlerts}
+                columns={inventoryAlertsColumns}
+                pageSize={5}
+                rowsPerPageOptions={[5]}
+                disableSelectionOnClick
+                autoHeight={inventoryAlerts.length <= 5}
+                sx={{
+                  '& .MuiDataGrid-cell': {
+                    display: 'flex',
+                    alignItems: 'center'
+                  }
+                }}
+              />
+              {inventoryAlerts.length === 0 && (
+                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                  <Typography color="textSecondary">No inventory alerts at this time</Typography>
+                </Box>
+              )}
+            </Box>
+          </Card>
+        </Grid>
 
         {/* Right Sidebar */}
         <Grid item xs={12} md={4}>
-          {/* Top Selling Products */}
+          {/* Quick Stats */}
           <Card sx={{ p: 2, mb: 3 }}>
-            <Typography variant="h6" mb={2}>Top Selling Products</Typography>
-            {topProducts.map((product) => (
-              <Box key={product.id} mb={2}>
-                <Box display="flex" alignItems="center" gap={2}>
-                  <img 
-                    src={product.image} 
-                    alt={product.name} 
-                    style={{ 
-                      width: 50, 
-                      height: 50, 
-                      objectFit: 'cover',
-                      borderRadius: '4px'
-                    }} 
-                  />
-                  <Box flexGrow={1}>
-                    <Typography fontWeight="bold">{product.name}</Typography>
-                    <Typography variant="body2" color="textSecondary">{product.category}</Typography>
-                  </Box>
-                  <Box textAlign="right">
-                    <Typography fontWeight="bold">{product.sales} units</Typography>
-                    <Typography variant="body2">${product.revenue.toLocaleString()}</Typography>
-                  </Box>
-                </Box>
-                <Divider sx={{ mt: 1 }} />
-              </Box>
-            ))}
+            <Typography variant="h6" mb={2}>Quick Stats</Typography>
+            <Box display="flex" justifyContent="space-between" mb={2}>
+              <Typography>Total Products</Typography>
+              <Typography fontWeight="bold">125</Typography>
+            </Box>
+            <Box display="flex" justifyContent="space-between" mb={2}>
+              <Typography>Low Stock Items</Typography>
+              <Typography fontWeight="bold" color="warning.main">18</Typography>
+            </Box>
+            <Box display="flex" justifyContent="space-between" mb={2}>
+              <Typography>Out of Stock</Typography>
+              <Typography fontWeight="bold" color="error.main">5</Typography>
+            </Box>
+            <Box display="flex" justifyContent="space-between">
+              <Typography>New Products</Typography>
+              <Typography fontWeight="bold" color="success.main">12</Typography>
+            </Box>
           </Card>
 
-          {/* Inventory Alerts */}
+          {/* Recent Activity */}
           <Card sx={{ p: 2 }}>
-            <Typography variant="h6" mb={2}>Inventory Alerts</Typography>
-            {inventoryAlerts.length > 0 ? (
-              inventoryAlerts.map((item) => (
-                <Box key={item.id} mb={2}>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <img 
-                      src={item.image} 
-                      alt={item.name} 
-                      style={{ 
-                        width: 50, 
-                        height: 50, 
-                        objectFit: 'cover',
-                        borderRadius: '4px'
-                      }} 
-                    />
-                    <Box flexGrow={1}>
-                      <Typography fontWeight="bold">{item.name}</Typography>
-                      <Typography variant="body2" color="textSecondary">{item.category}</Typography>
-                    </Box>
-                    <Typography color="#f44336">
-                      {item.currentStock} / {item.threshold}
-                    </Typography>
-                  </Box>
-                  <Box display="flex" justifyContent="flex-end" mt={1}>
-                    <Button size="small" variant="outlined" href="/pos/inventory">Reorder</Button>
-                  </Box>
-                  <Divider sx={{ mt: 1 }} />
-                </Box>
-              ))
-            ) : (
-              <Typography color="textSecondary">No inventory alerts</Typography>
-            )}
+            <Typography variant="h6" mb={2}>Recent Activity</Typography>
+            <Box mb={2}>
+              <Typography variant="body2">New order placed for UGX 45,000</Typography>
+              <Typography variant="caption" color="textSecondary">2 hours ago</Typography>
+            </Box>
+            <Box mb={2}>
+              <Typography variant="body2">Inventory updated for Fanta</Typography>
+              <Typography variant="caption" color="textSecondary">5 hours ago</Typography>
+            </Box>
+            <Box mb={2}>
+              <Typography variant="body2">New customer registered</Typography>
+              <Typography variant="caption" color="textSecondary">Yesterday</Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2">Monthly sales target achieved</Typography>
+              <Typography variant="caption" color="textSecondary">2 days ago</Typography>
+            </Box>
           </Card>
         </Grid>
       </Grid>
