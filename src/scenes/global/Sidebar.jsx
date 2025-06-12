@@ -222,6 +222,7 @@ const Sidebar = () => {
 
         </Menu>
       </ProSidebar>
+      
     </Box>
   );
 };
