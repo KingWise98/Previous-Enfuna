@@ -499,7 +499,7 @@ const POSDashboard = () => {
         <Grid item xs={12} md={8}>
           <Card sx={{ p: 2 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6">Recent Transactions</Typography>
+              <Typography variant="h6">Transactions</Typography>
               <Button 
                 size="small" 
                 startIcon={<Add />}
