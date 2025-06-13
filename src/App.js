@@ -57,6 +57,7 @@ import Transfer from "./scenes/inventory/transfer";
 import CustomerList from "./scenes/inventory/customer";
 import SupplyChain from "./scenes/inventory/supply";
 import SupplyPay from "./scenes/inventory/payments";
+import Manage from "./scenes/inventory/manage";
 
 // CRM
 import Leads from "./scenes/CRM/leads";
@@ -351,6 +352,11 @@ function App() {
                   <Barcode />
                 </ProtectedRoute>
               } />
+              <Route path="/inventory/manage" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Manage />
+                </ProtectedRoute>
+              } />
               <Route path="/inventory/supply" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <SupplyChain />
@@ -638,6 +644,7 @@ function App() {
                   <Inventory_Manages />
                 </ProtectedRoute>
               } />
+              
               <Route path="/user/payments" element={
                 <ProtectedRoute allowedRoles={["normal"]}>
                   <Manage_Payment />

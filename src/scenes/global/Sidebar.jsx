@@ -179,7 +179,7 @@ const Sidebar = () => {
 
           <SubMenu title="Inventory Management" icon={<InventoryOutlinedIcon />}>
             <Item title="Overview" to="/inventory/overview" icon={<BookOutlinedIcon />} selected={selected} setSelected={setSelected} />
-            
+            <Item title="Manage Inventory" to="/inventory/manage" icon={<InventoryIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Product List" to="/inventory/product-list" icon={<InventoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <SubMenu title="Purchases" icon={<PeopleOutlinedIcon />}>
               <Item title="Purchase Order" to="/pos/add" icon={<PersonAddIcon />} selected={selected} setSelected={setSelected} />
