@@ -72,6 +72,7 @@ import Timestamp from "./scenes/HRM/timestamp";
 
 // POS
 import Pos_Dashboard from "./scenes/pos/all";
+import Dashboards from "./scenes/pos/dashboard";
 import New_Sales from "./scenes/pos/new_sales";
 import Favorites from "./scenes/pos/fav";
 import Beverages from "./scenes/pos/beverages";
@@ -460,6 +461,11 @@ function App() {
               <Route path="/pos/all" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Pos_Dashboard />
+                </ProtectedRoute>
+              } />
+               <Route path="/pos/dashboard" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Dashboards />
                 </ProtectedRoute>
               } />
               <Route path="/pos/new_sales" element={

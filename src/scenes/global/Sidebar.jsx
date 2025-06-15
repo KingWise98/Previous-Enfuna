@@ -74,7 +74,7 @@ const Sidebar = () => {
           <MenuItem onClick={() => setIsCollapsed(!isCollapsed)} icon={<MenuOutlinedIcon />}> 
             {!isCollapsed && <Typography variant="h3">ADMIN</Typography>}
           </MenuItem>
-           <Item title="Business SnapShot" to="/dashboard" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+           <Item title="Business Summary" to="/dashboard" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
           <SubMenu title="Point Of Sale (POS)" icon={<ShoppingCartOutlinedIcon />}>
          
@@ -198,14 +198,14 @@ const Sidebar = () => {
             </SubMenu>
           </SubMenu>
 
-          <SubMenu title="Empolyee Management" icon={<PeopleAltOutlinedIcon />}>
+          <SubMenu title="Customer Management" icon={<PeopleAltOutlinedIcon />}>
           
             <Item title="Leads" to="/crm/leads" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Deals" to="/crm/deals" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Analytics" to="/crm/analytics" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
           </SubMenu>
 
-          <SubMenu title="Human Resource Management" icon={<WorkOutlineIcon />}>
+          <SubMenu title="Empolyee Management" icon={<WorkOutlineIcon />}>
             <Item title="Employee List/Record" to="/HRM/list" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Employee Timestamp" to="/HRM/timestamp" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Payroll" to="/HRM/payroll" icon={<PaymentIcon />} selected={selected} setSelected={setSelected} />

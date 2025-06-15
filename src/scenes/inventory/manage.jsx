@@ -916,7 +916,7 @@ const InventoryPage = () => {
     <Box sx={{ padding: isMobile ? 1 : 3 }}>
       {/* Page Title and Actions */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Inventory Management</Typography>
+        <Typography variant="h4">Manage Inventory</Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             variant="contained"

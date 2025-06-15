@@ -89,7 +89,7 @@ const BusinessSnapshot = () => {
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h3" fontWeight="bold">
-          Business Snapshot
+          Business Summary
         </Typography>
         <Box display="flex" gap={1}>
           <Button variant="outlined" startIcon={<CalendarToday />}>
