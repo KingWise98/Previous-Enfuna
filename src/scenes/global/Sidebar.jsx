@@ -97,7 +97,7 @@ const Sidebar = () => {
             <Item title="Contacts" to="/pos/contacts" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Import Contacts" to="/pos/import_contacts" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
               
-              <Item title="Customers" to="/pos/customers" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
+             
               <Item title="Customer Groups" to="/pos/customer_groups" icon={<GroupAddIcon />} selected={selected} setSelected={setSelected} />
               
               
