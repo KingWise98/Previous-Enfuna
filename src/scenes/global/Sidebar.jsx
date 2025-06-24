@@ -91,12 +91,7 @@ const Sidebar = () => {
       <Item title="Refunds & Returns" to="/pos/refund" icon={<ReplayIcon />} selected={selected} setSelected={setSelected} />
   </SubMenu>
 
-  <SubMenu title="User Management" icon={<PeopleOutlinedIcon />}>
-              <Item title="Users" to="/pos/user" icon={<PersonAddIcon />} selected={selected} setSelected={setSelected} />
-              
-              <Item title="Sales Comission Agent" to="/pos/sales" icon={<StarBorderIcon />} selected={selected} setSelected={setSelected} />
-              
-            </SubMenu>
+  
 
             <SubMenu title="Contacts" icon={<PersonAddIcon />}>
             <Item title="Contacts" to="/pos/contacts" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
@@ -206,8 +201,14 @@ const Sidebar = () => {
           </SubMenu>
 
           <SubMenu title="Empolyee Management" icon={<WorkOutlineIcon />}>
-            <Item title="Employee List/Record" to="/HRM/list" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
-            <Item title="Employee Timestamp" to="/HRM/timestamp" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
+          
+             
+              
+            
+            <Item title="Manage" to="/HRM/list" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+            <Item title="Salary" to="/HRM/timestamp" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
+            <Item title="Sales Comission Agent" to="/pos/sales" icon={<StarBorderIcon />} selected={selected} setSelected={setSelected} />
+              
             <Item title="Payroll" to="/HRM/payroll" icon={<PaymentIcon />} selected={selected} setSelected={setSelected} />
             <Item title="HR Reports" to="/HRM/reports" icon={<ReportIcon />} selected={selected} setSelected={setSelected} />
           </SubMenu>
