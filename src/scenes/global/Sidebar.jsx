@@ -219,9 +219,11 @@ const Sidebar = () => {
         </SubMenu>
 
 
-        
+
+         <Item title="LOG OUT" to="/" icon={<ReplayIcon />} selected={selected} setSelected={setSelected} />
 
         </Menu>
+        
       </ProSidebar>
       
     </Box>

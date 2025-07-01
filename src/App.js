@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import Admin from "./admins/admin";
 import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
 import Pos_Sidebar from "./scenes/global/Pos_Sidebar";
@@ -189,6 +190,12 @@ function App() {
               <Route path="/dashboard" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Dashboard />
+                </ProtectedRoute>
+              } />
+               {/* Admin Routes */}
+              <Route path="./admins/admin" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Admin />
                 </ProtectedRoute>
               } />
               <Route path="/team" element={

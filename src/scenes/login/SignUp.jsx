@@ -34,6 +34,13 @@ function Auth({ onLogin }) {
   const [businessFormErrors, setBusinessFormErrors] = useState({});
   const [isSubmit, setIsSubmit] = useState(false);
 
+  // Super admin credentials (in a real app, this would be handled via secure backend authentication)
+  const SUPER_ADMIN_CREDENTIALS = {
+    username: "superadmin",
+    email: "superadmin@funderspick.com",
+    password: "FundersPick@2023"
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (showBusinessForm) {
@@ -60,22 +67,33 @@ function Auth({ onLogin }) {
     
     if (Object.keys(errors).length === 0) {
       try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
         
-        if (isLogin) {
-          // Login logic
-          const { usernameOrEmail, password } = formValues;
-          if (usernameOrEmail.toLowerCase() === "admin" && password === "funderspick") {
-            onLogin("admin");
-          } else if (usernameOrEmail.toLowerCase() === "normal user" && password === "normal") {
-            onLogin("normal");
-          } else {
-            setFormErrors({ auth: "Invalid username or password!" });
-          }
-        } else {
-          // Sign up logic - show business form
-          setShowBusinessForm(true);
+        const { usernameOrEmail, password } = formValues;
+        
+        // Check for super admin login
+        if ((usernameOrEmail.toLowerCase() === SUPER_ADMIN_CREDENTIALS.username.toLowerCase() || 
+             usernameOrEmail.toLowerCase() === SUPER_ADMIN_CREDENTIALS.email.toLowerCase()) && 
+             password === SUPER_ADMIN_CREDENTIALS.password) {
+          onLogin("superadmin");
+          return;
         }
+        
+        // Regular admin login
+        if (usernameOrEmail.toLowerCase() === "admin" && password === "funderspick") {
+          onLogin("admin");
+          return;
+        }
+        
+        // Normal user login
+        if (usernameOrEmail.toLowerCase() === "normal" && password === "normal") {
+          onLogin("normal");
+          return;
+        }
+        
+        // If none matched
+        setFormErrors({ auth: "Invalid username or password!" });
+        
       } catch (error) {
         setFormErrors({ auth: "An error occurred. Please try again." });
       } finally {
@@ -98,7 +116,7 @@ function Auth({ onLogin }) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         console.log("Business data saved:", businessFormValues);
         
-        // Complete registration and log user in
+        // Complete registration and log user in as admin (since they registered a business)
         onLogin("admin");
       } catch (error) {
         setBusinessFormErrors({ submit: "Failed to save business data. Please try again." });
@@ -290,6 +308,15 @@ function Auth({ onLogin }) {
           {isLogin ? "Sign Up" : "Sign In"}
         </button>
       </div>
+
+      {/* Super Admin Login Hint (remove in production) */}
+      {process.env.NODE_ENV === "development" && isLogin && (
+        <div className={styles.devHint}>
+          <p>Super Admin: superadmin / FundersPick@2023</p>
+          <p>Admin: admin / funderspick</p>
+          <p>Normal User: normal / normal</p>
+        </div>
+      )}
     </form>
   );
 
