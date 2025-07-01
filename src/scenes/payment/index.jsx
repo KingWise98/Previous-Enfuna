@@ -154,7 +154,7 @@ const Invoices = () => {
 
   return (
     <Box m="20px">
-      <Header title="MANAGE INVOICES" subtitle="Create and manage invoices & quotations" />
+      <Header title="Manage Invoices" subtitle="Create and manage invoices & quotations" />
       
       <Tabs 
         value={documentType} 
@@ -381,6 +381,14 @@ const Invoices = () => {
                             href="/pos/services"
                           >
                             Create Service
+                          </Button>
+                           <Button 
+                           variant="contained" 
+                    startIcon={<AddIcon />}
+                    
+                            href="/pos/products"
+                          >
+                            Create Product
                           </Button>
                           </Box>
                 
