@@ -63,8 +63,10 @@ const initialProductData = [
     category: "Beverages", 
     subcategory: "Soft Drinks", 
     price: 1500, 
+    purchase: 1000,
     rating: 4, 
     stock: 50, 
+    discount: 500,
     image: "/assets/fanta.jpg", 
     description: "A popular carbonated soft drink.",
     barcode: "123456789"
@@ -187,6 +189,7 @@ const ProductsPage = () => {
     price: "", 
     rating: 0, 
     stock: "", 
+    discount: "",
     description: "",
     barcode: "",
     image: null,
@@ -306,6 +309,7 @@ const ProductsPage = () => {
       price: "", 
       rating: 0, 
       stock: "", 
+      discount: "",
       description: "",
       barcode: "",
       image: null,
@@ -338,6 +342,7 @@ const ProductsPage = () => {
       id: products.length + 1,
       price: Number(newProduct.price),
       stock: Number(newProduct.stock),
+      discount: Number(newProduct.discount),
       rating: Number(newProduct.rating),
       image: newProduct.imagePreview || "/assets/default-product.png"
     };
@@ -356,6 +361,7 @@ const ProductsPage = () => {
       price: product.price,
       rating: product.rating,
       stock: product.stock,
+      discount: product.discount,
       description: product.description,
       barcode: product.barcode,
       image: null,
@@ -378,6 +384,7 @@ const ProductsPage = () => {
           price: Number(newProduct.price),
           rating: Number(newProduct.rating),
           stock: Number(newProduct.stock),
+          discount: Number(newProduct.discount),
           description: newProduct.description,
           barcode: newProduct.barcode,
           image: newProduct.imagePreview || product.image
@@ -505,8 +512,15 @@ const ProductsPage = () => {
             <Typography variant="h4" color="primary" gutterBottom>
               UGX {selectedProduct?.price?.toLocaleString()}
             </Typography>
+             <Typography variant="body1" paragraph>
+              <strong>Purchase Price:</strong> {selectedProduct?.discount} units
+            </Typography>
+            
             <Typography variant="body1" paragraph>
               <strong>Stock:</strong> {selectedProduct?.stock} units
+            </Typography>
+            <Typography variant="body1" paragraph>
+              <strong>Discount:</strong> {selectedProduct?.discount} units
             </Typography>
             <Typography variant="body1" paragraph>
               <strong>Barcode:</strong> {selectedProduct?.barcode}
@@ -593,6 +607,24 @@ const ProductsPage = () => {
             <TextField
               fullWidth
               label="Price (UGX)"
+              type="number"
+              value={newProduct.price}
+              onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Purchase Price (UGX)"
+              type="number"
+              value={newProduct.price}
+              onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Discount"
               type="number"
               value={newProduct.price}
               onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}

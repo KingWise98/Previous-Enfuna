@@ -871,6 +871,13 @@ const SalesPage = () => {
               onChange={(e) => handleEditFieldChange('price', parseInt(e.target.value) || 0)}
               fullWidth
             />
+             <TextField
+              label="Discount"
+              type="number"
+              value={editingProduct.price}
+              onChange={(e) => handleEditFieldChange('price', parseInt(e.target.value) || 0)}
+              fullWidth
+            />
             
             <TextField
               label="Stock"
