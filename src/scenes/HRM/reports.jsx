@@ -5,7 +5,6 @@ import {
   Card,
   Grid,
   Divider,
-  CardContent,
   Button,
   Paper,
   Avatar,
@@ -21,6 +20,19 @@ import {
   IconButton,
   Tooltip,
   Badge,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  LinearProgress,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import {
   Pie,
@@ -45,6 +57,13 @@ import {
   Work as WorkIcon,
   AccessTime as TimeIcon,
   Equalizer as StatsIcon,
+  CheckCircle as CheckIcon,
+  Cancel as CancelIcon,
+  WatchLater as PendingIcon,
+  TrendingUp as TrendIcon,
+  School as TrainingIcon,
+  EventAvailable as AttendanceIcon,
+  MonetizationOn as PayrollIcon,
 } from "@mui/icons-material";
 import "chart.js/auto";
 import { faker } from "@faker-js/faker";
@@ -62,6 +81,8 @@ const generateEmployees = (count) => {
     status: faker.helpers.arrayElement(["Active", "On Leave", "Terminated"]),
     joinDate: faker.date.past({ years: 3 }).toISOString().split('T')[0],
     avatar: faker.image.avatar(),
+    attendance: faker.number.int({ min: 80, max: 100 }),
+    performanceScore: faker.number.int({ min: 60, max: 100 }),
   }));
 };
 
@@ -70,7 +91,59 @@ const generateMonthlyData = () => {
   return months.map(month => faker.number.int({ min: 5, max: 50 }));
 };
 
+const generatePayrollData = (employees) => {
+  return employees.map(emp => ({
+    id: emp.id,
+    name: emp.name,
+    department: emp.department,
+    basicSalary: emp.salary,
+    bonus: faker.number.int({ min: 0, max: emp.salary * 0.2 }),
+    deductions: faker.number.int({ min: 0, max: emp.salary * 0.1 }),
+    netPay: emp.salary + faker.number.int({ min: 0, max: emp.salary * 0.2 }) - faker.number.int({ min: 0, max: emp.salary * 0.1 }),
+    status: faker.helpers.arrayElement(["Paid", "Pending", "Processing"]),
+  }));
+};
+
+const generateAttendanceData = (employees) => {
+  return employees.map(emp => ({
+    id: emp.id,
+    name: emp.name,
+    department: emp.department,
+    presentDays: faker.number.int({ min: 15, max: 22 }),
+    absentDays: faker.number.int({ min: 0, max: 5 }),
+    lateDays: faker.number.int({ min: 0, max: 3 }),
+    attendanceRate: emp.attendance,
+  }));
+};
+
+const generateTrainingData = () => {
+  return Array.from({ length: 10 }, (_, i) => ({
+    id: i + 1,
+    title: faker.company.buzzPhrase() + " Training",
+    department: faker.helpers.arrayElement(["All", "IT", "HR", "Finance", "Marketing", "Sales"]),
+    date: faker.date.future().toISOString().split('T')[0],
+    participants: faker.number.int({ min: 5, max: 50 }),
+    status: faker.helpers.arrayElement(["Upcoming", "Ongoing", "Completed"]),
+  }));
+};
+
+const generateRecruitmentData = () => {
+  return Array.from({ length: 15 }, (_, i) => ({
+    id: i + 1,
+    position: faker.person.jobTitle(),
+    department: faker.helpers.arrayElement(["IT", "HR", "Finance", "Marketing", "Sales"]),
+    applicants: faker.number.int({ min: 1, max: 30 }),
+    status: faker.helpers.arrayElement(["Open", "Interview", "Offer", "Hired", "Closed"]),
+    postedDate: faker.date.past({ years: 1 }).toISOString().split('T')[0],
+  }));
+};
+
 const employees = generateEmployees(50);
+const payrollData = generatePayrollData(employees);
+const attendanceData = generateAttendanceData(employees);
+const trainingData = generateTrainingData();
+const recruitmentData = generateRecruitmentData();
+
 const topEmployees = employees
   .sort((a, b) => b.rating - a.rating)
   .slice(0, 4)
@@ -153,6 +226,26 @@ const EmployeeDashboard = () => {
     emp.department.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredPayrollData = payrollData.filter(item =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.department.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredAttendanceData = attendanceData.filter(item =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.department.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredTrainingData = trainingData.filter(item =>
+    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.department.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredRecruitmentData = recruitmentData.filter(item =>
+    item.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.department.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Box sx={{ p: 3, backgroundColor: "#f5f7fa", minHeight: "100vh" }}>
       {/* Header */}
@@ -196,11 +289,11 @@ const EmployeeDashboard = () => {
         >
           <Tab label="Overview" value="overview" icon={<StatsIcon />} />
           <Tab label="Employee Directory" value="directory" icon={<PersonIcon />} />
-          <Tab label="Payroll" value="payroll" icon={<MoneyIcon />} />
-          <Tab label="Attendance" value="attendance" icon={<TimeIcon />} />
+          <Tab label="Payroll" value="payroll" icon={<PayrollIcon />} />
+          <Tab label="Attendance" value="attendance" icon={<AttendanceIcon />} />
           <Tab label="Performance" value="performance" icon={<StarIcon />} />
           <Tab label="Recruitment" value="recruitment" icon={<TeamIcon />} />
-          <Tab label="Training" value="training" icon={<WorkIcon />} />
+          <Tab label="Training" value="training" icon={<TrainingIcon />} />
         </Tabs>
       </Paper>
 
@@ -232,7 +325,14 @@ const EmployeeDashboard = () => {
           </Button>
           <TextField
             size="small"
-            placeholder="Search employees..."
+            placeholder={
+              activeTab === "directory" ? "Search employees..." :
+              activeTab === "payroll" ? "Search payroll..." :
+              activeTab === "attendance" ? "Search attendance..." :
+              activeTab === "training" ? "Search training..." :
+              activeTab === "recruitment" ? "Search positions..." :
+              "Search..."
+            }
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -266,16 +366,16 @@ const EmployeeDashboard = () => {
                 icon: <TeamIcon fontSize="large" />,
                 color: "#4caf50",
               },
-             {
-  title: "Monthly Payroll",
-  value: `$${(employees.reduce((sum, emp) => sum + emp.salary, 0) / 12).toLocaleString()}`,
-  change: "-2%",
-  icon: <MoneyIcon fontSize="large" />,
-  color: "#ff9800",
-},
+              {
+                title: "Monthly Payroll",
+                value: `$${(employees.reduce((sum, emp) => sum + emp.salary, 0) / 12).toLocaleString()}`,
+                change: "-2%",
+                icon: <MoneyIcon fontSize="large" />,
+                color: "#ff9800",
+              },
               {
                 title: "Avg. Satisfaction",
-                  value: `$${(employees.reduce((sum, emp) => sum + emp.rating, 0) / employees.length, 0).toFixed(1)}`,
+                value: (employees.reduce((sum, emp) => sum + emp.rating, 0)) / employees.length,
                 change: "+0.5",
                 icon: <StarIcon fontSize="large" />,
                 color: "#e91e63",
@@ -563,6 +663,471 @@ const EmployeeDashboard = () => {
               </Grid>
             ))}
           </Grid>
+        </Card>
+      )}
+
+      {activeTab === "payroll" && (
+        <Card sx={{ p: 3, borderRadius: 2 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
+            Payroll Management
+          </Typography>
+          
+          <Box sx={{ mb: 3 }}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, height: "100%" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+                    Payroll Summary
+                  </Typography>
+                  <Doughnut
+                    data={{
+                      labels: hrMetrics.payrollBreakdown.labels,
+                      datasets: [{
+                        data: hrMetrics.payrollBreakdown.data,
+                        backgroundColor: hrMetrics.payrollBreakdown.colors,
+                      }]
+                    }}
+                  />
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, height: "100%" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+                    Monthly Trends
+                  </Typography>
+                  <Line
+                    data={{
+                      labels: hrMetrics.turnoverRate.labels,
+                      datasets: [{
+                        label: "Payroll Costs",
+                        data: hrMetrics.turnoverRate.labels.map(() => faker.number.int({ min: 300000, max: 600000 })),
+                        borderColor: "#4caf50",
+                        backgroundColor: "#e8f5e9",
+                        fill: true,
+                      }]
+                    }}
+                  />
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                  <TableCell>Employee</TableCell>
+                  <TableCell>Department</TableCell>
+                  <TableCell>Basic Salary</TableCell>
+                  <TableCell>Bonus</TableCell>
+                  <TableCell>Deductions</TableCell>
+                  <TableCell>Net Pay</TableCell>
+                  <TableCell>Status</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredPayrollData.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.name}</TableCell>
+                    <TableCell>{row.department}</TableCell>
+                    <TableCell>${row.basicSalary.toLocaleString()}</TableCell>
+                    <TableCell>${row.bonus.toLocaleString()}</TableCell>
+                    <TableCell>${row.deductions.toLocaleString()}</TableCell>
+                    <TableCell>${row.netPay.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={row.status}
+                        size="small"
+                        sx={{
+                          backgroundColor:
+                            row.status === "Paid" ? "#e8f5e9" :
+                            row.status === "Pending" ? "#fff3e0" : "#ffebee",
+                          color:
+                            row.status === "Paid" ? "#2e7d32" :
+                            row.status === "Pending" ? "#ff6d00" : "#c62828",
+                        }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
+
+      {activeTab === "attendance" && (
+        <Card sx={{ p: 3, borderRadius: 2 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
+            Attendance Tracking
+          </Typography>
+          
+          <Box sx={{ mb: 3 }}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, height: "100%" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+                    Attendance Rate
+                  </Typography>
+                  <Bar
+                    data={{
+                      labels: employees.slice(0, 10).map(emp => emp.name),
+                      datasets: [{
+                        label: "Attendance Rate (%)",
+                        data: employees.slice(0, 10).map(emp => emp.attendance),
+                        backgroundColor: "#42a5f5",
+                      }]
+                    }}
+                  />
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, height: "100%" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+                    Monthly Trends
+                  </Typography>
+                  <Line
+                    data={{
+                      labels: hrMetrics.turnoverRate.labels,
+                      datasets: [{
+                        label: "Attendance Rate",
+                        data: hrMetrics.turnoverRate.labels.map(() => faker.number.int({ min: 85, max: 100 })),
+                        borderColor: "#42a5f5",
+                        backgroundColor: "#e3f2fd",
+                        fill: true,
+                      }]
+                    }}
+                  />
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                  <TableCell>Employee</TableCell>
+                  <TableCell>Department</TableCell>
+                  <TableCell>Present Days</TableCell>
+                  <TableCell>Absent Days</TableCell>
+                  <TableCell>Late Days</TableCell>
+                  <TableCell>Attendance Rate</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredAttendanceData.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.name}</TableCell>
+                    <TableCell>{row.department}</TableCell>
+                    <TableCell>{row.presentDays}</TableCell>
+                    <TableCell>{row.absentDays}</TableCell>
+                    <TableCell>{row.lateDays}</TableCell>
+                    <TableCell>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={row.attendanceRate}
+                          sx={{ width: "100%", height: 8, borderRadius: 4 }}
+                        />
+                        <Typography variant="body2">{row.attendanceRate}%</Typography>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
+
+      {activeTab === "performance" && (
+        <Card sx={{ p: 3, borderRadius: 2 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
+            Employee Performance
+          </Typography>
+          
+          <Box sx={{ mb: 3 }}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, height: "100%" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+                    Performance Distribution
+                  </Typography>
+                  <Pie
+                    data={{
+                      labels: ["Exceeds Expectations", "Meets Expectations", "Needs Improvement"],
+                      datasets: [{
+                        data: [25, 60, 15],
+                        backgroundColor: ["#66bb6a", "#ffca28", "#ef5350"],
+                      }]
+                    }}
+                  />
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, height: "100%" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+                    Top Performers
+                  </Typography>
+                  <List>
+                    {employees
+                      .sort((a, b) => b.performanceScore - a.performanceScore)
+                      .slice(0, 5)
+                      .map((employee) => (
+                        <ListItem key={employee.id}>
+                          <ListItemAvatar>
+                            <Avatar src={employee.avatar} />
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={employee.name}
+                            secondary={`${employee.role} • ${employee.department}`}
+                          />
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <TrendIcon color="success" />
+                            <Typography fontWeight="bold">{employee.performanceScore}%</Typography>
+                          </Box>
+                        </ListItem>
+                      ))}
+                  </List>
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                  <TableCell>Employee</TableCell>
+                  <TableCell>Department</TableCell>
+                  <TableCell>Performance Score</TableCell>
+                  <TableCell>Rating</TableCell>
+                  <TableCell>Status</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {employees
+                  .filter(emp => 
+                    emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    emp.department.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+                  .map((employee) => (
+                    <TableRow key={employee.id}>
+                      <TableCell>{employee.name}</TableCell>
+                      <TableCell>{employee.department}</TableCell>
+                      <TableCell>
+                        <LinearProgress
+                          variant="determinate"
+                          value={employee.performanceScore}
+                          sx={{ width: "100%", height: 8, borderRadius: 4 }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <StarIcon sx={{ color: "#ffc107" }} />
+                          <Typography>{employee.rating.toFixed(1)}</Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={
+                            employee.performanceScore >= 90 ? "Excellent" :
+                            employee.performanceScore >= 75 ? "Good" :
+                            employee.performanceScore >= 60 ? "Average" : "Needs Improvement"
+                          }
+                          size="small"
+                          sx={{
+                            backgroundColor:
+                              employee.performanceScore >= 90 ? "#e8f5e9" :
+                              employee.performanceScore >= 75 ? "#e3f2fd" :
+                              employee.performanceScore >= 60 ? "#fff3e0" : "#ffebee",
+                            color:
+                              employee.performanceScore >= 90 ? "#2e7d32" :
+                              employee.performanceScore >= 75 ? "#1565c0" :
+                              employee.performanceScore >= 60 ? "#ff6d00" : "#c62828",
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
+
+      {activeTab === "recruitment" && (
+        <Card sx={{ p: 3, borderRadius: 2 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
+            Recruitment Pipeline
+          </Typography>
+          
+          <Box sx={{ mb: 3 }}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, height: "100%" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+                    Open Positions
+                  </Typography>
+                  <Doughnut
+                    data={{
+                      labels: ["IT", "HR", "Finance", "Marketing", "Sales"],
+                      datasets: [{
+                        data: [5, 3, 2, 4, 6],
+                        backgroundColor: ["#ffa726", "#ab47bc", "#29b6f6", "#66bb6a", "#ff7043"],
+                      }]
+                    }}
+                  />
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, height: "100%" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+                    Hiring Trends
+                  </Typography>
+                  <Line
+                    data={{
+                      labels: hrMetrics.recruitment.labels,
+                      datasets: [{
+                        label: "New Hires",
+                        data: hrMetrics.recruitment.data,
+                        borderColor: "#26c6da",
+                        backgroundColor: "#e0f7fa",
+                        fill: true,
+                      }]
+                    }}
+                  />
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                  <TableCell>Position</TableCell>
+                  <TableCell>Department</TableCell>
+                  <TableCell>Applicants</TableCell>
+                  <TableCell>Posted Date</TableCell>
+                  <TableCell>Status</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredRecruitmentData.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.position}</TableCell>
+                    <TableCell>{row.department}</TableCell>
+                    <TableCell>{row.applicants}</TableCell>
+                    <TableCell>{row.postedDate}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={row.status}
+                        size="small"
+                        sx={{
+                          backgroundColor:
+                            row.status === "Open" ? "#e3f2fd" :
+                            row.status === "Interview" ? "#fff3e0" :
+                            row.status === "Offer" ? "#e8f5e9" :
+                            row.status === "Hired" ? "#e0f7fa" : "#ffebee",
+                          color:
+                            row.status === "Open" ? "#1565c0" :
+                            row.status === "Interview" ? "#ff6d00" :
+                            row.status === "Offer" ? "#2e7d32" :
+                            row.status === "Hired" ? "#00838f" : "#c62828",
+                        }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
+
+      {activeTab === "training" && (
+        <Card sx={{ p: 3, borderRadius: 2 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
+            Training & Development
+          </Typography>
+          
+          <Box sx={{ mb: 3 }}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, height: "100%" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+                    Training by Department
+                  </Typography>
+                  <Pie
+                    data={{
+                      labels: ["All", "IT", "HR", "Finance", "Marketing", "Sales"],
+                      datasets: [{
+                        data: [15, 10, 5, 8, 7, 5],
+                        backgroundColor: ["#8d6e63", "#ffa726", "#ab47bc", "#29b6f6", "#66bb6a", "#ff7043"],
+                      }]
+                    }}
+                  />
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, height: "100%" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+                    Training Hours
+                  </Typography>
+                  <Bar
+                    data={{
+                      labels: hrMetrics.trainingHours.labels,
+                      datasets: [{
+                        label: "Training Hours",
+                        data: hrMetrics.trainingHours.data,
+                        backgroundColor: "#8d6e63",
+                      }]
+                    }}
+                  />
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                  <TableCell>Training Program</TableCell>
+                  <TableCell>Department</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Participants</TableCell>
+                  <TableCell>Status</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredTrainingData.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.title}</TableCell>
+                    <TableCell>{row.department}</TableCell>
+                    <TableCell>{row.date}</TableCell>
+                    <TableCell>{row.participants}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={row.status}
+                        size="small"
+                        sx={{
+                          backgroundColor:
+                            row.status === "Upcoming" ? "#e3f2fd" :
+                            row.status === "Ongoing" ? "#fff3e0" : "#e8f5e9",
+                          color:
+                            row.status === "Upcoming" ? "#1565c0" :
+                            row.status === "Ongoing" ? "#ff6d00" : "#2e7d32",
+                        }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Card>
       )}
 
