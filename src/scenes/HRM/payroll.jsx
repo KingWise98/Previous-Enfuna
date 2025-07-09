@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -34,12 +34,10 @@ import {
   Switch,
   Badge,
   Tooltip,
-  CircularProgress,
 } from "@mui/material";
 import {
   DataGrid,
   GridToolbar,
-  GridActionsCellItem,
 } from "@mui/x-data-grid";
 import {
   MoreVert,
@@ -72,33 +70,65 @@ import { DatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
-// Mock data for demonstration
-const employees = [
+// Enhanced currency formatter with error handling
+const formatCurrency = (value, currency = 'USD') => {
+  if (value === undefined || value === null || isNaN(value)) return 'N/A';
+  
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency || 'USD'
+    }).format(value);
+  } catch (e) {
+    return `${currency || ''} ${value.toLocaleString()}`;
+  }
+};
+
+// Validate and normalize employee data
+const normalizeEmployee = (emp) => ({
+  ...emp,
+  currency: emp.currency || 'USD',
+  salary: Number(emp.salary) || 0,
+  status: emp.status || 'active'
+});
+
+// Mock data with guaranteed currency fields
+const initialEmployees = [
   { id: 1, name: "Kwame Mensah", position: "Developer", department: "IT", salary: 500000, currency: "UGX", status: "active" },
   { id: 2, name: "Rohan Patel", position: "Manager", department: "Finance", salary: 20000, currency: "INR", status: "active" },
   { id: 3, name: "John Smith", position: "Designer", department: "Creative", salary: 150, currency: "USD", status: "active" },
   { id: 4, name: "Adeola Chukwu", position: "HR", department: "Human Resources", salary: 50000, currency: "NGN", status: "active" },
-];
+].map(normalizeEmployee);
 
-const payrollItems = {
+// Normalize payroll items
+const normalizePayrollItem = (item) => ({
+  ...item,
+  currency: item.currency || 'USD',
+  amount: Number(item.amount) || 0,
+  rate: Number(item.rate) || 0,
+  taxable: item.taxable || false,
+  statutory: item.statutory || false
+});
+
+const initialPayrollItems = {
   Additions: [
     { id: 1, name: "Performance Bonus", amount: 500000, currency: "UGX", taxable: true },
     { id: 2, name: "Housing Allowance", amount: 20000, currency: "INR", taxable: false },
     { id: 3, name: "Transport Allowance", amount: 150, currency: "USD", taxable: true },
     { id: 4, name: "Health Bonus", amount: 50000, currency: "NGN", taxable: false },
-  ],
+  ].map(normalizePayrollItem),
   Overtime: [
     { id: 1, name: "Weekday Overtime", rate: 20000, currency: "UGX", per: "hour", taxable: true },
     { id: 2, name: "Weekend Overtime", rate: 1500, currency: "INR", per: "hour", taxable: true },
     { id: 3, name: "Holiday Overtime", rate: 30, currency: "USD", per: "hour", taxable: true },
     { id: 4, name: "Emergency OT", rate: 5000, currency: "NGN", per: "hour", taxable: true },
-  ],
+  ].map(normalizePayrollItem),
   Deductions: [
     { id: 1, name: "Tax", amount: 200000, currency: "UGX", statutory: true },
     { id: 2, name: "Loan Repayment", amount: 5000, currency: "INR", statutory: false },
     { id: 3, name: "Pension", amount: 100, currency: "USD", statutory: true },
     { id: 4, name: "Union Fees", amount: 3000, currency: "NGN", statutory: false },
-  ],
+  ].map(normalizePayrollItem),
 };
 
 const taxRates = {
@@ -106,14 +136,23 @@ const taxRates = {
   INR: { incomeTax: 0.2, socialSecurity: 0.04 },
   USD: { incomeTax: 0.25, socialSecurity: 0.06 },
   NGN: { incomeTax: 0.15, socialSecurity: 0.03 },
+  DEFAULT: { incomeTax: 0.2, socialSecurity: 0.05 }
 };
 
 const PayrollSystem = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [data, setData] = useState(payrollItems);
+  const [data, setData] = useState(initialPayrollItems);
+  const [employees, setEmployees] = useState(initialEmployees);
   const [openForm, setOpenForm] = useState(false);
-  const [newItem, setNewItem] = useState({ name: "", amount: "", currency: "USD", taxable: false });
+  const [newItem, setNewItem] = useState({ 
+    name: "", 
+    amount: "", 
+    currency: "USD", 
+    taxable: false,
+    statutory: false,
+    per: "hour"
+  });
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -135,13 +174,14 @@ const PayrollSystem = () => {
     selfieVerification: false,
     autoAttendance: false,
   });
+  const [processedPayroll, setProcessedPayroll] = useState([]);
 
   // Handle tab change
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
 
-  // Payroll Items Management (existing functions)
+  // Payroll Items Management
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
   };
@@ -152,23 +192,31 @@ const PayrollSystem = () => {
 
   const handleCloseForm = () => {
     setOpenForm(false);
-    setNewItem({ name: "", amount: "", currency: "USD", taxable: false });
+    setNewItem({ 
+      name: "", 
+      amount: "", 
+      currency: "USD", 
+      taxable: false,
+      statutory: false,
+      per: "hour"
+    });
   };
 
   const handleSaveItem = () => {
     if (!selectedCategory) return;
+    
+    const newEntry = normalizePayrollItem({
+      id: (data[selectedCategory]?.length || 0) + 1,
+      ...newItem,
+      ...(selectedCategory === "Overtime" ? { per: "hour" } : {}),
+      ...(selectedCategory === "Deductions" ? { statutory: newItem.statutory } : {})
+    });
+
     const updatedData = {
       ...data,
-      [selectedCategory]: [
-        ...data[selectedCategory],
-        { 
-          id: data[selectedCategory].length + 1, 
-          ...newItem,
-          ...(selectedCategory === "Overtime" ? { per: "hour" } : {}),
-          ...(selectedCategory === "Deductions" ? { statutory: false } : {})
-        },
-      ],
+      [selectedCategory]: [...(data[selectedCategory] || []), newEntry],
     };
+    
     setData(updatedData);
     handleCloseForm();
   };
@@ -192,22 +240,26 @@ const PayrollSystem = () => {
     handleActionMenuClose();
   };
 
-  // Payroll Processing
+  // Payroll Processing with safe tax rate access
   const calculatePayroll = () => {
-    // Calculate payroll for selected employees
-    const processedPayroll = selectedEmployees.map(employee => {
-      const additions = data.Additions.reduce((sum, item) => sum + (item.amount || 0), 0);
-      const overtime = data.Overtime.reduce((sum, item) => sum + (item.rate * 2 || 0), 0); // Assuming 2 hours overtime
-      const grossPay = employee.salary + additions + overtime;
+    return selectedEmployees.map(employeeId => {
+      const employee = employees.find(emp => emp.id === employeeId);
+      if (!employee) return null;
+
+      const rates = taxRates[employee.currency] || taxRates.DEFAULT;
       
-      const deductions = data.Deductions.reduce((sum, item) => {
+      const additions = (data.Additions || []).reduce((sum, item) => sum + (item.amount || 0), 0);
+      const overtime = (data.Overtime || []).reduce((sum, item) => sum + (item.rate * 2 || 0), 0);
+      const grossPay = (employee.salary || 0) + additions + overtime;
+      
+      const deductions = (data.Deductions || []).reduce((sum, item) => {
         if (item.statutory) {
-          return sum + item.amount;
+          return sum + (item.amount || 0);
         }
         return sum;
       }, 0);
       
-      const tax = grossPay * taxRates[employee.currency].incomeTax;
+      const tax = grossPay * (rates.incomeTax || 0);
       const netPay = grossPay - deductions - tax;
       
       return {
@@ -216,15 +268,11 @@ const PayrollSystem = () => {
         deductions,
         tax,
         netPay,
-        additions: additions,
-        overtime: overtime,
+        additions,
+        overtime,
       };
-    });
-    
-    return processedPayroll;
+    }).filter(Boolean);
   };
-
-  const [processedPayroll, setProcessedPayroll] = useState([]);
 
   const runPayroll = () => {
     const results = calculatePayroll();
@@ -241,7 +289,7 @@ const PayrollSystem = () => {
     );
   };
 
-  // Payslip Settings
+  // Settings handlers
   const handlePayslipSettingChange = (setting) => {
     setPayslipSettings(prev => ({
       ...prev,
@@ -249,7 +297,6 @@ const PayrollSystem = () => {
     }));
   };
 
-  // Attendance Settings
   const handleAttendanceSettingChange = (setting) => {
     setAttendanceSettings(prev => ({
       ...prev,
@@ -257,7 +304,7 @@ const PayrollSystem = () => {
     }));
   };
 
-  // Columns for DataGrid
+  // Safe DataGrid Columns
   const employeeColumns = [
     { 
       field: "selection", 
@@ -276,10 +323,10 @@ const PayrollSystem = () => {
       flex: 1,
       renderCell: (params) => (
         <Box display="flex" alignItems="center">
-          <Avatar sx={{ mr: 2 }}>{params.row.name.charAt(0)}</Avatar>
+          <Avatar sx={{ mr: 2 }}>{params.row.name?.charAt(0) || '?'}</Avatar>
           <Box>
-            <Typography variant="body1">{params.row.name}</Typography>
-            <Typography variant="caption">{params.row.position}</Typography>
+            <Typography variant="body1">{params.row.name || 'N/A'}</Typography>
+            <Typography variant="caption">{params.row.position || ''}</Typography>
           </Box>
         </Box>
       ),
@@ -289,7 +336,7 @@ const PayrollSystem = () => {
       field: "salary", 
       headerName: "Base Salary", 
       flex: 1,
-      renderCell: (params) => `${params.row.currency} ${params.row.salary.toLocaleString()}`,
+      valueFormatter: (params) => formatCurrency(params.value, params.row?.currency),
     },
     { 
       field: "status", 
@@ -297,8 +344,8 @@ const PayrollSystem = () => {
       flex: 1,
       renderCell: (params) => (
         <Chip 
-          label={params.row.status} 
-          color={params.row.status === "active" ? "success" : "error"} 
+          label={params.value || 'N/A'} 
+          color={params.value === "active" ? "success" : "error"} 
           size="small"
         />
       ),
@@ -307,12 +354,42 @@ const PayrollSystem = () => {
 
   const payrollColumns = [
     { field: "name", headerName: "Employee", flex: 1 },
-    { field: "grossPay", headerName: "Gross Pay", flex: 1, valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}` },
-    { field: "additions", headerName: "Additions", flex: 1, valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}` },
-    { field: "overtime", headerName: "Overtime", flex: 1, valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}` },
-    { field: "deductions", headerName: "Deductions", flex: 1, valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}` },
-    { field: "tax", headerName: "Tax", flex: 1, valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}` },
-    { field: "netPay", headerName: "Net Pay", flex: 1, valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}` },
+    { 
+      field: "grossPay", 
+      headerName: "Gross Pay", 
+      flex: 1, 
+      valueFormatter: (params) => formatCurrency(params.value, params.row?.currency)
+    },
+    { 
+      field: "additions", 
+      headerName: "Additions", 
+      flex: 1, 
+      valueFormatter: (params) => formatCurrency(params.value, params.row?.currency)
+    },
+    { 
+      field: "overtime", 
+      headerName: "Overtime", 
+      flex: 1, 
+      valueFormatter: (params) => formatCurrency(params.value, params.row?.currency)
+    },
+    { 
+      field: "deductions", 
+      headerName: "Deductions", 
+      flex: 1, 
+      valueFormatter: (params) => formatCurrency(params.value, params.row?.currency)
+    },
+    { 
+      field: "tax", 
+      headerName: "Tax", 
+      flex: 1, 
+      valueFormatter: (params) => formatCurrency(params.value, params.row?.currency)
+    },
+    { 
+      field: "netPay", 
+      headerName: "Net Pay", 
+      flex: 1, 
+      valueFormatter: (params) => formatCurrency(params.value, params.row?.currency)
+    },
     {
       field: "actions",
       headerName: "Actions",
@@ -334,12 +411,66 @@ const PayrollSystem = () => {
     },
   ];
 
+  const payrollItemColumns = (category) => [
+    { field: "name", headerName: "Name", flex: 1 },
+    { 
+      field: category === "Overtime" ? "rate" : "amount", 
+      headerName: category === "Overtime" ? "Rate" : "Amount", 
+      flex: 1,
+      valueFormatter: (params) => formatCurrency(params.value, params.row?.currency),
+    },
+    ...(category === "Overtime" ? [{ field: "per", headerName: "Per", flex: 0.5 }] : []),
+    { 
+      field: category === "Deductions" ? "statutory" : "taxable", 
+      headerName: category === "Deductions" ? "Statutory" : "Taxable", 
+      flex: 0.5,
+      renderCell: (params) => (
+        <Checkbox checked={!!params.value} disabled />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 0.5,
+      renderCell: (params) => (
+        <>
+          <IconButton onClick={(event) => handleActionMenuOpen(event, params.row)}>
+            <MoreVert />
+          </IconButton>
+          <Menu
+            anchorEl={menuAnchor}
+            open={Boolean(menuAnchor)}
+            onClose={handleActionMenuClose}
+          >
+            <MuiMenuItem onClick={handleDeleteItem} sx={{ color: "red" }}>
+              <Delete sx={{ mr: 1 }} /> Delete
+            </MuiMenuItem>
+            <MuiMenuItem onClick={() => { console.log("Edit", selectedRow); handleActionMenuClose(); }}>
+              <Edit sx={{ mr: 1 }} /> Edit
+            </MuiMenuItem>
+          </Menu>
+        </>
+      ),
+    },
+  ];
+
   // Dashboard Stats
   const dashboardStats = [
     { title: "Total Employees", value: employees.length, icon: <People />, color: "primary" },
-    { title: "Active Payroll", value: payrollStatus === "processed" ? processedPayroll.length : 0, icon: <AttachMoney />, color: "success" },
+    { 
+      title: "Active Payroll", 
+      value: payrollStatus === "processed" ? processedPayroll.length : 0, 
+      icon: <AttachMoney />, 
+      color: "success" 
+    },
     { title: "Pending Approvals", value: 3, icon: <AccessTime />, color: "warning" },
-    { title: "Total Payroll Cost", value: processedPayroll.reduce((sum, emp) => sum + emp.grossPay, 0), icon: <AccountBalance />, color: "info" },
+    { 
+      title: "Total Payroll Cost", 
+      value: processedPayroll.reduce((sum, emp) => sum + (emp?.grossPay || 0), 0), 
+      icon: <AccountBalance />, 
+      color: "info",
+      currency: processedPayroll[0]?.currency || 'USD'
+    },
   ];
 
   return (
@@ -391,7 +522,7 @@ const PayrollSystem = () => {
                         {stat.title}
                       </Typography>
                       <Typography variant="h4" fontWeight="bold">
-                        {stat.currency ? `${stat.currency} ` : ""}{stat.value.toLocaleString()}
+                        {stat.currency ? formatCurrency(stat.value, stat.currency) : stat.value.toLocaleString()}
                       </Typography>
                     </Box>
                     <Avatar sx={{ bgcolor: `${stat.color}.main`, width: 56, height: 56 }}>
@@ -429,7 +560,6 @@ const PayrollSystem = () => {
               <Card sx={{ p: 3, height: "100%" }}>
                 <Typography variant="h6" mb={3}>Employee Distribution by Department</Typography>
                 <Box height={300}>
-                  {/* Placeholder for chart */}
                   <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                     <Typography color="textSecondary">Chart will appear here</Typography>
                   </Box>
@@ -470,12 +600,10 @@ const PayrollSystem = () => {
 
       {activeTab === "payrollItems" && (
         <Box>
-          {/* Title */}
           <Typography variant="h4" fontWeight="bold" mb={3}>
             Payroll Items Management
           </Typography>
 
-          {/* Button Cards */}
           <Grid container spacing={2} mt={3}>
             {["Additions", "Overtime", "Deductions"].map((category) => (
               <Grid item xs={4} key={category}>
@@ -493,14 +621,13 @@ const PayrollSystem = () => {
                     {category}
                   </Typography>
                   <Typography variant="body2" mt={1}>
-                    {data[category].length} items
+                    {data[category]?.length || 0} items
                   </Typography>
                 </Card>
               </Grid>
             ))}
           </Grid>
 
-          {/* Add Button (Top Right) */}
           {selectedCategory && (
             <Box mt={3} display="flex" justifyContent="space-between" alignItems="center">
               <Typography variant="h6">
@@ -517,60 +644,17 @@ const PayrollSystem = () => {
             </Box>
           )}
 
-          {/* Data Table */}
           {selectedCategory && (
             <Box mt={4} sx={{ height: "50vh" }}>
               <DataGrid 
-                rows={data[selectedCategory]} 
-                columns={[
-                  { field: "name", headerName: "Name", flex: 1 },
-                  { 
-                    field: selectedCategory === "Overtime" ? "rate" : "amount", 
-                    headerName: selectedCategory === "Overtime" ? "Rate" : "Amount", 
-                    flex: 1,
-                    valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}`,
-                  },
-                  ...(selectedCategory === "Overtime" ? [{ field: "per", headerName: "Per", flex: 0.5 }] : []),
-                  { 
-                    field: selectedCategory === "Deductions" ? "statutory" : "taxable", 
-                    headerName: selectedCategory === "Deductions" ? "Statutory" : "Taxable", 
-                    flex: 0.5,
-                    renderCell: (params) => (
-                      <Checkbox checked={params.value} disabled />
-                    ),
-                  },
-                  {
-                    field: "actions",
-                    headerName: "Actions",
-                    flex: 0.5,
-                    renderCell: (params) => (
-                      <>
-                        <IconButton onClick={(event) => handleActionMenuOpen(event, params.row)}>
-                          <MoreVert />
-                        </IconButton>
-                        <Menu
-                          anchorEl={menuAnchor}
-                          open={Boolean(menuAnchor)}
-                          onClose={handleActionMenuClose}
-                        >
-                          <MuiMenuItem onClick={handleDeleteItem} sx={{ color: "red" }}>
-                            <Delete sx={{ mr: 1 }} /> Delete
-                          </MuiMenuItem>
-                          <MuiMenuItem onClick={() => { console.log("Edit", selectedRow); handleActionMenuClose(); }}>
-                            <Edit sx={{ mr: 1 }} /> Edit
-                          </MuiMenuItem>
-                        </Menu>
-                      </>
-                    ),
-                  },
-                ]} 
+                rows={data[selectedCategory] || []} 
+                columns={payrollItemColumns(selectedCategory)} 
                 pageSize={5}
                 components={{ Toolbar: GridToolbar }}
               />
             </Box>
           )}
 
-          {/* Add Item Form (Dialog) */}
           <Dialog open={openForm} onClose={handleCloseForm} fullWidth maxWidth="sm">
             <DialogTitle>Add {selectedCategory}</DialogTitle>
             <DialogContent>
@@ -591,7 +675,11 @@ const PayrollSystem = () => {
                     variant="outlined"
                     type="number"
                     value={newItem.amount}
-                    onChange={(e) => setNewItem({ ...newItem, amount: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => setNewItem({ 
+                      ...newItem, 
+                      amount: e.target.value,
+                      ...(selectedCategory === "Overtime" && { rate: e.target.value })
+                    })}
                   />
                 </Grid>
                 <Grid item xs={6}>
@@ -627,7 +715,7 @@ const PayrollSystem = () => {
                     <FormControlLabel
                       control={
                         <Checkbox
-                          checked={newItem.statutory || false}
+                          checked={newItem.statutory}
                           onChange={(e) => setNewItem({ ...newItem, statutory: e.target.checked })}
                         />
                       }
@@ -743,9 +831,21 @@ const PayrollSystem = () => {
             <DataGrid
               rows={processedPayroll.filter(emp => selectedEmployees.includes(emp.id))}
               columns={[
-                { field: "period", headerName: "Period", flex: 1, valueGetter: () => `${payrollPeriod.start.toLocaleDateString()} - ${payrollPeriod.end.toLocaleDateString()}` },
-                { field: "grossPay", headerName: "Gross Pay", flex: 1, valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}` },
-                { field: "netPay", headerName: "Net Pay", flex: 1, valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}` },
+                { field: "period", headerName: "Period", flex: 1, 
+                  valueGetter: () => `${payrollPeriod.start?.toLocaleDateString() || ''} - ${payrollPeriod.end?.toLocaleDateString() || ''}` 
+                },
+                { 
+                  field: "grossPay", 
+                  headerName: "Gross Pay", 
+                  flex: 1, 
+                  valueFormatter: (params) => formatCurrency(params.value, params.row?.currency)
+                },
+                { 
+                  field: "netPay", 
+                  headerName: "Net Pay", 
+                  flex: 1, 
+                  valueFormatter: (params) => formatCurrency(params.value, params.row?.currency)
+                },
                 {
                   field: "actions",
                   headerName: "Actions",
@@ -838,7 +938,6 @@ const PayrollSystem = () => {
           <Card sx={{ p: 3 }}>
             <Typography variant="h6" mb={3}>Payroll Trends</Typography>
             <Box height={400}>
-              {/* Placeholder for chart */}
               <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                 <Typography color="textSecondary">Payroll trend charts will appear here</Typography>
               </Box>
@@ -861,7 +960,9 @@ const PayrollSystem = () => {
                   <Card sx={{ p: 2, textAlign: "center", cursor: "pointer", "&:hover": { boxShadow: 3 } }}>
                     <Receipt sx={{ fontSize: 40, color: "primary.main", mb: 1 }} />
                     <Typography variant="subtitle1">{form} Form</Typography>
-                    <Typography variant="body2" color="textSecondary">For {payrollPeriod.start.toLocaleDateString()} period</Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      For {payrollPeriod.start?.toLocaleDateString() || 'current'} period
+                    </Typography>
                     <Button size="small" sx={{ mt: 1 }}>Generate</Button>
                   </Card>
                 </Grid>
@@ -872,17 +973,40 @@ const PayrollSystem = () => {
           <Card sx={{ p: 3 }}>
             <Typography variant="h6" mb={3}>Tax Calculations</Typography>
             <DataGrid
-              rows={processedPayroll.map(emp => ({
-                ...emp,
-                taxRate: taxRates[emp.currency].incomeTax * 100,
-                socialSecurity: emp.grossPay * taxRates[emp.currency].socialSecurity,
-              }))}
+              rows={processedPayroll.map(emp => {
+                const rates = taxRates[emp.currency] || taxRates.DEFAULT;
+                return {
+                  ...emp,
+                  taxRate: rates.incomeTax * 100,
+                  socialSecurity: (emp.grossPay || 0) * rates.socialSecurity,
+                };
+              })}
               columns={[
                 { field: "name", headerName: "Employee", flex: 1 },
-                { field: "grossPay", headerName: "Taxable Income", flex: 1, valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}` },
-                { field: "taxRate", headerName: "Tax Rate", flex: 0.5, valueFormatter: (params) => `${params.value}%` },
-                { field: "tax", headerName: "Income Tax", flex: 1, valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}` },
-                { field: "socialSecurity", headerName: "Social Security", flex: 1, valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}` },
+                { 
+                  field: "grossPay", 
+                  headerName: "Taxable Income", 
+                  flex: 1, 
+                  valueFormatter: (params) => formatCurrency(params.value, params.row?.currency)
+                },
+                { 
+                  field: "taxRate", 
+                  headerName: "Tax Rate", 
+                  flex: 0.5, 
+                  valueFormatter: (params) => `${params.value?.toFixed(1) || '0'}%`
+                },
+                { 
+                  field: "tax", 
+                  headerName: "Income Tax", 
+                  flex: 1, 
+                  valueFormatter: (params) => formatCurrency(params.value, params.row?.currency)
+                },
+                { 
+                  field: "socialSecurity", 
+                  headerName: "Social Security", 
+                  flex: 1, 
+                  valueFormatter: (params) => formatCurrency(params.value, params.row?.currency)
+                },
               ]}
               autoHeight
               pageSize={5}
