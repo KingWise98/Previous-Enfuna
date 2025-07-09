@@ -368,7 +368,10 @@ const EmployeeManagementSystem = () => {
       field: "salary", 
       headerName: "Salary", 
       flex: 1,
-      valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}`,
+      valueFormatter: (params) => {
+        const row = params.row || {};
+        return `${row.currency || 'USD'} ${(params.value || 0).toLocaleString()}`;
+      },
     },
     { 
       field: "shift", 
@@ -448,7 +451,7 @@ const EmployeeManagementSystem = () => {
       field: "hoursWorked", 
       headerName: "Hours Worked", 
       flex: 1,
-      valueFormatter: (params) => `${params.value.toFixed(1)} hours`,
+      valueFormatter: (params) => `${(params.value || 0).toFixed(1)} hours`,
     },
     {
       field: "actions",
@@ -471,7 +474,10 @@ const EmployeeManagementSystem = () => {
       field: "amount", 
       headerName: "Amount", 
       flex: 1,
-      valueFormatter: (params) => `${params.row.currency} ${params.value.toLocaleString()}`,
+      valueFormatter: (params) => {
+        const row = params.row || {};
+        return `${row.currency || 'USD'} ${(params.value || 0).toLocaleString()}`;
+      },
     },
     { 
       field: "status", 
