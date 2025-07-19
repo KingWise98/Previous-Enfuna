@@ -72,15 +72,6 @@ import {
   AttachMoney as CashIcon,
   ExpandMore as ExpandMoreIcon,
   Edit as EditIcon,
-  Calculate as CalculatorIcon,
-  LocalShipping as DeliveryIcon,
-  Share as ShareIcon,
-  Email as EmailIcon,
-  Facebook as FacebookIcon,
-  Twitter as TwitterIcon,
-  WhatsApp as WhatsAppIcon,
-  Construction as ServicesIcon,
-  ShoppingBag as ProductsIcon
 } from "@mui/icons-material";
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -98,8 +89,7 @@ const productData = [
     image: "/assets/fanta.jpg", 
     description: "A popular carbonated soft drink.",
     barcode: "123456789012",
-    supplier: "Coca-Cola Uganda",
-    type: "product"
+    supplier: "Coca-Cola Uganda"
   },
   { 
     id: 2, 
@@ -112,8 +102,7 @@ const productData = [
     image: "/assets/dew.jpg", 
     description: "Citrusy and refreshing soft drink.",
     barcode: "234567890123",
-    supplier: "PepsiCo",
-    type: "product"
+    supplier: "PepsiCo"
   },
   { 
     id: 3, 
@@ -126,8 +115,7 @@ const productData = [
     image: "/assets/afia_tropical.jpg", 
     description: "Tropical fruit juice.",
     barcode: "345678901234",
-    supplier: "Mukwano Group",
-    type: "product"
+    supplier: "Mukwano Group"
   },
   { 
     id: 4, 
@@ -140,8 +128,7 @@ const productData = [
     image: "/assets/Heineken.png", 
     description: "Premium lager beer.",
     barcode: "456789012345",
-    supplier: "Heineken International",
-    type: "product"
+    supplier: "Heineken International"
   },
   { 
     id: 5, 
@@ -154,9 +141,10 @@ const productData = [
     image: "/assets/bell.png", 
     description: "Popular beer in Uganda.",
     barcode: "567890123456",
-    supplier: "Uganda Breweries",
-    type: "product"
+    supplier: "Uganda Breweries"
   },
+  
+  // Groceries
   { 
     id: 6, 
     name: "Golden Penny Semovita 2kg", 
@@ -168,8 +156,7 @@ const productData = [
     image: "/assets/semo.jpeg", 
     description: "Premium quality semovita.",
     barcode: "678901234567",
-    supplier: "Flour Mills of Nigeria",
-    type: "product"
+    supplier: "Flour Mills of Nigeria"
   },
   { 
     id: 7, 
@@ -182,9 +169,10 @@ const productData = [
     image: "/assets/hima.png", 
     description: "High quality construction cement.",
     barcode: "789012345678",
-    supplier: "Hima Cement Ltd",
-    type: "product"
+    supplier: "Hima Cement Ltd"
   },
+  
+  // Household
   { 
     id: 8, 
     name: "Luxury Toilet Paper (12 rolls)", 
@@ -196,8 +184,7 @@ const productData = [
     image: "/assets/1.jpg", 
     description: "Premium quality toilet paper.",
     barcode: "890123456789",
-    supplier: "Nice House of Plastics",
-    type: "product"
+    supplier: "Nice House of Plastics"
   },
   { 
     id: 9, 
@@ -210,9 +197,10 @@ const productData = [
     image: "/assets/omo.jpg", 
     description: "Powerful laundry detergent.",
     barcode: "901234567890",
-    supplier: "Unilever",
-    type: "product"
+    supplier: "Unilever"
   },
+  
+  // Electronics
   { 
     id: 10, 
     name: "Samsung Galaxy A14", 
@@ -224,8 +212,7 @@ const productData = [
     image: "/assets/samsung.jpg", 
     description: "Latest smartphone with great features.",
     barcode: "012345678901",
-    supplier: "Samsung East Africa",
-    type: "product"
+    supplier: "Samsung East Africa"
   },
   { 
     id: 11, 
@@ -238,9 +225,10 @@ const productData = [
     image: "/assets/spark.jpeg", 
     description: "Affordable smartphone with good camera.",
     barcode: "123450987654",
-    supplier: "Tecno Mobile",
-    type: "product"
+    supplier: "Tecno Mobile"
   },
+  
+  // Clothing & Accessories
   { 
     id: 12, 
     name: "Men's Casual Shirt", 
@@ -252,8 +240,7 @@ const productData = [
     image: "/assets/casual.jpg", 
     description: "Comfortable cotton shirt for men.",
     barcode: "234561098765",
-    supplier: "Textile Uganda Ltd",
-    type: "product"
+    supplier: "Textile Uganda Ltd"
   },
   { 
     id: 13, 
@@ -266,9 +253,10 @@ const productData = [
     image: "/assets/handbag.jpg", 
     description: "Stylish women's handbag.",
     barcode: "345672109876",
-    supplier: "Leather Crafts Uganda",
-    type: "product"
+    supplier: "Leather Crafts Uganda"
   },
+  
+  // Health & Beauty
   { 
     id: 14, 
     name: "Dove Body Wash", 
@@ -280,8 +268,7 @@ const productData = [
     image: "/assets/dove.jpeg", 
     description: "Moisturizing body wash.",
     barcode: "456783210987",
-    supplier: "Unilever",
-    type: "product"
+    supplier: "Unilever"
   },
   { 
     id: 15, 
@@ -294,8 +281,7 @@ const productData = [
     image: "/assets/head.jpeg", 
     description: "Moisturizing shampoo wash.",
     barcode: "456783210987",
-    supplier: "Unilever",
-    type: "product"
+    supplier: "Unilever"
   },
   { 
     id: 16, 
@@ -308,10 +294,9 @@ const productData = [
     image: "/assets/colgate.jpg", 
     description: "Cavity protection toothpaste.",
     barcode: "567894321098",
-    supplier: "Colgate-Palmolive",
-    type: "product"
+    supplier: "Colgate-Palmolive"
   },
-  { 
+   { 
     id: 17, 
     name: "Tecno Spark 10", 
     category: "Electronics", 
@@ -321,10 +306,9 @@ const productData = [
     stock: 12, 
     image: "/assets/spark.jpeg", 
     description: "Affordable smartphone with good camera.",
-    barcode: "147258369",
-    type: "product"
+    barcode: "147258369"
   },
-  { 
+    { 
     id: 18, 
     name: "Splash", 
     category: "Beverages", 
@@ -335,79 +319,9 @@ const productData = [
     image: "/assets/splash.jpg", 
     description: "Tropical fruit juice flavour mango.",
     barcode: "345678901234",
-    supplier: "Mukwano Group",
-    type: "product"
+    supplier: "Mukwano Group"
   },
-];
-
-// Service Data
-const serviceData = [
-  {
-    id: 101,
-    name: "Phone Repair",
-    category: "Electronics",
-    subcategory: "Repair",
-    price: 25000,
-    rating: 4.5,
-    duration: "1-2 hours",
-    description: "Professional phone screen and hardware repair",
-    type: "service"
-  },
-  {
-    id: 102,
-    name: "Delivery Service",
-    category: "Logistics",
-    subcategory: "Delivery",
-    price: 10000,
-    rating: 4.2,
-    duration: "Same day",
-    description: "Fast and reliable delivery within the city",
-    type: "service"
-  },
-  {
-    id: 103,
-    name: "IT Support",
-    category: "Technology",
-    subcategory: "Consulting",
-    price: 50000,
-    rating: 4.8,
-    duration: "Per hour",
-    description: "Professional IT support and troubleshooting",
-    type: "service"
-  },
-  {
-    id: 104,
-    name: "Haircut",
-    category: "Beauty",
-    subcategory: "Salon",
-    price: 15000,
-    rating: 4.3,
-    duration: "30 minutes",
-    description: "Professional haircut and styling",
-    type: "service"
-  },
-  {
-    id: 105,
-    name: "Photography Session",
-    category: "Media",
-    subcategory: "Photography",
-    price: 80000,
-    rating: 4.7,
-    duration: "2 hours",
-    description: "Professional photography session with edited photos",
-    type: "service"
-  },
-  {
-    id: 106,
-    name: "Cleaning Service",
-    category: "Home",
-    subcategory: "Cleaning",
-    price: 30000,
-    rating: 4.1,
-    duration: "3 hours",
-    description: "Thorough home cleaning service",
-    type: "service"
-  }
+   
 ];
 
 // Payment Methods
@@ -493,18 +407,11 @@ const discountOffers = [
   { id: 3, name: "New Customer", discount: 20, code: "NEW20" },
 ];
 
-// Delivery Options
-const deliveryOptions = [
-  { id: 1, name: "Pickup", description: "Customer will pick up the order" },
-  { id: 2, name: "Standard Delivery", description: "Delivery within 3-5 business days", fee: 5000 },
-  { id: 3, name: "Express Delivery", description: "Delivery within 1-2 business days", fee: 10000 },
-];
-
 const SalesPage = () => {
   // State Management
-  const [products, setProducts] = useState([...productData, ...serviceData]);
+  const [products, setProducts] = useState(productData);
   const [cart, setCart] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([...productData, ...serviceData]);
+  const [filteredProducts, setFilteredProducts] = useState(productData);
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
   const [minPrice, setMinPrice] = useState(0);
@@ -522,7 +429,6 @@ const SalesPage = () => {
     name: "",
     phone: "",
     email: "",
-    address: "",
   });
   const [barcodeInput, setBarcodeInput] = useState("");
   const [activeStep, setActiveStep] = useState(0);
@@ -538,240 +444,133 @@ const SalesPage = () => {
   const [showAllProductsInCart, setShowAllProductsInCart] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [calculatorOpen, setCalculatorOpen] = useState(false);
-  const [calculatorValue, setCalculatorValue] = useState('0');
-  const [calculatorMemory, setCalculatorMemory] = useState(null);
-  const [calculatorOperator, setCalculatorOperator] = useState(null);
-  const [deliveryOption, setDeliveryOption] = useState(deliveryOptions[0]);
-  const [deliveryInstructions, setDeliveryInstructions] = useState("");
-  const [orderModalOpen, setOrderModalOpen] = useState(false);
-  const [orderNotes, setOrderNotes] = useState("");
-  const [viewType, setViewType] = useState("products");
-  const [shareOptionsOpen, setShareOptionsOpen] = useState(false);
 
   const navigate = useNavigate();
 
-  // Filter Products/Services based on view type
+  // Filter Products
   useEffect(() => {
     applyFilters();
-  }, [category, subcategory, minPrice, maxPrice, rating, searchText, products, viewType]);
+  }, [category, subcategory, minPrice, maxPrice, rating, searchText, products]);
 
   const applyFilters = () => {
-    const filtered = products
-      .filter(item => viewType === "products" ? item.type === "product" : item.type === "service")
-      .filter((item) => (category ? item.category === category : true))
-      .filter((item) => (subcategory ? item.subcategory === subcategory : true))
-      .filter((item) => item.price >= minPrice && item.price <= maxPrice)
-      .filter((item) => (rating ? item.rating >= rating : true))
-      .filter((item) => item.name.toLowerCase().includes(searchText.toLowerCase()));
+    const filtered = productData
+      .filter((product) => (category ? product.category === category : true))
+      .filter((product) => (subcategory ? product.subcategory === subcategory : true))
+      .filter((product) => product.price >= minPrice && product.price <= maxPrice)
+      .filter((product) => (rating ? product.rating >= rating : true))
+      .filter((product) => product.name.toLowerCase().includes(searchText.toLowerCase()));
 
     setFilteredProducts(filtered);
   };
 
   // Category Map
   const categoryMap = {
-    Beverages: ["Soft Drinks", "Juices", "Water", "Alcoholic"],
-    Groceries: ["Flour & Grains", "Building Materials"],
-    Household: ["Bathroom", "Cleaning"],
-    Electronics: ["Mobile Phones", "Repair"],
-    Clothing: ["Men's Fashion", "Women's Fashion"],
-    "Health & Beauty": ["Personal Care", "Oral Care"],
-    Logistics: ["Delivery"],
-    Technology: ["Consulting"],
-    Beauty: ["Salon"],
-    Media: ["Photography"],
-    Home: ["Cleaning"]
+    Beverages: ["Soft Drinks", "Juices", "Water"],
+    Snacks: ["Chips", "Biscuits", "Nuts"],
+    Dairy: ["Milk", "Cheese", "Yogurt"],
+    Bakery: ["Bread", "Cakes", "Pastries"],
   };
-
-  // Calculator functions
-  const handleCalculatorInput = (value) => {
-    if (calculatorValue === '0' && value !== '.') {
-      setCalculatorValue(value);
-    } else {
-      setCalculatorValue(calculatorValue + value);
-    }
-  };
-
-  const handleCalculatorOperator = (op) => {
-    if (calculatorOperator && calculatorMemory) {
-      const result = calculate(calculatorMemory, parseFloat(calculatorValue), calculatorOperator);
-      setCalculatorMemory(result);
-    } else {
-      setCalculatorMemory(parseFloat(calculatorValue));
-    }
-    setCalculatorOperator(op);
-    setCalculatorValue('0');
-  };
-
-  const calculate = (a, b, op) => {
-    switch(op) {
-      case '+': return a + b;
-      case '-': return a - b;
-      case '*': return a * b;
-      case '/': return a / b;
-      default: return b;
-    }
-  };
-
-  const handleCalculatorEquals = () => {
-    if (calculatorOperator && calculatorMemory !== null) {
-      const result = calculate(calculatorMemory, parseFloat(calculatorValue), calculatorOperator);
-      setCalculatorValue(result.toString());
-      setCalculatorMemory(null);
-      setCalculatorOperator(null);
-    }
-  };
-
-  const handleCalculatorClear = () => {
-    setCalculatorValue('0');
-    setCalculatorMemory(null);
-    setCalculatorOperator(null);
-  };
-
-  const handleCalculatorBackspace = () => {
-    if (calculatorValue.length === 1) {
-      setCalculatorValue('0');
-    } else {
-      setCalculatorValue(calculatorValue.slice(0, -1));
-    }
-  };
-
-  const handleCalculatorUseResult = () => {
-    setCashAmount(calculatorValue);
-    setCalculatorOpen(false);
-  };
-
-  // Order functions
-  const handlePlaceOrder = () => {
-    const order = {
-      id: `ORD-${Date.now()}`,
-      date: new Date(),
-      items: [...cart],
-      customer: customerDetails,
-      delivery: {
-        option: deliveryOption,
-        instructions: deliveryInstructions,
-        fee: deliveryOption.fee || 0,
-      },
-      subtotal: subtotal,
-      discount: discountAmount,
-      tax: taxAmount,
-      total: totalAmount + (deliveryOption.fee || 0),
-      status: 'pending',
-      notes: orderNotes,
-      type: 'order'
-    };
-
-    // Update stock levels for products
-    const updatedProducts = products.map(product => {
-      const cartItem = cart.find(item => item.id === product.id && item.type === "product");
-      if (cartItem) {
-        return {
-          ...product,
-          stock: product.stock - cartItem.quantity
-        };
-      }
-      return product;
-    });
-
-    setProducts(updatedProducts);
-    setPaymentHistory([order, ...paymentHistory]);
-    setCurrentReceipt(order);
-    setReceiptModalOpen(true);
-    
-    // Reset system
-    setCart([]);
-    setAppliedDiscount(null);
-    setCustomerDetails({ name: "", phone: "", email: "", address: "" });
-    setDeliveryOption(deliveryOptions[0]);
-    setDeliveryInstructions("");
-    setOrderNotes("");
-    setActiveStep(0);
-    setCartDrawerOpen(false);
-    
-    setSnackbarMessage("Order placed successfully!");
-    setOpenSnackbar(true);
-  };
-
-  // Payment Processing
-  const handleCompleteSale = () => {
-    if (selectedPaymentMethod?.type === 'cash') {
-      const amount = parseFloat(cashAmount) || 0;
-      if (amount < totalAmount) {
-        setSnackbarMessage(`Insufficient amount. Still need UGX ${(totalAmount - amount).toLocaleString()}`);
-        setOpenSnackbar(true);
-        return;
-      }
-    }
-
-    const transaction = {
-      id: `TXN-${Date.now()}`,
-      date: new Date(),
-      items: [...cart],
-      customer: customerDetails,
-      paymentMethod: selectedPaymentMethod,
-      paymentDetails: paymentDetails,
-      subtotal: subtotal,
-      discount: discountAmount,
-      tax: taxAmount,
-      total: totalAmount,
-      amountTendered: selectedPaymentMethod.type === 'cash' ? parseFloat(cashAmount) : 0,
-      changeDue: selectedPaymentMethod.type === 'cash' ? changeDue : 0,
-      status: 'completed',
-      type: 'sale'
-    };
-
-    // Update stock levels for products
-    const updatedProducts = products.map(product => {
-      const cartItem = cart.find(item => item.id === product.id && item.type === "product");
-      if (cartItem) {
-        return {
-          ...product,
-          stock: product.stock - cartItem.quantity
-        };
-      }
-      return product;
-    });
-
-    setProducts(updatedProducts);
-    setPaymentHistory([transaction, ...paymentHistory]);
-    setCurrentReceipt(transaction);
-    setReceiptModalOpen(true);
-    
-    // Reset system
-    setCart([]);
-    setAppliedDiscount(null);
-    setCustomerDetails({ name: "", phone: "", email: "", address: "" });
-    setSelectedPaymentMethod(null);
-    setPaymentDetails({});
-    setActiveStep(0);
-    setCartDrawerOpen(false);
-    setAmountTendered(0);
-    setChangeDue(0);
-    
-    setSnackbarMessage("Payment processed successfully!");
-    setOpenSnackbar(true);
-  };
-
-  // Calculations
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.discount) / 100 : 0;
-  const taxRate = 0.18; // 18% VAT
-  const taxAmount = (subtotal - discountAmount) * taxRate;
-  const deliveryFee = deliveryOption?.fee || 0;
-  const totalAmount = subtotal - discountAmount + taxAmount + deliveryFee;
   
-  useEffect(() => {
-    if (selectedPaymentMethod?.type === 'cash' && cashAmount) {
-      const amount = parseFloat(cashAmount) || 0;
-      setChangeDue(amount - totalAmount);
-    } else {
-      setChangeDue(0);
-    }
-  }, [cashAmount, totalAmount, selectedPaymentMethod]);
-
-  // Steps for checkout process
-  const steps = ['Cart Review', 'Customer Info', 'Payment'];
+  const renderReceipt = (transaction) => (
+    <Box sx={{ p: 3, width: '100%', maxWidth: 400, bgcolor: 'background.paper' }} id="receipt">
+      {/* Receipt Header */}
+      <Box sx={{ textAlign: 'center', mb: 2 }}>
+        <Typography variant="h5" fontWeight="bold" gutterBottom>BUSINESS NAME</Typography>
+        <Typography variant="body2">123 Business Street, Kampala</Typography>
+        <Typography variant="body2">Tel: +256 123 456 789</Typography>
+        <Typography variant="body2">Tax ID: 123456789</Typography>
+        <Divider sx={{ my: 1 }} />
+        <Typography variant="h6" fontWeight="bold">SALES RECEIPT</Typography>
+        <Typography variant="caption">{format(new Date(transaction.date), 'PPPpp')}</Typography>
+        <Typography variant="body2">Receipt #: {transaction.id}</Typography>
+      </Box>
+      
+      {/* Customer Info */}
+      {transaction.customer.name && (
+        <Box sx={{ mb: 2 }}>
+          <Typography fontWeight="bold">Customer:</Typography>
+          <Typography>{transaction.customer.name}</Typography>
+          {transaction.customer.phone && <Typography>Phone: {transaction.customer.phone}</Typography>}
+          {transaction.customer.email && <Typography>Email: {transaction.customer.email}</Typography>}
+        </Box>
+      )}
+      
+      <Divider sx={{ my: 1 }} />
+      
+      {/* Items Table */}
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Item</TableCell>
+              <TableCell align="right">Qty</TableCell>
+              <TableCell align="right">Price</TableCell>
+              <TableCell align="right">Total</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {transaction.items.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>{item.name}</TableCell>
+                <TableCell align="right">{item.quantity}</TableCell>
+                <TableCell align="right">{item.price.toLocaleString()}</TableCell>
+                <TableCell align="right">{(item.price * item.quantity).toLocaleString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      
+      <Divider sx={{ my: 1 }} />
+      
+      {/* Totals */}
+      <Box sx={{ textAlign: 'right' }}>
+        <Typography>Subtotal: UGX {transaction.subtotal.toLocaleString()}</Typography>
+        {transaction.discount > 0 && (
+          <Typography>Discount: -UGX {transaction.discount.toLocaleString()}</Typography>
+        )}
+        <Typography>Tax (18%): UGX {transaction.tax.toLocaleString()}</Typography>
+        <Typography variant="h6" fontWeight="bold" sx={{ mt: 1 }}>
+          Total: UGX {transaction.total.toLocaleString()}
+        </Typography>
+      </Box>
+      
+      <Divider sx={{ my: 1 }} />
+      
+      {/* Payment Info */}
+      <Box>
+        <Typography fontWeight="bold">Payment Method:</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+          {transaction.paymentMethod.image ? (
+            <img 
+              src={transaction.paymentMethod.image} 
+              alt={transaction.paymentMethod.name}
+              style={{ height: 20 }}
+            />
+          ) : (
+            React.cloneElement(transaction.paymentMethod.icon, { fontSize: 'small' })
+          )}
+          <Typography>{transaction.paymentMethod.name}</Typography>
+        </Box>
+        
+        {Object.entries(transaction.paymentDetails).map(([key, value]) => (
+          <Typography key={key}>
+            {key}: {value}
+          </Typography>
+        ))}
+      </Box>
+      
+      <Divider sx={{ my: 2 }} />
+      
+      {/* Footer */}
+      <Box sx={{ textAlign: 'center', mt: 2 }}>
+        <Typography variant="caption" display="block">Thank you for your business!</Typography>
+        <Typography variant="caption" display="block">Items cannot be returned without receipt</Typography>
+        <Typography variant="caption" display="block">Terms and conditions apply</Typography>
+      </Box>
+    </Box>
+  );
+      
 
   // Handlers
   const handleSearch = (e) => {
@@ -831,77 +630,157 @@ const SalesPage = () => {
   };
 
   // Cart Management
-  const handleAddToCart = (item) => {
-    if (item.type === "product" && item.stock <= 0) return;
+  const handleAddToCart = (product) => {
+    if (product.stock <= 0) return;
     
-    const existingItem = cart.find((cartItem) => cartItem.id === item.id);
-    if (existingItem) {
-      if (item.type === "product" && existingItem.quantity >= item.stock) {
-        setSnackbarMessage(`Only ${item.stock} items available in stock`);
+    const existingProduct = cart.find((item) => item.id === product.id);
+    if (existingProduct) {
+      if (existingProduct.quantity >= product.stock) {
+        setSnackbarMessage(`Only ${product.stock} items available in stock`);
         setOpenSnackbar(true);
         return;
       }
       setCart(
-        cart.map((cartItem) =>
-          cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem
+        cart.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         )
       );
     } else {
-      setCart([...cart, { ...item, quantity: 1 }]);
+      setCart([...cart, { ...product, quantity: 1 }]);
     }
-    setSnackbarMessage(`${item.name} added to cart!`);
+    setSnackbarMessage(`${product.name} added to cart!`);
     setOpenSnackbar(true);
     setCartDrawerOpen(true);
   };
 
-  const handleRemoveFromCart = (itemId) => {
-    setCart(cart.filter((item) => item.id !== itemId));
+  const handleRemoveFromCart = (productId) => {
+    setCart(cart.filter((item) => item.id !== productId));
   };
 
-  const handleQuantityChange = (itemId, newQuantity) => {
+  const handleQuantityChange = (productId, newQuantity) => {
     const quantity = parseInt(newQuantity) || 0;
     if (quantity < 1) return;
     
-    const item = products.find(p => p.id === itemId);
-    if (item.type === "product" && quantity > item.stock) {
-      setSnackbarMessage(`Only ${item.stock} items available in stock`);
+    const product = products.find(p => p.id === productId);
+    if (quantity > product.stock) {
+      setSnackbarMessage(`Only ${product.stock} items available in stock`);
       setOpenSnackbar(true);
       return;
     }
     
     setCart(
-      cart.map((cartItem) =>
-        cartItem.id === itemId ? { ...cartItem, quantity: quantity } : cartItem
+      cart.map((item) =>
+        item.id === productId ? { ...item, quantity: quantity } : item
       )
     );
   };
 
-  const handleIncreaseQuantity = (itemId) => {
-    const item = cart.find(cartItem => cartItem.id === itemId);
-    const originalItem = products.find(p => p.id === itemId);
+  const handleIncreaseQuantity = (productId) => {
+    const product = cart.find(item => item.id === productId);
+    const originalProduct = products.find(p => p.id === productId);
     
-    if (originalItem.type === "product" && item.quantity >= originalItem.stock) {
-      setSnackbarMessage(`Only ${originalItem.stock} items available in stock`);
+    if (product.quantity >= originalProduct.stock) {
+      setSnackbarMessage(`Only ${originalProduct.stock} items available in stock`);
       setOpenSnackbar(true);
       return;
     }
     
     setCart(
-      cart.map((cartItem) =>
-        cartItem.id === itemId ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem
+      cart.map((item) =>
+        item.id === productId ? { ...item, quantity: item.quantity + 1 } : item
       )
     );
   };
 
-  const handleDecreaseQuantity = (itemId) => {
+  const handleDecreaseQuantity = (productId) => {
     setCart(
-      cart.map((cartItem) =>
-        cartItem.id === itemId && cartItem.quantity > 1 
-          ? { ...cartItem, quantity: cartItem.quantity - 1 } 
-          : cartItem
+      cart.map((item) =>
+        item.id === productId && item.quantity > 1 
+          ? { ...item, quantity: item.quantity - 1 } 
+          : item
       )
     );
   };
+
+  // Payment Processing
+  const handleCompleteSale = () => {
+    if (selectedPaymentMethod?.type === 'cash') {
+      const amount = parseFloat(cashAmount) || 0;
+      if (amount < totalAmount) {
+        setSnackbarMessage(`Insufficient amount. Still need UGX ${(totalAmount - amount).toLocaleString()}`);
+        setOpenSnackbar(true);
+        return;
+      }
+    }
+
+    const transaction = {
+      id: `TXN-${Date.now()}`,
+      date: new Date(),
+      items: [...cart],
+      customer: customerDetails,
+      paymentMethod: selectedPaymentMethod,
+      paymentDetails: paymentDetails,
+      subtotal: subtotal,
+      discount: discountAmount,
+      tax: taxAmount,
+      total: totalAmount,
+      amountTendered: amountTendered,
+      changeDue: changeDue,
+      status: 'completed',
+      amountTendered: selectedPaymentMethod.type === 'cash' ? parseFloat(cashAmount) : 0,
+      changeDue: selectedPaymentMethod.type === 'cash' ? changeDue : 0
+    };
+
+    // Update stock levels
+    const updatedProducts = products.map(product => {
+      const cartItem = cart.find(item => item.id === product.id);
+      if (cartItem) {
+        return {
+          ...product,
+          stock: product.stock - cartItem.quantity
+        };
+      }
+      return product;
+    });
+
+    setProducts(updatedProducts);
+    setPaymentHistory([transaction, ...paymentHistory]);
+    setCurrentReceipt(transaction);
+    setReceiptModalOpen(true);
+    
+    // Reset system
+    setCart([]);
+    setAppliedDiscount(null);
+    setCustomerDetails({ name: "", phone: "", email: "" });
+    setSelectedPaymentMethod(null);
+    setPaymentDetails({});
+    setActiveStep(0);
+    setCartDrawerOpen(false);
+    setAmountTendered(0);
+    setChangeDue(0);
+    
+    setSnackbarMessage("Payment processed successfully!");
+    setOpenSnackbar(true);
+  };
+
+  // Calculations
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.discount) / 100 : 0;
+  const taxRate = 0.18; // 18% VAT
+  const taxAmount = (subtotal - discountAmount) * taxRate;
+  const totalAmount = subtotal - discountAmount + taxAmount;
+  
+  useEffect(() => {
+    if (selectedPaymentMethod?.type === 'cash' && cashAmount) {
+      const amount = parseFloat(cashAmount) || 0;
+      setChangeDue(amount - totalAmount);
+    } else {
+      setChangeDue(0);
+    }
+  }, [cashAmount, totalAmount, selectedPaymentMethod]);
+
+  // Steps for checkout process
+  const steps = ['Cart Review', 'Customer Info', 'Payment'];
 
   // Handle step changes
   const handleNext = () => {
@@ -917,11 +796,10 @@ const SalesPage = () => {
     item.name.toLowerCase().includes(cartSearchText.toLowerCase())
   );
 
-  // Search all products/services for adding to cart
-  const searchAllItems = products.filter(item => 
-    item.name.toLowerCase().includes(cartSearchText.toLowerCase()) &&
-    !cart.some(cartItem => cartItem.id === item.id) &&
-    (viewType === "products" ? item.type === "product" : item.type === "service")
+  // Search all products for adding to cart
+  const searchAllProducts = products.filter(product => 
+    product.name.toLowerCase().includes(cartSearchText.toLowerCase()) &&
+    !cart.some(item => item.id === product.id)
   );
 
   // Product Editing Functions
@@ -951,28 +829,6 @@ const SalesPage = () => {
       ...editingProduct,
       [field]: value
     });
-  };
-
-  // Share functions
-  const handleShare = (method) => {
-    switch(method) {
-      case 'email':
-        setSnackbarMessage("Email sharing would be implemented here");
-        break;
-      case 'whatsapp':
-        setSnackbarMessage("WhatsApp sharing would be implemented here");
-        break;
-      case 'facebook':
-        setSnackbarMessage("Facebook sharing would be implemented here");
-        break;
-      case 'twitter':
-        setSnackbarMessage("Twitter sharing would be implemented here");
-        break;
-      default:
-        setSnackbarMessage("Sharing would be implemented here");
-    }
-    setOpenSnackbar(true);
-    setShareOptionsOpen(false);
   };
 
   // Render Edit Product Modal
@@ -1010,6 +866,13 @@ const SalesPage = () => {
             
             <TextField
               label="Price"
+              type="number"
+              value={editingProduct.price}
+              onChange={(e) => handleEditFieldChange('price', parseInt(e.target.value) || 0)}
+              fullWidth
+            />
+             <TextField
+              label="Discount"
               type="number"
               value={editingProduct.price}
               onChange={(e) => handleEditFieldChange('price', parseInt(e.target.value) || 0)}
@@ -1064,7 +927,8 @@ const SalesPage = () => {
   );
 
   // Render functions for each step
-  const renderCartReview = () => (
+ 
+const renderCartReview = () => (
     <Box>
       <TextField
         placeholder="Search items to add to cart..."
@@ -1081,38 +945,35 @@ const SalesPage = () => {
       
       <Accordion expanded={showAllProductsInCart} onChange={() => setShowAllProductsInCart(!showAllProductsInCart)}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Available {viewType === "products" ? "Products" : "Services"} ({searchAllItems.length})</Typography>
+          <Typography>Available Products ({searchAllProducts.length})</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <List dense>
-            {searchAllItems.map((item) => (
+            {searchAllProducts.map((product) => (
               <ListItem 
-                key={item.id} 
+                key={product.id} 
                 secondaryAction={
                   <Button 
                     size="small" 
                     variant="outlined" 
-                    onClick={() => handleAddToCart(item)}
-                    disabled={item.type === "product" && item.stock <= 0}
+                    onClick={() => handleAddToCart(product)}
+                    disabled={product.stock <= 0}
                   >
                     Add
                   </Button>
                 }
               >
                 <ListItemAvatar>
-                  <Avatar 
-                    src={item.image || (item.type === "service" ? '/assets/service.jpg' : '/assets/product.jpg')} 
-                    alt={item.name} 
-                  />
+                  <Avatar src={product.image} alt={product.name} />
                 </ListItemAvatar>
                 <ListItemText
-                  primary={item.name}
-                  secondary={`UGX ${item.price.toLocaleString()}${item.type === "product" ? ` | Stock: ${item.stock}` : ` | Duration: ${item.duration}`}`}
+                  primary={product.name}
+                  secondary={`UGX ${product.price.toLocaleString()} | Stock: ${product.stock}`}
                 />
               </ListItem>
             ))}
-            {searchAllItems.length === 0 && (
-              <Typography sx={{ textAlign: 'center', p: 2 }}>No matching {viewType} found</Typography>
+            {searchAllProducts.length === 0 && (
+              <Typography sx={{ textAlign: 'center', p: 2 }}>No matching products found</Typography>
             )}
           </List>
         </AccordionDetails>
@@ -1128,7 +989,7 @@ const SalesPage = () => {
                 type="number"
                 value={item.quantity}
                 onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                inputProps={{ min: 1, max: item.type === "product" ? item.stock : undefined }}
+                inputProps={{ min: 1, max: item.stock }}
                 size="small"
                 sx={{ width: 70 }}
               />
@@ -1142,10 +1003,7 @@ const SalesPage = () => {
             </Box>
           }>
             <ListItemAvatar>
-              <Avatar 
-                src={item.image || (item.type === "service" ? '/assets/service.jpg' : '/assets/product.jpg')} 
-                alt={item.name} 
-              />
+              <Avatar src={item.image} alt={item.name} />
             </ListItemAvatar>
             <ListItemText
               primary={item.name}
@@ -1231,7 +1089,8 @@ const SalesPage = () => {
     </Box>
   );
   
-  const renderCustomerInfo = () => (
+
+    const renderCustomerInfo = () => (
     <Box sx={{ p: 2 }}>
       <Typography variant="h6" gutterBottom>Customer Information</Typography>
       <TextField
@@ -1254,14 +1113,6 @@ const SalesPage = () => {
         margin="normal"
         value={customerDetails.email}
         onChange={(e) => setCustomerDetails({...customerDetails, email: e.target.value})}
-      />
-      <TextField
-        label="Address"
-        fullWidth
-        margin="normal"
-        value={customerDetails.address}
-        onChange={(e) => setCustomerDetails({...customerDetails, address: e.target.value})}
-        placeholder="Required for delivery orders"
       />
     </Box>
   );
@@ -1314,25 +1165,16 @@ const SalesPage = () => {
           {/* Cash Payment Section */}
           {selectedPaymentMethod.type === 'cash' && (
             <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <TextField
-                  label="Amount Received (UGX)"
-                  fullWidth
-                  margin="normal"
-                  value={cashAmount}
-                  onChange={(e) => setCashAmount(e.target.value)}
-                  type="number"
-                  inputProps={{ min: 0, step: 100 }}
-                  required
-                />
-                <Button 
-                  variant="outlined" 
-                  onClick={() => setCalculatorOpen(true)}
-                  sx={{ height: 56 }}
-                >
-                  <CalculatorIcon />
-                </Button>
-              </Box>
+              <TextField
+                label="Amount Received (UGX)"
+                fullWidth
+                margin="normal"
+                value={cashAmount}
+                onChange={(e) => setCashAmount(e.target.value)}
+                type="number"
+                inputProps={{ min: 0, step: 100 }}
+                required
+              />
               
               <Box sx={{ 
                 mt: 2, 
@@ -1385,540 +1227,29 @@ const SalesPage = () => {
         </Box>
       )}
     </Box>
-  );
-
-  // View Toggle Component
-  const ViewToggle = () => (
-    <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-      <Button
-        variant={viewType === 'products' ? 'contained' : 'outlined'}
-        onClick={() => setViewType('products')}
-        startIcon={<ProductsIcon />}
-        sx={{ mr: 2 }}
-      >
-        Products
-      </Button>
-      <Button
-        variant={viewType === 'services' ? 'contained' : 'outlined'}
-        onClick={() => setViewType('services')}
-        startIcon={<ServicesIcon />}
-      >
-        Services
-      </Button>
-    </Box>
-  );
-
-  // Calculator Modal
-  const CalculatorModal = () => (
-    <Dialog open={calculatorOpen} onClose={() => setCalculatorOpen(false)}>
-      <DialogTitle>Calculator</DialogTitle>
-      <DialogContent>
-        <Box sx={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(4, 1fr)', 
-          gap: 1,
-          width: 300
-        }}>
-          <TextField
-            value={calculatorValue}
-            variant="outlined"
-            sx={{ 
-              gridColumn: 'span 4',
-              mb: 2,
-              '& .MuiInputBase-input': {
-                textAlign: 'right',
-                fontSize: '1.5rem'
-              }
-            }}
-            InputProps={{
-              readOnly: true,
-            }}
-          />
-          
-          {/* Calculator buttons */}
-          <Button variant="outlined" onClick={() => handleCalculatorClear()}>C</Button>
-          <Button variant="outlined" onClick={() => handleCalculatorBackspace()}>&larr;</Button>
-          <Button variant="outlined" onClick={() => handleCalculatorOperator('/')}>/</Button>
-          <Button variant="outlined" onClick={() => handleCalculatorOperator('*')}>*</Button>
-          
-          <Button variant="outlined" onClick={() => handleCalculatorInput('7')}>7</Button>
-          <Button variant="outlined" onClick={() => handleCalculatorInput('8')}>8</Button>
-          <Button variant="outlined" onClick={() => handleCalculatorInput('9')}>9</Button>
-          <Button variant="outlined" onClick={() => handleCalculatorOperator('-')}>-</Button>
-          
-          <Button variant="outlined" onClick={() => handleCalculatorInput('4')}>4</Button>
-          <Button variant="outlined" onClick={() => handleCalculatorInput('5')}>5</Button>
-          <Button variant="outlined" onClick={() => handleCalculatorInput('6')}>6</Button>
-          <Button variant="outlined" onClick={() => handleCalculatorOperator('+')}>+</Button>
-          
-          <Button variant="outlined" onClick={() => handleCalculatorInput('1')}>1</Button>
-          <Button variant="outlined" onClick={() => handleCalculatorInput('2')}>2</Button>
-          <Button variant="outlined" onClick={() => handleCalculatorInput('3')}>3</Button>
-          <Button variant="outlined" onClick={() => handleCalculatorEquals()}>=</Button>
-          
-          <Button variant="outlined" onClick={() => handleCalculatorInput('0')} sx={{ gridColumn: 'span 2' }}>0</Button>
-          <Button variant="outlined" onClick={() => handleCalculatorInput('.')}>.</Button>
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={() => handleCalculatorUseResult()}
-          >
-            Use
-          </Button>
-        </Box>
-      </DialogContent>
-    </Dialog>
-  );
-
-  // Order/Delivery Modal
-  const OrderModal = () => (
-    <Dialog open={orderModalOpen} onClose={() => setOrderModalOpen(false)} fullWidth maxWidth="sm">
-      <DialogTitle>Order & Delivery Information</DialogTitle>
-      <DialogContent>
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="h6" gutterBottom>Delivery Options</Typography>
-          <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel>Delivery Method</InputLabel>
-            <Select
-              value={deliveryOption.id}
-              onChange={(e) => setDeliveryOption(deliveryOptions.find(o => o.id === e.target.value))}
-              label="Delivery Method"
-            >
-              {deliveryOptions.map(option => (
-                <MenuItem key={option.id} value={option.id}>
-                  {option.name} {option.fee ? `(UGX ${option.fee.toLocaleString()})` : ''}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
-          {deliveryOption.id !== 1 && (
-            <TextField
-              label="Delivery Address"
-              fullWidth
-              value={customerDetails.address}
-              onChange={(e) => setCustomerDetails({...customerDetails, address: e.target.value})}
-              sx={{ mb: 2 }}
-              required
-            />
-          )}
-          
-          <TextField
-            label="Delivery Instructions"
-            fullWidth
-            multiline
-            rows={3}
-            value={deliveryInstructions}
-            onChange={(e) => setDeliveryInstructions(e.target.value)}
-            sx={{ mb: 2 }}
-            placeholder="Any special instructions for delivery..."
-          />
-          
-          <TextField
-            label="Order Notes"
-            fullWidth
-            multiline
-            rows={3}
-            value={orderNotes}
-            onChange={(e) => setOrderNotes(e.target.value)}
-            placeholder="Any additional notes for the order..."
-          />
-          
-          <Divider sx={{ my: 3 }} />
-          
-          <Typography variant="h6" gutterBottom>Order Summary</Typography>
-          <Box sx={{ p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography>Subtotal:</Typography>
-              <Typography>UGX {subtotal.toLocaleString()}</Typography>
-            </Box>
-            
-            {appliedDiscount && (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography>Discount ({appliedDiscount.discount}%):</Typography>
-                <Typography color="success.main">-UGX {discountAmount.toLocaleString()}</Typography>
-              </Box>
-            )}
-            
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography>Tax (18%):</Typography>
-              <Typography>UGX {taxAmount.toLocaleString()}</Typography>
-            </Box>
-            
-            {deliveryOption.fee && (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography>Delivery Fee:</Typography>
-                <Typography>UGX {deliveryOption.fee.toLocaleString()}</Typography>
-              </Box>
-            )}
-            
-            <Divider sx={{ my: 1 }} />
-            
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="h6">Total:</Typography>
-              <Typography variant="h6">UGX {(subtotal - discountAmount + taxAmount + (deliveryOption.fee || 0)).toLocaleString()}</Typography>
-            </Box>
-          </Box>
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setOrderModalOpen(false)}>Cancel</Button>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={handlePlaceOrder}
-          disabled={deliveryOption.id !== 1 && !customerDetails.address}
-        >
-          Place Order
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-
-  const renderReceipt = (transaction) => (
-  <Box sx={{ p: 3, width: '100%', maxWidth: 400, bgcolor: 'background.paper' }} id="receipt">
-    {/* Receipt Header */}
-    <Box sx={{ textAlign: 'center', mb: 2 }}>
-      <Typography variant="h5" fontWeight="bold" gutterBottom>BUSINESS NAME</Typography>
-      <Typography variant="body2">123 Business Street, Kampala</Typography>
-      <Typography variant="body2">Tel: +256 123 456 789</Typography>
-      <Typography variant="body2">Tax ID: 123456789</Typography>
-      <Divider sx={{ my: 1 }} />
-      <Typography variant="h6" fontWeight="bold">{transaction.type === 'order' ? 'ORDER RECEIPT' : 'SALES RECEIPT'}</Typography>
-      <Typography variant="caption">{format(new Date(transaction.date), 'PPPpp')}</Typography>
-      <Typography variant="body2">Receipt #: {transaction.id}</Typography>
-    </Box>
-    
-    {/* Customer Info */}
-    {transaction.customer.name && (
-      <Box sx={{ mb: 2 }}>
-        <Typography fontWeight="bold">Customer:</Typography>
-        <Typography>{transaction.customer.name}</Typography>
-        {transaction.customer.phone && <Typography>Phone: {transaction.customer.phone}</Typography>}
-        {transaction.customer.email && <Typography>Email: {transaction.customer.email}</Typography>}
-        {transaction.type === 'order' && transaction.customer.address && (
-          <Typography>Address: {transaction.customer.address}</Typography>
-        )}
-      </Box>
-    )}
-    
-    {transaction.type === 'order' && (
-      <Box sx={{ mb: 2 }}>
-        <Typography fontWeight="bold">Delivery:</Typography>
-        <Typography>{transaction.delivery.option.name}</Typography>
-        {transaction.delivery.option.fee > 0 && (
-          <Typography>Fee: UGX {transaction.delivery.option.fee.toLocaleString()}</Typography>
-        )}
-        {transaction.delivery.instructions && (
-          <Typography>Instructions: {transaction.delivery.instructions}</Typography>
-        )}
-      </Box>
-    )}
-    
-    <Divider sx={{ my: 1 }} />
-    
-    {/* Items Table */}
-    <TableContainer>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Item</TableCell>
-            <TableCell align="right">Qty</TableCell>
-            <TableCell align="right">Price</TableCell>
-            <TableCell align="right">Total</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {transaction.items.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.name}</TableCell>
-              <TableCell align="right">{item.quantity}</TableCell>
-              <TableCell align="right">{item.price.toLocaleString()}</TableCell>
-              <TableCell align="right">{(item.price * item.quantity).toLocaleString()}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-    
-    <Divider sx={{ my: 1 }} />
-    
-    {/* Totals */}
-    <Box sx={{ textAlign: 'right' }}>
-      <Typography>Subtotal: UGX {transaction.subtotal.toLocaleString()}</Typography>
-      {transaction.discount > 0 && (
-        <Typography>Discount: -UGX {transaction.discount.toLocaleString()}</Typography>
-      )}
-      <Typography>Tax (18%): UGX {transaction.tax.toLocaleString()}</Typography>
-      {transaction.type === 'order' && transaction.delivery.option.fee > 0 && (
-        <Typography>Delivery Fee: UGX {transaction.delivery.option.fee.toLocaleString()}</Typography>
-      )}
-      <Typography variant="h6" fontWeight="bold" sx={{ mt: 1 }}>
-        Total: UGX {transaction.total.toLocaleString()}
-      </Typography>
-    </Box>
-    
-    <Divider sx={{ my: 1 }} />
-    
-    {/* Payment Info */}
-    {transaction.type === 'sale' && (
-      <Box>
-        <Typography fontWeight="bold">Payment Method:</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          {transaction.paymentMethod.image ? (
-            <img 
-              src={transaction.paymentMethod.image} 
-              alt={transaction.paymentMethod.name}
-              style={{ height: 20 }}
-            />
-          ) : (
-            React.cloneElement(transaction.paymentMethod.icon, { fontSize: 'small' })
-          )}
-          <Typography>{transaction.paymentMethod.name}</Typography>
-        </Box>
-        
-        {Object.entries(transaction.paymentDetails).map(([key, value]) => (
-          <Typography key={key}>
-            {key}: {value}
-          </Typography>
-        ))}
-      </Box>
-    )}
-    
-    {transaction.type === 'order' && transaction.notes && (
-      <Box sx={{ mt: 2 }}>
-        <Typography fontWeight="bold">Order Notes:</Typography>
-        <Typography>{transaction.notes}</Typography>
-      </Box>
-    )}
-    
-    <Divider sx={{ my: 2 }} />
-    
-    {/* Footer */}
-    <Box sx={{ textAlign: 'center', mt: 2 }}>
-      <Typography variant="caption" display="block">Thank you for your business!</Typography>
-      {transaction.type === 'order' ? (
-        <Typography variant="caption" display="block">Your order will be processed shortly</Typography>
-      ) : (
-        <Typography variant="caption" display="block">Items cannot be returned without receipt</Typography>
-      )}
-      <Typography variant="caption" display="block">Terms and conditions apply</Typography>
-    </Box>
-  </Box>
-);
-
-  // Receipt Modal with Sharing Options
-  const ReceiptModal = () => (
-  <Modal
-    open={receiptModalOpen}
-    onClose={() => setReceiptModalOpen(false)}
-    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-  >
-    <Box sx={{ bgcolor: 'background.paper', boxShadow: 24, maxWidth: 500 }}>
-      <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6">
-          {currentReceipt?.type === 'order' ? 'Order Receipt' : 'Sales Receipt'}
-        </Typography>
-        <Box>
-          <Tooltip title="Print">
-            <IconButton onClick={() => window.print()} sx={{ mr: 1 }}>
-              <PrintIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Share">
-            <IconButton onClick={() => setShareOptionsOpen(true)} sx={{ mr: 1 }}>
-              <ShareIcon />
-            </IconButton>
-          </Tooltip>
-          <IconButton onClick={() => setReceiptModalOpen(false)}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </Box>
-      <Box sx={{ p: 3 }}>
-        {currentReceipt && renderReceipt(currentReceipt)}
-      </Box>
-      <DialogActions>
-        <Button onClick={() => setReceiptModalOpen(false)}>Close</Button>
-      </DialogActions>
-    </Box>
-  </Modal>
-);
-
-  // Share Options Dialog
-  const ShareOptionsDialog = () => (
-    <Dialog open={shareOptionsOpen} onClose={() => setShareOptionsOpen(false)}>
-      <DialogTitle>Share Receipt</DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ p: 2 }}>
-          <Grid item xs={6}>
-            <Button 
-              fullWidth 
-              variant="outlined" 
-              startIcon={<EmailIcon />}
-              onClick={() => handleShare('email')}
-            >
-              Email
-            </Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button 
-              fullWidth 
-              variant="outlined" 
-              startIcon={<WhatsAppIcon />}
-              onClick={() => handleShare('whatsapp')}
-            >
-              WhatsApp
-            </Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button 
-              fullWidth 
-              variant="outlined" 
-              startIcon={<FacebookIcon />}
-              onClick={() => handleShare('facebook')}
-            >
-              Facebook
-            </Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button 
-              fullWidth 
-              variant="outlined" 
-              startIcon={<TwitterIcon />}
-              onClick={() => handleShare('twitter')}
-            >
-              Twitter
-            </Button>
-          </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setShareOptionsOpen(false)}>Cancel</Button>
-      </DialogActions>
-    </Dialog>
-  );
-
-  // Payment History Dialog
-  const PaymentHistoryDialog = () => (
-    <Dialog
-      open={paymentHistoryOpen}
-      onClose={() => setPaymentHistoryOpen(false)}
-      fullWidth
-      maxWidth="md"
-    >
-      <DialogTitle>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">Transaction History</Typography>
-          <IconButton onClick={() => setPaymentHistoryOpen(false)}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Date</TableCell>
-                <TableCell>ID</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Customer</TableCell>
-                <TableCell>Items</TableCell>
-                <TableCell>Total</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paymentHistory.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell>{format(new Date(transaction.date), 'PPpp')}</TableCell>
-                  <TableCell>{transaction.id}</TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={transaction.type === 'order' ? 'Order' : 'Sale'} 
-                      color={transaction.type === 'order' ? 'primary' : 'success'} 
-                      size="small" 
-                    />
-                  </TableCell>
-                  <TableCell>{transaction.customer.name || 'Walk-in'}</TableCell>
-                  <TableCell>{transaction.items.length}</TableCell>
-                  <TableCell>UGX {transaction.total.toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={transaction.status} 
-                      color={
-                        transaction.status === 'completed' ? 'success' : 
-                        transaction.status === 'pending' ? 'warning' : 'error'
-                      } 
-                      size="small" 
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      size="small"
-                      startIcon={<ReceiptIcon />}
-                      onClick={() => {
-                        setCurrentReceipt(transaction);
-                        setReceiptModalOpen(true);
-                      }}
-                    >
-                      Receipt
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        
-        {paymentHistory.length === 0 && (
-          <Box sx={{ textAlign: 'center', p: 3 }}>
-            <Typography>No transaction history yet</Typography>
-          </Box>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setPaymentHistoryOpen(false)}>Close</Button>
-      </DialogActions>
-    </Dialog>
-  );
-
+  
+    );
   // Main render
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
-      {/* Calculator Modal */}
-      <CalculatorModal />
-      
-      {/* Order/Delivery Modal */}
-      <OrderModal />
-
       {/* Edit Product Modal */}
       {renderEditProductModal()}
       
-      {/* Receipt Modal with Sharing */}
-      <ReceiptModal />
-      <ShareOptionsDialog />
-
-      {/* Payment History Dialog */}
-      <PaymentHistoryDialog />
-      
       {/* Header with search and cart */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <TextField
-            placeholder={`Search ${viewType}...`}
-            variant="outlined"
-            size="small"
-            sx={{ width: 300 }}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1 }} />
-            }}
-            value={searchText}
-            onChange={handleSearch}
-          />
-          
+        <TextField
+          placeholder="Search products..."
+          variant="outlined"
+          size="small"
+          sx={{ width: 300 }}
+          InputProps={{
+            startAdornment: <SearchIcon sx={{ mr: 1 }} />
+          }}
+          value={searchText}
+          onChange={handleSearch}
+        />
+        
+        <Box sx={{ display: 'flex', gap: 2 }}>
           <TextField
             placeholder="Scan barcode..."
             variant="outlined"
@@ -1928,7 +1259,7 @@ const SalesPage = () => {
             onKeyPress={(e) => {
               if (e.key === "Enter" && barcodeInput) {
                 const product = products.find(
-                  (item) => item.barcode === barcodeInput && item.type === "product"
+                  (item) => item.barcode === barcodeInput
                 );
                 if (product) {
                   handleAddToCart(product);
@@ -1945,9 +1276,7 @@ const SalesPage = () => {
               </IconButton>
             }}
           />
-        </Box>
-        
-        <Box sx={{ display: 'flex', gap: 2 }}>
+          
           <Badge badgeContent={cart.length} color="primary">
             <Button
               variant="contained"
@@ -1967,9 +1296,6 @@ const SalesPage = () => {
           </Button>
         </Box>
       </Box>
-      
-      {/* View Toggle */}
-      <ViewToggle />
       
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>
@@ -2040,76 +1366,64 @@ const SalesPage = () => {
         </Grid>
       </Paper>
       
-      {/* Products/Services Grid */}
+      {/* Products Grid */}
       <Grid container spacing={3}>
-        {filteredProducts.map((item) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+        {filteredProducts.map((product) => (
+          <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <CardMedia
                 component="img"
                 height="140"
-                image={item.image || (item.type === "service" ? '/assets/service.jpg' : '/assets/product.jpg')}
-                alt={item.name}
+                image={product.image}
+                alt={product.name}
                 sx={{ 
                   objectFit: 'contain', 
                   p: 1, 
                   bgcolor: 'white',
                   cursor: 'pointer'
                 }}
-                onClick={() => handleAddToCart(item)}
+                onClick={() => handleAddToCart(product)}
               />
               <CardContent sx={{ flexGrow: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography gutterBottom variant="h6" component="div">
-                    {item.name}
+                    {product.name}
                   </Typography>
-                  {item.type === "product" && (
-                    <IconButton 
-                      size="small" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditProduct(item);
-                      }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  )}
+                  <IconButton 
+                    size="small" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditProduct(product);
+                    }}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
                 </Box>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  {item.category} &gt; {item.subcategory}
+                  {product.category} &gt; {product.subcategory}
                 </Typography>
-                {item.type === "service" && (
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    Duration: {item.duration}
-                  </Typography>
-                )}
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                  <Rating value={item.rating} precision={0.5} readOnly size="small" />
+                  <Rating value={product.rating} precision={0.5} readOnly size="small" />
                   <Typography variant="body2" sx={{ ml: 1 }}>
-                    ({item.rating})
+                    ({product.rating})
                   </Typography>
                 </Box>
                 <Typography variant="h6" color="primary" sx={{ mb: 1 }}>
-                  UGX {item.price.toLocaleString()}
+                  UGX {product.price.toLocaleString()}
                 </Typography>
-                {item.type === "product" && (
-                  <Typography variant="body2" sx={{ fontStyle: 'italic', mb: 2 }}>
-                    {item.stock} in stock
-                  </Typography>
-                )}
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  {item.description}
+                <Typography variant="body2" sx={{ fontStyle: 'italic', mb: 2 }}>
+                  {product.stock} in stock
                 </Typography>
               </CardContent>
               <Box sx={{ p: 2 }}>
                 <Button
                   fullWidth
                   variant="contained"
-                  onClick={() => handleAddToCart(item)}
-                  disabled={item.type === "product" && item.stock <= 0}
+                  onClick={() => handleAddToCart(product)}
+                  disabled={product.stock <= 0}
                   startIcon={<ShoppingCartIcon />}
                 >
-                  {item.type === "product" && item.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
+                  {product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
                 </Button>
               </Box>
             </Card>
@@ -2121,7 +1435,7 @@ const SalesPage = () => {
       {filteredProducts.length === 0 && (
         <Box sx={{ textAlign: 'center', p: 5 }}>
           <Typography variant="h6" gutterBottom>
-            No {viewType} found
+            No products found
           </Typography>
           <Typography variant="body1">
             Try adjusting your search or filter criteria
@@ -2129,7 +1443,7 @@ const SalesPage = () => {
         </Box>
       )}
       
-      {/* Cart Drawer with integrated calculator */}
+      {/* Cart Drawer */}
       <Drawer
         anchor="right"
         open={cartDrawerOpen}
@@ -2140,16 +1454,9 @@ const SalesPage = () => {
           <Typography variant="h6">
             Shopping Cart ({cart.length} {cart.length === 1 ? 'item' : 'items'})
           </Typography>
-          <Box>
-            <Tooltip title="Calculator">
-              <IconButton onClick={() => setCalculatorOpen(true)} sx={{ mr: 1 }}>
-                <CalculatorIcon />
-              </IconButton>
-            </Tooltip>
-            <IconButton onClick={() => setCartDrawerOpen(false)}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
+          <IconButton onClick={() => setCartDrawerOpen(false)}>
+            <CloseIcon />
+          </IconButton>
         </Box>
         
         <Divider />
@@ -2179,27 +1486,16 @@ const SalesPage = () => {
           </Button>
           
           {activeStep === steps.length - 1 ? (
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => setOrderModalOpen(true)}
-                disabled={cart.length === 0}
-                startIcon={<DeliveryIcon />}
-              >
-                Place Order
-              </Button>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={handleCompleteSale}
-                disabled={!selectedPaymentMethod || (selectedPaymentMethod.fields.length > 0 && 
-                  Object.values(paymentDetails).some(val => !val))}
-                startIcon={<PaymentIcon />}
-              >
-                Complete Sale
-              </Button>
-            </Box>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleCompleteSale}
+              disabled={!selectedPaymentMethod || (selectedPaymentMethod.fields.length > 0 && 
+                Object.values(paymentDetails).some(val => !val))}
+              startIcon={<PaymentIcon />}
+            >
+              Complete Sale
+            </Button>
           ) : (
             <Button
               variant="contained"
@@ -2211,6 +1507,113 @@ const SalesPage = () => {
           )}
         </Box>
       </Drawer>
+
+      {/* Payment History Dialog */}
+      <Dialog
+        open={paymentHistoryOpen}
+        onClose={() => setPaymentHistoryOpen(false)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">Payment History</Typography>
+            <IconButton onClick={() => setPaymentHistoryOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Transaction ID</TableCell>
+                  <TableCell>Customer</TableCell>
+                  <TableCell>Items</TableCell>
+                  <TableCell>Total</TableCell>
+                  <TableCell>Payment Method</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paymentHistory.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell>{format(new Date(transaction.date), 'PPpp')}</TableCell>
+                    <TableCell>{transaction.id}</TableCell>
+                    <TableCell>{transaction.customer.name || 'Walk-in'}</TableCell>
+                    <TableCell>{transaction.items.length}</TableCell>
+                    <TableCell>UGX {transaction.total.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {transaction.paymentMethod.image ? (
+                          <img 
+                            src={transaction.paymentMethod.image} 
+                            alt={transaction.paymentMethod.name}
+                            style={{ height: 20 }}
+                          />
+                        ) : (
+                          React.cloneElement(transaction.paymentMethod.icon, { fontSize: 'small' })
+                        )}
+                        <Typography>{transaction.paymentMethod.name}</Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="small"
+                        startIcon={<ReceiptIcon />}
+                        onClick={() => {
+                          setCurrentReceipt(transaction);
+                          setReceiptModalOpen(true);
+                        }}
+                      >
+                        Receipt
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          
+          {paymentHistory.length === 0 && (
+            <Box sx={{ textAlign: 'center', p: 3 }}>
+              <Typography>No payment history yet</Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPaymentHistoryOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Receipt Modal */}
+      <Modal
+        open={receiptModalOpen}
+        onClose={() => setReceiptModalOpen(false)}
+        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      >
+        <Box sx={{ bgcolor: 'background.paper', boxShadow: 24, maxWidth: 500 }}>
+          <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">Receipt</Typography>
+            <Box>
+              <IconButton onClick={() => window.print()} sx={{ mr: 1 }}>
+                <PrintIcon />
+              </IconButton>
+              <IconButton onClick={() => setReceiptModalOpen(false)}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </Box>
+          <Box sx={{ p: 3 }}>
+            {currentReceipt && renderReceipt(currentReceipt)}
+          </Box>
+          <DialogActions>
+            <Button onClick={() => setReceiptModalOpen(false)}>Close</Button>
+          </DialogActions>
+        </Box>
+      </Modal>
 
       {/* Snackbar Notifications */}
       <Snackbar

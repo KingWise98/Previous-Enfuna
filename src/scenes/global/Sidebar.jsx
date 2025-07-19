@@ -106,7 +106,7 @@ const Sidebar = () => {
             
 
   <Item title="Manage Sales" to="/pos/manage" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
-   <Item title="Invoices" to="/payment" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
+   <Item title="Invoices & Quotation" to="/payment" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
  
  
   
