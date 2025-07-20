@@ -75,6 +75,7 @@ import Timestamp from "./scenes/HRM/timestamp";
 import Pos_Dashboard from "./scenes/pos/all";
 import Dashboards from "./scenes/pos/dashboard";
 import New_Sales from "./scenes/pos/new_sales";
+import Service_Sales from "./scenes/pos/service_sales";
 import Favorites from "./scenes/pos/fav";
 import Beverages from "./scenes/pos/beverages";
 import Dessert from "./scenes/pos/dessert";
@@ -102,6 +103,7 @@ import Returns from "./scenes/pos/returns";
 
 // User
 import New_Sale from "./scenes/user/new_sales";
+import Service_Sale from "./scenes/user/service_sales";
 import Fav from "./scenes/user/fav";
 import Beverage from "./scenes/user/beverages";
 import Desserts from "./scenes/user/dessert";
@@ -480,6 +482,11 @@ function App() {
                   <New_Sales />
                 </ProtectedRoute>
               } />
+               <Route path="/pos/service_sales" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Service_Sales />
+                </ProtectedRoute>
+              } />
               <Route path="/pos/fav" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Favorites />
@@ -605,6 +612,11 @@ function App() {
               <Route path="/user/new_sales" element={
                 <ProtectedRoute allowedRoles={["normal"]}>
                   <New_Sale />
+                </ProtectedRoute>
+              } />
+               <Route path="/user/service_sales" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Service_Sale />
                 </ProtectedRoute>
               } />
               <Route path="/user/fav" element={
