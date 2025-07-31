@@ -90,252 +90,25 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-
-// Service Data
-const serviceData = [
-  // Hospitality Services
-  { 
-    id: 1, 
-    name: "Fine Dining Experience", 
-    category: "Hospitality", 
-    subcategory: "Restaurant", 
-    price: 250000, 
-    duration: 120, 
-    rating: 4.8, 
-    provider: "Gourmet Delights",
-    providerRating: 4.7,
-    available: true,
-    image: "/assets/restaurant.jpg", 
-    description: "Premium dining experience with gourmet menu options.",
-    requiresAppointment: true,
-    maxParticipants: 4,
-    tags: ["fine dining", "gourmet", "premium"],
-    serviceType: "hospitality",
-    hospitalityType: "restaurant",
-    menuItems: [
-      { id: 1, name: "Filet Mignon", price: 45000, category: "Main Course" },
-      { id: 2, name: "Lobster Bisque", price: 25000, category: "Appetizer" }
-    ],
-    tableManagement: {
-      totalTables: 20,
-      availableTables: 15,
-      tableLayout: "/assets/restaurant-layout.jpg"
-    }
-  },
-  { 
-    id: 2, 
-    name: "Luxury Suite Booking", 
-    category: "Hospitality", 
-    subcategory: "Hotel", 
-    price: 500000, 
-    duration: 1440, // 24 hours
-    rating: 4.9, 
-    provider: "Grand Hotel",
-    providerRating: 4.9,
-    available: true,
-    image: "/assets/hotel.jpg", 
-    description: "Luxury suite with ocean view and premium amenities.",
-    requiresAppointment: true,
-    maxParticipants: 2,
-    tags: ["luxury", "hotel", "vacation"],
-    serviceType: "hospitality",
-    hospitalityType: "hotel",
-    roomManagement: {
-      totalRooms: 50,
-      availableRooms: 12,
-      roomTypes: ["Suite", "Deluxe", "Standard"],
-      amenities: ["Pool", "Spa", "Restaurant"]
-    }
-  },
-  
-  // Retail Services
-  { 
-    id: 3, 
-    name: "Personal Shopping Assistant", 
-    category: "Retail", 
-    subcategory: "Personal Shopper", 
-    price: 50000, 
-    duration: 60, 
-    rating: 4.5, 
-    provider: "Style Consultants",
-    providerRating: 4.6,
-    available: true,
-    image: "/assets/shopping.jpg", 
-    description: "Personal shopping assistant to help you find the perfect items.",
-    requiresAppointment: true,
-    maxParticipants: 1,
-    tags: ["fashion", "shopping", "personal"],
-    serviceType: "retail",
-    inventory: {
-      stock: 10,
-      lowStockAlert: 2,
-      sku: "RET-1001"
-    },
-    loyaltyProgram: {
-      points: 50,
-      discountEligible: true
-    }
-  },
-  
-  // Healthcare Services
-  { 
-    id: 4, 
-    name: "General Checkup", 
-    category: "Healthcare", 
-    subcategory: "Clinic", 
-    price: 75000, 
-    duration: 30, 
-    rating: 4.7, 
-    provider: "City Medical Center",
-    providerRating: 4.8,
-    available: true,
-    image: "/assets/clinic.jpg", 
-    description: "Comprehensive general health checkup.",
-    requiresAppointment: true,
-    maxParticipants: 1,
-    tags: ["medical", "checkup", "health"],
-    serviceType: "healthcare",
-    healthcareType: "clinic",
-    patientManagement: {
-      acceptsInsurance: true,
-      insuranceProviders: ["Aetna", "Blue Cross", "Medicare"]
-    },
-    prescriptionManagement: true
-  },
-  
-  // Salon & Spa Services
-  { 
-    id: 5, 
-    name: "Full Spa Package", 
-    category: "Salons & Spas", 
-    subcategory: "Spa", 
-    price: 180000, 
-    duration: 180, 
-    rating: 4.9, 
-    provider: "Serenity Spa",
-    providerRating: 4.9,
-    available: true,
-    image: "/assets/spa.jpg", 
-    description: "Complete spa package including massage, facial, and body treatment.",
-    requiresAppointment: true,
-    maxParticipants: 1,
-    tags: ["spa", "relaxation", "wellness"],
-    serviceType: "salon",
-    salonType: "spa",
-    appointmentSettings: {
-      advanceBooking: 7, // days in advance
-      cancellationPolicy: "24 hours"
-    },
-    staffAssignable: true
-  },
-  
-  // Grocery Services
-  { 
-    id: 6, 
-    name: "Organic Grocery Delivery", 
-    category: "Grocery Stores", 
-    subcategory: "Delivery", 
-    price: 15000, 
-    duration: null, 
-    rating: 4.5, 
-    provider: "Green Grocers",
-    providerRating: 4.6,
-    available: true,
-    image: "/assets/grocery.jpg", 
-    description: "Weekly delivery of organic groceries from local farms.",
-    requiresAppointment: false,
-    maxParticipants: null,
-    tags: ["organic", "grocery", "delivery"],
-    serviceType: "grocery",
-    inventoryManagement: {
-      perishableTracking: true,
-      weightBasedPricing: true
-    },
-    deliveryOptions: {
-      available: true,
-      minOrder: 50000
-    }
-  },
-  
-  // Event Management Services
-  { 
-    id: 7, 
-    name: "Wedding Planning Package", 
-    category: "Event Management", 
-    subcategory: "Weddings", 
-    price: 2500000, 
-    duration: null, 
-    rating: 4.9, 
-    provider: "Dream Weddings",
-    providerRating: 4.9,
-    available: true,
-    image: "/assets/wedding.jpg", 
-    description: "Complete wedding planning service including venue, catering, and coordination.",
-    requiresAppointment: true,
-    maxParticipants: null,
-    tags: ["wedding", "event", "planning"],
-    serviceType: "event",
-    eventType: "wedding",
-    venueManagement: {
-      capacity: 200,
-      indoor: true,
-      outdoor: true
-    },
-    ticketManagement: {
-      required: false,
-      capacity: null
-    }
-  }
-];
-
-// Payment Methods
-const paymentMethods = [
-  { 
-    id: 1, 
-    name: "MTN Mobile Money", 
-    type: "mobile_money", 
-    icon: <MobileMoneyIcon />,
-    image: '/assets/mtn.jpg',
-    fields: ["Phone Number", "Transaction ID"]
-  },
-  { 
-    id: 2, 
-    name: "Airtel Money", 
-    type: "mobile_money", 
-    icon: <MobileMoneyIcon />,
-    image: '/assets/airtel.jpg',
-    fields: ["Phone Number", "Transaction ID"]
-  },
-  {
-    id: 3,
-    name: "Pay with Cash",
-    type: "cash",
-    icon: <CashIcon />,
-    image: '',
-    fields: []
-  },
-  {
-    id: 4,
-    name: "Credit Card",
-    type: "card",
-    icon: <CreditCardIcon />,
-    image: '/assets/visa.png',
-    fields: ["Card Number", "Expiry Date", "CVV"]
-  }
-];
-
-// Discount Offers
-const discountOffers = [
-  { id: 1, name: "Weekend Special", discount: 10, code: "WEEKEND10" },
-  { id: 2, name: "Bulk Purchase", discount: 15, code: "BULK15" },
-  { id: 3, name: "New Customer", discount: 20, code: "NEW20" },
-];
-
 const ServiceSalesPage = () => {
+
+// Service Data - Would be fetched from backend API
+// API endpoint: GET /api/services
+const [serviceData, setServiceData] = useState([]);
+
+// Payment Methods - Would be fetched from backend API
+// API endpoint: GET /api/payment-methods
+const [paymentMethods, setPaymentMethods] = useState([]);
+
+// Discount Offers - Would be fetched from backend API
+// API endpoint: GET /api/discounts
+const [discountOffers, setDiscountOffers] = useState([]);
+
+
   // State Management
-  const [services, setServices] = useState(serviceData);
+  const [services, setServices] = useState([]);
   const [cart, setCart] = useState([]);
-  const [filteredServices, setFilteredServices] = useState(serviceData);
+  const [filteredServices, setFilteredServices] = useState([]);
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
   const [minPrice, setMinPrice] = useState(0);
@@ -372,13 +145,56 @@ const ServiceSalesPage = () => {
 
   const navigate = useNavigate();
 
+  // Fetch initial data from backend APIs
+  useEffect(() => {
+    // Fetch services
+    // API call: GET /api/services
+    // Example:
+    /*
+    fetch('/api/services')
+      .then(response => response.json())
+      .then(data => {
+        setServices(data);
+        setFilteredServices(data);
+      })
+      .catch(error => console.error('Error fetching services:', error));
+    */
+
+    // Fetch payment methods
+    // API call: GET /api/payment-methods
+    /*
+    fetch('/api/payment-methods')
+      .then(response => response.json())
+      .then(data => setPaymentMethods(data))
+      .catch(error => console.error('Error fetching payment methods:', error));
+    */
+
+    // Fetch discount offers
+    // API call: GET /api/discounts
+    /*
+    fetch('/api/discounts')
+      .then(response => response.json())
+      .then(data => setDiscountOffers(data))
+      .catch(error => console.error('Error fetching discounts:', error));
+    */
+
+    // Fetch payment history
+    // API call: GET /api/transactions
+    /*
+    fetch('/api/transactions')
+      .then(response => response.json())
+      .then(data => setPaymentHistory(data))
+      .catch(error => console.error('Error fetching transactions:', error));
+    */
+  }, []);
+
   // Filter Services
   useEffect(() => {
     applyFilters();
   }, [category, subcategory, minPrice, maxPrice, rating, searchText, services]);
 
   const applyFilters = () => {
-    const filtered = serviceData
+    const filtered = services
       .filter((service) => (category ? service.category === category : true))
       .filter((service) => (subcategory ? service.subcategory === subcategory : true))
       .filter((service) => service.price >= minPrice && service.price <= maxPrice)
@@ -391,16 +207,10 @@ const ServiceSalesPage = () => {
     setFilteredServices(filtered);
   };
 
-  // Category Map
-  const categoryMap = {
-    "Hospitality": ["Restaurant", "Hotel", "Bar", "Cafe"],
-    "Retail": ["Personal Shopper", "Gift Wrapping", "Product Assembly"],
-    "Healthcare": ["Clinic", "Pharmacy", "Dental", "Optometry"],
-    "Salons & Spas": ["Hair", "Nails", "Spa", "Massage"],
-    "Grocery Stores": ["Delivery", "Catering", "Special Orders"],
-    "Event Management": ["Weddings", "Conferences", "Parties", "Concerts"]
-  };
-  
+  // Category Map - Would be fetched from backend API
+  // API endpoint: GET /api/categories
+  const [categoryMap, setCategoryMap] = useState({});
+
   const renderReceipt = (transaction) => (
     <Box sx={{ p: 3, width: '100%', maxWidth: 400, bgcolor: 'background.paper' }} id="receipt">
       {/* Receipt Header */}
@@ -617,6 +427,43 @@ const ServiceSalesPage = () => {
       status: 'completed'
     };
 
+    // API call to save transaction
+    /*
+    fetch('/api/transactions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(transaction),
+    })
+    .then(response => response.json())
+    .then(data => {
+      setPaymentHistory([data, ...paymentHistory]);
+      setCurrentReceipt(data);
+      setReceiptModalOpen(true);
+      
+      // Reset system
+      setCart([]);
+      setAppliedDiscount(null);
+      setCustomerDetails({ name: "", phone: "", email: "" });
+      setSelectedPaymentMethod(null);
+      setPaymentDetails({});
+      setActiveStep(0);
+      setCartDrawerOpen(false);
+      setAmountTendered(0);
+      setChangeDue(0);
+      
+      setSnackbarMessage("Payment processed successfully!");
+      setOpenSnackbar(true);
+    })
+    .catch(error => {
+      console.error('Error saving transaction:', error);
+      setSnackbarMessage("Error processing payment. Please try again.");
+      setOpenSnackbar(true);
+    });
+    */
+
+    // For demo purposes without API
     setPaymentHistory([transaction, ...paymentHistory]);
     setCurrentReceipt(transaction);
     setReceiptModalOpen(true);
@@ -641,7 +488,7 @@ const ServiceSalesPage = () => {
   const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.discount) / 100 : 0;
   const taxRate = 0.18; // 18% VAT
   const taxAmount = (subtotal - discountAmount) * taxRate;
-  const totalAmount = subtotal - discountAmount + taxAmount;
+  const totalAmount = subtotal - discountAmount + taxRate;
   
   useEffect(() => {
     if (selectedPaymentMethod?.type === 'cash' && cashAmount) {
