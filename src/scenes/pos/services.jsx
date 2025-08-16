@@ -54,7 +54,6 @@ import {
   Search,
   FilterList,
   Sort,
-  
   Edit,
   Close,
   Schedule,
@@ -86,7 +85,7 @@ import {
   RoomPreferences,
   Store,
   MedicalServices,
-  ContentCut ,
+  ContentCut,
   ShoppingBag,
   LocalFlorist,
   ConfirmationNumber,
@@ -110,256 +109,10 @@ const serviceCategoryStructure = {
   "Event Management": ["Concerts", "Conferences", "Weddings", "Private Parties"]
 };
 
-// Enhanced service data with examples from all categories
-const initialServiceData = [
-  { 
-    id: 1, 
-    name: "Web Development", 
-    category: "Web Development", 
-    subcategory: "Websites", 
-    price: 350000, 
-    duration: 60, 
-    rating: 4.5, 
-    provider: "Harold Tech Support",
-    providerRating: 4.8,
-    available: true,
-    image: "/assets/web.jpeg", 
-    description: "Professional Websites developed according to the users needs.",
-    requiresAppointment: true,
-    maxParticipants: 1,
-    tags: ["web", "development", "tech"],
-    serviceType: "standard"
-  },
-  { 
-    id: 2, 
-    name: "Deep Cleaning", 
-    category: "Home Services", 
-    subcategory: "Cleaning", 
-    price: 150000, 
-    duration: 240, 
-    rating: 4.7, 
-    provider: "Sparkle Clean",
-    providerRating: 4.9,
-    available: true,
-    image: "/assets/cleaning.jpg", 
-    description: "Thorough deep cleaning of your entire home or office.",
-    requiresAppointment: true,
-    maxParticipants: null,
-    tags: ["cleaning", "home", "deep clean"],
-    serviceType: "standard"
-  },
-  { 
-    id: 3, 
-    name: "Legal Consultation", 
-    category: "Professional Services", 
-    subcategory: "Legal", 
-    price: 100000, 
-    duration: 60, 
-    rating: 4.9, 
-    provider: "Law Associates Ltd",
-    providerRating: 4.8,
-    available: true,
-    image: "/assets/legal.jpeg", 
-    description: "Initial consultation with our experienced attorneys.",
-    requiresAppointment: true,
-    maxParticipants: 1,
-    tags: ["legal", "consultation", "lawyer"],
-    serviceType: "standard"
-  },
-  // Hospitality examples
-  { 
-    id: 4, 
-    name: "Fine Dining Experience", 
-    category: "Hospitality", 
-    subcategory: "Restaurant", 
-    price: 250000, 
-    duration: 120, 
-    rating: 4.8, 
-    provider: "Gourmet Delights",
-    providerRating: 4.7,
-    available: true,
-    image: "/assets/restaurant.jpg", 
-    description: "Premium dining experience with gourmet menu options.",
-    requiresAppointment: true,
-    maxParticipants: 4,
-    tags: ["fine dining", "gourmet", "premium"],
-    serviceType: "hospitality",
-    hospitalityType: "restaurant",
-    menuItems: [
-      { id: 1, name: "Filet Mignon", price: 45000, category: "Main Course" },
-      { id: 2, name: "Lobster Bisque", price: 25000, category: "Appetizer" }
-    ],
-    tableManagement: {
-      totalTables: 20,
-      availableTables: 15,
-      tableLayout: "/assets/restaurant-layout.jpg"
-    }
-  },
-  { 
-    id: 5, 
-    name: "Luxury Suite Booking", 
-    category: "Hospitality", 
-    subcategory: "Hotel", 
-    price: 500000, 
-    duration: 1440, // 24 hours
-    rating: 4.9, 
-    provider: "Grand Hotel",
-    providerRating: 4.9,
-    available: true,
-    image: "/assets/hotel.jpg", 
-    description: "Luxury suite with ocean view and premium amenities.",
-    requiresAppointment: true,
-    maxParticipants: 2,
-    tags: ["luxury", "hotel", "vacation"],
-    serviceType: "hospitality",
-    hospitalityType: "hotel",
-    roomManagement: {
-      totalRooms: 50,
-      availableRooms: 12,
-      roomTypes: ["Suite", "Deluxe", "Standard"],
-      amenities: ["Pool", "Spa", "Restaurant"]
-    }
-  },
-  // Retail examples
-  { 
-    id: 6, 
-    name: "Premium Electronics", 
-    category: "Retail", 
-    subcategory: "Electronics", 
-    price: 1200000, 
-    duration: null, 
-    rating: 4.6, 
-    provider: "Tech Haven",
-    providerRating: 4.5,
-    available: true,
-    image: "/assets/electronics.jpg", 
-    description: "Latest electronics and gadgets with warranty.",
-    requiresAppointment: false,
-    maxParticipants: null,
-    tags: ["electronics", "gadgets", "tech"],
-    serviceType: "retail",
-    inventory: {
-      stock: 45,
-      lowStockAlert: 5,
-      sku: "ELEC-1001"
-    },
-    loyaltyProgram: {
-      points: 100,
-      discountEligible: true
-    }
-  },
-  // Healthcare examples
-  { 
-    id: 7, 
-    name: "General Checkup", 
-    category: "Healthcare", 
-    subcategory: "Clinic", 
-    price: 75000, 
-    duration: 30, 
-    rating: 4.7, 
-    provider: "City Medical Center",
-    providerRating: 4.8,
-    available: true,
-    image: "/assets/clinic.jpg", 
-    description: "Comprehensive general health checkup.",
-    requiresAppointment: true,
-    maxParticipants: 1,
-    tags: ["medical", "checkup", "health"],
-    serviceType: "healthcare",
-    healthcareType: "clinic",
-    patientManagement: {
-      acceptsInsurance: true,
-      insuranceProviders: ["Aetna", "Blue Cross", "Medicare"]
-    },
-    prescriptionManagement: true
-  },
-  // Salon & Spa examples
-  { 
-    id: 8, 
-    name: "Full Spa Package", 
-    category: "Salons & Spas", 
-    subcategory: "Spa", 
-    price: 180000, 
-    duration: 180, 
-    rating: 4.9, 
-    provider: "Serenity Spa",
-    providerRating: 4.9,
-    available: true,
-    image: "/assets/spa.jpg", 
-    description: "Complete spa package including massage, facial, and body treatment.",
-    requiresAppointment: true,
-    maxParticipants: 1,
-    tags: ["spa", "relaxation", "wellness"],
-    serviceType: "salon",
-    salonType: "spa",
-    appointmentSettings: {
-      advanceBooking: 7, // days in advance
-      cancellationPolicy: "24 hours"
-    },
-    staffAssignable: true
-  },
-  // Grocery examples
-  { 
-    id: 9, 
-    name: "Organic Grocery Delivery", 
-    category: "Grocery Stores", 
-    subcategory: "Supermarket", 
-    price: null, // variable
-    duration: null, 
-    rating: 4.5, 
-    provider: "Green Grocers",
-    providerRating: 4.6,
-    available: true,
-    image: "/assets/grocery.jpg", 
-    description: "Weekly delivery of organic groceries from local farms.",
-    requiresAppointment: false,
-    maxParticipants: null,
-    tags: ["organic", "grocery", "delivery"],
-    serviceType: "grocery",
-    inventoryManagement: {
-      perishableTracking: true,
-      weightBasedPricing: true
-    },
-    deliveryOptions: {
-      available: true,
-      minOrder: 50000
-    }
-  },
-  // Event Management examples
-  { 
-    id: 10, 
-    name: "Wedding Planning Package", 
-    category: "Event Management", 
-    subcategory: "Weddings", 
-    price: 2500000, 
-    duration: null, 
-    rating: 4.9, 
-    provider: "Dream Weddings",
-    providerRating: 4.9,
-    available: true,
-    image: "/assets/wedding.jpg", 
-    description: "Complete wedding planning service including venue, catering, and coordination.",
-    requiresAppointment: true,
-    maxParticipants: null,
-    tags: ["wedding", "event", "planning"],
-    serviceType: "event",
-    eventType: "wedding",
-    venueManagement: {
-      capacity: 200,
-      indoor: true,
-      outdoor: true
-    },
-    ticketManagement: {
-      required: false,
-      capacity: null
-    }
-  }
-];
-
 const ServicesPage = () => {
   // State management
-  const [services, setServices] = useState(initialServiceData);
-  const [filteredServices, setFilteredServices] = useState(initialServiceData);
+  const [services, setServices] = useState([]);
+  const [filteredServices, setFilteredServices] = useState([]);
   const [selectedService, setSelectedService] = useState(null);
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
@@ -369,13 +122,13 @@ const ServicesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [openServiceDialog, setOpenServiceDialog] = useState(false);
   const [openCategoryDialog, setOpenCategoryDialog] = useState(false);
-  const [newService, setNewService] = useState({ 
-    name: "", 
-    category: "", 
-    subcategory: "", 
-    price: "", 
+  const [newService, setNewService] = useState({
+    name: "",
+    category: "",
+    subcategory: "",
+    price: "",
     duration: "",
-    rating: 0, 
+    rating: 0,
     provider: "",
     providerRating: 0,
     available: true,
@@ -386,7 +139,6 @@ const ServicesPage = () => {
     image: null,
     imagePreview: "",
     serviceType: "standard",
-    // Hospitality specific
     hospitalityType: "",
     menuItems: [],
     tableManagement: {
@@ -400,7 +152,6 @@ const ServicesPage = () => {
       roomTypes: [],
       amenities: []
     },
-    // Retail specific
     inventory: {
       stock: 0,
       lowStockAlert: 5,
@@ -410,21 +161,18 @@ const ServicesPage = () => {
       points: 0,
       discountEligible: false
     },
-    // Healthcare specific
     healthcareType: "",
     patientManagement: {
       acceptsInsurance: false,
       insuranceProviders: []
     },
     prescriptionManagement: false,
-    // Salon & Spa specific
     salonType: "",
     appointmentSettings: {
       advanceBooking: 1,
       cancellationPolicy: "24 hours"
     },
     staffAssignable: false,
-    // Grocery specific
     inventoryManagement: {
       perishableTracking: false,
       weightBasedPricing: false
@@ -433,7 +181,6 @@ const ServicesPage = () => {
       available: false,
       minOrder: 0
     },
-    // Event specific
     eventType: "",
     venueManagement: {
       capacity: 0,
@@ -508,8 +255,7 @@ const ServicesPage = () => {
         service.name.toLowerCase().includes(term) ||
         service.description.toLowerCase().includes(term) ||
         service.provider.toLowerCase().includes(term) ||
-        (service.tags && service.tags.some(tag => tag.toLowerCase().includes(term)))
-      );
+        (service.tags && service.tags.some(tag => tag.toLowerCase().includes(term))))
     }
     
     setFilteredServices(filtered);
@@ -562,13 +308,13 @@ const ServicesPage = () => {
     setOpenServiceDialog(false);
     setOpenCategoryDialog(false);
     setSelectedService(null);
-    setNewService({ 
-      name: "", 
-      category: "", 
-      subcategory: "", 
-      price: "", 
+    setNewService({
+      name: "",
+      category: "",
+      subcategory: "",
+      price: "",
       duration: "",
-      rating: 0, 
+      rating: 0,
       provider: "",
       providerRating: 0,
       available: true,
@@ -672,7 +418,6 @@ const ServicesPage = () => {
       maxParticipants: newService.maxParticipants ? Number(newService.maxParticipants) : null,
       image: newService.imagePreview || "/assets/default-service.png",
       tags: newService.tags,
-      // Process hospitality data
       menuItems: newService.menuItems.map(item => ({
         ...item,
         price: Number(item.price)
@@ -687,7 +432,6 @@ const ServicesPage = () => {
         totalRooms: Number(newService.roomManagement.totalRooms),
         availableRooms: Number(newService.roomManagement.availableRooms)
       },
-      // Process retail data
       inventory: {
         ...newService.inventory,
         stock: Number(newService.inventory.stock),
@@ -697,12 +441,10 @@ const ServicesPage = () => {
         ...newService.loyaltyProgram,
         points: Number(newService.loyaltyProgram.points)
       },
-      // Process grocery data
       deliveryOptions: {
         ...newService.deliveryOptions,
         minOrder: Number(newService.deliveryOptions.minOrder)
       },
-      // Process event data
       venueManagement: {
         ...newService.venueManagement,
         capacity: Number(newService.venueManagement.capacity)
@@ -737,7 +479,6 @@ const ServicesPage = () => {
       image: null,
       imagePreview: service.image,
       serviceType: service.serviceType || "standard",
-      // Hospitality specific
       hospitalityType: service.hospitalityType || "",
       menuItems: service.menuItems || [],
       tableManagement: service.tableManagement || {
@@ -751,7 +492,6 @@ const ServicesPage = () => {
         roomTypes: [],
         amenities: []
       },
-      // Retail specific
       inventory: service.inventory || {
         stock: 0,
         lowStockAlert: 5,
@@ -761,21 +501,18 @@ const ServicesPage = () => {
         points: 0,
         discountEligible: false
       },
-      // Healthcare specific
       healthcareType: service.healthcareType || "",
       patientManagement: service.patientManagement || {
         acceptsInsurance: false,
         insuranceProviders: []
       },
       prescriptionManagement: service.prescriptionManagement || false,
-      // Salon & Spa specific
       salonType: service.salonType || "",
       appointmentSettings: service.appointmentSettings || {
         advanceBooking: 1,
         cancellationPolicy: "24 hours"
       },
       staffAssignable: service.staffAssignable || false,
-      // Grocery specific
       inventoryManagement: service.inventoryManagement || {
         perishableTracking: false,
         weightBasedPricing: false
@@ -784,7 +521,6 @@ const ServicesPage = () => {
         available: false,
         minOrder: 0
       },
-      // Event specific
       eventType: service.eventType || "",
       venueManagement: service.venueManagement || {
         capacity: 0,
@@ -822,7 +558,6 @@ const ServicesPage = () => {
           tags: newService.tags,
           image: newService.imagePreview || service.image,
           serviceType: newService.serviceType,
-          // Hospitality specific
           hospitalityType: newService.hospitalityType,
           menuItems: newService.menuItems.map(item => ({
             ...item,
@@ -838,7 +573,6 @@ const ServicesPage = () => {
             totalRooms: Number(newService.roomManagement.totalRooms),
             availableRooms: Number(newService.roomManagement.availableRooms)
           },
-          // Retail specific
           inventory: {
             ...newService.inventory,
             stock: Number(newService.inventory.stock),
@@ -848,21 +582,17 @@ const ServicesPage = () => {
             ...newService.loyaltyProgram,
             points: Number(newService.loyaltyProgram.points)
           },
-          // Healthcare specific
           healthcareType: newService.healthcareType,
           patientManagement: newService.patientManagement,
           prescriptionManagement: newService.prescriptionManagement,
-          // Salon & Spa specific
           salonType: newService.salonType,
           appointmentSettings: newService.appointmentSettings,
           staffAssignable: newService.staffAssignable,
-          // Grocery specific
           inventoryManagement: newService.inventoryManagement,
           deliveryOptions: {
             ...newService.deliveryOptions,
             minOrder: Number(newService.deliveryOptions.minOrder)
           },
-          // Event specific
           eventType: newService.eventType,
           venueManagement: {
             ...newService.venueManagement,
@@ -955,7 +685,6 @@ const ServicesPage = () => {
   // Handle subcategory selection from sidebar
   const handleSubcategorySelect = (subcat) => {
     setSubcategory(subcat);
-    // Find the category that contains this subcategory
     const parentCategory = Object.keys(serviceCategoryStructure).find(cat => 
       serviceCategoryStructure[cat].includes(subcat)
     );
@@ -1154,7 +883,7 @@ const ServicesPage = () => {
   const getSalonIcon = (type) => {
     switch (type) {
       case "hair":
-        return <ContentCut  />;
+        return <ContentCut />;
       case "nails":
         return <Spa />;
       case "skin care":
@@ -1514,1034 +1243,1101 @@ const ServicesPage = () => {
   );
 
   // Service Form Dialog (Add/Edit)
-  const ServiceFormDialog = () => (
-    <Dialog 
-      open={openServiceDialog && (isEditing || !selectedService)} 
-      onClose={handleDialogClose}
-      maxWidth="md"
-      fullWidth
-    >
-      <DialogTitle>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          {isEditing ? "Edit Service" : "Add New Service"}
-          <IconButton onClick={handleDialogClose}>
-            <Close />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12}>
-            <FormControl component="fieldset">
-              <FormLabel component="legend">Service Type</FormLabel>
-              <RadioGroup
-                row
-                value={newService.serviceType}
-                onChange={(e) => setNewService({...newService, serviceType: e.target.value})}
-              >
-                <FormControlLabel value="standard" control={<Radio />} label="Standard" />
-                <FormControlLabel value="hospitality" control={<Radio />} label="Hospitality" />
-                <FormControlLabel value="retail" control={<Radio />} label="Retail" />
-                <FormControlLabel value="healthcare" control={<Radio />} label="Healthcare" />
-                <FormControlLabel value="salon" control={<Radio />} label="Salon & Spa" />
-                <FormControlLabel value="grocery" control={<Radio />} label="Grocery" />
-                <FormControlLabel value="event" control={<Radio />} label="Event" />
-              </RadioGroup>
-            </FormControl>
-          </Grid>
-          
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Service Name"
-              value={newService.name}
-              onChange={(e) => setNewService({...newService, name: e.target.value})}
-            />
-          </Grid>
-          
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={newService.category}
-                onChange={(e) => setNewService({...newService, category: e.target.value, subcategory: ""})}
-                label="Category"
-              >
-                <MenuItem value=""><em>Select Category</em></MenuItem>
-                {Object.keys(serviceCategoryStructure).map((cat) => (
-                  <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Subcategory</InputLabel>
-              <Select
-                value={newService.subcategory}
-                onChange={(e) => setNewService({...newService, subcategory: e.target.value})}
-                label="Subcategory"
-                disabled={!newService.category}
-              >
-                <MenuItem value=""><em>Select Subcategory</em></MenuItem>
-                {newService.category && serviceCategoryStructure[newService.category]?.map((subcat) => (
-                  <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Provider/Company"
-              value={newService.provider}
-              onChange={(e) => setNewService({...newService, provider: e.target.value})}
-            />
-          </Grid>
-          
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Provider Rating (0-5)"
-              type="number"
-              inputProps={{ min: 0, max: 5, step: 0.1 }}
-              value={newService.providerRating}
-              onChange={(e) => setNewService({...newService, providerRating: e.target.value})}
-            />
-          </Grid>
-          
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Price (UGX)"
-              type="number"
-              value={newService.price}
-              onChange={(e) => setNewService({...newService, price: e.target.value})}
-            />
-          </Grid>
-          
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Duration (minutes)"
-              type="number"
-              value={newService.duration}
-              onChange={(e) => setNewService({...newService, duration: e.target.value})}
-            />
-          </Grid>
-          
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Description"
-              multiline
-              rows={4}
-              value={newService.description}
-              onChange={(e) => setNewService({...newService, description: e.target.value})}
-            />
-          </Grid>
-          
-          <Grid item xs={12}>
-            <Typography variant="body2">Service Rating</Typography>
-            <Rating
-              value={newService.rating}
-              onChange={(e, newValue) => setNewService({...newService, rating: newValue})}
-              precision={0.5}
-            />
-          </Grid>
-          
-          <Grid item xs={12} sm={6}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={newService.available}
-                  onChange={(e) => setNewService({...newService, available: e.target.checked})}
-                  color="primary"
-                />
-              }
-              label="Available"
-            />
-          </Grid>
-          
-          <Grid item xs={12} sm={6}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={newService.requiresAppointment}
-                  onChange={(e) => setNewService({...newService, requiresAppointment: e.target.checked})}
-                  color="primary"
-                />
-              }
-              label="Requires Appointment"
-            />
-          </Grid>
-          
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Max Participants (leave empty if not applicable)"
-              type="number"
-              value={newService.maxParticipants || ""}
-              onChange={(e) => setNewService({...newService, maxParticipants: e.target.value})}
-            />
-          </Grid>
-          
-          <Grid item xs={12}>
-            <Typography variant="body2" gutterBottom>Tags</Typography>
-            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+  const ServiceFormDialog = () => {
+    const [formErrors, setFormErrors] = useState({
+      name: false,
+      category: false,
+      subcategory: false,
+      provider: false
+    });
+
+    const validateForm = () => {
+      const errors = {
+        name: !newService.name,
+        category: !newService.category,
+        subcategory: !newService.subcategory,
+        provider: !newService.provider
+      };
+      setFormErrors(errors);
+      return !Object.values(errors).some(error => error);
+    };
+
+    const handleFieldChange = (field, value) => {
+      setNewService(prev => ({ ...prev, [field]: value }));
+      if (formErrors[field]) {
+        setFormErrors(prev => ({ ...prev, [field]: false }));
+      }
+    };
+
+    const handleSave = () => {
+      if (validateForm()) {
+        if (isEditing) {
+          handleSaveEditedService();
+        } else {
+          handleAddService();
+        }
+      }
+    };
+
+    return (
+      <Dialog 
+        open={openServiceDialog && (isEditing || !selectedService)} 
+        onClose={handleDialogClose}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            {isEditing ? "Edit Service" : "Add New Service"}
+            <IconButton onClick={handleDialogClose}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <FormControl component="fieldset">
+                <FormLabel component="legend">Service Type</FormLabel>
+                <RadioGroup
+                  row
+                  value={newService.serviceType}
+                  onChange={(e) => handleFieldChange('serviceType', e.target.value)}
+                >
+                  <FormControlLabel value="standard" control={<Radio />} label="Standard" />
+                  <FormControlLabel value="hospitality" control={<Radio />} label="Hospitality" />
+                  <FormControlLabel value="retail" control={<Radio />} label="Retail" />
+                  <FormControlLabel value="healthcare" control={<Radio />} label="Healthcare" />
+                  <FormControlLabel value="salon" control={<Radio />} label="Salon & Spa" />
+                  <FormControlLabel value="grocery" control={<Radio />} label="Grocery" />
+                  <FormControlLabel value="event" control={<Radio />} label="Event" />
+                </RadioGroup>
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Add Tag"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
+                label="Service Name"
+                value={newService.name}
+                onChange={(e) => handleFieldChange('name', e.target.value)}
+                error={formErrors.name}
+                helperText={formErrors.name ? "Service name is required" : ""}
+                required
               />
-              <Button 
-                variant="contained" 
-                onClick={handleAddTag}
-                disabled={!newTag}
-              >
-                Add
-              </Button>
-            </Box>
-            {newService.tags.length > 0 && (
-              <Paper sx={{ p: 2, mb: 2 }}>
-                {newService.tags.map((tag, index) => (
-                  <Chip
-                    key={index}
-                    label={tag}
-                    onDelete={() => handleRemoveTag(tag)}
-                    sx={{ m: 0.5 }}
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth error={formErrors.category}>
+                <InputLabel>Category *</InputLabel>
+                <Select
+                  value={newService.category}
+                  onChange={(e) => {
+                    handleFieldChange('category', e.target.value);
+                    handleFieldChange('subcategory', "");
+                  }}
+                  label="Category *"
+                >
+                  <MenuItem value=""><em>Select Category</em></MenuItem>
+                  {Object.keys(serviceCategoryStructure).map((cat) => (
+                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                  ))}
+                </Select>
+                {formErrors.category && (
+                  <Typography variant="caption" color="error">Category is required</Typography>
+                )}
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth error={formErrors.subcategory}>
+                <InputLabel>Subcategory *</InputLabel>
+                <Select
+                  value={newService.subcategory}
+                  onChange={(e) => handleFieldChange('subcategory', e.target.value)}
+                  label="Subcategory *"
+                  disabled={!newService.category}
+                >
+                  <MenuItem value=""><em>Select Subcategory</em></MenuItem>
+                  {newService.category && serviceCategoryStructure[newService.category]?.map((subcat) => (
+                    <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
+                  ))}
+                </Select>
+                {formErrors.subcategory && (
+                  <Typography variant="caption" color="error">Subcategory is required</Typography>
+                )}
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Provider/Company *"
+                value={newService.provider}
+                onChange={(e) => handleFieldChange('provider', e.target.value)}
+                error={formErrors.provider}
+                helperText={formErrors.provider ? "Provider is required" : ""}
+                required
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Provider Rating (0-5)"
+                type="number"
+                inputProps={{ min: 0, max: 5, step: 0.1 }}
+                value={newService.providerRating}
+                onChange={(e) => handleFieldChange('providerRating', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Price (UGX)"
+                type="number"
+                value={newService.price}
+                onChange={(e) => handleFieldChange('price', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Duration (minutes)"
+                type="number"
+                value={newService.duration}
+                onChange={(e) => handleFieldChange('duration', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Description"
+                multiline
+                rows={4}
+                value={newService.description}
+                onChange={(e) => handleFieldChange('description', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <Typography variant="body2">Service Rating</Typography>
+              <Rating
+                value={newService.rating}
+                onChange={(e, newValue) => handleFieldChange('rating', newValue)}
+                precision={0.5}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={newService.available}
+                    onChange={(e) => handleFieldChange('available', e.target.checked)}
+                    color="primary"
                   />
-                ))}
-              </Paper>
-            )}
-          </Grid>
-          
-          {/* Hospitality Specific Fields */}
-          {newService.serviceType === "hospitality" && (
-            <Grid item xs={12}>
-              <Paper sx={{ p: 2, mb: 2 }}>
-                <Typography variant="h6" gutterBottom>Hospitality Settings</Typography>
-                
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>Hospitality Type</InputLabel>
-                  <Select
-                    value={newService.hospitalityType}
-                    onChange={(e) => setNewService({...newService, hospitalityType: e.target.value})}
-                    label="Hospitality Type"
-                  >
-                    <MenuItem value="restaurant">Restaurant</MenuItem>
-                    <MenuItem value="bar">Bar</MenuItem>
-                    <MenuItem value="hotel">Hotel</MenuItem>
-                    <MenuItem value="cafe">Cafe</MenuItem>
-                  </Select>
-                </FormControl>
-                
-                {newService.hospitalityType === "restaurant" && (
-                  <>
-                    <Typography variant="body1" gutterBottom>Menu Items</Typography>
-                    <Grid container spacing={2} sx={{ mb: 2 }}>
-                      <Grid item xs={12} sm={5}>
-                        <TextField
-                          fullWidth
-                          label="Item Name"
-                          value={newMenuItem.name}
-                          onChange={(e) => setNewMenuItem({...newMenuItem, name: e.target.value})}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={3}>
-                        <TextField
-                          fullWidth
-                          label="Price (UGX)"
-                          type="number"
-                          value={newMenuItem.price}
-                          onChange={(e) => setNewMenuItem({...newMenuItem, price: e.target.value})}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={3}>
-                        <TextField
-                          fullWidth
-                          label="Category"
-                          value={newMenuItem.category}
-                          onChange={(e) => setNewMenuItem({...newMenuItem, category: e.target.value})}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={1}>
-                        <Button 
-                          variant="contained" 
-                          onClick={handleAddMenuItem}
-                          disabled={!newMenuItem.name || !newMenuItem.price || !newMenuItem.category}
-                          sx={{ height: '100%', width: '100%' }}
-                        >
-                          Add
-                        </Button>
-                      </Grid>
-                    </Grid>
-                    
-                    {newService.menuItems.length > 0 && (
-                      <TableContainer component={Paper} sx={{ mb: 2 }}>
-                        <Table size="small">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>Name</TableCell>
-                              <TableCell align="right">Price</TableCell>
-                              <TableCell>Category</TableCell>
-                              <TableCell>Action</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {newService.menuItems.map((item) => (
-                              <TableRow key={item.id}>
-                                <TableCell>{item.name}</TableCell>
-                                <TableCell align="right">{item.price}</TableCell>
-                                <TableCell>{item.category}</TableCell>
-                                <TableCell>
-                                  <IconButton size="small" onClick={() => handleRemoveMenuItem(item.id)}>
-                                    <Close />
-                                  </IconButton>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    )}
-                    
-                    <Typography variant="body1" gutterBottom>Table Management</Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Total Tables"
-                          type="number"
-                          value={newService.tableManagement.totalTables}
-                          onChange={(e) => setNewService({
-                            ...newService,
-                            tableManagement: {
-                              ...newService.tableManagement,
-                              totalTables: e.target.value
-                            }
-                          })}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Available Tables"
-                          type="number"
-                          value={newService.tableManagement.availableTables}
-                          onChange={(e) => setNewService({
-                            ...newService,
-                            tableManagement: {
-                              ...newService.tableManagement,
-                              availableTables: e.target.value
-                            }
-                          })}
-                        />
-                      </Grid>
-                    </Grid>
-                  </>
-                )}
-                
-                {newService.hospitalityType === "hotel" && (
-                  <>
-                    <Typography variant="body1" gutterBottom>Room Management</Typography>
-                    <Grid container spacing={2} sx={{ mb: 2 }}>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Total Rooms"
-                          type="number"
-                          value={newService.roomManagement.totalRooms}
-                          onChange={(e) => setNewService({
-                            ...newService,
-                            roomManagement: {
-                              ...newService.roomManagement,
-                              totalRooms: e.target.value
-                            }
-                          })}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Available Rooms"
-                          type="number"
-                          value={newService.roomManagement.availableRooms}
-                          onChange={(e) => setNewService({
-                            ...newService,
-                            roomManagement: {
-                              ...newService.roomManagement,
-                              availableRooms: e.target.value
-                            }
-                          })}
-                        />
-                      </Grid>
-                    </Grid>
-                    
-                    <Typography variant="body1" gutterBottom>Room Types</Typography>
-                    <Grid container spacing={2} sx={{ mb: 2 }}>
-                      <Grid item xs={12} sm={10}>
-                        <TextField
-                          fullWidth
-                          label="Add Room Type"
-                          value={newRoomType}
-                          onChange={(e) => setNewRoomType(e.target.value)}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={2}>
-                        <Button 
-                          variant="contained" 
-                          onClick={handleAddRoomType}
-                          disabled={!newRoomType}
-                          sx={{ height: '100%', width: '100%' }}
-                        >
-                          Add
-                        </Button>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                          {newService.roomManagement.roomTypes.map((type, index) => (
-                            <Chip
-                              key={index}
-                              label={type}
-                              onDelete={() => handleRemoveRoomType(type)}
-                            />
-                          ))}
-                        </Box>
-                      </Grid>
-                    </Grid>
-                    
-                    <Typography variant="body1" gutterBottom>Amenities</Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={10}>
-                        <TextField
-                          fullWidth
-                          label="Add Amenity"
-                          value={newAmenity}
-                          onChange={(e) => setNewAmenity(e.target.value)}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={2}>
-                        <Button 
-                          variant="contained" 
-                          onClick={handleAddAmenity}
-                          disabled={!newAmenity}
-                          sx={{ height: '100%', width: '100%' }}
-                        >
-                          Add
-                        </Button>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                          {newService.roomManagement.amenities.map((amenity, index) => (
-                            <Chip
-                              key={index}
-                              label={amenity}
-                              onDelete={() => handleRemoveAmenity(amenity)}
-                            />
-                          ))}
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </>
-                )}
-              </Paper>
+                }
+                label="Available"
+              />
             </Grid>
-          )}
-          
-          {/* Retail Specific Fields */}
-          {newService.serviceType === "retail" && (
-            <Grid item xs={12}>
-              <Paper sx={{ p: 2, mb: 2 }}>
-                <Typography variant="h6" gutterBottom>Retail Settings</Typography>
-                
-                <Typography variant="body1" gutterBottom>Inventory Management</Typography>
-                <Grid container spacing={2} sx={{ mb: 2 }}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Stock Quantity"
-                      type="number"
-                      value={newService.inventory.stock}
-                      onChange={(e) => setNewService({
-                        ...newService,
-                        inventory: {
-                          ...newService.inventory,
-                          stock: e.target.value
-                        }
-                      })}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Low Stock Alert"
-                      type="number"
-                      value={newService.inventory.lowStockAlert}
-                      onChange={(e) => setNewService({
-                        ...newService,
-                        inventory: {
-                          ...newService.inventory,
-                          lowStockAlert: e.target.value
-                        }
-                      })}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="SKU (Stock Keeping Unit)"
-                      value={newService.inventory.sku}
-                      onChange={(e) => setNewService({
-                        ...newService,
-                        inventory: {
-                          ...newService.inventory,
-                          sku: e.target.value
-                        }
-                      })}
-                    />
-                  </Grid>
-                </Grid>
-                
-                <Typography variant="body1" gutterBottom>Loyalty Program</Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Points Awarded"
-                      type="number"
-                      value={newService.loyaltyProgram.points}
-                      onChange={(e) => setNewService({
-                        ...newService,
-                        loyaltyProgram: {
-                          ...newService.loyaltyProgram,
-                          points: e.target.value
-                        }
-                      })}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={newService.loyaltyProgram.discountEligible}
-                          onChange={(e) => setNewService({
-                            ...newService,
-                            loyaltyProgram: {
-                              ...newService.loyaltyProgram,
-                              discountEligible: e.target.checked
-                            }
-                          })}
-                          color="primary"
-                        />
-                      }
-                      label="Discount Eligible"
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
+            
+            <Grid item xs={12} sm={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={newService.requiresAppointment}
+                    onChange={(e) => handleFieldChange('requiresAppointment', e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label="Requires Appointment"
+              />
             </Grid>
-          )}
-          
-          {/* Healthcare Specific Fields */}
-          {newService.serviceType === "healthcare" && (
+            
             <Grid item xs={12}>
-              <Paper sx={{ p: 2, mb: 2 }}>
-                <Typography variant="h6" gutterBottom>Healthcare Settings</Typography>
-                
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>Healthcare Type</InputLabel>
-                  <Select
-                    value={newService.healthcareType}
-                    onChange={(e) => setNewService({...newService, healthcareType: e.target.value})}
-                    label="Healthcare Type"
-                  >
-                    <MenuItem value="pharmacy">Pharmacy</MenuItem>
-                    <MenuItem value="clinic">Clinic</MenuItem>
-                    <MenuItem value="dental">Dental</MenuItem>
-                    <MenuItem value="optometry">Optometry</MenuItem>
-                  </Select>
-                </FormControl>
-                
-                <Typography variant="body1" gutterBottom>Patient Management</Typography>
-                <Grid container spacing={2} sx={{ mb: 2 }}>
-                  <Grid item xs={12}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={newService.patientManagement.acceptsInsurance}
-                          onChange={(e) => setNewService({
-                            ...newService,
-                            patientManagement: {
-                              ...newService.patientManagement,
-                              acceptsInsurance: e.target.checked
-                            }
-                          })}
-                          color="primary"
-                        />
-                      }
-                      label="Accepts Insurance"
+              <TextField
+                fullWidth
+                label="Max Participants (leave empty if not applicable)"
+                type="number"
+                value={newService.maxParticipants || ""}
+                onChange={(e) => handleFieldChange('maxParticipants', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <Typography variant="body2" gutterBottom>Tags</Typography>
+              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Add Tag"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                />
+                <Button 
+                  variant="contained" 
+                  onClick={handleAddTag}
+                  disabled={!newTag}
+                >
+                  Add
+                </Button>
+              </Box>
+              {newService.tags.length > 0 && (
+                <Paper sx={{ p: 2, mb: 2 }}>
+                  {newService.tags.map((tag, index) => (
+                    <Chip
+                      key={index}
+                      label={tag}
+                      onDelete={() => handleRemoveTag(tag)}
+                      sx={{ m: 0.5 }}
                     />
-                  </Grid>
+                  ))}
+                </Paper>
+              )}
+            </Grid>
+            
+            {/* Hospitality Specific Fields */}
+            {newService.serviceType === "hospitality" && (
+              <Grid item xs={12}>
+                <Paper sx={{ p: 2, mb: 2 }}>
+                  <Typography variant="h6" gutterBottom>Hospitality Settings</Typography>
                   
-                  {newService.patientManagement.acceptsInsurance && (
+                  <FormControl fullWidth sx={{ mb: 2 }}>
+                    <InputLabel>Hospitality Type</InputLabel>
+                    <Select
+                      value={newService.hospitalityType}
+                      onChange={(e) => handleFieldChange('hospitalityType', e.target.value)}
+                      label="Hospitality Type"
+                    >
+                      <MenuItem value="restaurant">Restaurant</MenuItem>
+                      <MenuItem value="bar">Bar</MenuItem>
+                      <MenuItem value="hotel">Hotel</MenuItem>
+                      <MenuItem value="cafe">Cafe</MenuItem>
+                    </Select>
+                  </FormControl>
+                  
+                  {newService.hospitalityType === "restaurant" && (
                     <>
-                      <Grid item xs={12} sm={10}>
-                        <TextField
-                          fullWidth
-                          label="Add Insurance Provider"
-                          value={newInsuranceProvider}
-                          onChange={(e) => setNewInsuranceProvider(e.target.value)}
-                        />
+                      <Typography variant="body1" gutterBottom>Menu Items</Typography>
+                      <Grid container spacing={2} sx={{ mb: 2 }}>
+                        <Grid item xs={12} sm={5}>
+                          <TextField
+                            fullWidth
+                            label="Item Name"
+                            value={newMenuItem.name}
+                            onChange={(e) => setNewMenuItem({...newMenuItem, name: e.target.value})}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={3}>
+                          <TextField
+                            fullWidth
+                            label="Price (UGX)"
+                            type="number"
+                            value={newMenuItem.price}
+                            onChange={(e) => setNewMenuItem({...newMenuItem, price: e.target.value})}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={3}>
+                          <TextField
+                            fullWidth
+                            label="Category"
+                            value={newMenuItem.category}
+                            onChange={(e) => setNewMenuItem({...newMenuItem, category: e.target.value})}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={1}>
+                          <Button 
+                            variant="contained" 
+                            onClick={handleAddMenuItem}
+                            disabled={!newMenuItem.name || !newMenuItem.price || !newMenuItem.category}
+                            sx={{ height: '100%', width: '100%' }}
+                          >
+                            Add
+                          </Button>
+                        </Grid>
                       </Grid>
-                      <Grid item xs={12} sm={2}>
-                        <Button 
-                          variant="contained" 
-                          onClick={handleAddInsuranceProvider}
-                          disabled={!newInsuranceProvider}
-                          sx={{ height: '100%', width: '100%' }}
-                        >
-                          Add
-                        </Button>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                          {newService.patientManagement.insuranceProviders.map((provider, index) => (
-                            <Chip
-                              key={index}
-                              label={provider}
-                              onDelete={() => handleRemoveInsuranceProvider(provider)}
-                            />
-                          ))}
-                        </Box>
+                      
+                      {newService.menuItems.length > 0 && (
+                        <TableContainer component={Paper} sx={{ mb: 2 }}>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>Name</TableCell>
+                                <TableCell align="right">Price</TableCell>
+                                <TableCell>Category</TableCell>
+                                <TableCell>Action</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {newService.menuItems.map((item) => (
+                                <TableRow key={item.id}>
+                                  <TableCell>{item.name}</TableCell>
+                                  <TableCell align="right">{item.price}</TableCell>
+                                  <TableCell>{item.category}</TableCell>
+                                  <TableCell>
+                                    <IconButton size="small" onClick={() => handleRemoveMenuItem(item.id)}>
+                                      <Close />
+                                    </IconButton>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      )}
+                      
+                      <Typography variant="body1" gutterBottom>Table Management</Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Total Tables"
+                            type="number"
+                            value={newService.tableManagement.totalTables}
+                            onChange={(e) => setNewService({
+                              ...newService,
+                              tableManagement: {
+                                ...newService.tableManagement,
+                                totalTables: e.target.value
+                              }
+                            })}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Available Tables"
+                            type="number"
+                            value={newService.tableManagement.availableTables}
+                            onChange={(e) => setNewService({
+                              ...newService,
+                              tableManagement: {
+                                ...newService.tableManagement,
+                                availableTables: e.target.value
+                              }
+                            })}
+                          />
+                        </Grid>
                       </Grid>
                     </>
                   )}
-                </Grid>
-                
-                <Typography variant="body1" gutterBottom>Prescription Management</Typography>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={newService.prescriptionManagement}
-                      onChange={(e) => setNewService({
-                        ...newService,
-                        prescriptionManagement: e.target.checked
-                      })}
-                      color="primary"
-                    />
-                  }
-                  label="Prescription Management Enabled"
-                />
-              </Paper>
-            </Grid>
-          )}
-          
-          {/* Salon & Spa Specific Fields */}
-          {newService.serviceType === "salon" && (
-            <Grid item xs={12}>
-              <Paper sx={{ p: 2, mb: 2 }}>
-                <Typography variant="h6" gutterBottom>Salon & Spa Settings</Typography>
-                
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>Salon Type</InputLabel>
-                  <Select
-                    value={newService.salonType}
-                    onChange={(e) => setNewService({...newService, salonType: e.target.value})}
-                    label="Salon Type"
-                  >
-                    <MenuItem value="hair">Hair</MenuItem>
-                    <MenuItem value="nails">Nails</MenuItem>
-                    <MenuItem value="skin care">Skin Care</MenuItem>
-                    <MenuItem value="massage">Massage</MenuItem>
-                  </Select>
-                </FormControl>
-                
-                <Typography variant="body1" gutterBottom>Appointment Settings</Typography>
-                <Grid container spacing={2} sx={{ mb: 2 }}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Advance Booking (days)"
-                      type="number"
-                      value={newService.appointmentSettings.advanceBooking}
-                      onChange={(e) => setNewService({
-                        ...newService,
-                        appointmentSettings: {
-                          ...newService.appointmentSettings,
-                          advanceBooking: e.target.value
-                        }
-                      })}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Cancellation Policy"
-                      value={newService.appointmentSettings.cancellationPolicy}
-                      onChange={(e) => setNewService({
-                        ...newService,
-                        appointmentSettings: {
-                          ...newService.appointmentSettings,
-                          cancellationPolicy: e.target.value
-                        }
-                      })}
-                    />
-                  </Grid>
-                </Grid>
-                
-                <Typography variant="body1" gutterBottom>Staff Assignment</Typography>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={newService.staffAssignable}
-                      onChange={(e) => setNewService({
-                        ...newService,
-                        staffAssignable: e.target.checked
-                      })}
-                      color="primary"
-                    />
-                  }
-                  label="Staff Assignable"
-                />
-              </Paper>
-            </Grid>
-          )}
-          
-          {/* Grocery Specific Fields */}
-          {newService.serviceType === "grocery" && (
-            <Grid item xs={12}>
-              <Paper sx={{ p: 2, mb: 2 }}>
-                <Typography variant="h6" gutterBottom>Grocery Settings</Typography>
-                
-                <Typography variant="body1" gutterBottom>Inventory Management</Typography>
-                <Grid container spacing={2} sx={{ mb: 2 }}>
-                  <Grid item xs={12} sm={6}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={newService.inventoryManagement.perishableTracking}
-                          onChange={(e) => setNewService({
-                            ...newService,
-                            inventoryManagement: {
-                              ...newService.inventoryManagement,
-                              perishableTracking: e.target.checked
-                            }
-                          })}
-                          color="primary"
-                        />
-                      }
-                      label="Perishable Tracking"
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={newService.inventoryManagement.weightBasedPricing}
-                          onChange={(e) => setNewService({
-                            ...newService,
-                            inventoryManagement: {
-                              ...newService.inventoryManagement,
-                              weightBasedPricing: e.target.checked
-                            }
-                          })}
-                          color="primary"
-                        />
-                      }
-                      label="Weight Based Pricing"
-                    />
-                  </Grid>
-                </Grid>
-                
-                <Typography variant="body1" gutterBottom>Delivery Options</Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={newService.deliveryOptions.available}
-                          onChange={(e) => setNewService({
-                            ...newService,
-                            deliveryOptions: {
-                              ...newService.deliveryOptions,
-                              available: e.target.checked
-                            }
-                          })}
-                          color="primary"
-                        />
-                      }
-                      label="Delivery Available"
-                    />
-                  </Grid>
-                  {newService.deliveryOptions.available && (
+                  
+                  {newService.hospitalityType === "hotel" && (
+                    <>
+                      <Typography variant="body1" gutterBottom>Room Management</Typography>
+                      <Grid container spacing={2} sx={{ mb: 2 }}>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Total Rooms"
+                            type="number"
+                            value={newService.roomManagement.totalRooms}
+                            onChange={(e) => setNewService({
+                              ...newService,
+                              roomManagement: {
+                                ...newService.roomManagement,
+                                totalRooms: e.target.value
+                              }
+                            })}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Available Rooms"
+                            type="number"
+                            value={newService.roomManagement.availableRooms}
+                            onChange={(e) => setNewService({
+                              ...newService,
+                              roomManagement: {
+                                ...newService.roomManagement,
+                                availableRooms: e.target.value
+                              }
+                            })}
+                          />
+                        </Grid>
+                      </Grid>
+                      
+                      <Typography variant="body1" gutterBottom>Room Types</Typography>
+                      <Grid container spacing={2} sx={{ mb: 2 }}>
+                        <Grid item xs={12} sm={10}>
+                          <TextField
+                            fullWidth
+                            label="Add Room Type"
+                            value={newRoomType}
+                            onChange={(e) => setNewRoomType(e.target.value)}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={2}>
+                          <Button 
+                            variant="contained" 
+                            onClick={handleAddRoomType}
+                            disabled={!newRoomType}
+                            sx={{ height: '100%', width: '100%' }}
+                          >
+                            Add
+                          </Button>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            {newService.roomManagement.roomTypes.map((type, index) => (
+                              <Chip
+                                key={index}
+                                label={type}
+                                onDelete={() => handleRemoveRoomType(type)}
+                              />
+                            ))}
+                          </Box>
+                        </Grid>
+                      </Grid>
+                      
+                      <Typography variant="body1" gutterBottom>Amenities</Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={10}>
+                          <TextField
+                            fullWidth
+                            label="Add Amenity"
+                            value={newAmenity}
+                            onChange={(e) => setNewAmenity(e.target.value)}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={2}>
+                          <Button 
+                            variant="contained" 
+                            onClick={handleAddAmenity}
+                            disabled={!newAmenity}
+                            sx={{ height: '100%', width: '100%' }}
+                          >
+                            Add
+                          </Button>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            {newService.roomManagement.amenities.map((amenity, index) => (
+                              <Chip
+                                key={index}
+                                label={amenity}
+                                onDelete={() => handleRemoveAmenity(amenity)}
+                              />
+                            ))}
+                          </Box>
+                        </Grid>
+                      </Grid>
+                    </>
+                  )}
+                </Paper>
+              </Grid>
+            )}
+            
+            {/* Retail Specific Fields */}
+            {newService.serviceType === "retail" && (
+              <Grid item xs={12}>
+                <Paper sx={{ p: 2, mb: 2 }}>
+                  <Typography variant="h6" gutterBottom>Retail Settings</Typography>
+                  
+                  <Typography variant="body1" gutterBottom>Inventory Management</Typography>
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
-                        label="Minimum Order (UGX)"
+                        label="Stock Quantity"
                         type="number"
-                        value={newService.deliveryOptions.minOrder}
+                        value={newService.inventory.stock}
                         onChange={(e) => setNewService({
                           ...newService,
-                          deliveryOptions: {
-                            ...newService.deliveryOptions,
-                            minOrder: e.target.value
+                          inventory: {
+                            ...newService.inventory,
+                            stock: e.target.value
                           }
                         })}
                       />
                     </Grid>
-                  )}
-                </Grid>
-              </Paper>
-            </Grid>
-          )}
-          
-          {/* Event Management Specific Fields */}
-          {newService.serviceType === "event" && (
-            <Grid item xs={12}>
-              <Paper sx={{ p: 2, mb: 2 }}>
-                <Typography variant="h6" gutterBottom>Event Management Settings</Typography>
-                
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>Event Type</InputLabel>
-                  <Select
-                    value={newService.eventType}
-                    onChange={(e) => setNewService({...newService, eventType: e.target.value})}
-                    label="Event Type"
-                  >
-                    <MenuItem value="concert">Concert</MenuItem>
-                    <MenuItem value="conference">Conference</MenuItem>
-                    <MenuItem value="wedding">Wedding</MenuItem>
-                    <MenuItem value="private party">Private Party</MenuItem>
-                  </Select>
-                </FormControl>
-                
-                <Typography variant="body1" gutterBottom>Venue Management</Typography>
-                <Grid container spacing={2} sx={{ mb: 2 }}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Venue Capacity"
-                      type="number"
-                      value={newService.venueManagement.capacity}
-                      onChange={(e) => setNewService({
-                        ...newService,
-                        venueManagement: {
-                          ...newService.venueManagement,
-                          capacity: e.target.value
-                        }
-                      })}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={3}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={newService.venueManagement.indoor}
-                          onChange={(e) => setNewService({
-                            ...newService,
-                            venueManagement: {
-                              ...newService.venueManagement,
-                              indoor: e.target.checked
-                            }
-                          })}
-                          color="primary"
-                        />
-                      }
-                      label="Indoor"
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={3}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={newService.venueManagement.outdoor}
-                          onChange={(e) => setNewService({
-                            ...newService,
-                            venueManagement: {
-                              ...newService.venueManagement,
-                              outdoor: e.target.checked
-                            }
-                          })}
-                          color="primary"
-                        />
-                      }
-                      label="Outdoor"
-                    />
-                  </Grid>
-                </Grid>
-                
-                <Typography variant="body1" gutterBottom>Ticket Management</Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={newService.ticketManagement.required}
-                          onChange={(e) => setNewService({
-                            ...newService,
-                            ticketManagement: {
-                              ...newService.ticketManagement,
-                              required: e.target.checked
-                            }
-                          })}
-                          color="primary"
-                        />
-                      }
-                      label="Ticket Required"
-                    />
-                  </Grid>
-                  {newService.ticketManagement.required && (
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
-                        label="Ticket Capacity"
+                        label="Low Stock Alert"
                         type="number"
-                        value={newService.ticketManagement.capacity}
+                        value={newService.inventory.lowStockAlert}
                         onChange={(e) => setNewService({
                           ...newService,
-                          ticketManagement: {
-                            ...newService.ticketManagement,
+                          inventory: {
+                            ...newService.inventory,
+                            lowStockAlert: e.target.value
+                          }
+                        })}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="SKU (Stock Keeping Unit)"
+                        value={newService.inventory.sku}
+                        onChange={(e) => setNewService({
+                          ...newService,
+                          inventory: {
+                            ...newService.inventory,
+                            sku: e.target.value
+                          }
+                        })}
+                      />
+                    </Grid>
+                  </Grid>
+                  
+                  <Typography variant="body1" gutterBottom>Loyalty Program</Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Points Awarded"
+                        type="number"
+                        value={newService.loyaltyProgram.points}
+                        onChange={(e) => setNewService({
+                          ...newService,
+                          loyaltyProgram: {
+                            ...newService.loyaltyProgram,
+                            points: e.target.value
+                          }
+                        })}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={newService.loyaltyProgram.discountEligible}
+                            onChange={(e) => setNewService({
+                              ...newService,
+                              loyaltyProgram: {
+                                ...newService.loyaltyProgram,
+                                discountEligible: e.target.checked
+                              }
+                            })}
+                            color="primary"
+                          />
+                        }
+                        label="Discount Eligible"
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+            )}
+            
+            {/* Healthcare Specific Fields */}
+            {newService.serviceType === "healthcare" && (
+              <Grid item xs={12}>
+                <Paper sx={{ p: 2, mb: 2 }}>
+                  <Typography variant="h6" gutterBottom>Healthcare Settings</Typography>
+                  
+                  <FormControl fullWidth sx={{ mb: 2 }}>
+                    <InputLabel>Healthcare Type</InputLabel>
+                    <Select
+                      value={newService.healthcareType}
+                      onChange={(e) => handleFieldChange('healthcareType', e.target.value)}
+                      label="Healthcare Type"
+                    >
+                      <MenuItem value="pharmacy">Pharmacy</MenuItem>
+                      <MenuItem value="clinic">Clinic</MenuItem>
+                      <MenuItem value="dental">Dental</MenuItem>
+                      <MenuItem value="optometry">Optometry</MenuItem>
+                    </Select>
+                  </FormControl>
+                  
+                  <Typography variant="body1" gutterBottom>Patient Management</Typography>
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                    <Grid item xs={12}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={newService.patientManagement.acceptsInsurance}
+                            onChange={(e) => setNewService({
+                              ...newService,
+                              patientManagement: {
+                                ...newService.patientManagement,
+                                acceptsInsurance: e.target.checked
+                              }
+                            })}
+                            color="primary"
+                          />
+                        }
+                        label="Accepts Insurance"
+                      />
+                    </Grid>
+                    
+                    {newService.patientManagement.acceptsInsurance && (
+                      <>
+                        <Grid item xs={12} sm={10}>
+                          <TextField
+                            fullWidth
+                            label="Add Insurance Provider"
+                            value={newInsuranceProvider}
+                            onChange={(e) => setNewInsuranceProvider(e.target.value)}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={2}>
+                          <Button 
+                            variant="contained" 
+                            onClick={handleAddInsuranceProvider}
+                            disabled={!newInsuranceProvider}
+                            sx={{ height: '100%', width: '100%' }}
+                          >
+                            Add
+                          </Button>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            {newService.patientManagement.insuranceProviders.map((provider, index) => (
+                              <Chip
+                                key={index}
+                                label={provider}
+                                onDelete={() => handleRemoveInsuranceProvider(provider)}
+                              />
+                            ))}
+                          </Box>
+                        </Grid>
+                      </>
+                    )}
+                  </Grid>
+                  
+                  <Typography variant="body1" gutterBottom>Prescription Management</Typography>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={newService.prescriptionManagement}
+                        onChange={(e) => setNewService({
+                          ...newService,
+                          prescriptionManagement: e.target.checked
+                        })}
+                        color="primary"
+                      />
+                    }
+                    label="Prescription Management Enabled"
+                  />
+                </Paper>
+              </Grid>
+            )}
+            
+            {/* Salon & Spa Specific Fields */}
+            {newService.serviceType === "salon" && (
+              <Grid item xs={12}>
+                <Paper sx={{ p: 2, mb: 2 }}>
+                  <Typography variant="h6" gutterBottom>Salon & Spa Settings</Typography>
+                  
+                  <FormControl fullWidth sx={{ mb: 2 }}>
+                    <InputLabel>Salon Type</InputLabel>
+                    <Select
+                      value={newService.salonType}
+                      onChange={(e) => handleFieldChange('salonType', e.target.value)}
+                      label="Salon Type"
+                    >
+                      <MenuItem value="hair">Hair</MenuItem>
+                      <MenuItem value="nails">Nails</MenuItem>
+                      <MenuItem value="skin care">Skin Care</MenuItem>
+                      <MenuItem value="massage">Massage</MenuItem>
+                    </Select>
+                  </FormControl>
+                  
+                  <Typography variant="body1" gutterBottom>Appointment Settings</Typography>
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Advance Booking (days)"
+                        type="number"
+                        value={newService.appointmentSettings.advanceBooking}
+                        onChange={(e) => setNewService({
+                          ...newService,
+                          appointmentSettings: {
+                            ...newService.appointmentSettings,
+                            advanceBooking: e.target.value
+                          }
+                        })}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Cancellation Policy"
+                        value={newService.appointmentSettings.cancellationPolicy}
+                        onChange={(e) => setNewService({
+                          ...newService,
+                          appointmentSettings: {
+                            ...newService.appointmentSettings,
+                            cancellationPolicy: e.target.value
+                          }
+                        })}
+                      />
+                    </Grid>
+                  </Grid>
+                  
+                  <Typography variant="body1" gutterBottom>Staff Assignment</Typography>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={newService.staffAssignable}
+                        onChange={(e) => setNewService({
+                          ...newService,
+                          staffAssignable: e.target.checked
+                        })}
+                        color="primary"
+                      />
+                    }
+                    label="Staff Assignable"
+                  />
+                </Paper>
+              </Grid>
+            )}
+            
+            {/* Grocery Specific Fields */}
+            {newService.serviceType === "grocery" && (
+              <Grid item xs={12}>
+                <Paper sx={{ p: 2, mb: 2 }}>
+                  <Typography variant="h6" gutterBottom>Grocery Settings</Typography>
+                  
+                  <Typography variant="body1" gutterBottom>Inventory Management</Typography>
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                    <Grid item xs={12} sm={6}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={newService.inventoryManagement.perishableTracking}
+                            onChange={(e) => setNewService({
+                              ...newService,
+                              inventoryManagement: {
+                                ...newService.inventoryManagement,
+                                perishableTracking: e.target.checked
+                              }
+                            })}
+                            color="primary"
+                          />
+                        }
+                        label="Perishable Tracking"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={newService.inventoryManagement.weightBasedPricing}
+                            onChange={(e) => setNewService({
+                              ...newService,
+                              inventoryManagement: {
+                                ...newService.inventoryManagement,
+                                weightBasedPricing: e.target.checked
+                              }
+                            })}
+                            color="primary"
+                          />
+                        }
+                        label="Weight Based Pricing"
+                      />
+                    </Grid>
+                  </Grid>
+                  
+                  <Typography variant="body1" gutterBottom>Delivery Options</Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={newService.deliveryOptions.available}
+                            onChange={(e) => setNewService({
+                              ...newService,
+                              deliveryOptions: {
+                                ...newService.deliveryOptions,
+                                available: e.target.checked
+                              }
+                            })}
+                            color="primary"
+                          />
+                        }
+                        label="Delivery Available"
+                      />
+                    </Grid>
+                    {newService.deliveryOptions.available && (
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Minimum Order (UGX)"
+                          type="number"
+                          value={newService.deliveryOptions.minOrder}
+                          onChange={(e) => setNewService({
+                            ...newService,
+                            deliveryOptions: {
+                              ...newService.deliveryOptions,
+                              minOrder: e.target.value
+                            }
+                          })}
+                        />
+                      </Grid>
+                    )}
+                  </Grid>
+                </Paper>
+              </Grid>
+            )}
+            
+            {/* Event Management Specific Fields */}
+            {newService.serviceType === "event" && (
+              <Grid item xs={12}>
+                <Paper sx={{ p: 2, mb: 2 }}>
+                  <Typography variant="h6" gutterBottom>Event Management Settings</Typography>
+                  
+                  <FormControl fullWidth sx={{ mb: 2 }}>
+                    <InputLabel>Event Type</InputLabel>
+                    <Select
+                      value={newService.eventType}
+                      onChange={(e) => handleFieldChange('eventType', e.target.value)}
+                      label="Event Type"
+                    >
+                      <MenuItem value="concert">Concert</MenuItem>
+                      <MenuItem value="conference">Conference</MenuItem>
+                      <MenuItem value="wedding">Wedding</MenuItem>
+                      <MenuItem value="private party">Private Party</MenuItem>
+                    </Select>
+                  </FormControl>
+                  
+                  <Typography variant="body1" gutterBottom>Venue Management</Typography>
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Venue Capacity"
+                        type="number"
+                        value={newService.venueManagement.capacity}
+                        onChange={(e) => setNewService({
+                          ...newService,
+                          venueManagement: {
+                            ...newService.venueManagement,
                             capacity: e.target.value
                           }
                         })}
                       />
                     </Grid>
-                  )}
-                </Grid>
-              </Paper>
-            </Grid>
-          )}
-          
-          <Grid item xs={12}>
-            <Typography variant="body2" gutterBottom>Service Image</Typography>
-            <input
-              accept="image/*"
-              style={{ display: 'none' }}
-              id="service-image-upload"
-              type="file"
-              onChange={handleImageUpload}
-            />
-            <label htmlFor="service-image-upload">
-              <Button variant="outlined" component="span" fullWidth>
-                Upload Image
-              </Button>
-            </label>
-            {newService.imagePreview && (
-              <Box sx={{ mt: 2, textAlign: 'center' }}>
-                <img 
-                  src={newService.imagePreview} 
-                  alt="Preview" 
-                  style={{ maxHeight: 200, maxWidth: '100%' }}
-                />
-              </Box>
+                    <Grid item xs={12} sm={3}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={newService.venueManagement.indoor}
+                            onChange={(e) => setNewService({
+                              ...newService,
+                              venueManagement: {
+                                ...newService.venueManagement,
+                                indoor: e.target.checked
+                              }
+                            })}
+                            color="primary"
+                          />
+                        }
+                        label="Indoor"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={3}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={newService.venueManagement.outdoor}
+                            onChange={(e) => setNewService({
+                              ...newService,
+                              venueManagement: {
+                                ...newService.venueManagement,
+                                outdoor: e.target.checked
+                              }
+                            })}
+                            color="primary"
+                          />
+                        }
+                        label="Outdoor"
+                      />
+                    </Grid>
+                  </Grid>
+                  
+                  <Typography variant="body1" gutterBottom>Ticket Management</Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={newService.ticketManagement.required}
+                            onChange={(e) => setNewService({
+                              ...newService,
+                              ticketManagement: {
+                                ...newService.ticketManagement,
+                                required: e.target.checked
+                              }
+                            })}
+                            color="primary"
+                          />
+                        }
+                        label="Ticket Required"
+                      />
+                    </Grid>
+                    {newService.ticketManagement.required && (
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Ticket Capacity"
+                          type="number"
+                          value={newService.ticketManagement.capacity}
+                          onChange={(e) => setNewService({
+                            ...newService,
+                            ticketManagement: {
+                              ...newService.ticketManagement,
+                              capacity: e.target.value
+                            }
+                          })}
+                        />
+                      </Grid>
+                    )}
+                  </Grid>
+                </Paper>
+              </Grid>
             )}
+            
+            <Grid item xs={12}>
+              <Typography variant="body2" gutterBottom>Service Image</Typography>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="service-image-upload"
+                type="file"
+                onChange={handleImageUpload}
+              />
+              <label htmlFor="service-image-upload">
+                <Button variant="outlined" component="span" fullWidth>
+                  Upload Image
+                </Button>
+              </label>
+              {newService.imagePreview && (
+                <Box sx={{ mt: 2, textAlign: 'center' }}>
+                  <img 
+                    src={newService.imagePreview} 
+                    alt="Preview" 
+                    style={{ maxHeight: 200, maxWidth: '100%' }}
+                  />
+                </Box>
+              )}
+            </Grid>
           </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleDialogClose}>Cancel</Button>
-        <Button 
-          variant="contained" 
-          onClick={isEditing ? handleSaveEditedService : handleAddService}
-          disabled={!newService.name || !newService.category}
-          sx={{ backgroundColor: "purple", color: "white" }}
-        >
-          {isEditing ? "Save Changes" : "Save Service"}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSave}
+            sx={{ backgroundColor: "purple", color: "white" }}
+          >
+            {isEditing ? "Save Changes" : "Save Service"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  };
 
   // Manage Categories Dialog
-  const ManageCategoriesDialog = () => (
-    <Dialog 
-      open={openCategoryDialog} 
-      onClose={handleDialogClose}
-      maxWidth="sm"
-      fullWidth
-    >
-      <DialogTitle>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          Manage Categories
-          <IconButton onClick={handleDialogClose}>
-            <Close />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom>Add New Category</Typography>
-            <TextField
-              fullWidth
-              label="Category Name"
-              value={newCategory.name}
-              onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="body1" gutterBottom>Subcategories</Typography>
-            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+  const ManageCategoriesDialog = () => {
+    const [categoryError, setCategoryError] = useState(false);
+
+    const handleSaveCategory = () => {
+      if (!newCategory.name) {
+        setCategoryError(true);
+        return;
+      }
+      handleAddCategory();
+    };
+
+    return (
+      <Dialog 
+        open={openCategoryDialog} 
+        onClose={handleDialogClose}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            Manage Categories
+            <IconButton onClick={handleDialogClose}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom>Add New Category</Typography>
               <TextField
                 fullWidth
-                label="Add Subcategory"
-                value={newSubcategory}
-                onChange={(e) => setNewSubcategory(e.target.value)}
+                label="Category Name *"
+                value={newCategory.name}
+                onChange={(e) => {
+                  setNewCategory({...newCategory, name: e.target.value});
+                  if (categoryError) setCategoryError(false);
+                }}
+                error={categoryError}
+                helperText={categoryError ? "Category name is required" : ""}
               />
-              <Button 
-                variant="contained" 
-                onClick={handleAddSubcategory}
-                disabled={!newSubcategory}
-              >
-                Add
-              </Button>
-            </Box>
-            {newCategory.subcategories.length > 0 && (
-              <Paper sx={{ p: 2, mb: 2 }}>
-                {newCategory.subcategories.map((subcat, index) => (
-                  <Chip
-                    key={index}
-                    label={subcat}
-                    onDelete={() => handleRemoveSubcategory(subcat)}
-                    sx={{ m: 0.5 }}
-                  />
-                ))}
-              </Paper>
-            )}
-          </Grid>
-          <Grid item xs={12}>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" gutterBottom>Existing Categories</Typography>
-            {Object.entries(serviceCategoryStructure).map(([category, subcategories]) => (
-              <Box key={category} sx={{ mb: 2 }}>
-                <Typography variant="subtitle1">{category}</Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                  {subcategories.map((subcat, idx) => (
-                    <Chip key={idx} label={subcat} />
-                  ))}
-                </Box>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="body1" gutterBottom>Subcategories</Typography>
+              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Add Subcategory"
+                  value={newSubcategory}
+                  onChange={(e) => setNewSubcategory(e.target.value)}
+                />
+                <Button 
+                  variant="contained" 
+                  onClick={handleAddSubcategory}
+                  disabled={!newSubcategory}
+                >
+                  Add
+                </Button>
               </Box>
-            ))}
+              {newCategory.subcategories.length > 0 && (
+                <Paper sx={{ p: 2, mb: 2 }}>
+                  {newCategory.subcategories.map((subcat, index) => (
+                    <Chip
+                      key={index}
+                      label={subcat}
+                      onDelete={() => handleRemoveSubcategory(subcat)}
+                      sx={{ m: 0.5 }}
+                    />
+                  ))}
+                </Paper>
+              )}
+            </Grid>
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom>Existing Categories</Typography>
+              {Object.entries(serviceCategoryStructure).map(([category, subcategories]) => (
+                <Box key={category} sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1">{category}</Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                    {subcategories.map((subcat, idx) => (
+                      <Chip key={idx} label={subcat} />
+                    ))}
+                  </Box>
+                </Box>
+              ))}
+            </Grid>
           </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleDialogClose}>Cancel</Button>
-        <Button 
-          variant="contained" 
-          onClick={handleAddCategory}
-          disabled={!newCategory.name}
-          sx={{ backgroundColor: "purple", color: "white" }}
-        >
-          Save Category
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSaveCategory}
+            sx={{ backgroundColor: "purple", color: "white" }}
+          >
+            Save Category
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  };
 
   return (
     <Box sx={{ padding: 3 }}>
@@ -2552,7 +2348,10 @@ const ServicesPage = () => {
           <Button
             variant="contained"
             startIcon={<Add />}
-            onClick={() => setOpenServiceDialog(true)}
+            onClick={() => {
+              setOpenServiceDialog(true);
+              setIsEditing(false);
+            }}
             sx={{ backgroundColor: "purple", color: "white" }}
           >
             Add Service
