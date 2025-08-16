@@ -46,134 +46,12 @@ import {
   Close
 } from "@mui/icons-material";
 
-// Category structure with subcategories
-const categoryStructure = {
-  "Beverages": ["Soft Drinks", "Juices", "Alcoholic", "Energy Drinks"],
-  "Groceries": ["Flour & Grains", "Cooking Oil", "Rice & Pasta"],
-  "Household": ["Cleaning", "Bathroom", "Kitchen"],
-  "Electronics": ["Mobile Phones", "Laptops", "Accessories"],
-  "Health & Beauty": ["Personal Care", "Hair Care", "Makeup"]
-};
-
-// Enhanced product data with categories and subcategories
-const initialProductData = [
-  { 
-    id: 1, 
-    name: "Fanta", 
-    category: "Beverages", 
-    subcategory: "Soft Drinks", 
-    price: 1500, 
-    rating: 4, 
-    stock: 50, 
-    discount: 500,
-    measurement:1,
-    image: "/assets/fanta.jpg", 
-    description: "A popular carbonated soft drink.",
-    barcode: "123456789"
-  },
-  { 
-    id: 2, 
-    name: "Mountain Dew", 
-    category: "Beverages", 
-    subcategory: "Soft Drinks", 
-    price: 1500, 
-    rating: 5, 
-    stock: 30, 
-    image: "/assets/dew.jpg", 
-    description: "Citrusy and refreshing soft drink.",
-    barcode: "987654321"
-  },
-  { 
-    id: 3, 
-    name: "AFIA JUICE Tropical", 
-    category: "Beverages", 
-    subcategory: "Juices", 
-    price: 2000, 
-    rating: 4, 
-    stock: 20, 
-    image: "/assets/afia_tropical.jpg", 
-    description: "Tropical fruit juice.",
-    barcode: "456123789"
-  },
-  { 
-    id: 4, 
-    name: "Heineken Beer 330ml", 
-    category: "Beverages", 
-    subcategory: "Alcoholic", 
-    price: 5000, 
-    rating: 5, 
-    stock: 60, 
-    image: "/assets/Heineken.png", 
-    description: "Premium lager beer.",
-    barcode: "789123456"
-  },
-  { 
-    id: 5, 
-    name: "Golden Penny Semovita 2kg", 
-    category: "Groceries", 
-    subcategory: "Flour & Grains", 
-    price: 3500, 
-    rating: 4, 
-    stock: 30, 
-    image: "/assets/semo.jpeg", 
-    description: "Premium quality semovita.",
-    barcode: "321654987"
-  },
-  { 
-    id: 6, 
-    name: "OMO Detergent 5kg", 
-    category: "Household", 
-    subcategory: "Cleaning", 
-    price: 15000, 
-    rating: 4, 
-    stock: 18, 
-    image: "/assets/omo.jpg", 
-    description: "Powerful laundry detergent.",
-    barcode: "654987321"
-  },
-  { 
-    id: 7, 
-    name: "Tecno Spark 10", 
-    category: "Electronics", 
-    subcategory: "Mobile Phones", 
-    price: 750000, 
-    rating: 4, 
-    stock: 12, 
-    image: "/assets/spark.jpeg", 
-    description: "Affordable smartphone with good camera.",
-    barcode: "147258369"
-  },
-  { 
-    id: 8, 
-    name: "Dove Body Wash", 
-    category: "Health & Beauty", 
-    subcategory: "Personal Care", 
-    price: 12000, 
-    rating: 4, 
-    stock: 25, 
-    image: "/assets/dove.jpeg", 
-    description: "Moisturizing body wash.",
-    barcode: "369258147"
-  },
-  { 
-    id: 9, 
-    name: "Hima Cement 50kg", 
-    category: "Groceries", 
-    subcategory: "Building Materials", 
-    price: 45000, 
-    rating: 4, 
-    stock: 5, 
-    image: "/assets/hima.png", 
-    description: "High quality construction cement.",
-    barcode: "192087321"
-  },
-];
-
 const ProductsPage = () => {
   // State management
-  const [products, setProducts] = useState(initialProductData);
-  const [filteredProducts, setFilteredProducts] = useState(initialProductData);
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [categoryStructure, setCategoryStructure] = useState({});
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
   const [minPrice, setMinPrice] = useState(0);
@@ -211,6 +89,35 @@ const ProductsPage = () => {
     message: "",
     severity: "success"
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch products and categories from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // TODO: Replace with actual API calls
+        // const productsResponse = await fetch('/api/products');
+        // const productsData = await productsResponse.json();
+        // setProducts(productsData);
+        // setFilteredProducts(productsData);
+        
+        // const categoriesResponse = await fetch('/api/categories');
+        // const categoriesData = await categoriesResponse.json();
+        // setCategoryStructure(categoriesData);
+        
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+        showSnackbar("Failed to load data", "error");
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Apply filters whenever filter criteria change
   useEffect(() => {
@@ -338,20 +245,24 @@ const ProductsPage = () => {
   };
 
   // Add a new product
-  const handleAddProduct = () => {
-    const newProductWithId = {
-      ...newProduct,
-      id: products.length + 1,
-      price: Number(newProduct.price),
-      stock: Number(newProduct.stock),
-      discount: Number(newProduct.discount),
-      measurement: Number(newProduct.measurement),
-      rating: Number(newProduct.rating),
-      image: newProduct.imagePreview || "/assets/default-product.png"
-    };
-    setProducts([...products, newProductWithId]);
-    showSnackbar("Product added successfully", "success");
-    handleDialogClose();
+  const handleAddProduct = async () => {
+    try {
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/products', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(newProduct)
+      // });
+      // const addedProduct = await response.json();
+      
+      // setProducts([...products, addedProduct]);
+      showSnackbar("Product added successfully", "success");
+      handleDialogClose();
+    } catch (err) {
+      showSnackbar("Failed to add product", "error");
+    }
   };
 
   // Handle opening the edit product dialog
@@ -377,46 +288,49 @@ const ProductsPage = () => {
   };
 
   // Handle saving edited product
-  const handleSaveEditedProduct = () => {
-    const updatedProducts = products.map(product => {
-      if (product.id === editingProductId) {
-        return {
-          ...product,
-          name: newProduct.name,
-          category: newProduct.category,
-          subcategory: newProduct.subcategory,
-          price: Number(newProduct.price),
-          measurement: Number(newProduct.measurement),
-          rating: Number(newProduct.rating),
-          stock: Number(newProduct.stock),
-          discount: Number(newProduct.discount),
-          description: newProduct.description,
-          barcode: newProduct.barcode,
-          image: newProduct.imagePreview || product.image
-        };
-      }
-      return product;
-    });
-
-    setProducts(updatedProducts);
-    setFilteredProducts(updatedProducts);
-    showSnackbar("Product updated successfully", "success");
-    handleDialogClose();
+  const handleSaveEditedProduct = async () => {
+    try {
+      // TODO: Replace with actual API call
+      // const response = await fetch(`/api/products/${editingProductId}`, {
+      //   method: 'PUT',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(newProduct)
+      // });
+      // const updatedProduct = await response.json();
+      
+      // const updatedProducts = products.map(p => 
+      //   p.id === editingProductId ? updatedProduct : p
+      // );
+      // setProducts(updatedProducts);
+      
+      showSnackbar("Product updated successfully", "success");
+      handleDialogClose();
+    } catch (err) {
+      showSnackbar("Failed to update product", "error");
+    }
   };
 
   // Add a new category
-  const handleAddCategory = () => {
-    if (newCategory.name && !categoryStructure[newCategory.name]) {
-      categoryStructure[newCategory.name] = newCategory.subcategories;
+  const handleAddCategory = async () => {
+    try {
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/categories', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(newCategory)
+      // });
+      // const updatedCategories = await response.json();
+      // setCategoryStructure(updatedCategories);
+      
       showSnackbar("Category added successfully", "success");
-    } else if (newCategory.name && newCategory.subcategories.length > 0) {
-      categoryStructure[newCategory.name] = [
-        ...(categoryStructure[newCategory.name] || []),
-        ...newCategory.subcategories
-      ];
-      showSnackbar("Subcategories added successfully", "success");
+      handleDialogClose();
+    } catch (err) {
+      showSnackbar("Failed to add category", "error");
     }
-    handleDialogClose();
   };
 
   // Add a subcategory to the current new category
@@ -478,6 +392,23 @@ const ProductsPage = () => {
       setCategory(parentCategory);
     }
   };
+
+  // Loading and error states
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <Typography>Loading products...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <Typography color="error">Error: {error}</Typography>
+      </Box>
+    );
+  }
 
   // Product Details Dialog
   const ProductDetailsDialog = () => (
@@ -554,172 +485,214 @@ const ProductsPage = () => {
   );
 
   // Product Form Dialog (Add/Edit)
-  const ProductFormDialog = () => (
-    <Dialog 
-      open={openProductDialog && (isEditing || !selectedProduct)} 
-      onClose={handleDialogClose}
-      maxWidth="sm"
-      fullWidth
-    >
-      <DialogTitle>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          {isEditing ? "Edit Product" : "Add New Product"}
-          <IconButton onClick={handleDialogClose}>
-            <Close />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Product Name"
-              value={newProduct.name}
-              onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={newProduct.category}
-                onChange={(e) => setNewProduct({...newProduct, category: e.target.value, subcategory: ""})}
-                label="Category"
-              >
-                <MenuItem value=""><em>Select Category</em></MenuItem>
-                {Object.keys(categoryStructure).map((cat) => (
-                  <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Subcategory</InputLabel>
-              <Select
-                value={newProduct.subcategory}
-                onChange={(e) => setNewProduct({...newProduct, subcategory: e.target.value})}
-                label="Subcategory"
-                disabled={!newProduct.category}
-              >
-                <MenuItem value=""><em>Select Subcategory</em></MenuItem>
-                {newProduct.category && categoryStructure[newProduct.category]?.map((subcat) => (
-                  <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Price (UGX)"
-              type="number"
-              value={newProduct.price}
-              onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Purchase Price (UGX)"
-              type="number"
-              value={newProduct.price}
-              onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Discount"
-              type="number"
-              value={newProduct.discount}
-              onChange={(e) => setNewProduct({...newProduct, discount: e.target.value})}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Unit of Measurement"
-              type="number"
-              value={newProduct.measurement}
-              onChange={(e) => setNewProduct({...newProduct, measurement: e.target.value})}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Stock Quantity"
-              type="number"
-              value={newProduct.stock}
-              onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Barcode/ID"
-              value={newProduct.barcode}
-              onChange={(e) => setNewProduct({...newProduct, barcode: e.target.value})}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Description"
-              multiline
-              rows={4}
-              value={newProduct.description}
-              onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="body2">Product Rating</Typography>
-            <Rating
-              value={newProduct.rating}
-              onChange={(e, newValue) => setNewProduct({...newProduct, rating: newValue})}
-              precision={0.5}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="body2" gutterBottom>Product Image</Typography>
-            <input
-              accept="image/*"
-              style={{ display: 'none' }}
-              id="product-image-upload"
-              type="file"
-              onChange={handleImageUpload}
-            />
-            <label htmlFor="product-image-upload">
-              <Button variant="outlined" component="span" fullWidth>
-                Upload Image
-              </Button>
-            </label>
-            {newProduct.imagePreview && (
-              <Box sx={{ mt: 2, textAlign: 'center' }}>
-                <img 
-                  src={newProduct.imagePreview} 
-                  alt="Preview" 
-                  style={{ maxHeight: 200, maxWidth: '100%' }}
-                />
-              </Box>
-            )}
-          </Grid>
+  // Product Form Dialog (Add/Edit)
+const ProductFormDialog = () => (
+  <Dialog 
+    open={openProductDialog && (isEditing || !selectedProduct)} 
+    onClose={handleDialogClose}
+    maxWidth="sm"
+    fullWidth
+  >
+    <DialogTitle>
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        {isEditing ? "Edit Product" : "Add New Product"}
+        <IconButton onClick={handleDialogClose}>
+          <Close />
+        </IconButton>
+      </Box>
+    </DialogTitle>
+    <DialogContent>
+      <Grid container spacing={2} sx={{ mt: 1 }}>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Product Name"
+            value={newProduct.name}
+            onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+            error={!newProduct.name}
+            helperText={!newProduct.name ? "Product name is required" : ""}
+          />
         </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleDialogClose}>Cancel</Button>
-        <Button 
-          variant="contained" 
-          onClick={isEditing ? handleSaveEditedProduct : handleAddProduct}
-          disabled={!newProduct.name || !newProduct.category}
-          sx={{ backgroundColor: "purple", color: "white" }}
-        >
-          {isEditing ? "Save Changes" : "Save Product"}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth error={!newProduct.category}>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={newProduct.category}
+              onChange={(e) => setNewProduct({...newProduct, category: e.target.value, subcategory: ""})}
+              label="Category"
+            >
+              <MenuItem value=""><em>Select Category</em></MenuItem>
+              {Object.keys(categoryStructure).map((cat) => (
+                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+              ))}
+            </Select>
+            {!newProduct.category && <Typography variant="caption" color="error">Category is required</Typography>}
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth error={!newProduct.subcategory && !!newProduct.category}>
+            <InputLabel>Subcategory</InputLabel>
+            <Select
+              value={newProduct.subcategory}
+              onChange={(e) => setNewProduct({...newProduct, subcategory: e.target.value})}
+              label="Subcategory"
+              disabled={!newProduct.category}
+            >
+              <MenuItem value=""><em>Select Subcategory</em></MenuItem>
+              {newProduct.category && categoryStructure[newProduct.category]?.map((subcat) => (
+                <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
+              ))}
+            </Select>
+            {!newProduct.subcategory && newProduct.category && (
+              <Typography variant="caption" color="error">Subcategory is required</Typography>
+            )}
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Price (UGX)"
+            type="number"
+            value={newProduct.price}
+            onChange={(e) => {
+              const value = Math.max(0, parseFloat(e.target.value) || 0);
+              setNewProduct({...newProduct, price: value});
+            }}
+            inputProps={{ min: 0, step: 100 }}
+            error={!newProduct.price && newProduct.price !== 0}
+            helperText={!newProduct.price && newProduct.price !== 0 ? "Price is required" : ""}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Purchase Price (UGX)"
+            type="number"
+            value={newProduct.purchasePrice || ""}
+            onChange={(e) => {
+              const value = Math.max(0, parseFloat(e.target.value) || 0);
+              setNewProduct({...newProduct, purchasePrice: value});
+            }}
+            inputProps={{ min: 0, step: 100 }}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Discount (%)"
+            type="number"
+            value={newProduct.discount}
+            onChange={(e) => {
+              const value = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0));
+              setNewProduct({...newProduct, discount: value});
+            }}
+            inputProps={{ min: 0, max: 100 }}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Unit of Measurement"
+            type="number"
+            value={newProduct.measurement}
+            onChange={(e) => {
+              const value = Math.max(1, parseFloat(e.target.value) || 1);
+              setNewProduct({...newProduct, measurement: value});
+            }}
+            inputProps={{ min: 1 }}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Stock Quantity"
+            type="number"
+            value={newProduct.stock}
+            onChange={(e) => {
+              const value = Math.max(0, parseInt(e.target.value) || 0);
+              setNewProduct({...newProduct, stock: value});
+            }}
+            inputProps={{ min: 0 }}
+            error={!newProduct.stock && newProduct.stock !== 0}
+            helperText={!newProduct.stock && newProduct.stock !== 0 ? "Stock quantity is required" : ""}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Barcode/ID"
+            value={newProduct.barcode}
+            onChange={(e) => setNewProduct({...newProduct, barcode: e.target.value})}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Description"
+            multiline
+            rows={4}
+            value={newProduct.description}
+            onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="body2">Product Rating</Typography>
+          <Rating
+            value={newProduct.rating}
+            onChange={(e, newValue) => setNewProduct({...newProduct, rating: newValue})}
+            precision={0.5}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="body2" gutterBottom>Product Image</Typography>
+          <input
+            accept="image/*"
+            style={{ display: 'none' }}
+            id="product-image-upload"
+            type="file"
+            onChange={handleImageUpload}
+          />
+          <label htmlFor="product-image-upload">
+            <Button variant="outlined" component="span" fullWidth>
+              Upload Image
+            </Button>
+          </label>
+          {newProduct.imagePreview && (
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+              <img 
+                src={newProduct.imagePreview} 
+                alt="Preview" 
+                style={{ maxHeight: 200, maxWidth: '100%' }}
+              />
+              <Button 
+                variant="text" 
+                color="error" 
+                size="small"
+                onClick={() => setNewProduct({...newProduct, image: null, imagePreview: ""})}
+                sx={{ mt: 1 }}
+              >
+                Remove Image
+              </Button>
+            </Box>
+          )}
+        </Grid>
+      </Grid>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={handleDialogClose}>Cancel</Button>
+      <Button 
+        variant="contained" 
+        onClick={isEditing ? handleSaveEditedProduct : handleAddProduct}
+        disabled={!newProduct.name || !newProduct.category || !newProduct.subcategory || 
+                 (!newProduct.price && newProduct.price !== 0) || 
+                 (!newProduct.stock && newProduct.stock !== 0)}
+        sx={{ backgroundColor: "purple", color: "white" }}
+      >
+        {isEditing ? "Save Changes" : "Save Product"}
+      </Button>
+    </DialogActions>
+  </Dialog>
+);
 
   // Manage Categories Dialog
   const ManageCategoriesDialog = () => (

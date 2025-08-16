@@ -32,15 +32,6 @@ import {
 import { DataGrid } from '@mui/x-data-grid';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
-// Product images (in a real app, these would be imported or fetched from a server)
-const productImages = {
-  'Fanta': '/assets/fanta.jpg',
-  'Luxury Toilet Paper Carton': '/assets/1.jpg',
-  'Eggs': '/assets/eggs.jpg',
-  'Tropical Heat Tea Masala': '/assets/masala.jpg',
-  'American Ginseng Coffee': '/assets/ginseng.jpg'
-};
-
 const POSDashboard = () => {
   const theme = useTheme();
   const [timeFilter, setTimeFilter] = useState('daily');
@@ -49,130 +40,56 @@ const POSDashboard = () => {
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [inventoryAlerts, setInventoryAlerts] = useState([]);
   const [chartFilter, setChartFilter] = useState('sales');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Generate mock data based on time filter
+  // Fetch data from API
   useEffect(() => {
-    const generateSalesData = () => {
-      const data = [];
-      const today = new Date();
-      const days = timeFilter === 'daily' ? 30 : timeFilter === 'weekly' ? 12 : timeFilter === 'monthly' ? 12 : 5;
-      
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date(today);
-        if (timeFilter === 'daily') {
-          date.setDate(date.getDate() - i);
-          data.push({
-            date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            sales: Math.floor(Math.random() * 10000) + 2000,
-            returns: Math.floor(Math.random() * 1000),
-            customers: Math.floor(Math.random() * 50) + 20,
-          });
-        } else if (timeFilter === 'weekly') {
-          date.setDate(date.getDate() - i * 7);
-          data.push({
-            date: `Week ${i + 1}`,
-            sales: Math.floor(Math.random() * 50000) + 10000,
-            returns: Math.floor(Math.random() * 5000),
-            customers: Math.floor(Math.random() * 200) + 100,
-          });
-        } else if (timeFilter === 'monthly') {
-          date.setMonth(date.getMonth() - i);
-          data.push({
-            date: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-            sales: Math.floor(Math.random() * 200000) + 50000,
-            returns: Math.floor(Math.random() * 20000),
-            customers: Math.floor(Math.random() * 800) + 500,
-          });
-        } else { // yearly
-          date.setFullYear(date.getFullYear() - i);
-          data.push({
-            date: date.toLocaleDateString('en-US', { year: 'numeric' }),
-            sales: Math.floor(Math.random() * 1000000) + 500000,
-            returns: Math.floor(Math.random() * 100000),
-            customers: Math.floor(Math.random() * 3000) + 2000,
-          });
-        }
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        
+        // TODO: Replace with actual API calls
+        // Example:
+        // const salesResponse = await fetch(`/api/sales?timeFilter=${timeFilter}`);
+        // const salesData = await salesResponse.json();
+        // setSalesData(salesData);
+        
+        // const productsResponse = await fetch('/api/products/top');
+        // const topProducts = await productsResponse.json();
+        // setTopProducts(topProducts);
+        
+        // const transactionsResponse = await fetch('/api/transactions/recent');
+        // const recentTransactions = await transactionsResponse.json();
+        // setRecentTransactions(recentTransactions);
+        
+        // const inventoryResponse = await fetch('/api/inventory/alerts');
+        // const inventoryAlerts = await inventoryResponse.json();
+        // setInventoryAlerts(inventoryAlerts);
+        
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
       }
-      return data;
     };
 
-    const generateTopProducts = () => {
-      const products = [
-        { name: 'Fanta', category: 'Beverages' },
-        { name: 'Luxury Toilet Paper Carton', category: 'Household' },
-        { name: 'Eggs', category: 'Groceries' },
-        { name: 'Tropical Heat Tea Masala', category: 'Beverages' },
-        { name: 'American Ginseng Coffee', category: 'Beverages' }
-      ];
-      
-      return products.map((product, index) => ({
-        id: index + 1,
-        name: product.name,
-        category: product.category,
-        sales: Math.floor(Math.random() * 500) + 100,
-        revenue: Math.floor(Math.random() * 10000) + 2000,
-        rating: (Math.random() * 2 + 3).toFixed(1),
-        image: productImages[product.name]
-      }));
-    };
-
-    const generateRecentTransactions = () => {
-      const statuses = ['Completed', 'Pending', 'Refunded'];
-      const methods = ['Cash', 'Credit Card', 'Mobile Payment'];
-      const orders = ['Cash', 'Credit Card', 'Mobile Payment'];
-      const times = ["08:00", "12:30", "15:45"];
-
-      return Array.from({ length: 10 }, (_, i) => ({
-        id: i + 1,
-        customer: `Customer ${i + 1}`,
-        amount: (Math.random() * 500 + 50).toFixed(2),
-        items: Math.floor(Math.random() * 10) + 1,
-        date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-        status: statuses[Math.floor(Math.random() * statuses.length)],
-        method: methods[Math.floor(Math.random() * methods.length)],
-        order: orders[Math.floor(Math.random() * methods.length)],
-        time: times[Math.floor(Math.random() * methods.length)]
-      }));
-    };
-
-    const generateInventoryAlerts = () => {
-      const products = [
-        { name: 'Fanta', category: 'Beverages', threshold: 50 },
-        { name: 'Luxury Toilet Paper Carton', category: 'Household', threshold: 20 },
-        { name: 'Eggs', category: 'Groceries', threshold: 100 },
-        { name: 'Tropical Heat Tea Masala', category: 'Beverages', threshold: 30 },
-        { name: 'American Ginseng Coffee', category: 'Beverages', threshold: 40 }
-      ];
-      
-      return products.map(product => ({
-        ...product,
-        id: products.indexOf(product) + 1,
-        currentStock: Math.floor(Math.random() * product.threshold),
-        image: productImages[product.name]
-      })).filter(item => item.currentStock < item.threshold * 0.3); // Only show items below 30% of threshold
-    };
-
-    setSalesData(generateSalesData());
-    setTopProducts(generateTopProducts());
-    setRecentTransactions(generateRecentTransactions());
-    setInventoryAlerts(generateInventoryAlerts());
+    fetchDashboardData();
   }, [timeFilter]);
 
-  // Calculate summary metrics based on time filter
+  // Calculate summary metrics - replace with actual API call
   const calculateSummary = () => {
-    const baseAmount = {
-      daily: 1000,
-      weekly: 7000,
-      monthly: 30000,
-      yearly: 360000
-    }[timeFilter];
-
+    // TODO: Replace with API call to get summary data
+    // Example:
+    // const response = await fetch(`/api/summary?timeFilter=${timeFilter}`);
+    // return await response.json();
+    
     return {
-      totalSales: (baseAmount * (1 + Math.random() * 0.5)).toFixed(2),
-      totalPurchases: (baseAmount * 0.7 * (1 + Math.random() * 0.3)).toFixed(2),
-      purchaseDue: (baseAmount * 0.1 * (1 + Math.random() * 0.5)).toFixed(2),
-      invoiceDue: (baseAmount * 0.15 * (1 + Math.random() * 0.5)).toFixed(2),
-      expenses: (baseAmount * 0.3 * (1 + Math.random() * 0.2)).toFixed(2)
+      totalSales: '0.00',
+      totalPurchases: '0.00',
+      purchaseDue: '0.00',
+      invoiceDue: '0.00',
+      expenses: '0.00'
     };
   };
 
@@ -349,6 +266,22 @@ const POSDashboard = () => {
     }
   ];
 
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <Typography>Loading dashboard data...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <Typography color="error">Error loading dashboard: {error}</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box m="20px">
       {/* Header */}
@@ -414,7 +347,7 @@ const POSDashboard = () => {
               <Box display="flex" alignItems="center" mt={1}>
                 <TrendingUp sx={{ color: '#4caf50', mr: 1 }} />
                 <Typography variant="body2" color="#4caf50">
-                  +{Math.floor(Math.random() * 15) + 5}% from last {timeFilter}
+                  Loading...
                 </Typography>
               </Box>
             </CardContent>
@@ -432,7 +365,7 @@ const POSDashboard = () => {
               <Box display="flex" alignItems="center" mt={1}>
                 <TrendingUp sx={{ color: '#4caf50', mr: 1 }} />
                 <Typography variant="body2" color="#4caf50">
-                  +{Math.floor(Math.random() * 10) + 3}% from last {timeFilter}
+                  Loading...
                 </Typography>
               </Box>
             </CardContent>
@@ -450,7 +383,7 @@ const POSDashboard = () => {
               <Box display="flex" alignItems="center" mt={1}>
                 <TrendingUp sx={{ color: '#f44336', mr: 1 }} />
                 <Typography variant="body2" color="#f44336">
-                  +{Math.floor(Math.random() * 8) + 2}% from last {timeFilter}
+                  Loading...
                 </Typography>
               </Box>
             </CardContent>
@@ -468,7 +401,7 @@ const POSDashboard = () => {
               <Box display="flex" alignItems="center" mt={1}>
                 <TrendingUp sx={{ color: '#4caf50', mr: 1 }} />
                 <Typography variant="body2" color="#4caf50">
-                  +{Math.floor(Math.random() * 20) + 5}% from last {timeFilter}
+                  Loading...
                 </Typography>
               </Box>
             </CardContent>
@@ -486,7 +419,7 @@ const POSDashboard = () => {
               <Box display="flex" alignItems="center" mt={1}>
                 <TrendingUp sx={{ color: '#f44336', mr: 1 }} />
                 <Typography variant="body2" color="#f44336">
-                  +{Math.floor(Math.random() * 5) + 1}% from last {timeFilter}
+                  Loading...
                 </Typography>
               </Box>
             </CardContent>
@@ -713,19 +646,19 @@ const POSDashboard = () => {
             <Typography variant="h6" mb={2}>Quick Stats</Typography>
             <Box display="flex" justifyContent="space-between" mb={2}>
               <Typography>Total Products</Typography>
-              <Typography fontWeight="bold">125</Typography>
+              <Typography fontWeight="bold">Loading...</Typography>
             </Box>
             <Box display="flex" justifyContent="space-between" mb={2}>
               <Typography>Low Stock Items</Typography>
-              <Typography fontWeight="bold" color="warning.main">18</Typography>
+              <Typography fontWeight="bold" color="warning.main">Loading...</Typography>
             </Box>
             <Box display="flex" justifyContent="space-between" mb={2}>
               <Typography>Out of Stock</Typography>
-              <Typography fontWeight="bold" color="error.main">5</Typography>
+              <Typography fontWeight="bold" color="error.main">Loading...</Typography>
             </Box>
             <Box display="flex" justifyContent="space-between">
               <Typography>New Products</Typography>
-              <Typography fontWeight="bold" color="success.main">12</Typography>
+              <Typography fontWeight="bold" color="success.main">Loading...</Typography>
             </Box>
           </Card>
 
@@ -733,20 +666,8 @@ const POSDashboard = () => {
           <Card sx={{ p: 2 }}>
             <Typography variant="h6" mb={2}>Recent Activity</Typography>
             <Box mb={2}>
-              <Typography variant="body2">New order placed for UGX 45,000</Typography>
-              <Typography variant="caption" color="textSecondary">2 hours ago</Typography>
-            </Box>
-            <Box mb={2}>
-              <Typography variant="body2">Inventory updated for Fanta</Typography>
-              <Typography variant="caption" color="textSecondary">5 hours ago</Typography>
-            </Box>
-            <Box mb={2}>
-              <Typography variant="body2">New customer registered</Typography>
-              <Typography variant="caption" color="textSecondary">Yesterday</Typography>
-            </Box>
-            <Box>
-              <Typography variant="body2">Monthly sales target achieved</Typography>
-              <Typography variant="caption" color="textSecondary">2 days ago</Typography>
+              <Typography variant="body2">Loading activity data...</Typography>
+              <Typography variant="caption" color="textSecondary">Loading...</Typography>
             </Box>
           </Card>
         </Grid>
