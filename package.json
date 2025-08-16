@@ -49,6 +49,7 @@
     "react-router-dom": "^6.29.0",
     "react-scripts": "5.0.1",
     "react-to-print": "^3.0.5",
+    "react-toastify": "^11.0.5",
     "react-vis": "^1.12.1",
     "recharts": "^2.15.1",
     "serve": "^14.2.4",

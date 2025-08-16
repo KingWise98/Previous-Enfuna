@@ -1,164 +1,571 @@
-import { useState } from "react";
-import { Box, Button, MenuItem, Select, Modal, TextField, Typography } from "@mui/material";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { tokens } from "../../theme";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Divider,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  useTheme,
+  InputAdornment,
+  LinearProgress,
+  Card,
+  CardContent,
+  Snackbar,
+  Alert
+} from "@mui/material";
+import {
+  Add,
+  Delete,
+  Edit,
+  Close,
+  Search,
+  Refresh,
+  Download,
+  PictureAsPdf,
+  Print
+} from "@mui/icons-material";
 import Header from "../../components/Header";
-import { useTheme } from "@mui/material";
 import * as XLSX from "xlsx";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import FileDownloadIcon from "@mui/icons-material/FileDownload";
-
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import { format } from "date-fns";
 
 const JournalVoucher = () => {
   const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-  const [rows, setRows] = useState([
-    { id: 1, date: "2025-02-20", accountName: "Mugisha Daniel", debit: "1500", credit: "0", narration: "Office Supplies Purchase", action: "edit" },
-    { id: 2, date: "2025-02-21", accountName: "Nakato Maria", debit: "0", credit: "800", narration: "Salary Payment", action: "edit" },
-  ]);
+  const [rows, setRows] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState(null);
+  const [totalDebit, setTotalDebit] = useState(0);
+  const [totalCredit, setTotalCredit] = useState(0);
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    severity: "success"
+  });
 
-  const [open, setOpen] = useState(false);
   const [newEntry, setNewEntry] = useState({
-    date: "",
+    date: format(new Date(), "yyyy-MM-dd"),
     accountName: "",
     debit: "",
     credit: "",
     narration: "",
   });
 
-  const handleActionChange = (id, newAction) => {
-    setRows(rows.map(row => (row.id === id ? { ...row, action: newAction } : row)));
+  // Fetch journal entries from API
+  useEffect(() => {
+    const fetchEntries = async () => {
+      try {
+        setIsLoading(true);
+        // TODO: Replace with actual API endpoint
+        // const response = await fetch('/api/journal-entries');
+        // const data = await response.json();
+        // setRows(data);
+        // setIsLoading(false);
+        
+        // Initialize with empty array
+        setRows([]);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching journal entries:", error);
+        setIsLoading(false);
+        showNotification("Failed to fetch journal entries", "error");
+      }
+    };
+
+    fetchEntries();
+  }, []);
+
+  // Calculate totals whenever rows change
+  useEffect(() => {
+    const debitTotal = rows.reduce((sum, row) => sum + parseFloat(row.debit || 0), 0);
+    const creditTotal = rows.reduce((sum, row) => sum + parseFloat(row.credit || 0), 0);
+    setTotalDebit(debitTotal);
+    setTotalCredit(creditTotal);
+  }, [rows]);
+
+  // Notification handler
+  const showNotification = (message, severity = "success") => {
+    setNotification({
+      open: true,
+      message,
+      severity
+    });
   };
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  // Handle create new entry
+  const handleCreateEntry = async () => {
+    try {
+      // Validate that either debit or credit has value
+      if (!newEntry.debit && !newEntry.credit) {
+        showNotification("Please enter either debit or credit amount", "error");
+        return;
+      }
 
-  const handleChange = (e) => {
-    setNewEntry({ ...newEntry, [e.target.name]: e.target.value });
+      // TODO: Implement API call to create entry
+      /*
+      const response = await fetch('/api/journal-entries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEntry)
+      });
+      const createdEntry = await response.json();
+      setRows([...rows, createdEntry]);
+      */
+      
+      // Temporary local state update
+      const createdEntry = {
+        ...newEntry,
+        id: rows.length + 1,
+        debit: parseFloat(newEntry.debit || 0),
+        credit: parseFloat(newEntry.credit || 0)
+      };
+      setRows([...rows, createdEntry]);
+      
+      setNewEntry({
+        date: format(new Date(), "yyyy-MM-dd"),
+        accountName: "",
+        debit: "",
+        credit: "",
+        narration: "",
+      });
+      setOpenDialog(false);
+      showNotification("Journal entry created successfully");
+    } catch (error) {
+      console.error("Error creating journal entry:", error);
+      showNotification("Failed to create journal entry", "error");
+    }
   };
 
-  const handleAddEntry = () => {
-    setRows([...rows, { id: rows.length + 1, ...newEntry, action: "edit" }]);
-    handleClose();
-    setNewEntry({ date: "", accountName: "", debit: "", credit: "", narration: "" });
+  // Handle delete entry
+  const handleDeleteEntry = async (id) => {
+    try {
+      // TODO: Implement API call to delete entry
+      // await fetch(`/api/journal-entries/${id}`, { method: 'DELETE' });
+      setRows(rows.filter(row => row.id !== id));
+      setOpenDeleteDialog(false);
+      showNotification("Journal entry deleted successfully");
+    } catch (error) {
+      console.error("Error deleting journal entry:", error);
+      showNotification("Failed to delete journal entry", "error");
+    }
   };
 
+  // Handle input change
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewEntry({ ...newEntry, [name]: value });
+  };
+
+  // Export to Excel
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "JournalVoucher");
-    XLSX.writeFile(workbook, "JournalVoucher.xlsx");
+    XLSX.writeFile(workbook, "journal_vouchers.xlsx");
+    showNotification("Excel exported successfully");
   };
 
+  // Export to PDF
   const exportToPDF = () => {
-    window.print();
+    const doc = new jsPDF();
+    
+    // Title
+    doc.setFontSize(18);
+    doc.text("Journal Vouchers Report", 105, 15, { align: "center" });
+    
+    // Date
+    doc.setFontSize(11);
+    doc.text(`Generated on: ${format(new Date(), "PPpp")}`, 105, 25, { align: "center" });
+    
+    // Summary
+    doc.setFontSize(12);
+    doc.text(`Total Debit: UGX ${totalDebit.toFixed(2)}`, 14, 35);
+    doc.text(`Total Credit: UGX ${totalCredit.toFixed(2)}`, 14, 45);
+    
+    // Table
+    doc.autoTable({
+      startY: 55,
+      head: [['Date', 'Account', 'Debit', 'Credit', 'Narration']],
+      body: rows.map(row => [
+        row.date,
+        row.accountName,
+        `UGX ${parseFloat(row.debit).toFixed(2)}`,
+        `UGX ${parseFloat(row.credit).toFixed(2)}`,
+        row.narration
+      ]),
+      theme: 'grid',
+      headStyles: {
+        fillColor: [33, 150, 243],
+        textColor: 255
+      },
+      margin: { top: 55 }
+    });
+    
+    doc.save("journal_vouchers.pdf");
+    showNotification("PDF exported successfully");
   };
 
-  const columns = [
-    { field: "id", headerName: "ID", flex: 0.3 },
-    { field: "date", headerName: "Date", flex: 1 },
-    { field: "accountName", headerName: "Account Name", flex: 1 },
-    { field: "debit", headerName: "Debit Amount", flex: 1 },
-    { field: "credit", headerName: "Credit Amount", flex: 1 },
-    { field: "narration", headerName: "Narration", flex: 2 },
-    {
-      field: "action",
-      headerName: "Action",
-      flex: 1,
-      renderCell: (params) => (
-        <Select
-          value={params.row.action}
-          onChange={(e) => handleActionChange(params.row.id, e.target.value)}
-          sx={{ width: "100px", fontSize: "14px" }}
-        >
-          <MenuItem value="edit">Edit</MenuItem>
-          <MenuItem value="delete">Delete</MenuItem>
-        </Select>
-      ),
-    },
-  ];
+  // Filter entries based on search term
+  const filteredRows = rows.filter(row =>
+    row.accountName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    row.narration.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <Box m="20px">
+    <Box p={3}>
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification({...notification, open: false})}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setNotification({...notification, open: false})}
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Page Header */}
       <Header title="JOURNAL VOUCHER" subtitle="Manage your journal transactions" />
-
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Button variant="contained" color="primary" onClick={handleOpen}>
-          Create Journal Entry
-        </Button>
-
-        {/* Excel and PDF Export Buttons */}
+      
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box>
+          <Typography variant="h4" fontWeight="bold" gutterBottom>
+            Journal Voucher Management
+          </Typography>
+          <Typography variant="subtitle1" color="textSecondary">
+            Record and track all journal transactions
+          </Typography>
+        </Box>
         <Box>
           <Button
             variant="contained"
-            sx={{
-              backgroundColor: "green",
-              color: "white",
-              mr: 1,
-              "&:hover": { backgroundColor: "darkgreen" },
-            }}
-            startIcon={<FileDownloadIcon />}
+            color="primary"
+            startIcon={<Refresh />}
+            onClick={() => window.location.reload()}
+            sx={{ mr: 2 }}
+          >
+            Refresh
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<Add />}
+            onClick={() => setOpenDialog(true)}
+          >
+            New Entry
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Toolbar */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <TextField
+          variant="outlined"
+          size="small"
+          placeholder="Search entries..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: 400 }}
+        />
+        <Box>
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<Download />}
             onClick={exportToExcel}
+            sx={{ mr: 2 }}
           >
             Export Excel
           </Button>
           <Button
             variant="contained"
-            sx={{
-              backgroundColor: "red",
-              color: "white",
-              "&:hover": { backgroundColor: "darkred" },
-            }}
-            startIcon={<PictureAsPdfIcon />}
+            color="error"
+            startIcon={<PictureAsPdf />}
             onClick={exportToPDF}
+            sx={{ mr: 2 }}
           >
-            PDF
+            Export PDF
+          </Button>
+          <Button
+            variant="contained"
+            color="info"
+            startIcon={<Print />}
+            onClick={() => window.print()}
+          >
+            Print
           </Button>
         </Box>
       </Box>
 
-      <Box
-        height="75vh"
-        sx={{
-          "& .MuiDataGrid-root": { border: "none" },
-          "& .MuiDataGrid-cell": { borderBottom: "none" },
-          "& .MuiDataGrid-columnHeaders": { backgroundColor: colors.blueAccent[700] },
-          "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.primary[400] },
-          "& .MuiDataGrid-footerContainer": { backgroundColor: colors.blueAccent[700] },
-          "& .MuiButton-text": { color: `${colors.grey[100]} !important` },
-        }}
+      {/* Summary Cards */}
+      <Grid container spacing={2} mb={3}>
+        <Grid item xs={12} sm={6} md={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Total Entries</Typography>
+              <Typography variant="h4">{rows.length}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ backgroundColor: theme.palette.success.light }}>
+            <CardContent>
+              <Typography variant="h6">Total Debit</Typography>
+              <Typography variant="h4">UGX {totalDebit.toFixed(2)}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ backgroundColor: theme.palette.error.light }}>
+            <CardContent>
+              <Typography variant="h6">Total Credit</Typography>
+              <Typography variant="h4">UGX {totalCredit.toFixed(2)}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Loading State */}
+      {isLoading ? (
+        <LinearProgress />
+      ) : (
+        <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+          <TableContainer>
+            <Table>
+              <TableHead sx={{ backgroundColor: theme.palette.grey[100] }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Account Name</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Debit (UGX)</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Credit (UGX)</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Narration</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }} align="center">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredRows.length > 0 ? (
+                  filteredRows.map((row) => (
+                    <TableRow key={row.id} hover>
+                      <TableCell>{row.date}</TableCell>
+                      <TableCell>
+                        <Typography fontWeight="500">{row.accountName}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        {row.debit ? `UGX ${parseFloat(row.debit).toFixed(2)}` : '-'}
+                      </TableCell>
+                      <TableCell>
+                        {row.credit ? `UGX ${parseFloat(row.credit).toFixed(2)}` : '-'}
+                      </TableCell>
+                      <TableCell>{row.narration}</TableCell>
+                      <TableCell align="center">
+                        <Box display="flex" gap={1} justifyContent="center">
+                          <IconButton color="primary">
+                            <Edit />
+                          </IconButton>
+                          <IconButton 
+                            color="error" 
+                            onClick={() => {
+                              setEntryToDelete(row);
+                              setOpenDeleteDialog(true);
+                            }}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                      <Typography variant="subtitle1">
+                        {rows.length === 0 ? 'No journal entries found' : 'No matching entries found'}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      )}
+
+      {/* New Entry Dialog */}
+      <Dialog 
+        open={openDialog} 
+        onClose={() => setOpenDialog(false)}
+        maxWidth="sm"
+        fullWidth
       >
-        <DataGrid rows={rows} columns={columns} components={{ Toolbar: GridToolbar }} />
-      </Box>
-
-      {/* Add Entry Modal */}
-      <Modal open={open} onClose={handleClose} aria-labelledby="modal-title" aria-describedby="modal-description">
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-          }}
-        >
-          <Typography variant="h6" id="modal-title" mb={2}>
-            Create Journal Entry
-          </Typography>
-          <TextField fullWidth label="Date" name="date" value={newEntry.date} onChange={handleChange} margin="normal" />
-          <TextField fullWidth label="Account Name" name="accountName" value={newEntry.accountName} onChange={handleChange} margin="normal" />
-          <TextField fullWidth label="Debit Amount" name="debit" value={newEntry.debit} onChange={handleChange} margin="normal" />
-          <TextField fullWidth label="Credit Amount" name="credit" value={newEntry.credit} onChange={handleChange} margin="normal" />
-          <TextField fullWidth label="Narration" name="narration" value={newEntry.narration} onChange={handleChange} margin="normal" />
-          <Button fullWidth variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleAddEntry}>
-            Add Entry
+        <DialogTitle sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">New Journal Entry</Typography>
+            <IconButton onClick={() => setOpenDialog(false)}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Grid container spacing={2} sx={{ pt: 2 }}>
+            <Grid item xs={12}>
+              <TextField
+                label="Date"
+                type="date"
+                fullWidth
+                value={newEntry.date}
+                onChange={handleInputChange}
+                name="date"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Account Name"
+                fullWidth
+                value={newEntry.accountName}
+                onChange={handleInputChange}
+                name="accountName"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Debit Amount"
+                type="number"
+                fullWidth
+                value={newEntry.debit}
+                onChange={handleInputChange}
+                name="debit"
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">UGX</InputAdornment>,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Credit Amount"
+                type="number"
+                fullWidth
+                value={newEntry.credit}
+                onChange={handleInputChange}
+                name="credit"
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">UGX</InputAdornment>,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Narration"
+                fullWidth
+                multiline
+                rows={3}
+                value={newEntry.narration}
+                onChange={handleInputChange}
+                name="narration"
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ borderTop: `1px solid ${theme.palette.divider}`, p: 2 }}>
+          <Button 
+            onClick={() => setOpenDialog(false)} 
+            variant="outlined"
+            sx={{ mr: 2 }}
+          >
+            Cancel
           </Button>
-        </Box>
-      </Modal>
+          <Button 
+            onClick={handleCreateEntry} 
+            variant="contained"
+            color="primary"
+            disabled={!newEntry.accountName || (!newEntry.debit && !newEntry.credit)}
+          >
+            Create Entry
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog 
+        open={openDeleteDialog} 
+        onClose={() => setOpenDeleteDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Confirm Delete</Typography>
+            <IconButton onClick={() => setOpenDeleteDialog(false)}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography>
+            Are you sure you want to delete the journal entry for {entryToDelete?.accountName}?
+          </Typography>
+          <Typography variant="body2" color="textSecondary" mt={2}>
+            Date: {entryToDelete?.date} | 
+            {entryToDelete?.debit ? ` Debit: UGX${parseFloat(entryToDelete?.debit).toFixed(2)}` : ""}
+            {entryToDelete?.credit ? ` Credit: UGX${parseFloat(entryToDelete?.credit).toFixed(2)}` : ""}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            Narration: {entryToDelete?.narration}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ borderTop: `1px solid ${theme.palette.divider}`, p: 2 }}>
+          <Button 
+            onClick={() => setOpenDeleteDialog(false)} 
+            variant="outlined"
+            sx={{ mr: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={() => handleDeleteEntry(entryToDelete?.id)} 
+            variant="contained"
+            color="error"
+          >
+            Delete Entry
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
