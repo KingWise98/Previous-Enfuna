@@ -1,44 +1,65 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Button,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  InputAdornment,
+  Chip,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Divider,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  useTheme,
+  
+  
+  LinearProgress,
+  Card,
+  CardContent
+} from '@mui/material';
+import {
+  Search,
+  Add,
+  Print,
+  ArrowBack,
+  Delete,
+  Edit,
+  Receipt,
+  LocalAtm,
+  CreditCard,
+  AccountBalance,
+  ShoppingCart,
+  Refresh,
+  Close,
+  Person
+} from '@mui/icons-material';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
-import './SalesReceipt.css';
-
-// Mock Data
-const mockItems = [
-  { id: '1001', name: 'T-Shirt', price: 24.99, category: 'Clothing', taxRate: 0.08 },
-  { id: '1002', name: 'Jeans', price: 59.99, category: 'Clothing', taxRate: 0.08 },
-  { id: '1003', name: 'Sneakers', price: 89.99, category: 'Footwear', taxRate: 0.08 },
-  { id: '1004', name: 'Backpack', price: 49.99, category: 'Accessories', taxRate: 0.08 },
-  { id: '1005', name: 'Smartphone', price: 699.99, category: 'Electronics', taxRate: 0.10 },
-  { id: '1006', name: 'Laptop', price: 1299.99, category: 'Electronics', taxRate: 0.10 },
-  { id: '1007', name: 'Headphones', price: 149.99, category: 'Electronics', taxRate: 0.10 },
-  { id: '1008', name: 'Coffee Mug', price: 12.99, category: 'Home', taxRate: 0.06 },
-];
-
-const paymentMethods = [
-  { id: 'cash', name: 'Cash' },
-  { id: 'credit', name: 'Credit Card' },
-  { id: 'debit', name: 'Debit Card' },
-  { id: 'check', name: 'Check' },
-  { id: 'gift', name: 'Gift Card' },
-  { id: 'mobile', name: 'Mobile Payment' },
-];
-
-const companyInfo = {
-  name: 'Retail Pro Solutions',
-  address: '123 Commerce Street, Business City, BC 10001',
-  phone: '(555) 123-4567',
-  email: 'sales@retailpro.com',
-  website: 'www.retailpro.com',
-  taxId: 'TAX-987654321',
-  receiptFooter: 'Thank you for your business! Returns accepted within 30 days with receipt.',
-};
 
 const SalesReceiptApp = () => {
-  // State
+  const theme = useTheme();
   const [receipts, setReceipts] = useState([]);
-  const [items, setItems] = useState(mockItems);
+  const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [receiptToDelete, setReceiptToDelete] = useState(null);
+  const [viewMode, setViewMode] = useState('list'); // 'list', 'form', 'preview'
+  
   const [currentReceipt, setCurrentReceipt] = useState({
     id: uuidv4(),
     number: `R-${Math.floor(10000 + Math.random() * 90000)}`,
@@ -58,11 +79,45 @@ const SalesReceiptApp = () => {
     tax: 0,
     subtotal: 0,
     total: 0,
-    cashier: 'John Doe', // Would normally come from auth system
+    cashier: 'Cashier Name', // Would normally come from auth system
     notes: '',
   });
-  const [viewMode, setViewMode] = useState('list'); // 'list', 'form', 'preview'
-  const [selectedItem, setSelectedItem] = useState(null);
+
+  const paymentMethods = [
+    { id: 'cash', name: 'Cash', icon: <LocalAtm /> },
+    { id: 'credit', name: 'Credit Card', icon: <CreditCard /> },
+    { id: 'debit', name: 'Debit Card', icon: <AccountBalance /> },
+    { id: 'mobile', name: 'Mobile Payment', icon: <LocalAtm /> },
+  ];
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        // TODO: Implement API calls
+        /*
+        const [itemsRes, receiptsRes] = await Promise.all([
+          fetch('/api/items'),
+          fetch('/api/receipts')
+        ]);
+        
+        setItems(await itemsRes.json());
+        setReceipts(await receiptsRes.json());
+        */
+        
+        // Initialize with empty arrays
+        setItems([]);
+        setReceipts([]);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Filter items based on search term
   const filteredItems = items.filter(item =>
@@ -73,7 +128,7 @@ const SalesReceiptApp = () => {
   // Calculate receipt totals
   const calculateTotals = (items) => {
     const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const tax = items.reduce((sum, item) => sum + (item.price * item.quantity * item.taxRate), 0);
+    const tax = items.reduce((sum, item) => sum + (item.price * item.quantity * (item.taxRate || 0)), 0);
     const total = subtotal + tax;
     
     return { subtotal, tax, total };
@@ -144,16 +199,32 @@ const SalesReceiptApp = () => {
   };
 
   // Save receipt
-  const saveReceipt = () => {
-    const newReceipt = {
-      ...currentReceipt,
-      date: format(new Date(), 'yyyy-MM-dd'),
-      time: format(new Date(), 'HH:mm'),
-    };
-    
-    setReceipts([...receipts, newReceipt]);
-    resetReceipt();
-    setViewMode('list');
+  const saveReceipt = async () => {
+    try {
+      // TODO: Implement API call to save receipt
+      /*
+      const response = await fetch('/api/receipts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentReceipt)
+      });
+      const savedReceipt = await response.json();
+      setReceipts([...receipts, savedReceipt]);
+      */
+      
+      // Temporary local state update
+      const newReceipt = {
+        ...currentReceipt,
+        date: format(new Date(), 'yyyy-MM-dd'),
+        time: format(new Date(), 'HH:mm'),
+      };
+      setReceipts([...receipts, newReceipt]);
+      
+      resetReceipt();
+      setViewMode('list');
+    } catch (error) {
+      console.error('Error saving receipt:', error);
+    }
   };
 
   // Reset receipt
@@ -177,427 +248,633 @@ const SalesReceiptApp = () => {
       tax: 0,
       subtotal: 0,
       total: 0,
-      cashier: 'John Doe',
+      cashier: 'Cashier Name',
       notes: '',
     });
   };
 
-  // View receipt
-  const viewReceipt = (receipt) => {
-    setCurrentReceipt(receipt);
-    setViewMode('preview');
+  // Handle delete confirmation
+  const handleConfirmDelete = async () => {
+    try {
+      // TODO: Implement API call to delete receipt
+      // await fetch(`/api/receipts/${receiptToDelete.id}`, { method: 'DELETE' });
+      setReceipts(receipts.filter(r => r.id !== receiptToDelete.id));
+      setOpenDeleteDialog(false);
+    } catch (error) {
+      console.error('Error deleting receipt:', error);
+    }
   };
 
   // Render components based on view mode
   const renderListView = () => (
-    <div className="sales-receipt-app">
-      <div className="app-header">
-        <h1>Sales Receipts</h1>
-        <div className="company-info">
-          <h2>{companyInfo.name}</h2>
-          <p>{companyInfo.address}</p>
-        </div>
-      </div>
+    <Box p={3}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box>
+          <Typography variant="h4" fontWeight="bold" gutterBottom>
+            Sales Receipts
+          </Typography>
+          <Typography variant="subtitle1" color="textSecondary">
+            Manage and view all sales transactions
+          </Typography>
+        </Box>
+        <Box>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Add />}
+            onClick={() => setViewMode('form')}
+            sx={{ mr: 2 }}
+          >
+            New Receipt
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<Refresh />}
+            onClick={() => window.location.reload()}
+          >
+            Refresh
+          </Button>
+        </Box>
+      </Box>
 
-      <div className="toolbar">
-        <button 
-          className="btn-primary" 
-          onClick={() => setViewMode('form')}
-        >
-          New Receipt
-        </button>
-        <div className="search-box">
-          <input 
-            type="text" 
-            placeholder="Search receipts..." 
-          />
-          <i className="fas fa-search"></i>
-        </div>
-      </div>
+      <TextField
+        variant="outlined"
+        size="small"
+        placeholder="Search receipts..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search />
+            </InputAdornment>
+          ),
+        }}
+        sx={{ width: 400, mb: 3 }}
+      />
 
-      <div className="receipt-table">
-        {receipts.length > 0 ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Receipt #</th>
-                <th>Date</th>
-                <th>Customer</th>
-                <th>Items</th>
-                <th>Total</th>
-                <th>Payment</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {receipts.map(receipt => (
-                <tr key={receipt.id}>
-                  <td>{receipt.number}</td>
-                  <td>{receipt.date}</td>
-                  <td>{receipt.customer.name || 'Walk-in'}</td>
-                  <td>{receipt.items.length}</td>
-                  <td>${receipt.total.toFixed(2)}</td>
-                  <td>{receipt.payment.method}</td>
-                  <td>
-                    <button 
-                      className="btn-view"
-                      onClick={() => viewReceipt(receipt)}
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className="no-receipts">
-            <p>No receipts found. Create your first receipt!</p>
-          </div>
-        )}
-      </div>
-    </div>
+      {isLoading ? (
+        <LinearProgress />
+      ) : (
+        <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+          <TableContainer>
+            <Table>
+              <TableHead sx={{ backgroundColor: theme.palette.grey[100] }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Receipt #</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Customer</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Items</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }} align="right">Total</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Payment</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }} align="center">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {receipts.length > 0 ? (
+                  receipts.map(receipt => (
+                    <TableRow key={receipt.id} hover>
+                      <TableCell>{receipt.number}</TableCell>
+                      <TableCell>{receipt.date}</TableCell>
+                      <TableCell>
+                        {receipt.customer.name || 'Walk-in'}
+                        {receipt.customer.phone && (
+                          <Typography variant="body2" color="textSecondary">
+                            {receipt.customer.phone}
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>{receipt.items.length}</TableCell>
+                      <TableCell align="right">
+                        UGX{receipt.total.toFixed(2)}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={paymentMethods.find(m => m.id === receipt.payment.method)?.name}
+                          size="small"
+                          color="primary"
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <Box display="flex" gap={1} justifyContent="center">
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<Receipt />}
+                            onClick={() => {
+                              setCurrentReceipt(receipt);
+                              setViewMode('preview');
+                            }}
+                          >
+                            View
+                          </Button>
+                          <IconButton 
+                            color="error" 
+                            onClick={() => {
+                              setReceiptToDelete(receipt);
+                              setOpenDeleteDialog(true);
+                            }}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                      <Typography variant="subtitle1">
+                        {receipts.length === 0 ? 'No receipts found' : 'No matching receipts found'}
+                      </Typography>
+                      <Button
+                        variant="text"
+                        color="primary"
+                        startIcon={<Add />}
+                        onClick={() => setViewMode('form')}
+                        sx={{ mt: 1 }}
+                      >
+                        Create your first receipt
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      )}
+    </Box>
   );
 
   const renderFormView = () => (
-    <div className="sales-receipt-app">
-      <div className="app-header">
-        <h1>New Sales Receipt</h1>
-        <div className="company-info">
-          <h2>{companyInfo.name}</h2>
-          <p>{companyInfo.address}</p>
-        </div>
-      </div>
+    <Box p={3}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box>
+          <Typography variant="h4" fontWeight="bold" gutterBottom>
+            New Sales Receipt
+          </Typography>
+          <Typography variant="subtitle1" color="textSecondary">
+            Receipt #{currentReceipt.number}
+          </Typography>
+        </Box>
+        <Box>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBack />}
+            onClick={() => {
+              resetReceipt();
+              setViewMode('list');
+            }}
+            sx={{ mr: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Receipt />}
+            onClick={() => setViewMode('preview')}
+            sx={{ mr: 2 }}
+            disabled={currentReceipt.items.length === 0}
+          >
+            Preview
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<LocalAtm />}
+            onClick={saveReceipt}
+            disabled={currentReceipt.items.length === 0}
+          >
+            Complete Sale
+          </Button>
+        </Box>
+      </Box>
 
-      <div className="receipt-form">
-        <div className="form-header">
-          <h2>
-            Receipt
-            <span className="receipt-number">{currentReceipt.number}</span>
-          </h2>
-          <div className="form-actions">
-            <button 
-              className="btn-secondary"
-              onClick={() => {
-                resetReceipt();
-                setViewMode('list');
-              }}
-            >
-              Cancel
-            </button>
-            <button 
-              className="btn-preview"
-              onClick={() => setViewMode('preview')}
-            >
-              Preview
-            </button>
-            <button 
-              className="btn-primary"
-              onClick={saveReceipt}
-              disabled={currentReceipt.items.length === 0}
-            >
-              Complete Sale
-            </button>
-          </div>
-        </div>
+      <Grid container spacing={3} mb={3}>
+        <Grid item xs={12} md={6}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Person /> Customer Information
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Customer Name"
+                    fullWidth
+                    value={currentReceipt.customer.name}
+                    onChange={(e) => setCurrentReceipt({
+                      ...currentReceipt,
+                      customer: { ...currentReceipt.customer, name: e.target.value },
+                    })}
+                    placeholder="Walk-in customer"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Email"
+                    type="email"
+                    fullWidth
+                    value={currentReceipt.customer.email}
+                    onChange={(e) => setCurrentReceipt({
+                      ...currentReceipt,
+                      customer: { ...currentReceipt.customer, email: e.target.value },
+                    })}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Phone"
+                    type="tel"
+                    fullWidth
+                    value={currentReceipt.customer.phone}
+                    onChange={(e) => setCurrentReceipt({
+                      ...currentReceipt,
+                      customer: { ...currentReceipt.customer, phone: e.target.value },
+                    })}
+                  />
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
 
-        <div className="form-grid">
-          <div className="form-section">
-            <h3>Customer Information</h3>
-            <div className="form-group">
-              <label>Customer Name</label>
-              <input 
-                type="text" 
-                value={currentReceipt.customer.name}
-                onChange={(e) => setCurrentReceipt({
-                  ...currentReceipt,
-                  customer: {
-                    ...currentReceipt.customer,
-                    name: e.target.value,
-                  },
-                })}
-                placeholder="Walk-in customer"
-              />
-            </div>
-            <div className="form-group">
-              <label>Email</label>
-              <input 
-                type="email" 
-                value={currentReceipt.customer.email}
-                onChange={(e) => setCurrentReceipt({
-                  ...currentReceipt,
-                  customer: {
-                    ...currentReceipt.customer,
-                    email: e.target.value,
-                  },
-                })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Phone</label>
-              <input 
-                type="tel" 
-                value={currentReceipt.customer.phone}
-                onChange={(e) => setCurrentReceipt({
-                  ...currentReceipt,
-                  customer: {
-                    ...currentReceipt.customer,
-                    phone: e.target.value,
-                  },
-                })}
-              />
-            </div>
-          </div>
-
-          <div className="form-section">
-            <h3>Payment Information</h3>
-            <div className="form-group">
-              <label>Payment Method</label>
-              <select
-                value={currentReceipt.payment.method}
-                onChange={(e) => setCurrentReceipt({
-                  ...currentReceipt,
-                  payment: {
-                    ...currentReceipt.payment,
-                    method: e.target.value,
-                  },
-                })}
-              >
-                {paymentMethods.map(method => (
-                  <option key={method.id} value={method.id}>
-                    {method.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Amount Received</label>
-              <input 
-                type="number" 
-                min="0"
-                step="0.01"
-                value={currentReceipt.payment.amount || ''}
-                onChange={(e) => handlePaymentAmountChange(e.target.value)}
-              />
-            </div>
-            {currentReceipt.payment.changeDue > 0 && (
-              <div className="change-due">
-                <span>Change Due:</span>
-                <span>${currentReceipt.payment.changeDue.toFixed(2)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="form-section">
-          <h3>Add Items</h3>
-          <div className="search-box">
-            <input 
-              type="text" 
-              placeholder="Search items..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <i className="fas fa-search"></i>
-          </div>
-          
-          <div className="items-grid">
-            {filteredItems.map(item => (
-              <div key={item.id} className="item-card" onClick={() => addItemToReceipt(item)}>
-                <div className="item-name">{item.name}</div>
-                <div className="item-price">UGX{item.price.toFixed(2)}</div>
-                <div className="item-category">{item.category}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="items-section">
-          <h3>Items on Receipt</h3>
-          <table className="items-table">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Price</th>
-                <th>Qty</th>
-                <th>Tax</th>
-                <th>Total</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentReceipt.items.map(item => (
-                <tr key={item.id}>
-                  <td>{item.name}</td>
-                  <td>UGX{item.price.toFixed(2)}</td>
-                  <td>
-                    <input 
-                      type="number" 
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) => updateItemQuantity(item.id, e.target.value)}
-                    />
-                  </td>
-                  <td>{(item.taxRate * 100).toFixed(0)}%</td>
-                  <td>UGX{(item.price * item.quantity).toFixed(2)}</td>
-                  <td>
-                    <button 
-                      className="btn-icon"
-                      onClick={() => removeItemFromReceipt(item.id)}
+        <Grid item xs={12} md={6}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CreditCard /> Payment Information
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel>Payment Method</InputLabel>
+                    <Select
+                      value={currentReceipt.payment.method}
+                      onChange={(e) => setCurrentReceipt({
+                        ...currentReceipt,
+                        payment: { ...currentReceipt.payment, method: e.target.value },
+                      })}
+                      label="Payment Method"
                     >
-                      <i className="fas fa-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      {paymentMethods.map(method => (
+                        <MenuItem key={method.id} value={method.id}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            {method.icon}
+                            {method.name}
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Amount Received"
+                    type="number"
+                    fullWidth
+                    value={currentReceipt.payment.amount || ''}
+                    onChange={(e) => handlePaymentAmountChange(e.target.value)}
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">UGX</InputAdornment>,
+                    }}
+                  />
+                </Grid>
+                {currentReceipt.payment.changeDue > 0 && (
+                  <Grid item xs={12}>
+                    <Box display="flex" justifyContent="space-between" alignItems="center">
+                      <Typography>Change Due:</Typography>
+                      <Typography variant="h6" color="success.main">
+                        UGX{currentReceipt.payment.changeDue.toFixed(2)}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                )}
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
-        <div className="summary-section">
-          <div className="summary-row">
-            <label>Subtotal:</label>
-            <span>UGX{currentReceipt.subtotal.toFixed(2)}</span>
-          </div>
-          <div className="summary-row">
-            <label>Tax:</label>
-            <span>UGX{currentReceipt.tax.toFixed(2)}</span>
-          </div>
-          <div className="summary-row total">
-            <label>Total:</label>
-            <span>UGX{currentReceipt.total.toFixed(2)}</span>
-          </div>
-        </div>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={8}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ShoppingCart /> Add Items
+              </Typography>
+              <TextField
+                variant="outlined"
+                size="small"
+                placeholder="Search items..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ width: '100%', mb: 2 }}
+              />
 
-        <div className="form-group">
-          <label>Notes</label>
-          <textarea 
-            value={currentReceipt.notes}
-            onChange={(e) => setCurrentReceipt({
-              ...currentReceipt,
-              notes: e.target.value,
-            })}
-            placeholder="Additional notes..."
-          />
-        </div>
-      </div>
-    </div>
+              {isLoading ? (
+                <LinearProgress />
+              ) : (
+                <Grid container spacing={2}>
+                  {filteredItems.map(item => (
+                    <Grid item xs={12} sm={6} md={4} key={item.id}>
+                      <Card 
+                        variant="outlined" 
+                        sx={{ 
+                          p: 2, 
+                          cursor: 'pointer',
+                          '&:hover': { 
+                            borderColor: theme.palette.primary.main,
+                            backgroundColor: theme.palette.action.hover
+                          }
+                        }}
+                        onClick={() => addItemToReceipt(item)}
+                      >
+                        <Typography fontWeight="bold">{item.name}</Typography>
+                        <Typography variant="body2" color="textSecondary">{item.category}</Typography>
+                        <Typography variant="h6" mt={1}>
+                          UGX{item.price.toFixed(2)}
+                        </Typography>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Current Receipt
+              </Typography>
+              
+              {currentReceipt.items.length > 0 ? (
+                <>
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Item</TableCell>
+                          <TableCell align="right">Price</TableCell>
+                          <TableCell>Qty</TableCell>
+                          <TableCell align="right">Total</TableCell>
+                          <TableCell></TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {currentReceipt.items.map(item => (
+                          <TableRow key={item.id}>
+                            <TableCell>{item.name}</TableCell>
+                            <TableCell align="right">UGX{item.price.toFixed(2)}</TableCell>
+                            <TableCell>
+                              <TextField
+                                type="number"
+                                size="small"
+                                value={item.quantity}
+                                onChange={(e) => updateItemQuantity(item.id, e.target.value)}
+                                sx={{ width: 60 }}
+                              />
+                            </TableCell>
+                            <TableCell align="right">
+                              UGX{(item.price * item.quantity).toFixed(2)}
+                            </TableCell>
+                            <TableCell align="right">
+                              <IconButton 
+                                size="small" 
+                                color="error"
+                                onClick={() => removeItemFromReceipt(item.id)}
+                              >
+                                <Delete fontSize="small" />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+
+                  <Box mt={3}>
+                    <Box display="flex" justifyContent="space-between" mb={1}>
+                      <Typography>Subtotal:</Typography>
+                      <Typography>UGX{currentReceipt.subtotal.toFixed(2)}</Typography>
+                    </Box>
+                    <Box display="flex" justifyContent="space-between" mb={1}>
+                      <Typography>Tax:</Typography>
+                      <Typography>UGX{currentReceipt.tax.toFixed(2)}</Typography>
+                    </Box>
+                    <Divider sx={{ my: 1 }} />
+                    <Box display="flex" justifyContent="space-between">
+                      <Typography variant="h6">Total:</Typography>
+                      <Typography variant="h6">UGX{currentReceipt.total.toFixed(2)}</Typography>
+                    </Box>
+                  </Box>
+                </>
+              ) : (
+                <Box textAlign="center" py={4}>
+                  <Typography color="textSecondary">No items added</Typography>
+                  <Typography variant="body2" color="textSecondary" mt={1}>
+                    Search and select items to add them to the receipt
+                  </Typography>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
   );
 
   const renderPreviewView = () => (
-    <div className="sales-receipt-app">
-      <div className="preview-actions">
-        <button 
-          className="btn-secondary"
-          onClick={() => setViewMode(viewMode === 'preview' && currentReceipt.items.length > 0 ? 'form' : 'list')}
+    <Box p={3}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBack />}
+          onClick={() => setViewMode('form')}
         >
-          Back
-        </button>
-        <button 
-          className="btn-primary"
-          onClick={() => window.print()}
-        >
-          Print Receipt
-        </button>
-      </div>
+          Back to Edit
+        </Button>
+        <Box>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Print />}
+            onClick={() => window.print()}
+            sx={{ mr: 2 }}
+          >
+            Print Receipt
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<LocalAtm />}
+            onClick={saveReceipt}
+          >
+            Complete Sale
+          </Button>
+        </Box>
+      </Box>
 
-      <div className="receipt-document">
-        <div className="receipt-header">
-          <div>
-            <h2>{companyInfo.name}</h2>
-            <p>{companyInfo.address}</p>
-            <p>Phone: {companyInfo.phone}</p>
-            <p>Email: {companyInfo.email}</p>
-          </div>
-          <div className="receipt-header-info">
-            <h3>SALES RECEIPT</h3>
-            <p>Receipt #: {currentReceipt.number}</p>
-            <p>Date: {currentReceipt.date}</p>
-            <p>Time: {currentReceipt.time}</p>
-            <p>Cashier: {currentReceipt.cashier}</p>
-          </div>
-        </div>
+      <Paper elevation={3} sx={{ p: 4, maxWidth: 600, mx: 'auto' }}>
+        <Box textAlign="center" mb={3}>
+          <Typography variant="h5" fontWeight="bold">Retail Pro Solutions</Typography>
+          <Typography variant="body2">123 Commerce Street, Business City</Typography>
+          <Typography variant="body2">Phone: (555) 123-4567 | Email: sales@retailpro.com</Typography>
+        </Box>
 
-        <div className="receipt-details">
-          <div>
-            <h4>Sold To:</h4>
-            <p>{currentReceipt.customer.name || 'Walk-in Customer'}</p>
-            {currentReceipt.customer.email && <p>Email: {currentReceipt.customer.email}</p>}
-            {currentReceipt.customer.phone && <p>Phone: {currentReceipt.customer.phone}</p>}
-          </div>
-          <div>
-            <h4>Payment Method:</h4>
-            <p>{paymentMethods.find(m => m.id === currentReceipt.payment.method)?.name}</p>
-            {currentReceipt.payment.amount > 0 && (
-              <>
-                <p>Amount Paid: ${currentReceipt.payment.amount.toFixed(2)}</p>
-                {currentReceipt.payment.changeDue > 0 && (
-                  <p>Change Due: ${currentReceipt.payment.changeDue.toFixed(2)}</p>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+        <Box display="flex" justifyContent="space-between" mb={3}>
+          <Box>
+            <Typography fontWeight="bold">RECEIPT #{currentReceipt.number}</Typography>
+            <Typography variant="body2">Date: {currentReceipt.date}</Typography>
+            <Typography variant="body2">Time: {currentReceipt.time}</Typography>
+          </Box>
+          <Box textAlign="right">
+            <Typography fontWeight="bold">Cashier: {currentReceipt.cashier}</Typography>
+          </Box>
+        </Box>
 
-        <table className="items-preview-table">
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Price</th>
-              <th>Qty</th>
-              <th>Tax</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentReceipt.items.map(item => (
-              <tr key={item.id}>
-                <td>{item.name}</td>
-                <td>${item.price.toFixed(2)}</td>
-                <td>{item.quantity}</td>
-                <td>{(item.taxRate * 100).toFixed(0)}%</td>
-                <td>${(item.price * item.quantity).toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <Divider sx={{ my: 2 }} />
 
-        <div className="receipt-summary">
-          <div className="summary-row">
-            <span>Subtotal:</span>
-            <span>${currentReceipt.subtotal.toFixed(2)}</span>
-          </div>
-          <div className="summary-row">
-            <span>Tax:</span>
-            <span>${currentReceipt.tax.toFixed(2)}</span>
-          </div>
-          <div className="summary-row total">
-            <span>Total:</span>
-            <span>${currentReceipt.total.toFixed(2)}</span>
-          </div>
-        </div>
+        <Box mb={3}>
+          <Typography fontWeight="bold">Customer:</Typography>
+          <Typography>{currentReceipt.customer.name || 'Walk-in Customer'}</Typography>
+          {currentReceipt.customer.phone && (
+            <Typography variant="body2">Phone: {currentReceipt.customer.phone}</Typography>
+          )}
+          {currentReceipt.customer.email && (
+            <Typography variant="body2">Email: {currentReceipt.customer.email}</Typography>
+          )}
+        </Box>
 
-        {currentReceipt.notes && (
-          <div className="receipt-notes">
-            <h4>Notes:</h4>
-            <p>{currentReceipt.notes}</p>
-          </div>
-        )}
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Item</TableCell>
+                <TableCell align="right">Price</TableCell>
+                <TableCell align="center">Qty</TableCell>
+                <TableCell align="right">Total</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {currentReceipt.items.map(item => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell align="right">UGX{item.price.toFixed(2)}</TableCell>
+                  <TableCell align="center">{item.quantity}</TableCell>
+                  <TableCell align="right">UGX{(item.price * item.quantity).toFixed(2)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-        <div className="receipt-footer">
-          <p>{companyInfo.receiptFooter}</p>
-          <p>{companyInfo.website}</p>
-        </div>
-      </div>
-    </div>
+        <Box mt={3}>
+          <Box display="flex" justifyContent="space-between" mb={1}>
+            <Typography>Subtotal:</Typography>
+            <Typography>UGX{currentReceipt.subtotal.toFixed(2)}</Typography>
+          </Box>
+          <Box display="flex" justifyContent="space-between" mb={1}>
+            <Typography>Tax:</Typography>
+            <Typography>UGX{currentReceipt.tax.toFixed(2)}</Typography>
+          </Box>
+          <Divider sx={{ my: 1 }} />
+          <Box display="flex" justifyContent="space-between" mb={2}>
+            <Typography variant="h6">Total:</Typography>
+            <Typography variant="h6">UGX{currentReceipt.total.toFixed(2)}</Typography>
+          </Box>
+
+          <Box display="flex" justifyContent="space-between" mb={1}>
+            <Typography>Payment Method:</Typography>
+            <Typography fontWeight="bold">
+              {paymentMethods.find(m => m.id === currentReceipt.payment.method)?.name}
+            </Typography>
+          </Box>
+          <Box display="flex" justifyContent="space-between" mb={1}>
+            <Typography>Amount Paid:</Typography>
+            <Typography>UGX{currentReceipt.payment.amount.toFixed(2)}</Typography>
+          </Box>
+          {currentReceipt.payment.changeDue > 0 && (
+            <Box display="flex" justifyContent="space-between">
+              <Typography>Change Due:</Typography>
+              <Typography>UGX{currentReceipt.payment.changeDue.toFixed(2)}</Typography>
+            </Box>
+          )}
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Box mt={2} textAlign="center">
+          <Typography variant="body2" fontStyle="italic">
+            Thank you for your business! Returns accepted within 30 days with receipt.
+          </Typography>
+          <Typography variant="body2" mt={1}>www.retailpro.com</Typography>
+        </Box>
+      </Paper>
+    </Box>
   );
 
-  // Main render
+  // Delete confirmation dialog
+  const renderDeleteDialog = () => (
+    <Dialog 
+      open={openDeleteDialog} 
+      onClose={() => setOpenDeleteDialog(false)}
+      maxWidth="sm"
+      fullWidth
+    >
+      <DialogTitle sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6">Confirm Delete</Typography>
+          <IconButton onClick={() => setOpenDeleteDialog(false)}>
+            <Close />
+          </IconButton>
+        </Box>
+      </DialogTitle>
+      <DialogContent dividers>
+        <Typography>
+          Are you sure you want to delete receipt #{receiptToDelete?.number}?
+        </Typography>
+        <Typography variant="body2" color="textSecondary" mt={2}>
+          This action cannot be undone.
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ borderTop: `1px solid ${theme.palette.divider}`, p: 2 }}>
+        <Button 
+          onClick={() => setOpenDeleteDialog(false)} 
+          variant="outlined"
+          sx={{ mr: 2 }}
+        >
+          Cancel
+        </Button>
+        <Button 
+          onClick={handleConfirmDelete} 
+          variant="contained"
+          color="error"
+        >
+          Delete Receipt
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+
   return (
     <>
       {viewMode === 'list' && renderListView()}
       {viewMode === 'form' && renderFormView()}
       {viewMode === 'preview' && renderPreviewView()}
+      {renderDeleteDialog()}
     </>
   );
 };
