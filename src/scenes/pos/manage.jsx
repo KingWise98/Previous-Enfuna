@@ -45,6 +45,7 @@ const ManageSalesPage = () => {
         // const response = await fetch('/api/sales');
         // const data = await response.json();
         // setSalesData(data);
+        // Mark & Kure
         
         // For now, initialize with empty array
         setSalesData([]);

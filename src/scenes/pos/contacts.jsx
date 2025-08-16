@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -44,133 +44,59 @@ import {
   Close,
   CheckCircle,
   Star,
-  Loyalty
+  Loyalty,
+  CameraAlt
 } from '@mui/icons-material';
-
-// Sample Ugandan contact data
-const ugandanContacts = [
-  {
-    id: 1,
-    name: "Nakato Kintu",
-    type: "customer",
-    phone: "+256 752 123456",
-    email: "nakato.kintu@example.com",
-    location: "Kampala, Uganda",
-    business: "Kintu Groceries",
-    loyaltyPoints: 1250,
-    lastPurchase: "2023-05-15",
-    totalSpent: 1850000,
-    status: "active",
-    avatar: "/avatars/nakato.jpg"
-  },
-  {
-    id: 2,
-    name: "Mukasa Wasswa",
-    type: "supplier",
-    phone: "+256 772 987654",
-    email: "mwasswa@suppliers.co.ug",
-    location: "Jinja, Uganda",
-    business: "Wasswa Fresh Produce",
-    loyaltyPoints: 0,
-    lastPurchase: null,
-    totalSpent: 0,
-    status: "active",
-    avatar: "/avatars/mukasa.jpg"
-  },
-  {
-    id: 3,
-    name: "Nalwoga Sarah",
-    type: "customer",
-    phone: "+256 701 456789",
-    email: "sarah.nalwoga@example.com",
-    location: "Entebbe, Uganda",
-    business: null,
-    loyaltyPoints: 450,
-    lastPurchase: "2023-06-02",
-    totalSpent: 675000,
-    status: "active",
-    avatar: "/avatars/nalwoga.jpg"
-  },
-  {
-    id: 4,
-    name: "Kato Edward",
-    type: "customer",
-    phone: "+256 789 112233",
-    email: "kato.edward@example.com",
-    location: "Mbarara, Uganda",
-    business: "Kato Hardware",
-    loyaltyPoints: 3200,
-    lastPurchase: "2023-05-28",
-    totalSpent: 4200000,
-    status: "vip",
-    avatar: "/avatars/kato.jpg"
-  },
-  {
-    id: 5,
-    name: "Namukasa Prossy",
-    type: "supplier",
-    phone: "+256 762 334455",
-    email: "prossy@namukasafoods.ug",
-    location: "Masaka, Uganda",
-    business: "Namukasa Foods Ltd",
-    loyaltyPoints: 0,
-    lastPurchase: null,
-    totalSpent: 0,
-    status: "active",
-    avatar: "/avatars/namukasa.jpg"
-  },
-  {
-    id: 6,
-    name: "Ocen Patrick",
-    type: "customer",
-    phone: "+256 788 556677",
-    email: "patric.ocen@example.com",
-    location: "Gulu, Uganda",
-    business: null,
-    loyaltyPoints: 80,
-    lastPurchase: "2023-04-10",
-    totalSpent: 120000,
-    status: "inactive",
-    avatar: "/avatars/ocen.jpg"
-  },
-  {
-    id: 7,
-    name: "Auma Grace",
-    type: "employee",
-    phone: "+256 752 778899",
-    email: "grace.auma@business.ug",
-    location: "Kampala, Uganda",
-    business: "Your Business Name",
-    loyaltyPoints: 0,
-    lastPurchase: null,
-    totalSpent: 0,
-    status: "active",
-    avatar: "/avatars/auma.jpg"
-  },
-  {
-    id: 8,
-    name: "Okello James",
-    type: "customer",
-    phone: "+256 702 991122",
-    email: "james.okello@example.com",
-    location: "Lira, Uganda",
-    business: "Okello Electronics",
-    loyaltyPoints: 2100,
-    lastPurchase: "2023-06-10",
-    totalSpent: 3100000,
-    status: "vip",
-    avatar: "/avatars/okello.jpg"
-  }
-];
 
 const ContactsPage = () => {
   const theme = useTheme();
-  const [contacts, setContacts] = useState(ugandanContacts);
+  const [contacts, setContacts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
   const [openDialog, setOpenDialog] = useState(false);
   const [currentContact, setCurrentContact] = useState(null);
   const [editMode, setEditMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+
+  // Fetch contacts from API
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        setIsLoading(true);
+        // TODO: Replace with actual API endpoint
+        // const response = await fetch('/api/contacts');
+        // const data = await response.json();
+        // setContacts(data);
+        
+        // For now, initialize with empty array
+        setContacts([]);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching contacts:', error);
+        setIsLoading(false);
+        // TODO: Add error handling (show notification to user)
+      }
+    };
+    
+    fetchContacts();
+  }, []);
+
+  // Handle file selection for profile picture
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Filter contacts based on search and filter criteria
   const filteredContacts = contacts.filter(contact => {
@@ -204,12 +130,16 @@ const ContactsPage = () => {
       status: "active",
       avatar: ""
     });
+    setPreviewImage(null);
+    setSelectedFile(null);
     setEditMode(true);
     setOpenDialog(true);
   };
 
   const handleOpenEditDialog = (contact) => {
     setCurrentContact(contact);
+    setPreviewImage(contact.avatar || null);
+    setSelectedFile(null);
     setEditMode(true);
     setOpenDialog(true);
   };
@@ -222,25 +152,95 @@ const ContactsPage = () => {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    setPreviewImage(null);
+    setSelectedFile(null);
   };
 
-  const handleSaveContact = () => {
-    if (editMode) {
-      if (currentContact.id > contacts.length) {
-        // Add new contact
-        setContacts([...contacts, currentContact]);
-      } else {
-        // Update existing contact
-        setContacts(contacts.map(contact => 
-          contact.id === currentContact.id ? currentContact : contact
-        ));
+  const handleSaveContact = async () => {
+    try {
+      let avatarUrl = currentContact.avatar;
+      
+      // Upload new profile picture if selected
+      if (selectedFile) {
+        // TODO: Implement file upload to server
+        // const formData = new FormData();
+        // formData.append('avatar', selectedFile);
+        // const uploadResponse = await fetch('/api/upload', {
+        //   method: 'POST',
+        //   body: formData,
+        // });
+        // const { url } = await uploadResponse.json();
+        // avatarUrl = url;
+        
+        // For demo purposes, use the preview URL
+        avatarUrl = previewImage;
       }
+
+      const contactToSave = {
+        ...currentContact,
+        avatar: avatarUrl
+      };
+
+      if (editMode) {
+        if (currentContact.id > contacts.length) {
+          // Add new contact
+          // TODO: Implement API call to add contact
+          // const response = await fetch('/api/contacts', {
+          //   method: 'POST',
+          //   headers: {
+          //     'Content-Type': 'application/json',
+          //   },
+          //   body: JSON.stringify(contactToSave),
+          // });
+          // const newContact = await response.json();
+          // setContacts([...contacts, newContact]);
+          
+          // Temporary local state update
+          setContacts([...contacts, contactToSave]);
+        } else {
+          // Update existing contact
+          // TODO: Implement API call to update contact
+          // const response = await fetch(`/api/contacts/${currentContact.id}`, {
+          //   method: 'PUT',
+          //   headers: {
+          //     'Content-Type': 'application/json',
+          //   },
+          //   body: JSON.stringify(contactToSave),
+          // });
+          // const updatedContact = await response.json();
+          // setContacts(contacts.map(contact => 
+          //   contact.id === updatedContact.id ? updatedContact : contact
+          // ));
+          
+          // Temporary local state update
+          setContacts(contacts.map(contact => 
+            contact.id === contactToSave.id ? contactToSave : contact
+          ));
+        }
+      }
+      setOpenDialog(false);
+      setPreviewImage(null);
+      setSelectedFile(null);
+    } catch (error) {
+      console.error('Error saving contact:', error);
+      // TODO: Add error handling
     }
-    setOpenDialog(false);
   };
 
-  const handleDeleteContact = (id) => {
-    setContacts(contacts.filter(contact => contact.id !== id));
+  const handleDeleteContact = async (id) => {
+    try {
+      // TODO: Implement API call to delete contact
+      // await fetch(`/api/contacts/${id}`, {
+      //   method: 'DELETE',
+      // });
+      // setContacts(contacts.filter(contact => contact.id !== id));
+      
+      // Temporary local state update
+      setContacts(contacts.filter(contact => contact.id !== id));
+    } catch (error) {
+      console.error('Error deleting contact:', error);
+      // TODO: Add error handling
+    }
   };
 
   const formatCurrency = (amount) => {
@@ -315,274 +315,319 @@ const ContactsPage = () => {
         </Box>
       </Box>
 
-      {/* Contacts Table */}
-      <Card>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Contact</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Contact Info</TableCell>
-                <TableCell>Business</TableCell>
-                <TableCell>Loyalty</TableCell>
-                <TableCell>Last Purchase</TableCell>
-                <TableCell>Total Spent</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredContacts.map((contact) => (
-                <TableRow key={contact.id} hover>
-                  <TableCell>
-                    <Box display="flex" alignItems="center" gap={2}>
-                      <Avatar src={contact.avatar} alt={contact.name}>
-                        {contact.name.charAt(0)}
-                      </Avatar>
-                      <Typography fontWeight="bold">{contact.name}</Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={contact.type.charAt(0).toUpperCase() + contact.type.slice(1)}
-                      color={
-                        contact.type === 'customer' ? 'primary' :
-                        contact.type === 'supplier' ? 'secondary' : 'info'
-                      }
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Box display="flex" flexDirection="column">
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Phone fontSize="small" />
-                        <Typography variant="body2">{contact.phone}</Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Email fontSize="small" />
-                        <Typography variant="body2">{contact.email}</Typography>
-                      </Box>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    {contact.business || '-'}
-                  </TableCell>
-                  <TableCell>
-                    {contact.type === 'customer' ? (
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Loyalty color="primary" />
-                        <Typography>{contact.loyaltyPoints} pts</Typography>
-                      </Box>
-                    ) : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {contact.lastPurchase || '-'}
-                  </TableCell>
-                  <TableCell>
-                    {contact.type === 'customer' ? formatCurrency(contact.totalSpent) : '-'}
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={contact.status === 'vip' ? 'VIP' : 
-                            contact.status === 'active' ? 'Active' : 'Inactive'}
-                      color={
-                        contact.status === 'vip' ? 'success' :
-                        contact.status === 'active' ? 'primary' : 'default'
-                      }
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Box display="flex" gap={1}>
-                      <IconButton size="small" onClick={() => handleOpenViewDialog(contact)}>
-                        <Person />
-                      </IconButton>
-                      <IconButton size="small" onClick={() => handleOpenEditDialog(contact)}>
-                        <Edit />
-                      </IconButton>
-                      <IconButton size="small" onClick={() => handleDeleteContact(contact.id)}>
-                        <Delete color="error" />
-                      </IconButton>
-                    </Box>
-                  </TableCell>
+      {/* Loading State */}
+      {isLoading ? (
+        <Box display="flex" justifyContent="center" p={4}>
+          <Typography>Loading contacts...</Typography>
+        </Box>
+      ) : (
+        /* Contacts Table */
+        <Card>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Contact</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>Contact Info</TableCell>
+                  <TableCell>Business</TableCell>
+                  <TableCell>Loyalty</TableCell>
+                  <TableCell>Last Purchase</TableCell>
+                  <TableCell>Total Spent</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Actions</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Card>
+              </TableHead>
+              <TableBody>
+                {filteredContacts.length > 0 ? (
+                  filteredContacts.map((contact) => (
+                    <TableRow key={contact.id} hover>
+                      <TableCell>
+                        <Box display="flex" alignItems="center" gap={2}>
+                          <Avatar src={contact.avatar} alt={contact.name}>
+                            {contact.name.charAt(0)}
+                          </Avatar>
+                          <Typography fontWeight="bold">{contact.name}</Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={contact.type.charAt(0).toUpperCase() + contact.type.slice(1)}
+                          color={
+                            contact.type === 'customer' ? 'primary' :
+                            contact.type === 'supplier' ? 'secondary' : 'info'
+                          }
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box display="flex" flexDirection="column">
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Phone fontSize="small" />
+                            <Typography variant="body2">{contact.phone}</Typography>
+                          </Box>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Email fontSize="small" />
+                            <Typography variant="body2">{contact.email}</Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        {contact.business || '-'}
+                      </TableCell>
+                      <TableCell>
+                        {contact.type === 'customer' ? (
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Loyalty color="primary" />
+                            <Typography>{contact.loyaltyPoints} pts</Typography>
+                          </Box>
+                        ) : '-'}
+                      </TableCell>
+                      <TableCell>
+                        {contact.lastPurchase || '-'}
+                      </TableCell>
+                      <TableCell>
+                        {contact.type === 'customer' ? formatCurrency(contact.totalSpent) : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={contact.status === 'vip' ? 'VIP' : 
+                                contact.status === 'active' ? 'Active' : 'Inactive'}
+                          color={
+                            contact.status === 'vip' ? 'success' :
+                            contact.status === 'active' ? 'primary' : 'default'
+                          }
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box display="flex" gap={1}>
+                          <IconButton size="small" onClick={() => handleOpenViewDialog(contact)}>
+                            <Person />
+                          </IconButton>
+                          <IconButton size="small" onClick={() => handleOpenEditDialog(contact)}>
+                            <Edit />
+                          </IconButton>
+                          <IconButton size="small" onClick={() => handleDeleteContact(contact.id)}>
+                            <Delete color="error" />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={9} align="center">
+                      {contacts.length === 0 ? 'No contacts found' : 'No matching contacts found'}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
 
       {/* Contact Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            {editMode ? (currentContact.id > contacts.length ? 'Add New Contact' : 'Edit Contact') : 'Contact Details'}
+            {editMode ? (currentContact?.id > contacts.length ? 'Add New Contact' : 'Edit Contact') : 'Contact Details'}
             <IconButton onClick={handleCloseDialog}>
               <Close />
             </IconButton>
           </Box>
         </DialogTitle>
         <DialogContent dividers>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Box display="flex" justifyContent="center" mb={2}>
-                <Avatar 
-                  src={currentContact?.avatar} 
-                  sx={{ width: 100, height: 100 }}
-                >
-                  {currentContact?.name?.charAt(0)}
-                </Avatar>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Full Name"
-                fullWidth
-                value={currentContact?.name || ''}
-                onChange={(e) => setCurrentContact({...currentContact, name: e.target.value})}
-                disabled={!editMode}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Contact Type</InputLabel>
-                <Select
-                  value={currentContact?.type || 'customer'}
-                  label="Contact Type"
-                  onChange={(e) => setCurrentContact({...currentContact, type: e.target.value})}
-                  disabled={!editMode}
-                >
-                  <MenuItem value="customer">Customer</MenuItem>
-                  <MenuItem value="supplier">Supplier</MenuItem>
-                  <MenuItem value="employee">Employee</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Phone Number"
-                fullWidth
-                value={currentContact?.phone || ''}
-                onChange={(e) => setCurrentContact({...currentContact, phone: e.target.value})}
-                disabled={!editMode}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Phone />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Email"
-                fullWidth
-                value={currentContact?.email || ''}
-                onChange={(e) => setCurrentContact({...currentContact, email: e.target.value})}
-                disabled={!editMode}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Email />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Location"
-                fullWidth
-                value={currentContact?.location || ''}
-                onChange={(e) => setCurrentContact({...currentContact, location: e.target.value})}
-                disabled={!editMode}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LocationOn />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Business Name"
-                fullWidth
-                value={currentContact?.business || ''}
-                onChange={(e) => setCurrentContact({...currentContact, business: e.target.value})}
-                disabled={!editMode}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Business />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            {currentContact?.type === 'customer' && (
-              <>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Loyalty Points"
-                    fullWidth
-                    type="number"
-                    value={currentContact?.loyaltyPoints || 0}
-                    onChange={(e) => setCurrentContact({...currentContact, loyaltyPoints: parseInt(e.target.value) || 0})}
-                    disabled={!editMode}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Loyalty />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Status</InputLabel>
-                    <Select
-                      value={currentContact?.status || 'active'}
-                      label="Status"
-                      onChange={(e) => setCurrentContact({...currentContact, status: e.target.value})}
-                      disabled={!editMode}
-                    >
-                      <MenuItem value="active">Active</MenuItem>
-                      <MenuItem value="vip">VIP</MenuItem>
-                      <MenuItem value="inactive">Inactive</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </>
-            )}
-            {!editMode && currentContact?.type === 'customer' && (
+          {currentContact && (
+            <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      Purchase History
-                    </Typography>
-                    <Box display="flex" justifyContent="space-between" mb={1}>
-                      <Typography>Last Purchase:</Typography>
-                      <Typography fontWeight="bold">
-                        {currentContact?.lastPurchase || 'No purchases yet'}
-                      </Typography>
-                    </Box>
-                    <Box display="flex" justifyContent="space-between">
-                      <Typography>Total Spent:</Typography>
-                      <Typography fontWeight="bold">
-                        {formatCurrency(currentContact?.totalSpent || 0)}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
+                <Box display="flex" justifyContent="center" mb={2} position="relative">
+                  <Avatar 
+                    src={previewImage || currentContact.avatar} 
+                    sx={{ width: 100, height: 100 }}
+                  >
+                    {currentContact.name?.charAt(0)}
+                  </Avatar>
+                  {editMode && (
+                    <>
+                      <input
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        id="avatar-upload"
+                        type="file"
+                        onChange={handleFileChange}
+                      />
+                      <label htmlFor="avatar-upload">
+                        <IconButton 
+                          color="primary"
+                          component="span"
+                          sx={{
+                            position: 'absolute',
+                            bottom: 0,
+                            right: 'calc(50% - 70px)',
+                            backgroundColor: theme.palette.background.paper,
+                            '&:hover': {
+                              backgroundColor: theme.palette.action.hover
+                            }
+                          }}
+                        >
+                          <CameraAlt />
+                        </IconButton>
+                      </label>
+                    </>
+                  )}
+                </Box>
               </Grid>
-            )}
-          </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Full Name"
+                  fullWidth
+                  value={currentContact.name || ''}
+                  onChange={(e) => setCurrentContact({...currentContact, name: e.target.value})}
+                  disabled={!editMode}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Contact Type</InputLabel>
+                  <Select
+                    value={currentContact.type || 'customer'}
+                    label="Contact Type"
+                    onChange={(e) => setCurrentContact({...currentContact, type: e.target.value})}
+                    disabled={!editMode}
+                  >
+                    <MenuItem value="customer">Customer</MenuItem>
+                    <MenuItem value="supplier">Supplier</MenuItem>
+                    <MenuItem value="employee">Employee</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Phone Number"
+                  fullWidth
+                  value={currentContact.phone || ''}
+                  onChange={(e) => setCurrentContact({...currentContact, phone: e.target.value})}
+                  disabled={!editMode}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Phone />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Email"
+                  fullWidth
+                  value={currentContact.email || ''}
+                  onChange={(e) => setCurrentContact({...currentContact, email: e.target.value})}
+                  disabled={!editMode}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Email />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Location"
+                  fullWidth
+                  value={currentContact.location || ''}
+                  onChange={(e) => setCurrentContact({...currentContact, location: e.target.value})}
+                  disabled={!editMode}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationOn />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Business Name"
+                  fullWidth
+                  value={currentContact.business || ''}
+                  onChange={(e) => setCurrentContact({...currentContact, business: e.target.value})}
+                  disabled={!editMode}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Business />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              {currentContact.type === 'customer' && (
+                <>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Loyalty Points"
+                      fullWidth
+                      type="number"
+                      value={currentContact.loyaltyPoints || 0}
+                      onChange={(e) => setCurrentContact({...currentContact, loyaltyPoints: parseInt(e.target.value) || 0})}
+                      disabled={!editMode}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Loyalty />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Status</InputLabel>
+                      <Select
+                        value={currentContact.status || 'active'}
+                        label="Status"
+                        onChange={(e) => setCurrentContact({...currentContact, status: e.target.value})}
+                        disabled={!editMode}
+                      >
+                        <MenuItem value="active">Active</MenuItem>
+                        <MenuItem value="vip">VIP</MenuItem>
+                        <MenuItem value="inactive">Inactive</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </>
+              )}
+              {!editMode && currentContact.type === 'customer' && (
+                <Grid item xs={12}>
+                  <Card variant="outlined">
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>
+                        Purchase History
+                      </Typography>
+                      <Box display="flex" justifyContent="space-between" mb={1}>
+                        <Typography>Last Purchase:</Typography>
+                        <Typography fontWeight="bold">
+                          {currentContact.lastPurchase || 'No purchases yet'}
+                        </Typography>
+                      </Box>
+                      <Box display="flex" justifyContent="space-between">
+                        <Typography>Total Spent:</Typography>
+                        <Typography fontWeight="bold">
+                          {formatCurrency(currentContact.totalSpent || 0)}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+            </Grid>
+          )}
         </DialogContent>
         <DialogActions>
           {editMode && (
