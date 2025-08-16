@@ -37,56 +37,39 @@ const ManageSalesPage = () => {
   const [dateRange, setDateRange] = useState([null, null]);
   const [openDateRangePicker, setOpenDateRangePicker] = useState(false);
 
-  // Generate mock data
+  // Fetch sales data from API
   useEffect(() => {
-    const generateMockData = () => {
-      const statuses = ['Completed', 'Pending', 'Cancelled', 'Refunded'];
-      const paymentMethods = ['Cash', 'Credit Card', 'Mobile Money', 'Bank Transfer'];
-      const products = [
-        'Laptop', 'Smartphone', 'Tablet', 'Headphones', 'Monitor',
-        'Keyboard', 'Mouse', 'Printer', 'Router', 'Smart Watch'
-      ];
-      const customers = [
-        'John Doe', 'Jane Smith', 'Robert Johnson', 'Emily Davis',
-        'Michael Brown', 'Sarah Wilson', 'David Taylor', 'Lisa Anderson'
-      ];
-      
-      const data = [];
-      const today = new Date();
-      
-      for (let i = 0; i < 50; i++) {
-        const daysAgo = Math.floor(Math.random() * 90);
-        const date = new Date(today);
-        date.setDate(date.getDate() - daysAgo);
+    const fetchSalesData = async () => {
+      try {
+        // TODO: Replace with actual API endpoint
+        // const response = await fetch('/api/sales');
+        // const data = await response.json();
+        // setSalesData(data);
         
-        data.push({
-          id: i + 1,
-          date: date.toISOString().split('T')[0],
-          orderId: `ORD${Math.floor(1000 + Math.random() * 9000)}`,
-          customer: customers[Math.floor(Math.random() * customers.length)],
-          products: Array.from({ length: Math.floor(Math.random() * 3) + 1 }, () => ({
-            name: products[Math.floor(Math.random() * products.length)],
-            quantity: Math.floor(Math.random() * 3) + 1,
-            price: Math.floor(Math.random() * 500) + 50
-          })),
-          total: Math.floor(Math.random() * 1000) + 100,
-          status: statuses[Math.floor(Math.random() * statuses.length)],
-          paymentMethod: paymentMethods[Math.floor(Math.random() * paymentMethods.length)],
-          shippingAddress: `${Math.floor(Math.random() * 100) + 1} Main St, Kampala`,
-          notes: Math.random() > 0.7 ? 'Special handling required' : ''
-        });
+        // For now, initialize with empty array
+        setSalesData([]);
+      } catch (error) {
+        console.error('Error fetching sales data:', error);
+        // TODO: Add error handling (show notification to user)
       }
-      
-      return data;
     };
     
-    setSalesData(generateMockData());
+    fetchSalesData();
   }, []);
 
   // Handle export function
-  const handleExport = (format) => {
-    console.log(`Exporting data as ${format}`);
-    alert(`Exporting sales data as ${format}`);
+  const handleExport = async (format) => {
+    try {
+      // TODO: Implement export functionality with backend API
+      // const response = await fetch(`/api/sales/export?format=${format}`);
+      // Handle file download response
+      
+      console.log(`Exporting data as ${format}`);
+      alert(`Exporting sales data as ${format}`);
+    } catch (error) {
+      console.error('Export failed:', error);
+      // TODO: Add error handling
+    }
   };
 
   // Handle date range change
@@ -124,7 +107,8 @@ const ManageSalesPage = () => {
       filtered = filtered.filter(sale => 
         sale.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         sale.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sale.products.some(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        (sale.products && sale.products.some(p => 
+          p.name.toLowerCase().includes(searchTerm.toLowerCase())))
       );
     }
     
@@ -167,13 +151,13 @@ const ManageSalesPage = () => {
   // Calculate summary metrics
   const calculateMetrics = () => {
     const totalSales = filteredSales.length;
-    const totalRevenue = filteredSales.reduce((sum, sale) => sum + sale.total, 0);
+    const totalRevenue = filteredSales.reduce((sum, sale) => sum + (sale.total || 0), 0);
     const completedSales = filteredSales.filter(sale => sale.status === 'Completed').length;
     const pendingSales = filteredSales.filter(sale => sale.status === 'Pending').length;
     const cancelledSales = filteredSales.filter(sale => sale.status === 'Cancelled').length;
     
     const averageOrderValue = totalSales > 0 ? (totalRevenue / totalSales).toFixed(2) : 0;
-    const conversionRate = (completedSales / totalSales * 100).toFixed(1);
+    const conversionRate = totalSales > 0 ? (completedSales / totalSales * 100).toFixed(1) : 0;
     
     return {
       totalSales,
@@ -200,15 +184,17 @@ const ManageSalesPage = () => {
       if (!salesByDay[sale.date]) {
         salesByDay[sale.date] = 0;
       }
-      salesByDay[sale.date] += sale.total;
+      salesByDay[sale.date] += sale.total || 0;
       
       // Sales by product
-      sale.products.forEach(product => {
-        if (!salesByProduct[product.name]) {
-          salesByProduct[product.name] = 0;
-        }
-        salesByProduct[product.name] += product.price * product.quantity;
-      });
+      if (sale.products) {
+        sale.products.forEach(product => {
+          if (!salesByProduct[product.name]) {
+            salesByProduct[product.name] = 0;
+          }
+          salesByProduct[product.name] += (product.price || 0) * (product.quantity || 0);
+        });
+      }
       
       // Sales by status
       if (!salesByStatus[sale.status]) {
@@ -220,7 +206,7 @@ const ManageSalesPage = () => {
       if (!salesByPayment[sale.paymentMethod]) {
         salesByPayment[sale.paymentMethod] = 0;
       }
-      salesByPayment[sale.paymentMethod] += sale.total;
+      salesByPayment[sale.paymentMethod] += sale.total || 0;
     });
     
     // Convert to array format for charts
@@ -268,6 +254,24 @@ const ManageSalesPage = () => {
   const handleViewDetails = (sale) => {
     setSelectedSale(sale);
     setOpenDetailsDialog(true);
+  };
+
+  // TODO: Implement order status update function
+  const handleUpdateStatus = async (orderId, newStatus) => {
+    try {
+      // const response = await fetch(`/api/orders/${orderId}/status`, {
+      //   method: 'PUT',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({ status: newStatus }),
+      // });
+      // const updatedOrder = await response.json();
+      // Update local state with the updated order
+      alert(`Order ${orderId} status updated to ${newStatus}`);
+    } catch (error) {
+      console.error('Error updating order status:', error);
+    }
   };
 
   return (
@@ -619,58 +623,69 @@ const ManageSalesPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredSales
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((sale) => (
-                  <TableRow key={sale.id}>
-                    <TableCell>{sale.orderId}</TableCell>
-                    <TableCell>{sale.date}</TableCell>
-                    <TableCell>{sale.customer}</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                        {sale.products.map((product, idx) => (
-                          <Typography key={idx} variant="body2">
-                            {product.name} (x{product.quantity})
-                          </Typography>
-                        ))}
-                      </Box>
-                    </TableCell>
-                    <TableCell>UGX {sale.total.toLocaleString()}</TableCell>
-                    <TableCell>{sale.paymentMethod}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={sale.status}
-                        size="small"
-                        sx={{
-                          backgroundColor: STATUS_COLORS[sale.status] || '#9E9E9E',
-                          color: 'white'
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => handleViewDetails(sale)}
-                      >
-                        Details
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+              {filteredSales.length > 0 ? (
+                filteredSales
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((sale) => (
+                    <TableRow key={sale.id}>
+                      <TableCell>{sale.orderId}</TableCell>
+                      <TableCell>{sale.date}</TableCell>
+                      <TableCell>{sale.customer}</TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          {sale.products?.map((product, idx) => (
+                            <Typography key={idx} variant="body2">
+                              {product.name} (x{product.quantity})
+                            </Typography>
+                          ))}
+                        </Box>
+                      </TableCell>
+                      <TableCell>UGX {sale.total?.toLocaleString()}</TableCell>
+                      <TableCell>{sale.paymentMethod}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={sale.status}
+                          size="small"
+                          sx={{
+                            backgroundColor: STATUS_COLORS[sale.status] || '#9E9E9E',
+                            color: 'white'
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={() => handleViewDetails(sale)}
+                        >
+                          Details
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} align="center">
+                    {/* TODO: Replace with actual API loading state */}
+                    {salesData.length === 0 ? 'No sales data available' : 'No matching records found'}
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </TableContainer>
         
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={filteredSales.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handlePageChange}
-          onRowsPerPageChange={handleRowsPerPageChange}
-        />
+        {filteredSales.length > 0 && (
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={filteredSales.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+          />
+        )}
       </Paper>
 
       {/* Order Details Dialog */}
@@ -688,7 +703,7 @@ const ManageSalesPage = () => {
                 <Typography variant="h6" gutterBottom>Customer Information</Typography>
                 <Divider sx={{ mb: 2 }} />
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Avatar sx={{ mr: 2 }}>{selectedSale.customer.charAt(0)}</Avatar>
+                  <Avatar sx={{ mr: 2 }}>{selectedSale.customer?.charAt(0)}</Avatar>
                   <Box>
                     <Typography variant="subtitle1">{selectedSale.customer}</Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -730,13 +745,13 @@ const ManageSalesPage = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {selectedSale.products.map((product, idx) => (
+                    {selectedSale.products?.map((product, idx) => (
                       <TableRow key={idx}>
                         <TableCell>{product.name}</TableCell>
                         <TableCell align="right">{product.quantity}</TableCell>
-                        <TableCell align="right">UGX {product.price.toLocaleString()}</TableCell>
+                        <TableCell align="right">UGX {product.price?.toLocaleString()}</TableCell>
                         <TableCell align="right">
-                          UGX {(product.price * product.quantity).toLocaleString()}
+                          UGX {(product.price * product.quantity)?.toLocaleString()}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -746,7 +761,7 @@ const ManageSalesPage = () => {
                       </TableCell>
                       <TableCell align="right">
                         <Typography variant="subtitle1">
-                          UGX {selectedSale.total.toLocaleString()}
+                          UGX {selectedSale.total?.toLocaleString()}
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -769,10 +784,20 @@ const ManageSalesPage = () => {
                     
                     {selectedSale.status === 'Pending' && (
                       <>
-                        <Button variant="contained" color="success" size="small">
+                        <Button 
+                          variant="contained" 
+                          color="success" 
+                          size="small"
+                          onClick={() => handleUpdateStatus(selectedSale.orderId, 'Completed')}
+                        >
                           Mark as Completed
                         </Button>
-                        <Button variant="outlined" color="error" size="small">
+                        <Button 
+                          variant="outlined" 
+                          color="error" 
+                          size="small"
+                          onClick={() => handleUpdateStatus(selectedSale.orderId, 'Cancelled')}
+                        >
                           Cancel Order
                         </Button>
                       </>
