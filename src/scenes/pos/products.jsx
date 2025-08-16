@@ -68,7 +68,7 @@ const ProductsPage = () => {
     rating: 0, 
     stock: "", 
     discount: "",
-    measurement:1,
+    measurement: 1,
     description: "",
     barcode: "",
     image: null,
@@ -205,11 +205,8 @@ const ProductsPage = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  // Close all dialogs
-  const handleDialogClose = () => {
-    setOpenProductDialog(false);
-    setOpenCategoryDialog(false);
-    setSelectedProduct(null);
+  // Open add product dialog
+  const handleOpenAddProduct = () => {
     setNewProduct({ 
       name: "", 
       category: "", 
@@ -218,14 +215,32 @@ const ProductsPage = () => {
       rating: 0, 
       stock: "", 
       discount: "",
-      measurement:1,
-      description: "",
+      measurement: 1,
+      description: "", 
       barcode: "",
       image: null,
       imagePreview: ""
     });
     setIsEditing(false);
     setEditingProductId(null);
+    setOpenProductDialog(true);
+  };
+
+  // Open manage categories dialog
+  const handleOpenManageCategories = () => {
+    setNewCategory({
+      name: "",
+      subcategories: []
+    });
+    setNewSubcategory("");
+    setOpenCategoryDialog(true);
+  };
+
+  // Close all dialogs
+  const handleDialogClose = () => {
+    setOpenProductDialog(false);
+    setOpenCategoryDialog(false);
+    setSelectedProduct(null);
   };
 
   // Handle image upload for new product
@@ -241,6 +256,47 @@ const ProductsPage = () => {
         });
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle sorting
+  const handleSort = (e) => {
+    const sortValue = e.target.value;
+    let sortedProducts = [...filteredProducts];
+    switch (sortValue) {
+      case "priceAsc":
+        sortedProducts.sort((a, b) => a.price - b.price);
+        break;
+      case "priceDesc":
+        sortedProducts.sort((a, b) => b.price - a.price);
+        break;
+      case "ratingAsc":
+        sortedProducts.sort((a, b) => a.rating - b.rating);
+        break;
+      case "ratingDesc":
+        sortedProducts.sort((a, b) => b.rating - a.rating);
+        break;
+      case "nameAsc":
+        sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "nameDesc":
+        sortedProducts.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      default:
+        break;
+    }
+    setFilteredProducts(sortedProducts);
+  };
+
+  // Handle subcategory selection from sidebar
+  const handleSubcategorySelect = (subcat) => {
+    setSubcategory(subcat);
+    // Find the category that contains this subcategory
+    const parentCategory = Object.keys(categoryStructure).find(cat => 
+      categoryStructure[cat].includes(subcat)
+    );
+    if (parentCategory) {
+      setCategory(parentCategory);
     }
   };
 
@@ -313,7 +369,7 @@ const ProductsPage = () => {
   };
 
   // Add a new category
-  const handleAddCategory = async () => {
+  const handleAddCategory = async (categoryData) => {
     try {
       // TODO: Replace with actual API call
       // const response = await fetch('/api/categories', {
@@ -321,75 +377,19 @@ const ProductsPage = () => {
       //   headers: {
       //     'Content-Type': 'application/json',
       //   },
-      //   body: JSON.stringify(newCategory)
+      //   body: JSON.stringify(categoryData)
       // });
       // const updatedCategories = await response.json();
       // setCategoryStructure(updatedCategories);
       
+      setCategoryStructure(prev => ({
+        ...prev,
+        [categoryData.name]: categoryData.subcategories
+      }));
       showSnackbar("Category added successfully", "success");
       handleDialogClose();
     } catch (err) {
       showSnackbar("Failed to add category", "error");
-    }
-  };
-
-  // Add a subcategory to the current new category
-  const handleAddSubcategory = () => {
-    if (newSubcategory) {
-      setNewCategory(prev => ({
-        ...prev,
-        subcategories: [...prev.subcategories, newSubcategory]
-      }));
-      setNewSubcategory("");
-    }
-  };
-
-  // Remove a subcategory from the current new category
-  const handleRemoveSubcategory = (subcat) => {
-    setNewCategory(prev => ({
-      ...prev,
-      subcategories: prev.subcategories.filter(s => s !== subcat)
-    }));
-  };
-
-  // Handle sorting
-  const handleSort = (e) => {
-    const sortValue = e.target.value;
-    let sortedProducts = [...filteredProducts];
-    switch (sortValue) {
-      case "priceAsc":
-        sortedProducts.sort((a, b) => a.price - b.price);
-        break;
-      case "priceDesc":
-        sortedProducts.sort((a, b) => b.price - a.price);
-        break;
-      case "ratingAsc":
-        sortedProducts.sort((a, b) => a.rating - b.rating);
-        break;
-      case "ratingDesc":
-        sortedProducts.sort((a, b) => b.rating - a.rating);
-        break;
-      case "nameAsc":
-        sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "nameDesc":
-        sortedProducts.sort((a, b) => b.name.localeCompare(a.name));
-        break;
-      default:
-        break;
-    }
-    setFilteredProducts(sortedProducts);
-  };
-
-  // Handle subcategory selection from sidebar
-  const handleSubcategorySelect = (subcat) => {
-    setSubcategory(subcat);
-    // Find the category that contains this subcategory
-    const parentCategory = Object.keys(categoryStructure).find(cat => 
-      categoryStructure[cat].includes(subcat)
-    );
-    if (parentCategory) {
-      setCategory(parentCategory);
     }
   };
 
@@ -458,7 +458,7 @@ const ProductsPage = () => {
             </Typography>
 
             <Typography variant="body1" paragraph>
-              <strong>Discount:</strong> {selectedProduct?.discount} units
+              <strong>Discount:</strong> {selectedProduct?.discount}%
             </Typography>
             <Typography variant="body1" paragraph>
               <strong>Barcode:</strong> {selectedProduct?.barcode}
@@ -485,301 +485,368 @@ const ProductsPage = () => {
   );
 
   // Product Form Dialog (Add/Edit)
-  // Product Form Dialog (Add/Edit)
-const ProductFormDialog = () => (
-  <Dialog 
-    open={openProductDialog && (isEditing || !selectedProduct)} 
-    onClose={handleDialogClose}
-    maxWidth="sm"
-    fullWidth
-  >
-    <DialogTitle>
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        {isEditing ? "Edit Product" : "Add New Product"}
-        <IconButton onClick={handleDialogClose}>
-          <Close />
-        </IconButton>
-      </Box>
-    </DialogTitle>
-    <DialogContent>
-      <Grid container spacing={2} sx={{ mt: 1 }}>
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label="Product Name"
-            value={newProduct.name}
-            onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-            error={!newProduct.name}
-            helperText={!newProduct.name ? "Product name is required" : ""}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth error={!newProduct.category}>
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={newProduct.category}
-              onChange={(e) => setNewProduct({...newProduct, category: e.target.value, subcategory: ""})}
-              label="Category"
-            >
-              <MenuItem value=""><em>Select Category</em></MenuItem>
-              {Object.keys(categoryStructure).map((cat) => (
-                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-              ))}
-            </Select>
-            {!newProduct.category && <Typography variant="caption" color="error">Category is required</Typography>}
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth error={!newProduct.subcategory && !!newProduct.category}>
-            <InputLabel>Subcategory</InputLabel>
-            <Select
-              value={newProduct.subcategory}
-              onChange={(e) => setNewProduct({...newProduct, subcategory: e.target.value})}
-              label="Subcategory"
-              disabled={!newProduct.category}
-            >
-              <MenuItem value=""><em>Select Subcategory</em></MenuItem>
-              {newProduct.category && categoryStructure[newProduct.category]?.map((subcat) => (
-                <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
-              ))}
-            </Select>
-            {!newProduct.subcategory && newProduct.category && (
-              <Typography variant="caption" color="error">Subcategory is required</Typography>
-            )}
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Price (UGX)"
-            type="number"
-            value={newProduct.price}
-            onChange={(e) => {
-              const value = Math.max(0, parseFloat(e.target.value) || 0);
-              setNewProduct({...newProduct, price: value});
-            }}
-            inputProps={{ min: 0, step: 100 }}
-            error={!newProduct.price && newProduct.price !== 0}
-            helperText={!newProduct.price && newProduct.price !== 0 ? "Price is required" : ""}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Purchase Price (UGX)"
-            type="number"
-            value={newProduct.purchasePrice || ""}
-            onChange={(e) => {
-              const value = Math.max(0, parseFloat(e.target.value) || 0);
-              setNewProduct({...newProduct, purchasePrice: value});
-            }}
-            inputProps={{ min: 0, step: 100 }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Discount (%)"
-            type="number"
-            value={newProduct.discount}
-            onChange={(e) => {
-              const value = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0));
-              setNewProduct({...newProduct, discount: value});
-            }}
-            inputProps={{ min: 0, max: 100 }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Unit of Measurement"
-            type="number"
-            value={newProduct.measurement}
-            onChange={(e) => {
-              const value = Math.max(1, parseFloat(e.target.value) || 1);
-              setNewProduct({...newProduct, measurement: value});
-            }}
-            inputProps={{ min: 1 }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Stock Quantity"
-            type="number"
-            value={newProduct.stock}
-            onChange={(e) => {
-              const value = Math.max(0, parseInt(e.target.value) || 0);
-              setNewProduct({...newProduct, stock: value});
-            }}
-            inputProps={{ min: 0 }}
-            error={!newProduct.stock && newProduct.stock !== 0}
-            helperText={!newProduct.stock && newProduct.stock !== 0 ? "Stock quantity is required" : ""}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label="Barcode/ID"
-            value={newProduct.barcode}
-            onChange={(e) => setNewProduct({...newProduct, barcode: e.target.value})}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label="Description"
-            multiline
-            rows={4}
-            value={newProduct.description}
-            onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="body2">Product Rating</Typography>
-          <Rating
-            value={newProduct.rating}
-            onChange={(e, newValue) => setNewProduct({...newProduct, rating: newValue})}
-            precision={0.5}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="body2" gutterBottom>Product Image</Typography>
-          <input
-            accept="image/*"
-            style={{ display: 'none' }}
-            id="product-image-upload"
-            type="file"
-            onChange={handleImageUpload}
-          />
-          <label htmlFor="product-image-upload">
-            <Button variant="outlined" component="span" fullWidth>
-              Upload Image
-            </Button>
-          </label>
-          {newProduct.imagePreview && (
-            <Box sx={{ mt: 2, textAlign: 'center' }}>
-              <img 
-                src={newProduct.imagePreview} 
-                alt="Preview" 
-                style={{ maxHeight: 200, maxWidth: '100%' }}
-              />
-              <Button 
-                variant="text" 
-                color="error" 
-                size="small"
-                onClick={() => setNewProduct({...newProduct, image: null, imagePreview: ""})}
-                sx={{ mt: 1 }}
-              >
-                Remove Image
-              </Button>
-            </Box>
-          )}
-        </Grid>
-      </Grid>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={handleDialogClose}>Cancel</Button>
-      <Button 
-        variant="contained" 
-        onClick={isEditing ? handleSaveEditedProduct : handleAddProduct}
-        disabled={!newProduct.name || !newProduct.category || !newProduct.subcategory || 
-                 (!newProduct.price && newProduct.price !== 0) || 
-                 (!newProduct.stock && newProduct.stock !== 0)}
-        sx={{ backgroundColor: "purple", color: "white" }}
-      >
-        {isEditing ? "Save Changes" : "Save Product"}
-      </Button>
-    </DialogActions>
-  </Dialog>
-);
+  const ProductFormDialog = () => {
+    const [localProduct, setLocalProduct] = useState(newProduct);
 
-  // Manage Categories Dialog
-  const ManageCategoriesDialog = () => (
-    <Dialog 
-      open={openCategoryDialog} 
-      onClose={handleDialogClose}
-      maxWidth="sm"
-      fullWidth
-    >
-      <DialogTitle>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          Manage Categories
-          <IconButton onClick={handleDialogClose}>
-            <Close />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom>Add New Category</Typography>
-            <TextField
-              fullWidth
-              label="Category Name"
-              value={newCategory.name}
-              onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="body1" gutterBottom>Subcategories</Typography>
-            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+    useEffect(() => {
+      setLocalProduct(newProduct);
+    }, [newProduct]);
+
+    const handleLocalChange = (e) => {
+      const { name, value } = e.target;
+      setLocalProduct(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
+
+    const handleSave = () => {
+      setNewProduct(localProduct);
+      if (isEditing) {
+        handleSaveEditedProduct();
+      } else {
+        handleAddProduct();
+      }
+    };
+
+    return (
+      <Dialog 
+        open={openProductDialog && (isEditing || !selectedProduct)} 
+        onClose={handleDialogClose}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            {isEditing ? "Edit Product" : "Add New Product"}
+            <IconButton onClick={handleDialogClose}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Add Subcategory"
-                value={newSubcategory}
-                onChange={(e) => setNewSubcategory(e.target.value)}
+                label="Product Name"
+                name="name"
+                value={localProduct.name}
+                onChange={handleLocalChange}
+                error={!localProduct.name}
+                helperText={!localProduct.name ? "Product name is required" : ""}
               />
-              <Button 
-                variant="contained" 
-                onClick={handleAddSubcategory}
-                disabled={!newSubcategory}
-              >
-                Add
-              </Button>
-            </Box>
-            {newCategory.subcategories.length > 0 && (
-              <Paper sx={{ p: 2, mb: 2 }}>
-                {newCategory.subcategories.map((subcat, index) => (
-                  <Chip
-                    key={index}
-                    label={subcat}
-                    onDelete={() => handleRemoveSubcategory(subcat)}
-                    sx={{ m: 0.5 }}
-                  />
-                ))}
-              </Paper>
-            )}
-          </Grid>
-          <Grid item xs={12}>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" gutterBottom>Existing Categories</Typography>
-            {Object.entries(categoryStructure).map(([category, subcategories]) => (
-              <Box key={category} sx={{ mb: 2 }}>
-                <Typography variant="subtitle1">{category}</Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                  {subcategories.map((subcat, idx) => (
-                    <Chip key={idx} label={subcat} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth error={!localProduct.category}>
+                <InputLabel>Category</InputLabel>
+                <Select
+                  name="category"
+                  value={localProduct.category}
+                  onChange={handleLocalChange}
+                  label="Category"
+                >
+                  <MenuItem value=""><em>Select Category</em></MenuItem>
+                  {Object.keys(categoryStructure).map((cat) => (
+                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
                   ))}
+                </Select>
+                {!localProduct.category && <Typography variant="caption" color="error">Category is required</Typography>}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth error={!localProduct.subcategory && !!localProduct.category}>
+                <InputLabel>Subcategory</InputLabel>
+                <Select
+                  name="subcategory"
+                  value={localProduct.subcategory}
+                  onChange={handleLocalChange}
+                  label="Subcategory"
+                  disabled={!localProduct.category}
+                >
+                  <MenuItem value=""><em>Select Subcategory</em></MenuItem>
+                  {localProduct.category && categoryStructure[localProduct.category]?.map((subcat) => (
+                    <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
+                  ))}
+                </Select>
+                {!localProduct.subcategory && localProduct.category && (
+                  <Typography variant="caption" color="error">Subcategory is required</Typography>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Price (UGX)"
+                type="number"
+                name="price"
+                value={localProduct.price}
+                onChange={(e) => {
+                  const value = Math.max(0, parseFloat(e.target.value) || 0);
+                  setLocalProduct(prev => ({...prev, price: value}));
+                }}
+                inputProps={{ min: 0, step: 100 }}
+                error={!localProduct.price && localProduct.price !== 0}
+                helperText={!localProduct.price && localProduct.price !== 0 ? "Price is required" : ""}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Purchase Price (UGX)"
+                type="number"
+                name="purchasePrice"
+                value={localProduct.purchasePrice || ""}
+                onChange={(e) => {
+                  const value = Math.max(0, parseFloat(e.target.value) || 0);
+                  setLocalProduct(prev => ({...prev, purchasePrice: value}));
+                }}
+                inputProps={{ min: 0, step: 100 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Discount (%)"
+                type="number"
+                name="discount"
+                value={localProduct.discount}
+                onChange={(e) => {
+                  const value = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0));
+                  setLocalProduct(prev => ({...prev, discount: value}));
+                }}
+                inputProps={{ min: 0, max: 100 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Unit of Measurement"
+                type="number"
+                name="measurement"
+                value={localProduct.measurement}
+                onChange={(e) => {
+                  const value = Math.max(1, parseFloat(e.target.value) || 1);
+                  setLocalProduct(prev => ({...prev, measurement: value}));
+                }}
+                inputProps={{ min: 1 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Stock Quantity"
+                type="number"
+                name="stock"
+                value={localProduct.stock}
+                onChange={(e) => {
+                  const value = Math.max(0, parseInt(e.target.value) || 0);
+                  setLocalProduct(prev => ({...prev, stock: value}));
+                }}
+                inputProps={{ min: 0 }}
+                error={!localProduct.stock && localProduct.stock !== 0}
+                helperText={!localProduct.stock && localProduct.stock !== 0 ? "Stock quantity is required" : ""}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Barcode/ID"
+                name="barcode"
+                value={localProduct.barcode}
+                onChange={handleLocalChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Description"
+                name="description"
+                multiline
+                rows={4}
+                value={localProduct.description}
+                onChange={handleLocalChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="body2">Product Rating</Typography>
+              <Rating
+                name="rating"
+                value={localProduct.rating}
+                onChange={(e, newValue) => setLocalProduct(prev => ({...prev, rating: newValue}))}
+                precision={0.5}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="body2" gutterBottom>Product Image</Typography>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="product-image-upload"
+                type="file"
+                onChange={handleImageUpload}
+              />
+              <label htmlFor="product-image-upload">
+                <Button variant="outlined" component="span" fullWidth>
+                  Upload Image
+                </Button>
+              </label>
+              {localProduct.imagePreview && (
+                <Box sx={{ mt: 2, textAlign: 'center' }}>
+                  <img 
+                    src={localProduct.imagePreview} 
+                    alt="Preview" 
+                    style={{ maxHeight: 200, maxWidth: '100%' }}
+                  />
+                  <Button 
+                    variant="text" 
+                    color="error" 
+                    size="small"
+                    onClick={() => setLocalProduct(prev => ({...prev, image: null, imagePreview: ""}))}
+                    sx={{ mt: 1 }}
+                  >
+                    Remove Image
+                  </Button>
                 </Box>
-              </Box>
-            ))}
+              )}
+            </Grid>
           </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleDialogClose}>Cancel</Button>
-        <Button 
-          variant="contained" 
-          onClick={handleAddCategory}
-          disabled={!newCategory.name}
-          sx={{ backgroundColor: "purple", color: "white" }}
-        >
-          Save Category
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSave}
+            disabled={!localProduct.name || !localProduct.category || !localProduct.subcategory || 
+                     (!localProduct.price && localProduct.price !== 0) || 
+                     (!localProduct.stock && localProduct.stock !== 0)}
+            sx={{ backgroundColor: "purple", color: "white" }}
+          >
+            {isEditing ? "Save Changes" : "Save Product"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  };
+
+  // Manage Categories Dialog
+  const ManageCategoriesDialog = () => {
+    const [localCategory, setLocalCategory] = useState(newCategory);
+    const [localSubcategory, setLocalSubcategory] = useState("");
+
+    useEffect(() => {
+      setLocalCategory(newCategory);
+      setLocalSubcategory("");
+    }, [newCategory]);
+
+    const handleAddLocalSubcategory = () => {
+      if (localSubcategory) {
+        setLocalCategory(prev => ({
+          ...prev,
+          subcategories: [...prev.subcategories, localSubcategory]
+        }));
+        setLocalSubcategory("");
+      }
+    };
+
+    const handleRemoveLocalSubcategory = (subcat) => {
+      setLocalCategory(prev => ({
+        ...prev,
+        subcategories: prev.subcategories.filter(s => s !== subcat)
+      }));
+    };
+
+    const handleSaveCategory = () => {
+      setNewCategory(localCategory);
+      handleAddCategory(localCategory);
+    };
+
+    return (
+      <Dialog 
+        open={openCategoryDialog} 
+        onClose={handleDialogClose}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            Manage Categories
+            <IconButton onClick={handleDialogClose}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom>Add New Category</Typography>
+              <TextField
+                fullWidth
+                label="Category Name"
+                value={localCategory.name}
+                onChange={(e) => setLocalCategory(prev => ({...prev, name: e.target.value}))}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="body1" gutterBottom>Subcategories</Typography>
+              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Add Subcategory"
+                  value={localSubcategory}
+                  onChange={(e) => setLocalSubcategory(e.target.value)}
+                />
+                <Button 
+                  variant="contained" 
+                  onClick={handleAddLocalSubcategory}
+                  disabled={!localSubcategory}
+                >
+                  Add
+                </Button>
+              </Box>
+              {localCategory.subcategories.length > 0 && (
+                <Paper sx={{ p: 2, mb: 2 }}>
+                  {localCategory.subcategories.map((subcat, index) => (
+                    <Chip
+                      key={index}
+                      label={subcat}
+                      onDelete={() => handleRemoveLocalSubcategory(subcat)}
+                      sx={{ m: 0.5 }}
+                    />
+                  ))}
+                </Paper>
+              )}
+            </Grid>
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom>Existing Categories</Typography>
+              {Object.entries(categoryStructure).map(([category, subcategories]) => (
+                <Box key={category} sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1">{category}</Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                    {subcategories.map((subcat, idx) => (
+                      <Chip key={idx} label={subcat} />
+                    ))}
+                  </Box>
+                </Box>
+              ))}
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSaveCategory}
+            disabled={!localCategory.name}
+            sx={{ backgroundColor: "purple", color: "white" }}
+          >
+            Save Category
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  };
 
   return (
     <Box sx={{ padding: 3 }}>
@@ -790,7 +857,7 @@ const ProductFormDialog = () => (
           <Button
             variant="contained"
             startIcon={<Add />}
-            onClick={() => setOpenProductDialog(true)}
+            onClick={handleOpenAddProduct}
             sx={{ backgroundColor: "purple", color: "white" }}
           >
             Add Product
@@ -798,7 +865,7 @@ const ProductFormDialog = () => (
           <Button
             variant="contained"
             startIcon={<Category />}
-            onClick={() => setOpenCategoryDialog(true)}
+            onClick={handleOpenManageCategories}
             sx={{ backgroundColor: "purple", color: "white" }}
           >
             Manage Categories
