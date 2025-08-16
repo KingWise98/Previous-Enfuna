@@ -76,342 +76,13 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
-// Product Data
-const productData = [
-  { 
-    id: 1, 
-    name: "Fanta", 
-    category: "Beverages", 
-    subcategory: "Soft Drinks", 
-    price: 1500, 
-    rating: 4, 
-    stock: 50, 
-    image: "/assets/fanta.jpg", 
-    description: "A popular carbonated soft drink.",
-    barcode: "123456789012",
-    supplier: "Coca-Cola Uganda"
-  },
-  { 
-    id: 2, 
-    name: "Mountain Dew", 
-    category: "Beverages", 
-    subcategory: "Soft Drinks", 
-    price: 1500, 
-    rating: 5, 
-    stock: 30, 
-    image: "/assets/dew.jpg", 
-    description: "Citrusy and refreshing soft drink.",
-    barcode: "234567890123",
-    supplier: "PepsiCo"
-  },
-  { 
-    id: 3, 
-    name: "AFIA JUICE Tropical", 
-    category: "Beverages", 
-    subcategory: "Juices", 
-    price: 2000, 
-    rating: 4, 
-    stock: 20, 
-    image: "/assets/afia_tropical.jpg", 
-    description: "Tropical fruit juice.",
-    barcode: "345678901234",
-    supplier: "Mukwano Group"
-  },
-  { 
-    id: 4, 
-    name: "Heineken Beer 330ml", 
-    category: "Beverages", 
-    subcategory: "Alcoholic", 
-    price: 5000, 
-    rating: 5, 
-    stock: 60, 
-    image: "/assets/Heineken.png", 
-    description: "Premium lager beer.",
-    barcode: "456789012345",
-    supplier: "Heineken International"
-  },
-  { 
-    id: 5, 
-    name: "Bell Lager", 
-    category: "Beverages", 
-    subcategory: "Alcoholic", 
-    price: 4500, 
-    rating: 4, 
-    stock: 40, 
-    image: "/assets/bell.png", 
-    description: "Popular beer in Uganda.",
-    barcode: "567890123456",
-    supplier: "Uganda Breweries"
-  },
-  
-  // Groceries
-  { 
-    id: 6, 
-    name: "Golden Penny Semovita 2kg", 
-    category: "Groceries", 
-    subcategory: "Flour & Grains", 
-    price: 3500, 
-    rating: 4, 
-    stock: 30, 
-    image: "/assets/semo.jpeg", 
-    description: "Premium quality semovita.",
-    barcode: "678901234567",
-    supplier: "Flour Mills of Nigeria"
-  },
-  { 
-    id: 7, 
-    name: "Hima Cement 50kg", 
-    category: "Groceries", 
-    subcategory: "Building Materials", 
-    price: 45000, 
-    rating: 4, 
-    stock: 15, 
-    image: "/assets/hima.png", 
-    description: "High quality construction cement.",
-    barcode: "789012345678",
-    supplier: "Hima Cement Ltd"
-  },
-  
-  // Household
-  { 
-    id: 8, 
-    name: "Luxury Toilet Paper (12 rolls)", 
-    category: "Household", 
-    subcategory: "Bathroom", 
-    price: 12000, 
-    rating: 5, 
-    stock: 25, 
-    image: "/assets/1.jpg", 
-    description: "Premium quality toilet paper.",
-    barcode: "890123456789",
-    supplier: "Nice House of Plastics"
-  },
-  { 
-    id: 9, 
-    name: "OMO Detergent 5kg", 
-    category: "Household", 
-    subcategory: "Cleaning", 
-    price: 15000, 
-    rating: 4, 
-    stock: 18, 
-    image: "/assets/omo.jpg", 
-    description: "Powerful laundry detergent.",
-    barcode: "901234567890",
-    supplier: "Unilever"
-  },
-  
-  // Electronics
-  { 
-    id: 10, 
-    name: "Samsung Galaxy A14", 
-    category: "Electronics", 
-    subcategory: "Mobile Phones", 
-    price: 850000, 
-    rating: 4, 
-    stock: 8, 
-    image: "/assets/samsung.jpg", 
-    description: "Latest smartphone with great features.",
-    barcode: "012345678901",
-    supplier: "Samsung East Africa"
-  },
-  { 
-    id: 11, 
-    name: "Tecno Spark 10", 
-    category: "Electronics", 
-    subcategory: "Mobile Phones", 
-    price: 750000, 
-    rating: 4, 
-    stock: 12, 
-    image: "/assets/spark.jpeg", 
-    description: "Affordable smartphone with good camera.",
-    barcode: "123450987654",
-    supplier: "Tecno Mobile"
-  },
-  
-  // Clothing & Accessories
-  { 
-    id: 12, 
-    name: "Men's Casual Shirt", 
-    category: "Clothing", 
-    subcategory: "Men's Fashion", 
-    price: 35000, 
-    rating: 4, 
-    stock: 20, 
-    image: "/assets/casual.jpg", 
-    description: "Comfortable cotton shirt for men.",
-    barcode: "234561098765",
-    supplier: "Textile Uganda Ltd"
-  },
-  { 
-    id: 13, 
-    name: "Women's Handbag", 
-    category: "Clothing", 
-    subcategory: "Women's Fashion", 
-    price: 45000, 
-    rating: 5, 
-    stock: 15, 
-    image: "/assets/handbag.jpg", 
-    description: "Stylish women's handbag.",
-    barcode: "345672109876",
-    supplier: "Leather Crafts Uganda"
-  },
-  
-  // Health & Beauty
-  { 
-    id: 14, 
-    name: "Dove Body Wash", 
-    category: "Health & Beauty", 
-    subcategory: "Personal Care", 
-    price: 12000, 
-    rating: 4, 
-    stock: 25, 
-    image: "/assets/dove.jpeg", 
-    description: "Moisturizing body wash.",
-    barcode: "456783210987",
-    supplier: "Unilever"
-  },
-  { 
-    id: 15, 
-    name: "Head & Shoulders", 
-    category: "Health & Beauty", 
-    subcategory: "Personal Care", 
-    price: 13000, 
-    rating: 4, 
-    stock: 25, 
-    image: "/assets/head.jpeg", 
-    description: "Moisturizing shampoo wash.",
-    barcode: "456783210987",
-    supplier: "Unilever"
-  },
-  { 
-    id: 16, 
-    name: "Colgate Toothpaste", 
-    category: "Health & Beauty", 
-    subcategory: "Oral Care", 
-    price: 5000, 
-    rating: 5, 
-    stock: 40, 
-    image: "/assets/colgate.jpg", 
-    description: "Cavity protection toothpaste.",
-    barcode: "567894321098",
-    supplier: "Colgate-Palmolive"
-  },
-   { 
-    id: 17, 
-    name: "Tecno Spark 10", 
-    category: "Electronics", 
-    subcategory: "Mobile Phones", 
-    price: 750000, 
-    rating: 4, 
-    stock: 12, 
-    image: "/assets/spark.jpeg", 
-    description: "Affordable smartphone with good camera.",
-    barcode: "147258369"
-  },
-    { 
-    id: 18, 
-    name: "Splash", 
-    category: "Beverages", 
-    subcategory: "Juices", 
-    price: 2500, 
-    rating: 4, 
-    stock: 20, 
-    image: "/assets/splash.jpg", 
-    description: "Tropical fruit juice flavour mango.",
-    barcode: "345678901234",
-    supplier: "Mukwano Group"
-  },
-   
-];
-
-// Payment Methods
-const paymentMethods = [
-  { 
-    id: 1, 
-    name: "MTN Mobile Money", 
-    type: "mobile_money", 
-    icon: <MobileMoneyIcon />,
-    image: '/assets/mtn.jpg',
-    fields: ["Phone Number", "Transaction ID"]
-  },
-  { 
-    id: 2, 
-    name: "Airtel Money", 
-    type: "mobile_money", 
-    icon: <MobileMoneyIcon />,
-    image: '/assets/airtel.jpg',
-    fields: ["Phone Number", "Transaction ID"]
-  },
-  { 
-    id: 3, 
-    name: "Lyca Mobile Money", 
-    type: "mobile_money", 
-    icon: <MobileMoneyIcon />,
-    image: '/assets/lyca.png',
-    fields: ["Phone Number", "Transaction ID"]
-  },
-  {
-    id: 4,
-    name: "Pay with Cash",
-    type: "cash",
-    icon: <CashIcon />,
-    image: '',
-    fields: []
-  },
-  {
-    id: 5,
-    name: "PayPal",
-    type: "third_party",
-    icon: <PaymentIcon />,
-    image: '/assets/paypal.png',
-    fields: ["Email", "Transaction ID"]
-  },
-  {
-    id: 6,
-    name: "Flutterwave",
-    type: "third_party",
-    icon: <PaymentIcon />,
-    image: '/assets/flutter.png',
-    fields: ["Email", "Transaction ID"]
-  },
-  {
-    id: 7,
-    name: "Stripe",
-    type: "third_party",
-    icon: <PaymentIcon />,
-    image: '/assets/stripe.png',
-    fields: ["Email", "Transaction ID"]
-  },
-  {
-    id: 8,
-    name: "Razorpay",
-    type: "third_party",
-    icon: <PaymentIcon />,
-    image: '/assets/razor.png',
-    fields: ["Email", "Transaction ID"]
-  },
-  {
-    id: 9,
-    name: "Paystack",
-    type: "third_party",
-    icon: <PaymentIcon />,
-    image: '/assets/pay.png',
-    fields: ["Email", "Transaction ID"]
-  }
-];
-
-// Discount Offers
-const discountOffers = [
-  { id: 1, name: "Weekend Special", discount: 10, code: "WEEKEND10" },
-  { id: 2, name: "Bulk Purchase", discount: 15, code: "BULK15" },
-  { id: 3, name: "New Customer", discount: 20, code: "NEW20" },
-];
-
 const SalesPage = () => {
   // State Management
-  const [products, setProducts] = useState(productData);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [categoryMap, setCategoryMap] = useState({});
   const [cart, setCart] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState(productData);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
   const [minPrice, setMinPrice] = useState(0);
@@ -444,8 +115,58 @@ const SalesPage = () => {
   const [showAllProductsInCart, setShowAllProductsInCart] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [discountOffers, setDiscountOffers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const navigate = useNavigate();
+
+  // Fetch data from API - replace with your actual API calls
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // TODO: Replace with actual API call to fetch products
+        // const productsResponse = await axios.get('/api/products');
+        // setProducts(productsResponse.data);
+        // setFilteredProducts(productsResponse.data);
+        
+        // TODO: Replace with actual API call to fetch categories
+        // const categoriesResponse = await axios.get('/api/categories');
+        // setCategories(categoriesResponse.data);
+        
+        // Create category map - this would come from your API
+        const map = {};
+        categories.forEach(cat => {
+          map[cat.name] = cat.subcategories || [];
+        });
+        setCategoryMap(map);
+        
+        // TODO: Replace with actual API call to fetch payment methods
+        // const paymentMethodsResponse = await axios.get('/api/payment-methods');
+        // setPaymentMethods(paymentMethodsResponse.data);
+        
+        // TODO: Replace with actual API call to fetch discounts
+        // const discountsResponse = await axios.get('/api/discounts');
+        // setDiscountOffers(discountsResponse.data);
+        
+        // TODO: Replace with actual API call to fetch recent transactions
+        // const transactionsResponse = await axios.get('/api/transactions?limit=10');
+        // setPaymentHistory(transactionsResponse.data);
+        
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+        setSnackbarMessage("Failed to load data from server");
+        setOpenSnackbar(true);
+      }
+    };
+    
+    fetchData();
+  }, []);
 
   // Filter Products
   useEffect(() => {
@@ -453,7 +174,7 @@ const SalesPage = () => {
   }, [category, subcategory, minPrice, maxPrice, rating, searchText, products]);
 
   const applyFilters = () => {
-    const filtered = productData
+    const filtered = products
       .filter((product) => (category ? product.category === category : true))
       .filter((product) => (subcategory ? product.subcategory === subcategory : true))
       .filter((product) => product.price >= minPrice && product.price <= maxPrice)
@@ -463,14 +184,6 @@ const SalesPage = () => {
     setFilteredProducts(filtered);
   };
 
-  // Category Map
-  const categoryMap = {
-    Beverages: ["Soft Drinks", "Juices", "Water"],
-    Snacks: ["Chips", "Biscuits", "Nuts"],
-    Dairy: ["Milk", "Cheese", "Yogurt"],
-    Bakery: ["Bread", "Cakes", "Pastries"],
-  };
-  
   const renderReceipt = (transaction) => (
     <Box sx={{ p: 3, width: '100%', maxWidth: 400, bgcolor: 'background.paper' }} id="receipt">
       {/* Receipt Header */}
@@ -570,7 +283,6 @@ const SalesPage = () => {
       </Box>
     </Box>
   );
-      
 
   // Handlers
   const handleSearch = (e) => {
@@ -703,7 +415,7 @@ const SalesPage = () => {
   };
 
   // Payment Processing
-  const handleCompleteSale = () => {
+  const handleCompleteSale = async () => {
     if (selectedPaymentMethod?.type === 'cash') {
       const amount = parseFloat(cashAmount) || 0;
       if (amount < totalAmount) {
@@ -726,41 +438,48 @@ const SalesPage = () => {
       total: totalAmount,
       amountTendered: amountTendered,
       changeDue: changeDue,
-      status: 'completed',
-      amountTendered: selectedPaymentMethod.type === 'cash' ? parseFloat(cashAmount) : 0,
-      changeDue: selectedPaymentMethod.type === 'cash' ? changeDue : 0
+      status: 'completed'
     };
 
-    // Update stock levels
-    const updatedProducts = products.map(product => {
-      const cartItem = cart.find(item => item.id === product.id);
-      if (cartItem) {
-        return {
-          ...product,
-          stock: product.stock - cartItem.quantity
-        };
-      }
-      return product;
-    });
-
-    setProducts(updatedProducts);
-    setPaymentHistory([transaction, ...paymentHistory]);
-    setCurrentReceipt(transaction);
-    setReceiptModalOpen(true);
-    
-    // Reset system
-    setCart([]);
-    setAppliedDiscount(null);
-    setCustomerDetails({ name: "", phone: "", email: "" });
-    setSelectedPaymentMethod(null);
-    setPaymentDetails({});
-    setActiveStep(0);
-    setCartDrawerOpen(false);
-    setAmountTendered(0);
-    setChangeDue(0);
-    
-    setSnackbarMessage("Payment processed successfully!");
-    setOpenSnackbar(true);
+    try {
+      // TODO: Replace with actual API call to save transaction
+      // const response = await axios.post('/api/transactions', transaction);
+      
+      // TODO: Replace with actual API calls to update stock levels
+      // await Promise.all(
+      //   cart.map(item => 
+      //     axios.patch(`/api/products/${item.id}`, { 
+      //       stock: products.find(p => p.id === item.id).stock - item.quantity 
+      //     })
+      // );
+      
+      // TODO: Replace with actual API call to refresh products
+      // const productsResponse = await axios.get('/api/products');
+      // setProducts(productsResponse.data);
+      
+      // Update UI - replace with actual response data when API is connected
+      setPaymentHistory([transaction, ...paymentHistory]);
+      setCurrentReceipt(transaction);
+      setReceiptModalOpen(true);
+      
+      // Reset system
+      setCart([]);
+      setAppliedDiscount(null);
+      setCustomerDetails({ name: "", phone: "", email: "" });
+      setSelectedPaymentMethod(null);
+      setPaymentDetails({});
+      setActiveStep(0);
+      setCartDrawerOpen(false);
+      setAmountTendered(0);
+      setChangeDue(0);
+      
+      setSnackbarMessage("Payment processed successfully!");
+      setOpenSnackbar(true);
+    } catch (err) {
+      setSnackbarMessage("Failed to complete transaction");
+      setOpenSnackbar(true);
+      console.error("Transaction error:", err);
+    }
   };
 
   // Calculations
@@ -808,18 +527,28 @@ const SalesPage = () => {
     setEditModalOpen(true);
   };
 
-  const handleSaveProduct = () => {
+  const handleSaveProduct = async () => {
     if (!editingProduct) return;
     
-    const updatedProducts = products.map(p => 
-      p.id === editingProduct.id ? editingProduct : p
-    );
-    
-    setProducts(updatedProducts);
-    setEditModalOpen(false);
-    setEditingProduct(null);
-    setSnackbarMessage("Product updated successfully!");
-    setOpenSnackbar(true);
+    try {
+      // TODO: Replace with actual API call to update product
+      // const response = await axios.put(`/api/products/${editingProduct.id}`, editingProduct);
+      
+      // TODO: Replace with actual response data when API is connected
+      const updatedProducts = products.map(p => 
+        p.id === editingProduct.id ? editingProduct : p
+      );
+      
+      setProducts(updatedProducts);
+      setEditModalOpen(false);
+      setEditingProduct(null);
+      setSnackbarMessage("Product updated successfully!");
+      setOpenSnackbar(true);
+    } catch (err) {
+      setSnackbarMessage("Failed to update product");
+      setOpenSnackbar(true);
+      console.error("Update product error:", err);
+    }
   };
 
   const handleEditFieldChange = (field, value) => {
@@ -866,13 +595,6 @@ const SalesPage = () => {
             
             <TextField
               label="Price"
-              type="number"
-              value={editingProduct.price}
-              onChange={(e) => handleEditFieldChange('price', parseInt(e.target.value) || 0)}
-              fullWidth
-            />
-             <TextField
-              label="Discount"
               type="number"
               value={editingProduct.price}
               onChange={(e) => handleEditFieldChange('price', parseInt(e.target.value) || 0)}
@@ -927,8 +649,7 @@ const SalesPage = () => {
   );
 
   // Render functions for each step
- 
-const renderCartReview = () => (
+  const renderCartReview = () => (
     <Box>
       <TextField
         placeholder="Search items to add to cart..."
@@ -1089,8 +810,7 @@ const renderCartReview = () => (
     </Box>
   );
   
-
-    const renderCustomerInfo = () => (
+  const renderCustomerInfo = () => (
     <Box sx={{ p: 2 }}>
       <Typography variant="h6" gutterBottom>Customer Information</Typography>
       <TextField
@@ -1227,9 +947,25 @@ const renderCartReview = () => (
         </Box>
       )}
     </Box>
-  
-    );
+  );
+
   // Main render
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography variant="h6">Loading...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography variant="h6" color="error">Error: {error}</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
       {/* Edit Product Modal */}
@@ -1309,8 +1045,8 @@ const renderCartReview = () => (
                 onChange={handleCategoryChange}
               >
                 <MenuItem value="">All Categories</MenuItem>
-                {Object.keys(categoryMap).map((cat) => (
-                  <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                {categories.map((cat) => (
+                  <MenuItem key={cat.id} value={cat.name}>{cat.name}</MenuItem>
                 ))}
               </Select>
             </FormControl>
