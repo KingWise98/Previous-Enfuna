@@ -1,210 +1,472 @@
-import { useState } from "react";
-import { ledgerEntries } from "../../data/mockData";
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Button,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  InputAdornment,
+  Chip,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Divider,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  useTheme,
+  LinearProgress
+} from '@mui/material';
+import {
+  Add,
+  Delete,
+  Edit,
+  Search,
+  Refresh,
+  Close,
+  CheckCircle,
+  Cancel,
+  Receipt,
+  AccountBalance,
+  Payment,
+  LocalAtm
+} from '@mui/icons-material';
 
 const LedgerList = () => {
-  const [entries, setEntries] = useState(ledgerEntries);
+  const theme = useTheme();
+  const [entries, setEntries] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState(null);
+  
   const [newEntry, setNewEntry] = useState({
-    date: "",
-    name: "",
-    referenceNumber: "",
-    ledgerType: "",
-    ledgerGroup: "",
-    mode: "",
-    amount: "",
+    date: new Date().toISOString().split('T')[0],
+    name: '',
+    referenceNumber: '',
+    ledgerType: 'Income',
+    ledgerGroup: 'General',
+    mode: 'Cash',
+    amount: '',
   });
-  const [showForm, setShowForm] = useState(false);
 
-  const handleAction = (id, action) => {
-    if (action === "Delete") {
-      setEntries(entries.filter((entry) => entry.id !== id));
+  // Ledger types and groups
+  const ledgerTypes = ['Income', 'Expense', 'Asset', 'Liability', 'Equity'];
+  const ledgerGroups = ['General', 'Sales', 'Purchases', 'Payroll', 'Taxes'];
+  const paymentModes = ['Cash', 'Bank Transfer', 'Mobile Money', 'Credit Card', 'Other'];
+
+  // Fetch ledger entries from API
+  useEffect(() => {
+    const fetchLedgerEntries = async () => {
+      try {
+        setIsLoading(true);
+        // TODO: Replace with actual API endpoint
+        // const response = await fetch('/api/ledger-entries');
+        // const data = await response.json();
+        // setEntries(data);
+        
+        // Initialize with empty array
+        setEntries([]);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching ledger entries:', error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchLedgerEntries();
+  }, []);
+
+  // Filter entries based on search term
+  const filteredEntries = entries.filter(entry =>
+    entry.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    entry.referenceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    entry.ledgerType.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Handle create new ledger entry
+  const handleCreate = async () => {
+    try {
+      // TODO: Implement API call to create ledger entry
+      /*
+      const response = await fetch('/api/ledger-entries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEntry)
+      });
+      const createdEntry = await response.json();
+      setEntries([...entries, createdEntry]);
+      */
+      
+      // Temporary local state update
+      const createdEntry = {
+        ...newEntry,
+        id: Date.now(),
+        amount: parseFloat(newEntry.amount)
+      };
+      setEntries([...entries, createdEntry]);
+      
+      setNewEntry({
+        date: new Date().toISOString().split('T')[0],
+        name: '',
+        referenceNumber: '',
+        ledgerType: 'Income',
+        ledgerGroup: 'General',
+        mode: 'Cash',
+        amount: '',
+      });
+      setOpenDialog(false);
+    } catch (error) {
+      console.error('Error creating ledger entry:', error);
     }
   };
 
-  const handleCreate = () => {
-    if (newEntry.name && newEntry.referenceNumber && newEntry.amount) {
-      setEntries([...entries, { ...newEntry, id: Date.now() }]);
-      setNewEntry({ date: "", name: "", referenceNumber: "", ledgerType: "", ledgerGroup: "", mode: "", amount: "" });
-      setShowForm(false);
+  // Handle delete ledger entry
+  const handleDelete = async (id) => {
+    try {
+      // TODO: Implement API call to delete ledger entry
+      // await fetch(`/api/ledger-entries/${id}`, { method: 'DELETE' });
+      setEntries(entries.filter(entry => entry.id !== id));
+      setOpenDeleteDialog(false);
+    } catch (error) {
+      console.error('Error deleting ledger entry:', error);
+    }
+  };
+
+  // Handle input change
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewEntry({ ...newEntry, [name]: value });
+  };
+
+  // Get color based on ledger type
+  const getLedgerTypeColor = (type) => {
+    switch (type) {
+      case 'Income': return theme.palette.success.main;
+      case 'Expense': return theme.palette.error.main;
+      case 'Asset': return theme.palette.info.main;
+      case 'Liability': return theme.palette.warning.main;
+      default: return theme.palette.primary.main;
     }
   };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h2 style={{ color: "#333" }}>Ledger Entries</h2>
-      <button
-        onClick={() => setShowForm(true)}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#007bff",
-          color: "#fff",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          marginBottom: "20px",
-        }}
-      >
-        Create Ledger
-      </button>
+    <Box p={3}>
+      {/* Page Header */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box>
+          <Typography variant="h4" fontWeight="bold" gutterBottom>
+            Ledger Management
+          </Typography>
+          <Typography variant="subtitle1" color="textSecondary">
+            View and manage all ledger entries
+          </Typography>
+        </Box>
+        <Box>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Refresh />}
+            onClick={() => window.location.reload()}
+            sx={{ mr: 2 }}
+          >
+            Refresh
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<Add />}
+            onClick={() => setOpenDialog(true)}
+          >
+            New Entry
+          </Button>
+        </Box>
+      </Box>
 
-      {showForm && (
-        <div style={{ padding: "20px", backgroundColor: "#f9f9f9", borderRadius: "8px", marginBottom: "20px" }}>
-          <h3 style={{ color: "#007bff" }}>New Ledger Entry</h3>
-          <input
-            type="date"
-            value={newEntry.date}
-            onChange={(e) => setNewEntry({ ...newEntry, date: e.target.value })}
-            placeholder="Date"
-            style={inputStyle}
-          />
-          <input
-            type="text"
-            value={newEntry.name}
-            onChange={(e) => setNewEntry({ ...newEntry, name: e.target.value })}
-            placeholder="Name"
-            style={inputStyle}
-          />
-          <input
-            type="text"
-            value={newEntry.referenceNumber}
-            onChange={(e) => setNewEntry({ ...newEntry, referenceNumber: e.target.value })}
-            placeholder="Reference No."
-            style={inputStyle}
-          />
-          <input
-            type="text"
-            value={newEntry.ledgerType}
-            onChange={(e) => setNewEntry({ ...newEntry, ledgerType: e.target.value })}
-            placeholder="Ledger Type"
-            style={inputStyle}
-          />
-          <input
-            type="text"
-            value={newEntry.ledgerGroup}
-            onChange={(e) => setNewEntry({ ...newEntry, ledgerGroup: e.target.value })}
-            placeholder="Ledger Group"
-            style={inputStyle}
-          />
-          <input
-            type="text"
-            value={newEntry.mode}
-            onChange={(e) => setNewEntry({ ...newEntry, mode: e.target.value })}
-            placeholder="Mode"
-            style={inputStyle}
-          />
-          <input
-            type="number"
-            value={newEntry.amount}
-            onChange={(e) => setNewEntry({ ...newEntry, amount: e.target.value })}
-            placeholder="Amount ($)"
-            style={inputStyle}
-          />
-          <button
-            onClick={handleCreate}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#28a745",
-              color: "#fff",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              marginTop: "10px",
-            }}
-          >
-            Add
-          </button>
-          <button
-            onClick={() => setShowForm(false)}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#dc3545",
-              color: "#fff",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              marginTop: "10px",
-              marginLeft: "10px",
-            }}
-          >
-            Cancel
-          </button>
-        </div>
+      {/* Search */}
+      <TextField
+        variant="outlined"
+        size="small"
+        placeholder="Search ledger entries..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search />
+            </InputAdornment>
+          ),
+        }}
+        sx={{ width: 400, mb: 3 }}
+      />
+
+      {/* Loading State */}
+      {isLoading ? (
+        <LinearProgress />
+      ) : (
+        <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+          <TableContainer>
+            <Table>
+              <TableHead sx={{ backgroundColor: theme.palette.grey[100] }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Reference</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Group</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Mode</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }} align="right">Amount</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }} align="center">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredEntries.length > 0 ? (
+                  filteredEntries.map((entry) => (
+                    <TableRow key={entry.id} hover>
+                      <TableCell>{entry.date}</TableCell>
+                      <TableCell>
+                        <Typography fontWeight="500">{entry.name}</Typography>
+                      </TableCell>
+                      <TableCell>{entry.referenceNumber}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={entry.ledgerType}
+                          size="small"
+                          sx={{ 
+                            backgroundColor: getLedgerTypeColor(entry.ledgerType),
+                            color: theme.palette.getContrastText(getLedgerTypeColor(entry.ledgerType))
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>{entry.ledgerGroup}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={entry.mode}
+                          size="small"
+                          color="primary"
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography fontWeight="bold">
+                          UGX{entry.amount.toFixed(2)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="center">
+                        <Box display="flex" gap={1} justifyContent="center">
+                          <IconButton color="primary">
+                            <Edit />
+                          </IconButton>
+                          <IconButton 
+                            color="error" 
+                            onClick={() => {
+                              setEntryToDelete(entry);
+                              setOpenDeleteDialog(true);
+                            }}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                      <Typography variant="subtitle1">
+                        {entries.length === 0 ? 'No ledger entries found' : 'No matching entries found'}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       )}
 
-      <table
-        border="1"
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          marginTop: "20px",
-          borderRadius: "8px",
-          overflow: "hidden",
-        }}
+      {/* New Ledger Entry Dialog */}
+      <Dialog 
+        open={openDialog} 
+        onClose={() => setOpenDialog(false)}
+        maxWidth="sm"
+        fullWidth
       >
-        <thead style={{ backgroundColor: "#007bff", color: "#fff" }}>
-          <tr>
-            <th style={tableHeaderCellStyle}>Date</th>
-            <th style={tableHeaderCellStyle}>Name</th>
-            <th style={tableHeaderCellStyle}>Reference No.</th>
-            <th style={tableHeaderCellStyle}>Ledger Type</th>
-            <th style={tableHeaderCellStyle}>Ledger Group</th>
-            <th style={tableHeaderCellStyle}>Mode</th>
-            <th style={tableHeaderCellStyle}>Amount ($)</th>
-            <th style={tableHeaderCellStyle}>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entries.map((entry) => (
-            <tr key={entry.id}>
-              <td style={tableCellStyle}>{entry.date}</td>
-              <td style={tableCellStyle}>{entry.name}</td>
-              <td style={tableCellStyle}>{entry.referenceNumber}</td>
-              <td style={tableCellStyle}>{entry.ledgerType}</td>
-              <td style={tableCellStyle}>{entry.ledgerGroup}</td>
-              <td style={tableCellStyle}>{entry.mode}</td>
-              <td style={tableCellStyle}>{entry.amount}</td>
-              <td style={tableCellStyle}>
-                <select
-                  onChange={(e) => handleAction(entry.id, e.target.value)}
-                  style={selectStyle}
+        <DialogTitle sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">New Ledger Entry</Typography>
+            <IconButton onClick={() => setOpenDialog(false)}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Grid container spacing={2} sx={{ pt: 2 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Date"
+                type="date"
+                fullWidth
+                value={newEntry.date}
+                onChange={handleInputChange}
+                name="date"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Ledger Type</InputLabel>
+                <Select
+                  value={newEntry.ledgerType}
+                  onChange={handleInputChange}
+                  name="ledgerType"
+                  label="Ledger Type"
                 >
-                  <option value="">Select</option>
-                  <option value="Delete">Delete</option>
-                  <option value="Edit">Edit</option>
-                </select>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+                  {ledgerTypes.map(type => (
+                    <MenuItem key={type} value={type}>{type}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Name"
+                fullWidth
+                value={newEntry.name}
+                onChange={handleInputChange}
+                name="name"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Reference Number"
+                fullWidth
+                value={newEntry.referenceNumber}
+                onChange={handleInputChange}
+                name="referenceNumber"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Ledger Group</InputLabel>
+                <Select
+                  value={newEntry.ledgerGroup}
+                  onChange={handleInputChange}
+                  name="ledgerGroup"
+                  label="Ledger Group"
+                >
+                  {ledgerGroups.map(group => (
+                    <MenuItem key={group} value={group}>{group}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Payment Mode</InputLabel>
+                <Select
+                  value={newEntry.mode}
+                  onChange={handleInputChange}
+                  name="mode"
+                  label="Payment Mode"
+                >
+                  {paymentModes.map(mode => (
+                    <MenuItem key={mode} value={mode}>{mode}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Amount"
+                type="number"
+                fullWidth
+                value={newEntry.amount}
+                onChange={handleInputChange}
+                name="amount"
+                required
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">UGX</InputAdornment>,
+                }}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ borderTop: `1px solid ${theme.palette.divider}`, p: 2 }}>
+          <Button 
+            onClick={() => setOpenDialog(false)} 
+            variant="outlined"
+            sx={{ mr: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleCreate} 
+            variant="contained"
+            color="primary"
+            disabled={!newEntry.name || !newEntry.referenceNumber || !newEntry.amount}
+          >
+            Create Entry
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog 
+        open={openDeleteDialog} 
+        onClose={() => setOpenDeleteDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Confirm Delete</Typography>
+            <IconButton onClick={() => setOpenDeleteDialog(false)}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography>
+            Are you sure you want to delete the ledger entry for {entryToDelete?.name}?
+          </Typography>
+          <Typography variant="body2" color="textSecondary" mt={2}>
+            Reference: {entryToDelete?.referenceNumber} | Amount: UGX{entryToDelete?.amount?.toFixed(2)}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ borderTop: `1px solid ${theme.palette.divider}`, p: 2 }}>
+          <Button 
+            onClick={() => setOpenDeleteDialog(false)} 
+            variant="outlined"
+            sx={{ mr: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={() => handleDelete(entryToDelete?.id)} 
+            variant="contained"
+            color="error"
+          >
+            Delete Entry
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
-};
-
-const inputStyle = {
-  padding: "8px",
-  margin: "10px 0",
-  width: "100%",
-  border: "1px solid #ddd",
-  borderRadius: "5px",
-};
-
-const tableHeaderCellStyle = {
-  padding: "12px",
-  textAlign: "left",
-  fontWeight: "bold",
-};
-
-const tableCellStyle = {
-  padding: "10px",
-  borderBottom: "1px solid #ddd",
-};
-
-const selectStyle = {
-  padding: "6px 10px",
-  borderRadius: "5px",
-  border: "1px solid #ddd",
-  backgroundColor: "#f8f9fa",
-  cursor: "pointer",
 };
 
 export default LedgerList;
