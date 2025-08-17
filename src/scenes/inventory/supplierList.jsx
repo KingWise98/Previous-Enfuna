@@ -1,100 +1,244 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
-  Button,
   Typography,
+  Button,
   IconButton,
   Menu,
   MenuItem,
+  TextField,
+  Paper,
+  Tooltip,
+  useTheme,
+  InputAdornment,
+  Divider,
+  CircularProgress,
+  Chip,
+  Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Grid,
 } from "@mui/material";
+import {
+  MoreVert,
+  Edit,
+  VisibilityOff,
+  Delete,
+  CloudUpload,
+  GetApp,
+  PictureAsPdf,
+  Search,
+  AddCircle,
+  Close,
+  CheckCircle,
+  Refresh,
+} from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
-import { MoreVert, Edit, VisibilityOff, Delete, CloudUpload, GetApp, PictureAsPdf } from "@mui/icons-material";
-import { useTheme } from "@mui/material";
 import { tokens } from "../../theme";
 
 const SupplierListPage = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-
-  // Dummy Supplier Data
-  const initialSuppliers = [
-    { id: 1, name: "Tech Supplies Ltd", contactPerson: "James Kato", mobile: "+256789654321", email: "james.kato@example.com", state: "Kampala", balance: "$1,200" },
-    { id: 2, name: "Delhi Hardware", contactPerson: "Rajesh Sharma", mobile: "+91 9876543210", email: "rajesh.sharma@example.com", state: "New Delhi", balance: "$890" },
-    { id: 3, name: "Tokyo Electronics", contactPerson: "Yuki Nakamura", mobile: "+81 80-5678-1234", email: "yuki.nakamura@example.com", state: "Tokyo", balance: "$2,500" },
-    { id: 4, name: "Bogotá Imports", contactPerson: "María González", mobile: "+57 311 4567890", email: "maria.gonzalez@example.com", state: "Bogotá", balance: "$750" },
-    { id: 5, name: "US Trade Co.", contactPerson: "Michael Brown", mobile: "+1 555-987-6543", email: "michael.brown@example.com", state: "California", balance: "$3,000" },
-  ];
-
-  const [suppliers, setSuppliers] = useState(initialSuppliers);
+  const [suppliers, setSuppliers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [currentSupplier, setCurrentSupplier] = useState({
+    id: "",
+    name: "",
+    contactPerson: "",
+    mobile: "",
+    email: "",
+    state: "",
+    balance: "",
+    status: "Active",
+  });
 
-  // Handle Open Action Menu
+  // Fetch suppliers (replace with real API)
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      try {
+        setIsLoading(true);
+        // TODO: Replace with actual API call
+        // const res = await fetch("/api/suppliers");
+        // const data = await res.json();
+        // setSuppliers(data);
+        
+        // Simulate empty state
+        setSuppliers([]);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching suppliers:", error);
+        setIsLoading(false);
+      }
+    };
+    fetchSuppliers();
+  }, []);
+
+  // Filter suppliers by search term
+  const filteredSuppliers = suppliers.filter(
+    (supplier) =>
+      supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      supplier.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      supplier.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Action Menu Handlers
   const handleOpenMenu = (event, supplier) => {
     setAnchorEl(event.currentTarget);
     setSelectedSupplier(supplier);
   };
 
-  // Handle Close Action Menu
   const handleCloseMenu = () => {
     setAnchorEl(null);
     setSelectedSupplier(null);
   };
 
-  // Handle Delete
   const handleDelete = (id) => {
     setSuppliers(suppliers.filter((supplier) => supplier.id !== id));
     handleCloseMenu();
   };
 
-  // Handle Hide (Mock action)
   const handleHide = (id) => {
-    alert(`Supplier with ID ${id} is now hidden`);
+    setSuppliers(
+      suppliers.map((supplier) =>
+        supplier.id === id ? { ...supplier, status: "Inactive" } : supplier
+      )
+    );
     handleCloseMenu();
   };
 
-  // Handle Edit (Mock action)
-  const handleEdit = (id) => {
-    alert(`Editing supplier with ID ${id}`);
+  const handleActivate = (id) => {
+    setSuppliers(
+      suppliers.map((supplier) =>
+        supplier.id === id ? { ...supplier, status: "Active" } : supplier
+      )
+    );
     handleCloseMenu();
   };
 
-  // Handle Export to PDF (Mock Action)
-  const handleDownloadPDF = () => {
-    alert("Downloading supplier list as PDF...");
+  const handleEdit = (supplier) => {
+    setCurrentSupplier(supplier);
+    setEditMode(true);
+    setOpenDialog(true);
+    handleCloseMenu();
   };
 
-  // Handle Export to Excel (Mock Action)
-  const handleDownloadExcel = () => {
-    alert("Downloading supplier list as Excel...");
+  const handleAddSupplier = () => {
+    if (editMode) {
+      // Update existing supplier
+      setSuppliers(
+        suppliers.map((supplier) =>
+          supplier.id === currentSupplier.id ? currentSupplier : supplier
+        )
+      );
+    } else {
+      // Add new supplier
+      const newSupplierWithId = {
+        ...currentSupplier,
+        id: suppliers.length + 1,
+      };
+      setSuppliers([...suppliers, newSupplierWithId]);
+    }
+    setOpenDialog(false);
+    setCurrentSupplier({
+      id: "",
+      name: "",
+      contactPerson: "",
+      mobile: "",
+      email: "",
+      state: "",
+      balance: "",
+      status: "Active",
+    });
+    setEditMode(false);
   };
 
-  // Table Columns
+  // Columns for DataGrid
   const columns = [
-    { field: "name", headerName: "Supplier Name", flex: 1.5 },
+    {
+      field: "name",
+      headerName: "Supplier Name",
+      flex: 1.5,
+      renderCell: (params) => (
+        <Box display="flex" alignItems="center" gap={1}>
+          <Avatar sx={{ bgcolor: colors.greenAccent[500] }}>
+            {params.row.name.charAt(0)}
+          </Avatar>
+          <Typography>{params.row.name}</Typography>
+        </Box>
+      ),
+    },
     { field: "contactPerson", headerName: "Contact Person", flex: 1.2 },
-    { field: "mobile", headerName: "Mobile", flex: 1.2 },
+    { field: "mobile", headerName: "Mobile", flex: 1.1 },
     { field: "email", headerName: "Email", flex: 1.5 },
     { field: "state", headerName: "State", flex: 1 },
-    { field: "balance", headerName: "Balance", flex: 1 },
     {
-      field: "action",
-      headerName: "Action",
-      flex: 0.5,
+      field: "balance",
+      headerName: "Balance",
+      flex: 1,
+      renderCell: (params) => (
+        <Typography fontWeight="500" color={colors.greenAccent[500]}>
+          {params.row.balance}
+        </Typography>
+      ),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.8,
+      renderCell: (params) => (
+        <Chip
+          label={params.row.status}
+          size="small"
+          sx={{
+            backgroundColor:
+              params.row.status === "Active"
+                ? colors.greenAccent[600]
+                : colors.redAccent[600],
+            color: "white",
+          }}
+        />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 0.8,
       renderCell: (params) => (
         <>
-          <IconButton onClick={(event) => handleOpenMenu(event, params.row)}>
-            <MoreVert />
-          </IconButton>
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleCloseMenu}>
-            <MenuItem onClick={() => handleEdit(selectedSupplier?.id)}>
-              <Edit sx={{ marginRight: 1 }} /> Edit
+          <Tooltip title="Actions">
+            <IconButton onClick={(e) => handleOpenMenu(e, params.row)}>
+              <MoreVert />
+            </IconButton>
+          </Tooltip>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl) && selectedSupplier?.id === params.row.id}
+            onClose={handleCloseMenu}
+          >
+            <MenuItem onClick={() => handleEdit(params.row)}>
+              <Edit sx={{ mr: 1 }} /> Edit
             </MenuItem>
-            <MenuItem onClick={() => handleHide(selectedSupplier?.id)}>
-              <VisibilityOff sx={{ marginRight: 1 }} /> Hide
-            </MenuItem>
-            <MenuItem onClick={() => handleDelete(selectedSupplier?.id)} sx={{ color: "red" }}>
-              <Delete sx={{ marginRight: 1 }} /> Delete
+            {params.row.status === "Active" ? (
+              <MenuItem onClick={() => handleHide(params.row.id)}>
+                <VisibilityOff sx={{ mr: 1 }} /> Deactivate
+              </MenuItem>
+            ) : (
+              <MenuItem onClick={() => handleActivate(params.row.id)}>
+                <CheckCircle sx={{ mr: 1 }} /> Activate
+              </MenuItem>
+            )}
+            <MenuItem
+              onClick={() => handleDelete(params.row.id)}
+              sx={{ color: colors.redAccent[500] }}
+            >
+              <Delete sx={{ mr: 1 }} /> Delete
             </MenuItem>
           </Menu>
         </>
@@ -103,42 +247,212 @@ const SupplierListPage = () => {
   ];
 
   return (
-    <Box m="20px">
-      <Typography variant="h4" fontWeight="bold" mb={2}>
-        Supplier List
-      </Typography>
-
-      {/* Action Buttons */}
+    <Box p={3}>
+      {/* Page Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Button variant="contained" sx={{ backgroundColor: "purple", color: "white" }}>
-          Create Supplier
-        </Button>
-        <Box display="flex" gap={2}>
-          <Button variant="contained" sx={{ backgroundColor: "green", color: "white" }} startIcon={<CloudUpload />}>
-            Import
+        <Box>
+          <Typography variant="h4" fontWeight="bold" gutterBottom>
+            Supplier Management
+          </Typography>
+          <Typography variant="subtitle1" color="textSecondary">
+            Manage suppliers, contacts, and balances
+          </Typography>
+        </Box>
+        <Box>
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<Refresh />}
+            onClick={() => window.location.reload()}
+            sx={{ mr: 2 }}
+          >
+            Refresh
           </Button>
-          <Button variant="contained" sx={{ backgroundColor: "red", color: "white" }} startIcon={<PictureAsPdf />} onClick={handleDownloadPDF}>
-            Download PDF
-          </Button>
-          <Button variant="contained" sx={{ backgroundColor: "green", color: "white" }} startIcon={<GetApp />} onClick={handleDownloadExcel}>
-            Download Excel
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddCircle />}
+            onClick={() => {
+              setOpenDialog(true);
+              setEditMode(false);
+            }}
+          >
+            Add Supplier
           </Button>
         </Box>
       </Box>
 
-      {/* Supplier Table */}
-      <Box sx={{ height: "60vh" }}>
-        <DataGrid
-          rows={suppliers}
-          columns={columns}
-          sx={{
-            "& .MuiDataGrid-root": { border: "none" },
-            "& .MuiDataGrid-columnHeaders": { backgroundColor: colors.blueAccent[700] },
-            "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.primary[400] },
-            "& .MuiDataGrid-footerContainer": { backgroundColor: colors.blueAccent[700] },
+      {/* Search and Actions */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <TextField
+          variant="outlined"
+          size="small"
+          placeholder="Search suppliers..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
           }}
+          sx={{ width: 400 }}
         />
+        <Box display="flex" gap={2}>
+          <Tooltip title="Import Suppliers">
+            <Button variant="outlined" startIcon={<CloudUpload />}>
+              Import
+            </Button>
+          </Tooltip>
+          <Tooltip title="Export to PDF">
+            <Button variant="outlined" startIcon={<PictureAsPdf />} onClick={() => alert("PDF export")}>
+              PDF
+            </Button>
+          </Tooltip>
+          <Tooltip title="Export to Excel">
+            <Button variant="outlined" startIcon={<GetApp />} onClick={() => alert("Excel export")}>
+              Excel
+            </Button>
+          </Tooltip>
+        </Box>
       </Box>
+
+      {/* Supplier Table */}
+      <Paper elevation={3} sx={{ borderRadius: 2, overflow: "hidden" }}>
+        <Box sx={{ height: "65vh" }}>
+          <DataGrid
+            rows={filteredSuppliers}
+            columns={columns}
+            loading={isLoading}
+            sx={{
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: colors.blueAccent[700],
+              },
+              "& .MuiDataGrid-virtualScroller": {
+                backgroundColor: colors.primary[400],
+              },
+              "& .MuiDataGrid-footerContainer": {
+                backgroundColor: colors.blueAccent[700],
+              },
+            }}
+            components={{
+              LoadingOverlay: () => (
+                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                  <CircularProgress color="secondary" />
+                </Box>
+              ),
+              NoRowsOverlay: () => (
+                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                  <Typography variant="h6" color="textSecondary">
+                    {suppliers.length === 0 ? "No suppliers found" : "No matching suppliers"}
+                  </Typography>
+                </Box>
+              ),
+            }}
+          />
+        </Box>
+      </Paper>
+
+      {/* Add/Edit Supplier Dialog */}
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">
+              {editMode ? "Edit Supplier" : "Add New Supplier"}
+            </Typography>
+            <IconButton onClick={() => setOpenDialog(false)}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Supplier Name"
+                fullWidth
+                value={currentSupplier.name}
+                onChange={(e) =>
+                  setCurrentSupplier({ ...currentSupplier, name: e.target.value })
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Contact Person"
+                fullWidth
+                value={currentSupplier.contactPerson}
+                onChange={(e) =>
+                  setCurrentSupplier({ ...currentSupplier, contactPerson: e.target.value })
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Mobile"
+                fullWidth
+                value={currentSupplier.mobile}
+                onChange={(e) =>
+                  setCurrentSupplier({ ...currentSupplier, mobile: e.target.value })
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Email"
+                fullWidth
+                value={currentSupplier.email}
+                onChange={(e) =>
+                  setCurrentSupplier({ ...currentSupplier, email: e.target.value })
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="State/Region"
+                fullWidth
+                value={currentSupplier.state}
+                onChange={(e) =>
+                  setCurrentSupplier({ ...currentSupplier, state: e.target.value })
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Balance ($)"
+                fullWidth
+                value={currentSupplier.balance}
+                onChange={(e) =>
+                  setCurrentSupplier({ ...currentSupplier, balance: e.target.value })
+                }
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">$</InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ borderTop: `1px solid ${theme.palette.divider}`, p: 2 }}>
+          <Button
+            onClick={() => setOpenDialog(false)}
+            variant="outlined"
+            sx={{ mr: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAddSupplier}
+            variant="contained"
+            color="primary"
+            disabled={!currentSupplier.name || !currentSupplier.contactPerson}
+          >
+            {editMode ? "Update Supplier" : "Save Supplier"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
