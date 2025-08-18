@@ -3,6 +3,12 @@ import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import Admin from "./admins/admin";
 import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
+
+// Global Admin
+import Super from "./scenes/super/admin";
+import SuperUser from "./scenes/super/user";
+import Subs from "./scenes/super/subs";
+
 import Pos_Sidebar from "./scenes/global/Pos_Sidebar";
 import Dashboard from "./scenes/dashboard";
 import Payment from "./scenes/payment";
@@ -208,6 +214,22 @@ function App() {
               <Route path="/payment" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Payment />
+                </ProtectedRoute>
+              } />
+
+               <Route path="/super/admin" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Super />
+                </ProtectedRoute>
+              } />
+               <Route path="/super/user" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <SuperUser />
+                </ProtectedRoute>
+              } />
+              <Route path="/super/subs" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Subs />
                 </ProtectedRoute>
               } />
               

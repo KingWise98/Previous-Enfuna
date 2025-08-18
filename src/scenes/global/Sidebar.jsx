@@ -210,13 +210,22 @@ const Sidebar = () => {
           </SubMenu>
           <SubMenu title="ERP Report" icon={<PeopleAltOutlinedIcon />}>
           
-          <Item title="ERP Report" to="/reports/erp" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          <Item title="System Admin" to="/reports/erp" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          
+        </SubMenu>
+        <SubMenu title="SYSTEM ADMIN" icon={<PeopleAltOutlinedIcon />}>
+          
+          <Item title="Admin" to="/super/admin" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+           <Item title="User Managment" to="/super/user" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+            <Item title="Billing Management" to="/super/subs" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
           
         </SubMenu>
 
 
 
          <Item title="LOG OUT" to="/" icon={<ReplayIcon />} selected={selected} setSelected={setSelected} />
+
+         
 
         </Menu>
         
