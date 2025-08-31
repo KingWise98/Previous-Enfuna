@@ -1,1830 +1,1344 @@
-"use client"
-
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react";
 import {
   Box,
-  Typography,
-  Button,
   Grid,
   Card,
   CardContent,
+  CardActions,
+  Button,
+  Typography,
+  TextField,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControl,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Paper,
+  Slider,
+  Rating,
   IconButton,
+  CardMedia,
+  Chip,
+  Divider,
+  Paper,
+  Tabs,
+  Tab,
+  Badge,
+  Avatar,
+  Stack,
   Snackbar,
   Alert,
-  FormControlLabel,
   Switch,
-  createTheme,
-  Container,
-  FormHelperText,
-  Chip,
-  CardActions,
-} from "@mui/material"
+  FormControlLabel,
+  FormGroup,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
+} from "@mui/material";
 import {
+  Favorite,
+  FavoriteBorder,
   Add,
   Category,
-  Star,
-  Favorite,
-  Visibility,
-  Close,
-  Restaurant,
-  LocalHospital,
-  ContentCut,
-  ShoppingCart,
-  Event,
-  Home,
-  Business,
-  Spa,
-  DirectionsCar,
-  School,
-  FitnessCenter,
-  LocalPharmacy,
-  Hotel,
-  LocalBar,
-  LocalCafe,
-  Healing,
-  Groups,
-  MusicNote,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess,
+  Search,
+  FilterList,
+  Sort,
+  Inventory as InventoryIcon,
   Edit,
+  Close,
   Delete,
-  Schedule,
-  BookOnline,
-} from "@mui/icons-material"
-
-const serviceDetails = {
-  "Restaurant & Food Service": {
-    "Fine Dining": {
-      "Tasting Menu": {
-        description: "Multi-course culinary experience featuring seasonal ingredients and chef's specialties",
-        industryStandards: "7-12 courses, wine pairings available, 2-3 hour dining experience",
-        features: ["Advance reservations required", "Dietary restrictions accommodated", "Sommelier service"],
-        bookingEnabled: true,
-        image: "/fine-dining-restaurant.png",
-      },
-      "Wine Pairing": {
-        description: "Expert sommelier-selected wines paired with each course of your meal",
-        industryStandards: "3-8 wine selections, educational tasting notes, premium glassware",
-        features: ["Sommelier consultation", "Educational experience", "Premium wine selection"],
-        bookingEnabled: true,
-        image: "/wine-pairing.png",
-      },
-      "Private Dining": {
-        description: "Exclusive dining experience in a private setting for special occasions",
-        industryStandards: "2-20 guests, customized menu, dedicated service staff",
-        features: ["Customizable menu", "Private room", "Dedicated server", "Special occasion setup"],
-        bookingEnabled: true,
-        image: "/private-dining.png",
-      },
-    },
-    "Casual Dining": {
-      "Family Style": {
-        description: "Comfortable dining experience perfect for families and groups",
-        industryStandards: "Shared portions, kid-friendly options, relaxed atmosphere",
-        features: ["Kids menu available", "High chairs provided", "Group seating", "Quick service"],
-        bookingEnabled: true,
-        image: "/family-dining.png",
-      },
-    },
-  },
-  "Healthcare & Medical": {
-    "Primary Care": {
-      "Family Medicine": {
-        description: "Comprehensive healthcare for patients of all ages and medical conditions",
-        industryStandards: "Board-certified physicians, preventive care, chronic disease management",
-        features: ["Same-day appointments", "Telehealth available", "Electronic health records", "Insurance accepted"],
-        bookingEnabled: true,
-        image: "/family-medicine.png",
-      },
-      Pediatrics: {
-        description: "Specialized medical care for infants, children, and adolescents",
-        industryStandards: "Board-certified pediatricians, immunizations, growth monitoring",
-        features: ["Well-child visits", "Immunization schedules", "Developmental screenings", "Parent education"],
-        bookingEnabled: true,
-        image: "/pediatrics.png",
-      },
-    },
-    "Specialty Care": {
-      Cardiology: {
-        description: "Expert diagnosis and treatment of heart and cardiovascular conditions",
-        industryStandards: "Board-certified cardiologists, advanced diagnostics, treatment plans",
-        features: ["EKG testing", "Stress tests", "Echocardiograms", "Cardiac catheterization"],
-        bookingEnabled: true,
-        image: "/cardiology.png",
-      },
-    },
-  },
-  "Beauty & Wellness": {
-    "Hair Services": {
-      Haircuts: {
-        description: "Professional hair cutting and styling services for all hair types",
-        industryStandards: "Licensed stylists, consultation included, styling products used",
-        features: ["Style consultation", "Wash and blow-dry included", "Product recommendations", "Styling tips"],
-        bookingEnabled: true,
-        image: "/hair-salon-styling.png",
-      },
-      Coloring: {
-        description: "Expert hair coloring services including highlights, lowlights, and full color",
-        industryStandards: "Professional color products, strand testing, color protection",
-        features: ["Color consultation", "Strand test", "Toner application", "Color maintenance advice"],
-        bookingEnabled: true,
-        image: "/hair-coloring.png",
-      },
-    },
-    "Spa Services": {
-      "Massage Therapy": {
-        description: "Therapeutic massage services for relaxation and muscle tension relief",
-        industryStandards: "Licensed massage therapists, various techniques, clean facilities",
-        features: ["Multiple massage types", "Aromatherapy options", "Hot stone available", "Couples massage"],
-        bookingEnabled: true,
-        image: "/massage-therapy.png",
-      },
-    },
-  },
-  "Retail & Shopping": {
-    "Clothing & Fashion": {
-      "Women's Apparel": {
-        description: "Trendy and classic women's clothing for all occasions and sizes",
-        industryStandards: "Size inclusive, seasonal collections, quality fabrics",
-        features: ["Personal styling", "Fitting rooms", "Alteration services", "Return policy"],
-        bookingEnabled: false,
-        image: "/womens-apparel.png",
-      },
-    },
-    Electronics: {
-      Smartphones: {
-        description: "Latest smartphone models with accessories and technical support",
-        industryStandards: "Authorized retailer, warranty coverage, technical support",
-        features: ["Device setup", "Data transfer", "Screen protection", "Extended warranty"],
-        bookingEnabled: false,
-        image: "/smartphones.png",
-      },
-    },
-  },
-  "Professional Services": {
-    "Legal Services": {
-      "Family Law": {
-        description: "Legal representation for divorce, custody, and family-related matters",
-        industryStandards: "Licensed attorneys, confidential consultations, court representation",
-        features: ["Free consultation", "Payment plans", "Court representation", "Document preparation"],
-        bookingEnabled: true,
-        image: "/family-law.png",
-      },
-    },
-    "Financial Services": {
-      "Tax Preparation": {
-        description: "Professional tax preparation and filing services for individuals and businesses",
-        industryStandards: "Certified tax preparers, accuracy guarantee, audit support",
-        features: ["Maximum refund guarantee", "Audit protection", "Electronic filing", "Year-round support"],
-        bookingEnabled: true,
-        image: "/tax-preparation.png",
-      },
-    },
-  },
-  "Home Services": {
-    "Maintenance & Repair": {
-      Plumbing: {
-        description: "Professional plumbing services for repairs, installations, and maintenance",
-        industryStandards: "Licensed plumbers, emergency service, warranty on work",
-        features: ["24/7 emergency service", "Free estimates", "Licensed and insured", "Warranty included"],
-        bookingEnabled: true,
-        image: "/plumbing-service.png",
-      },
-    },
-    "Cleaning Services": {
-      "House Cleaning": {
-        description: "Professional residential cleaning services for homes and apartments",
-        industryStandards: "Bonded and insured, eco-friendly products, quality guarantee",
-        features: [
-          "Flexible scheduling",
-          "Eco-friendly products",
-          "Satisfaction guarantee",
-          "Background-checked staff",
-        ],
-        bookingEnabled: true,
-        image: "/house-cleaning.png",
-      },
-    },
-  },
-}
-
-const industryStandards = {
-  "Restaurant & Food Service": {
-    icon: <Restaurant />,
-    primaryColor: "#FF6B35",
-    secondaryColor: "#F7931E",
-    categories: {
-      "Fine Dining": ["Tasting Menu", "Wine Pairing", "Private Dining", "Chef's Table"],
-      "Casual Dining": ["Family Style", "Bar & Grill", "Bistro", "Cafe"],
-      "Fast Food": ["Quick Service", "Drive-Through", "Counter Service", "Food Truck"],
-      "Specialty Food": ["Pizza", "Sushi", "BBQ", "Bakery", "Ice Cream"],
-      Catering: ["Corporate Events", "Weddings", "Private Parties", "Buffet Service"],
-      "Bars & Nightlife": ["Sports Bar", "Cocktail Lounge", "Wine Bar", "Nightclub"],
-    },
-  },
-  "Healthcare & Medical": {
-    icon: <LocalHospital />,
-    primaryColor: "#2E86AB",
-    secondaryColor: "#A23B72",
-    categories: {
-      "Primary Care": ["Family Medicine", "Internal Medicine", "Pediatrics", "Geriatrics"],
-      "Specialty Care": ["Cardiology", "Dermatology", "Orthopedics", "Neurology"],
-      "Mental Health": ["Psychiatry", "Psychology", "Counseling", "Therapy"],
-      "Dental Care": ["General Dentistry", "Orthodontics", "Oral Surgery", "Cosmetic Dentistry"],
-      "Vision Care": ["Optometry", "Ophthalmology", "Contact Lenses", "Eye Surgery"],
-      Pharmacy: ["Prescription Filling", "Medication Counseling", "Immunizations", "Health Screenings"],
-    },
-  },
-  "Beauty & Wellness": {
-    icon: <Spa />,
-    primaryColor: "#E91E63",
-    secondaryColor: "#FF4081",
-    categories: {
-      "Hair Services": ["Haircuts", "Coloring", "Styling", "Extensions", "Treatments"],
-      "Nail Services": ["Manicures", "Pedicures", "Nail Art", "Gel Polish", "Acrylics"],
-      "Skin Care": ["Facials", "Chemical Peels", "Microdermabrasion", "Anti-Aging", "Acne Treatment"],
-      "Spa Services": ["Massage Therapy", "Body Wraps", "Aromatherapy", "Hot Stone", "Reflexology"],
-      "Aesthetic Services": ["Botox", "Fillers", "Laser Treatments", "IPL", "Body Contouring"],
-      Wellness: ["Meditation", "Yoga", "Reiki", "Acupuncture", "Nutrition Counseling"],
-    },
-  },
-  "Retail & Shopping": {
-    icon: <ShoppingCart />,
-    primaryColor: "#4CAF50",
-    secondaryColor: "#8BC34A",
-    categories: {
-      "Clothing & Fashion": ["Women's Apparel", "Men's Apparel", "Children's Clothing", "Accessories", "Shoes"],
-      Electronics: ["Smartphones", "Computers", "Gaming", "Audio/Video", "Smart Home"],
-      "Home & Garden": ["Furniture", "Decor", "Appliances", "Tools", "Gardening"],
-      "Sports & Recreation": ["Athletic Wear", "Equipment", "Outdoor Gear", "Fitness", "Team Sports"],
-      "Books & Media": ["Books", "Music", "Movies", "Games", "Educational Materials"],
-      "Specialty Retail": ["Jewelry", "Gifts", "Art & Crafts", "Pet Supplies", "Toys"],
-    },
-  },
-  "Professional Services": {
-    icon: <Business />,
-    primaryColor: "#3F51B5",
-    secondaryColor: "#2196F3",
-    categories: {
-      "Legal Services": ["Corporate Law", "Family Law", "Criminal Defense", "Real Estate Law", "Personal Injury"],
-      "Financial Services": ["Accounting", "Tax Preparation", "Financial Planning", "Insurance", "Banking"],
-      Consulting: ["Business Consulting", "IT Consulting", "Marketing", "HR Consulting", "Strategy"],
-      "Real Estate": ["Residential Sales", "Commercial Sales", "Property Management", "Appraisals", "Rentals"],
-      Insurance: ["Auto Insurance", "Home Insurance", "Life Insurance", "Business Insurance", "Health Insurance"],
-      "Marketing & Advertising": ["Digital Marketing", "Print Advertising", "Social Media", "Branding", "PR"],
-    },
-  },
-  "Home Services": {
-    icon: <Home />,
-    primaryColor: "#FF9800",
-    secondaryColor: "#FFC107",
-    categories: {
-      "Maintenance & Repair": ["Plumbing", "Electrical", "HVAC", "Roofing", "Flooring"],
-      "Cleaning Services": ["House Cleaning", "Carpet Cleaning", "Window Cleaning", "Pressure Washing", "Janitorial"],
-      Landscaping: ["Lawn Care", "Garden Design", "Tree Service", "Irrigation", "Hardscaping"],
-      "Home Improvement": ["Kitchen Remodeling", "Bathroom Remodeling", "Painting", "Flooring", "Roofing"],
-      "Security & Safety": ["Security Systems", "Locksmith", "Fire Safety", "Pest Control", "Home Inspection"],
-      "Moving & Storage": ["Local Moving", "Long Distance Moving", "Storage Units", "Packing Services", "Delivery"],
-    },
-  },
-  "Automotive Services": {
-    icon: <DirectionsCar />,
-    primaryColor: "#607D8B",
-    secondaryColor: "#9E9E9E",
-    categories: {
-      "Auto Repair": ["Engine Repair", "Brake Service", "Transmission", "Electrical", "Diagnostics"],
-      "Auto Maintenance": ["Oil Changes", "Tire Service", "Battery Service", "Tune-ups", "Inspections"],
-      "Auto Detailing": ["Exterior Wash", "Interior Cleaning", "Waxing", "Paint Protection", "Ceramic Coating"],
-      "Auto Sales": ["New Car Sales", "Used Car Sales", "Financing", "Trade-ins", "Leasing"],
-      "Specialty Services": ["Towing", "Roadside Assistance", "Auto Glass", "Custom Work", "Performance Tuning"],
-      "Fleet Services": ["Fleet Maintenance", "Commercial Vehicles", "Truck Repair", "Fleet Management", "Leasing"],
-    },
-  },
-  "Education & Training": {
-    icon: <School />,
-    primaryColor: "#9C27B0",
-    secondaryColor: "#E1BEE7",
-    categories: {
-      "Academic Education": ["Elementary", "Secondary", "Higher Education", "Vocational Training", "Online Learning"],
-      "Professional Training": [
-        "Corporate Training",
-        "Certification Programs",
-        "Skills Development",
-        "Leadership Training",
-      ],
-      "Specialized Learning": ["Language Learning", "Music Lessons", "Art Classes", "Dance Classes", "Sports Training"],
-      "Test Preparation": ["SAT/ACT Prep", "Professional Exams", "Language Proficiency", "Entrance Exams"],
-      "Tutoring Services": ["Math Tutoring", "Science Tutoring", "Language Arts", "Special Needs", "Group Sessions"],
-      "Educational Support": ["Career Counseling", "Academic Planning", "Study Skills", "Learning Disabilities"],
-    },
-  },
-  "Fitness & Recreation": {
-    icon: <FitnessCenter />,
-    primaryColor: "#FF5722",
-    secondaryColor: "#FF8A65",
-    categories: {
-      "Gym & Fitness": ["Personal Training", "Group Classes", "Weight Training", "Cardio", "Functional Fitness"],
-      "Sports Activities": ["Team Sports", "Individual Sports", "Youth Sports", "Adult Leagues", "Tournaments"],
-      "Outdoor Recreation": ["Hiking", "Camping", "Water Sports", "Adventure Tours", "Nature Programs"],
-      "Wellness Programs": ["Yoga Classes", "Meditation", "Nutrition Counseling", "Stress Management"],
-      "Specialized Fitness": [
-        "Martial Arts",
-        "Dance Fitness",
-        "Senior Fitness",
-        "Rehabilitation",
-        "Athletic Performance",
-      ],
-      "Recreation Facilities": ["Swimming Pools", "Tennis Courts", "Golf Courses", "Recreation Centers", "Parks"],
-    },
-  },
-  "Entertainment & Events": {
-    icon: <Event />,
-    primaryColor: "#E91E63",
-    secondaryColor: "#F06292",
-    categories: {
-      "Event Planning": ["Weddings", "Corporate Events", "Birthday Parties", "Conferences", "Trade Shows"],
-      "Entertainment Services": ["DJ Services", "Live Music", "Photography", "Videography", "Entertainment Acts"],
-      "Venue Services": ["Event Venues", "Catering", "Equipment Rental", "Decoration", "Lighting & Sound"],
-      "Recreational Events": ["Sports Events", "Community Events", "Festivals", "Concerts", "Theater Productions"],
-      "Specialized Events": ["Cultural Events", "Religious Ceremonies", "Fundraisers", "Product Launches"],
-      "Event Support": ["Event Coordination", "Vendor Management", "Logistics", "Security", "Cleanup Services"],
-    },
-  },
-}
-
-const createBusinessTheme = (businessType) => {
-  const businessData = industryStandards[businessType]
-  if (!businessData) return createTheme()
-
-  return createTheme({
-    palette: {
-      primary: {
-        main: businessData.primaryColor,
-      },
-      secondary: {
-        main: businessData.secondaryColor,
-      },
-    },
-    components: {
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            borderLeft: `4px solid ${businessData.primaryColor}`,
-          },
-        },
-      },
-      MuiButton: {
-        styleOverrides: {
-          contained: {
-            background: `linear-gradient(45deg, ${businessData.primaryColor}, ${businessData.secondaryColor})`,
-          },
-        },
-      },
-    },
-  })
-}
+  AddCircle,
+  RemoveCircle
+} from "@mui/icons-material";
 
 const ServicesPage = () => {
-  const [selectedBusinessType, setSelectedBusinessType] = useState("")
-  const [showBusinessTypeSelector, setShowBusinessTypeSelector] = useState(true)
-
   // State management
-  const [services, setServices] = useState([])
-  const [filteredServices, setFilteredServices] = useState([])
-  const [selectedService, setSelectedService] = useState(null)
-  const [category, setCategory] = useState("")
-  const [subcategory, setSubcategory] = useState("")
-  const [minPrice, setMinPrice] = useState(0)
-  const [maxPrice, setMaxPrice] = useState(2000000)
-  const [rating, setRating] = useState(0)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [openServiceDialog, setOpenServiceDialog] = useState(false)
-  const [openCategoryDialog, setOpenCategoryDialog] = useState(false)
-  const [openSubcategoryDialog, setOpenSubcategoryDialog] = useState(false)
-  const [editingCategory, setEditingCategory] = useState(null)
-  const [editingSubcategory, setEditingSubcategory] = useState(null)
-
-  const [serviceForm, setServiceForm] = useState({
-    name: "",
-    category: "",
-    subcategory: "",
-    price: "",
+  const [services, setServices] = useState([]);
+  const [filteredServices, setFilteredServices] = useState([]);
+  const [selectedService, setSelectedService] = useState(null);
+  const [categoryStructure, setCategoryStructure] = useState({});
+  const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(100000);
+  const [rating, setRating] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [openServiceDialog, setOpenServiceDialog] = useState(false);
+  const [openCategoryDialog, setOpenCategoryDialog] = useState(false);
+  const [newService, setNewService] = useState({ 
+    name: "", 
+    category: "", 
+    subcategory: "", 
+    price: "", 
+    rating: 0, 
     duration: "",
-    rating: 0,
-    provider: "",
-    providerRating: 0,
-    available: true,
     description: "",
-    requiresAppointment: true,
-    maxParticipants: "",
-    tags: [],
     image: null,
     imagePreview: "",
-    features: [],
-    industryStandards: "",
-    bookingEnabled: false,
-  })
-
-  const [isEditing, setIsEditing] = useState(false)
-  const [editingServiceId, setEditingServiceId] = useState(null)
-
-  const [dynamicCategories, setDynamicCategories] = useState({})
-
+    isActive: true,
+    customFields: []
+  });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState(null);
   const [newCategory, setNewCategory] = useState({
     name: "",
-    subcategories: [],
-  })
-  const [newSubcategory, setNewSubcategory] = useState("")
-  const [favorites, setFavorites] = useState([])
-  const [expandedCategories, setExpandedCategories] = useState({})
-  const [activeTab, setActiveTab] = useState(0)
-  const [newTag, setNewTag] = useState("")
+    subcategories: []
+  });
+  const [newSubcategory, setNewSubcategory] = useState("");
+  const [favorites, setFavorites] = useState([]);
+  const [expandedCategories, setExpandedCategories] = useState({});
+  const [activeTab, setActiveTab] = useState(0);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
-    severity: "success",
-  })
-  const [newMenuItem, setNewMenuItem] = useState({
+    severity: "success"
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [newCustomField, setNewCustomField] = useState({
     name: "",
-    price: "",
-    category: "",
-  })
-  const [newRoomType, setNewRoomType] = useState("")
-  const [newAmenity, setNewAmenity] = useState("")
-  const [newInsuranceProvider, setNewInsuranceProvider] = useState("")
+    type: "text",
+    required: false
+  });
 
-  const handleBusinessTypeSelection = (businessType) => {
-    setSelectedBusinessType(businessType)
-    setShowBusinessTypeSelector(false)
-    // Reset filters and form when business type changes
-    setCategory("")
-    setSubcategory("")
-    setServiceForm((prev) => ({
-      ...prev,
-      category: "",
-      subcategory: "",
-    }))
-  }
+  // Fetch services and categories from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // TODO: Replace with actual API calls
+        // const servicesResponse = await fetch('/api/services');
+        // const servicesData = await servicesResponse.json();
+        // setServices(servicesData);
+        // setFilteredServices(servicesData);
+        
+        // const categoriesResponse = await fetch('/api/categories');
+        // const categoriesData = await categoriesResponse.json();
+        // setCategoryStructure(categoriesData);
+        
+        // For demo purposes, set some initial data
+        const demoCategories = {
+          "Restaurant": ["Dining", "Takeaway", "Catering"],
+          "Automotive": ["Maintenance", "Repair", "Detailing"],
+          "Beauty": ["Hair", "Nails", "Skincare"]
+        };
+        
+        const demoServices = [
+          {
+            id: 1,
+            name: "Full Car Detailing",
+            category: "Automotive",
+            subcategory: "Detailing",
+            price: 150,
+            rating: 4.8,
+            duration: "3 hours",
+            description: "Complete interior and exterior detailing service",
+            image: "/assets/cl.jpeg",
+            isActive: true,
+            customFields: [
+              { name: "Vehicle Type", value: "SUV", type: "text", required: true },
+              { name: "Interior Cleaning", value: "Yes", type: "checkbox", required: false }
+            ]
+          },
+          {
+            id: 2,
+            name: "Fine Dining Experience",
+            category: "Restaurant",
+            subcategory: "Dining",
+            price: 85,
+            rating: 4.9,
+            duration: "2 hours",
+            description: "Multi-course gourmet meal with wine pairing",
+            image: "/assets/d.jpeg",
+            isActive: true,
+            customFields: [
+              { name: "Dietary Restrictions", value: "None", type: "text", required: false },
+              { name: "Number of Guests", value: "2", type: "number", required: true }
+            ]
+          }
+        ];
+        
+        setCategoryStructure(demoCategories);
+        setServices(demoServices);
+        setFilteredServices(demoServices);
+        
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+        showSnackbar("Failed to load data", "error");
+      }
+    };
 
-  const getDefaultServiceType = (businessType) => {
-    const serviceTypeMap = {
-      "Restaurant & Food Service": "hospitality",
-      "Healthcare & Medical": "healthcare",
-      "Beauty & Wellness": "salon",
-      "Retail & Shopping": "retail",
-      "Entertainment & Events": "event",
-      "Home Services": "standard",
-      "Professional Services": "standard",
-      "Automotive Services": "standard",
-      "Education & Training": "standard",
-      "Fitness & Recreation": "standard",
-    }
-    return serviceTypeMap[businessType] || "standard"
-  }
-
-  const getCurrentCategories = () => {
-    const baseCategories = industryStandards[selectedBusinessType]?.categories || {}
-    const dynamicCats = dynamicCategories[selectedBusinessType] || {}
-    return { ...baseCategories, ...dynamicCats }
-  }
+    fetchData();
+  }, []);
 
   // Apply filters whenever filter criteria change
   useEffect(() => {
-    let filtered = [...services]
-
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (service) =>
-          service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          service.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          service.subcategory.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          service.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          service.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase())),
-      )
+    let filtered = [...services];
+    
+    // Apply tab-specific filters
+    if (activeTab === 1) { // Favorites tab
+      filtered = filtered.filter(service => favorites.some(fav => fav.id === service.id));
+    } else if (activeTab === 2) { // Inactive services tab
+      filtered = filtered.filter(service => !service.isActive);
     }
-
-    // Filter by category
+    
+    // Category filter
     if (category) {
-      filtered = filtered.filter((service) => service.category === category)
+      filtered = filtered.filter(service => service.category === category);
     }
-
-    // Filter by subcategory
+    
+    // Subcategory filter
     if (subcategory) {
-      filtered = filtered.filter((service) => service.subcategory === subcategory)
+      filtered = filtered.filter(service => service.subcategory === subcategory);
     }
-
-    // Filter by price range
-    filtered = filtered.filter((service) => service.price >= minPrice && service.price <= maxPrice)
-
-    // Filter by rating
+    
+    // Price filter
+    filtered = filtered.filter(service => 
+      service.price >= minPrice && service.price <= maxPrice
+    );
+    
+    // Rating filter
     if (rating > 0) {
-      filtered = filtered.filter((service) => service.rating >= rating)
+      filtered = filtered.filter(service => service.rating >= rating);
     }
-
-    // Filter by active tab
-    if (activeTab === 1) {
-      // Favorites
-      filtered = filtered.filter((service) => favorites.includes(service.id))
-    } else if (activeTab === 2) {
-      // Popular Services
-      filtered = filtered.filter((service) => service.rating >= 4.0)
+    
+    // Search term
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(service => 
+        service.name.toLowerCase().includes(term) ||
+        service.description.toLowerCase().includes(term)
+      );
     }
+    
+    setFilteredServices(filtered);
+  }, [services, category, subcategory, minPrice, maxPrice, rating, searchTerm, activeTab, favorites]);
 
-    setFilteredServices(filtered)
-  }, [services, searchTerm, category, subcategory, minPrice, maxPrice, rating, activeTab, favorites])
-
-  // Sample data initialization
-  useEffect(() => {
-    const sampleServices = [
-      {
-        id: 1,
-        name: "Premium Hair Styling",
-        category: "Beauty & Wellness",
-        subcategory: "Haircuts",
-        price: 150000,
-        duration: 120,
-        rating: 4.8,
-        provider: "Glamour Studio",
-        providerRating: 4.9,
-        available: true,
-        description: "Professional hair styling with premium products and expert stylists.",
-        requiresAppointment: true,
-        maxParticipants: "1",
-        tags: ["Premium", "Styling", "Professional"],
-        image: "/hair-salon-styling.png",
-        serviceType: "salon",
-        salonType: "hair",
-        appointmentSettings: {
-          advanceBooking: 2,
-          cancellationPolicy: "24 hours",
-        },
-        staffAssignable: true,
-        features: ["Style consultation", "Wash and blow-dry included", "Product recommendations", "Styling tips"],
-        industryStandards: "Licensed stylists, consultation included, styling products used",
-        bookingEnabled: true,
-      },
-      {
-        id: 2,
-        name: "Fine Dining Experience",
-        category: "Restaurant & Food Service",
-        subcategory: "Tasting Menu",
-        price: 250000,
-        duration: 180,
-        rating: 4.9,
-        provider: "Le Gourmet",
-        providerRating: 4.8,
-        available: true,
-        description: "Exquisite fine dining experience with chef's special menu.",
-        requiresAppointment: true,
-        maxParticipants: "8",
-        tags: ["Fine Dining", "Chef Special", "Premium"],
-        image: "/fine-dining-restaurant.png",
-        serviceType: "hospitality",
-        hospitalityType: "restaurant",
-        menuItems: [
-          { name: "Appetizer Platter", price: "45000", category: "Starters" },
-          { name: "Grilled Salmon", price: "85000", category: "Main Course" },
-        ],
-        tableManagement: {
-          totalTables: 20,
-          availableTables: 15,
-          tableLayout: "Indoor & Outdoor",
-        },
-        features: ["Advance reservations required", "Dietary restrictions accommodated", "Sommelier service"],
-        industryStandards: "7-12 courses, wine pairings available, 2-3 hour dining experience",
-        bookingEnabled: true,
-      },
-    ]
-    setServices(sampleServices)
-  }, [])
-
-  // Event handlers
-  const getServiceDetails = (category, subcategory) => {
-    const businessTypeDetails = serviceDetails[selectedBusinessType]
-    if (businessTypeDetails && businessTypeDetails[category] && businessTypeDetails[category][subcategory]) {
-      return businessTypeDetails[category][subcategory]
-    }
-    return null
-  }
-
-  const handleServiceFormChange = (field, value) => {
-    setServiceForm((prev) => {
-      const updated = { ...prev, [field]: value }
-
-      // Auto-populate service details when category and subcategory are selected
-      if ((field === "category" || field === "subcategory") && updated.category && updated.subcategory) {
-        const details = getServiceDetails(updated.category, updated.subcategory)
-        if (details) {
-          updated.description = details.description
-          updated.industryStandards = details.industryStandards
-          updated.features = details.features || []
-          updated.bookingEnabled = details.bookingEnabled
-          updated.imagePreview = details.image
-        }
-      }
-
-      return updated
-    })
-  }
-
-  const handleAddCategory = () => {
-    if (newCategory.name.trim()) {
-      const currentCategories = getCurrentCategories()
-      const updatedCategories = {
-        ...currentCategories,
-        [newCategory.name]: newCategory.subcategories,
-      }
-
-      setDynamicCategories((prev) => ({
-        ...prev,
-        [selectedBusinessType]: updatedCategories,
-      }))
-
-      setSnackbar({
-        open: true,
-        message: "Category added successfully!",
-        severity: "success",
-      })
-
-      setNewCategory({ name: "", subcategories: [] })
-      setOpenCategoryDialog(false)
-    }
-  }
-
-  const handleEditCategory = (categoryName) => {
-    const currentCategories = getCurrentCategories()
-    setNewCategory({
-      name: categoryName,
-      subcategories: [...(currentCategories[categoryName] || [])],
-    })
-    setEditingCategory(categoryName)
-    setOpenCategoryDialog(true)
-  }
-
-  const handleUpdateCategory = () => {
-    if (newCategory.name.trim() && editingCategory) {
-      const currentCategories = getCurrentCategories()
-      const updatedCategories = { ...currentCategories }
-
-      // Remove old category if name changed
-      if (editingCategory !== newCategory.name) {
-        delete updatedCategories[editingCategory]
-      }
-
-      updatedCategories[newCategory.name] = newCategory.subcategories
-
-      setDynamicCategories((prev) => ({
-        ...prev,
-        [selectedBusinessType]: updatedCategories,
-      }))
-
-      setSnackbar({
-        open: true,
-        message: "Category updated successfully!",
-        severity: "success",
-      })
-
-      setNewCategory({ name: "", subcategories: [] })
-      setEditingCategory(null)
-      setOpenCategoryDialog(false)
-    }
-  }
-
-  const handleDeleteCategory = (categoryName) => {
-    const currentCategories = getCurrentCategories()
-    const updatedCategories = { ...currentCategories }
-    delete updatedCategories[categoryName]
-
-    setDynamicCategories((prev) => ({
+  // Toggle category expansion
+  const toggleCategory = (categoryName) => {
+    setExpandedCategories(prev => ({
       ...prev,
-      [selectedBusinessType]: updatedCategories,
-    }))
+      [categoryName]: !prev[categoryName]
+    }));
+  };
 
+  // Handle adding to favorites
+  const handleAddToFavorites = (service) => {
+    if (!favorites.some((fav) => fav.id === service.id)) {
+      setFavorites([...favorites, service]);
+      showSnackbar("Added to favorites", "success");
+    }
+  };
+
+  // Handle removing from favorites
+  const handleRemoveFromFavorites = (serviceId) => {
+    setFavorites(favorites.filter((fav) => fav.id !== serviceId));
+    showSnackbar("Removed from favorites", "info");
+  };
+
+  // View service details
+  const handleViewDetails = (service) => {
+    setSelectedService(service);
+    setOpenServiceDialog(true);
+  };
+
+  // Show snackbar notification
+  const showSnackbar = (message, severity = "success") => {
     setSnackbar({
       open: true,
-      message: "Category deleted successfully!",
-      severity: "success",
-    })
-  }
+      message,
+      severity
+    });
+  };
 
-  const handleAddSubcategory = () => {
-    if (newSubcategory.trim() && !newCategory.subcategories.includes(newSubcategory)) {
-      setNewCategory((prev) => ({
-        ...prev,
-        subcategories: [...prev.subcategories, newSubcategory],
-      }))
-      setNewSubcategory("")
+  // Close snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
+
+  // Open add service dialog
+  const handleOpenAddService = () => {
+    setNewService({ 
+      name: "", 
+      category: "", 
+      subcategory: "", 
+      price: "", 
+      rating: 0, 
+      duration: "",
+      description: "",
+      image: null,
+      imagePreview: "",
+      isActive: true,
+      customFields: []
+    });
+    setIsEditing(false);
+    setEditingServiceId(null);
+    setOpenServiceDialog(true);
+  };
+
+  // Open manage categories dialog
+  const handleOpenManageCategories = () => {
+    setNewCategory({
+      name: "",
+      subcategories: []
+    });
+    setNewSubcategory("");
+    setOpenCategoryDialog(true);
+  };
+
+  // Close all dialogs
+  const handleDialogClose = () => {
+    setOpenServiceDialog(false);
+    setOpenCategoryDialog(false);
+    setSelectedService(null);
+  };
+
+  // Handle image upload for new service
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewService({
+          ...newService,
+          image: file,
+          imagePreview: reader.result
+        });
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
-  const handleRemoveSubcategory = (subcategoryToRemove) => {
-    setNewCategory((prev) => ({
-      ...prev,
-      subcategories: prev.subcategories.filter((sub) => sub !== subcategoryToRemove),
-    }))
-  }
-
-  const handleAddService = () => {
-    if (serviceForm.name.trim() && serviceForm.category && serviceForm.subcategory && serviceForm.provider.trim()) {
-      const newService = {
-        id: Date.now(),
-        ...serviceForm,
-        price: Number.parseFloat(serviceForm.price) || 0,
-        duration: Number.parseInt(serviceForm.duration) || 0,
-        maxParticipants: Number.parseInt(serviceForm.maxParticipants) || 1,
-      }
-
-      setServices((prev) => [...prev, newService])
-      setSnackbar({
-        open: true,
-        message: "Service added successfully!",
-        severity: "success",
-      })
-
-      handleDialogClose()
+  // Handle sorting
+  const handleSort = (e) => {
+    const sortValue = e.target.value;
+    let sortedServices = [...filteredServices];
+    switch (sortValue) {
+      case "priceAsc":
+        sortedServices.sort((a, b) => a.price - b.price);
+        break;
+      case "priceDesc":
+        sortedServices.sort((a, b) => b.price - a.price);
+        break;
+      case "ratingAsc":
+        sortedServices.sort((a, b) => a.rating - b.rating);
+        break;
+      case "ratingDesc":
+        sortedServices.sort((a, b) => b.rating - a.rating);
+        break;
+      case "nameAsc":
+        sortedServices.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "nameDesc":
+        sortedServices.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      default:
+        break;
     }
-  }
+    setFilteredServices(sortedServices);
+  };
 
+  // Handle subcategory selection from sidebar
+  const handleSubcategorySelect = (subcat) => {
+    setSubcategory(subcat);
+    // Find the category that contains this subcategory
+    const parentCategory = Object.keys(categoryStructure).find(cat => 
+      categoryStructure[cat].includes(subcat)
+    );
+    if (parentCategory) {
+      setCategory(parentCategory);
+    }
+  };
+
+  // Add a new service
+  const handleAddService = async () => {
+    try {
+      // Generate a unique ID for the new service
+      const newId = Math.max(...services.map(s => s.id), 0) + 1;
+      
+      const serviceToAdd = {
+        ...newService,
+        id: newId,
+        rating: parseFloat(newService.rating)
+      };
+      
+      setServices([...services, serviceToAdd]);
+      showSnackbar("Service added successfully", "success");
+      handleDialogClose();
+    } catch (err) {
+      showSnackbar("Failed to add service", "error");
+    }
+  };
+
+  // Handle opening the edit service dialog
   const handleEditService = (service) => {
-    setServiceForm({
+    setSelectedService(service);
+    setNewService({
       name: service.name,
       category: service.category,
       subcategory: service.subcategory,
-      price: service.price.toString(),
-      duration: service.duration.toString(),
+      price: service.price,
       rating: service.rating,
-      provider: service.provider,
-      providerRating: service.providerRating,
-      available: service.available,
-      description: service.description || "",
-      requiresAppointment: service.requiresAppointment,
-      maxParticipants: service.maxParticipants?.toString() || "",
-      tags: service.tags || [],
-      image: service.image,
-      imagePreview: service.imagePreview || "",
-      features: service.features || [],
-      industryStandards: service.industryStandards || "",
-      bookingEnabled: service.bookingEnabled || false,
-    })
-    setIsEditing(true)
-    setEditingServiceId(service.id)
-    setOpenServiceDialog(true)
-  }
-
-  const handleSaveEditedService = () => {
-    setServices((prev) =>
-      prev.map((service) =>
-        service.id === editingServiceId
-          ? {
-              ...service,
-              ...serviceForm,
-              price: Number.parseFloat(serviceForm.price) || 0,
-              duration: Number.parseInt(serviceForm.duration) || 0,
-              maxParticipants: Number.parseInt(serviceForm.maxParticipants) || 1,
-            }
-          : service,
-      ),
-    )
-    setSnackbar({
-      open: true,
-      message: "Service updated successfully!",
-      severity: "success",
-    })
-    handleDialogClose()
-  }
-
-  const handleDeleteService = (serviceId) => {
-    setServices((prev) => prev.filter((service) => service.id !== serviceId))
-    setSnackbar({
-      open: true,
-      message: "Service deleted successfully!",
-      severity: "success",
-    })
-  }
-
-  const handleDialogClose = () => {
-    setOpenServiceDialog(false)
-    setOpenCategoryDialog(false)
-    setOpenSubcategoryDialog(false)
-    setSelectedService(null)
-    setIsEditing(false)
-    setEditingServiceId(null)
-    setEditingCategory(null)
-    setEditingSubcategory(null)
-    setServiceForm({
-      name: "",
-      category: "",
-      subcategory: "",
-      price: "",
-      duration: "",
-      rating: 0,
-      provider: "",
-      providerRating: 0,
-      available: true,
-      description: "",
-      requiresAppointment: true,
-      maxParticipants: "",
-      tags: [],
+      duration: service.duration,
+      description: service.description,
       image: null,
-      imagePreview: "",
-      features: [],
-      industryStandards: "",
-      bookingEnabled: false,
-    })
-    setNewCategory({ name: "", subcategories: [] })
-    setNewSubcategory("")
-  }
+      imagePreview: service.image,
+      isActive: service.isActive,
+      customFields: service.customFields || []
+    });
+    setIsEditing(true);
+    setEditingServiceId(service.id);
+    setOpenServiceDialog(true);
+  };
 
-  const handleSort = (event) => {
-    const sortBy = event.target.value
-    const sortedServices = [...filteredServices]
-
-    switch (sortBy) {
-      case "nameAsc":
-        sortedServices.sort((a, b) => a.name.localeCompare(b.name))
-        break
-      case "nameDesc":
-        sortedServices.sort((a, b) => b.name.localeCompare(a.name))
-        break
-      case "priceAsc":
-        sortedServices.sort((a, b) => a.price - b.price)
-        break
-      case "priceDesc":
-        sortedServices.sort((a, b) => b.price - a.price)
-        break
-      case "ratingAsc":
-        sortedServices.sort((a, b) => a.rating - b.rating)
-        break
-      case "ratingDesc":
-        sortedServices.sort((a, b) => b.rating - a.rating)
-        break
-      case "durationAsc":
-        sortedServices.sort((a, b) => a.duration - b.duration)
-        break
-      case "durationDesc":
-        sortedServices.sort((a, b) => b.duration - a.duration)
-        break
-      default:
-        break
+  // Handle saving edited service
+  const handleSaveEditedService = async () => {
+    try {
+      const updatedServices = services.map(s => 
+        s.id === editingServiceId ? { ...newService, id: editingServiceId } : s
+      );
+      setServices(updatedServices);
+      
+      showSnackbar("Service updated successfully", "success");
+      handleDialogClose();
+    } catch (err) {
+      showSnackbar("Failed to update service", "error");
     }
+  };
 
-    setFilteredServices(sortedServices)
-  }
-
-  const handleToggleFavorite = (serviceId) => {
-    setFavorites((prev) => (prev.includes(serviceId) ? prev.filter((id) => id !== serviceId) : [...prev, serviceId]))
-  }
-
-  const handleAddTag = () => {
-    if (newTag && !serviceForm.tags.includes(newTag)) {
-      setServiceForm((prev) => ({
+  // Add a new category
+  const handleAddCategory = async (categoryData) => {
+    try {
+      setCategoryStructure(prev => ({
         ...prev,
-        tags: [...prev.tags, newTag],
-      }))
-      setNewTag("")
+        [categoryData.name]: categoryData.subcategories
+      }));
+      showSnackbar("Category added successfully", "success");
+      handleDialogClose();
+    } catch (err) {
+      showSnackbar("Failed to add category", "error");
     }
-  }
+  };
 
-  const handleRemoveTag = (tagToRemove) => {
-    setServiceForm((prev) => ({
-      ...prev,
-      tags: prev.tags.filter((tag) => tag !== tagToRemove),
-    }))
-  }
-
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setServiceForm((prev) => ({
-          ...prev,
-          image: file,
-          imagePreview: e.target.result,
-        }))
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const handleCloseSnackbar = () => {
-    setSnackbar((prev) => ({ ...prev, open: false }))
-  }
-
-  const toggleCategoryExpansion = (categoryName) => {
-    setExpandedCategories((prev) => ({
-      ...prev,
-      [categoryName]: !prev[categoryName],
-    }))
-  }
-
-  // Helper functions for icons
-  const getHospitalityIcon = (type) => {
-    switch (type) {
-      case "restaurant":
-        return <Restaurant />
-      case "bar":
-        return <LocalBar />
-      case "hotel":
-        return <Hotel />
-      case "cafe":
-        return <LocalCafe />
-      default:
-        return <Restaurant />
-    }
-  }
-
-  const getHealthcareIcon = (type) => {
-    switch (type) {
-      case "pharmacy":
-        return <LocalPharmacy />
-      case "clinic":
-        return <LocalHospital />
-      case "dental":
-        return <Healing />
-      case "optometry":
-        return <Visibility />
-      default:
-        return <LocalHospital />
-    }
-  }
-
-  const getSalonIcon = (type) => {
-    switch (type) {
-      case "hair":
-        return <ContentCut />
-      case "nails":
-        return <Star />
-      case "spa":
-        return <Spa />
-      default:
-        return <ContentCut />
-    }
-  }
-
-  const getEventIcon = (type) => {
-    switch (type) {
-      case "concert":
-        return <MusicNote />
-      case "conference":
-        return <Groups />
-      case "wedding":
-        return <Favorite />
-      case "party":
-        return <Event />
-      default:
-        return <Event />
-    }
-  }
-
-  // Menu item management
-  const handleAddMenuItem = () => {
-    if (newMenuItem.name && newMenuItem.price) {
-      setServiceForm((prev) => ({
+  // Add a custom field to the service
+  const handleAddCustomField = () => {
+    if (newCustomField.name) {
+      setNewService(prev => ({
         ...prev,
-        menuItems: [...prev.menuItems, { ...newMenuItem, id: Date.now() }],
-      }))
-      setNewMenuItem({ name: "", price: "", category: "" })
+        customFields: [...prev.customFields, { ...newCustomField, value: "" }]
+      }));
+      setNewCustomField({ name: "", type: "text", required: false });
     }
-  }
+  };
 
-  const handleRemoveMenuItem = (itemId) => {
-    setServiceForm((prev) => ({
+  // Remove a custom field from the service
+  const handleRemoveCustomField = (index) => {
+    setNewService(prev => ({
       ...prev,
-      menuItems: prev.menuItems.filter((item) => item.id !== itemId),
-    }))
-  }
+      customFields: prev.customFields.filter((_, i) => i !== index)
+    }));
+  };
 
-  // Room type management
-  const handleAddRoomType = () => {
-    if (newRoomType && !serviceForm.roomManagement.roomTypes.includes(newRoomType)) {
-      setServiceForm((prev) => ({
-        ...prev,
-        roomManagement: {
-          ...prev.roomManagement,
-          roomTypes: [...prev.roomManagement.roomTypes, newRoomType],
-        },
-      }))
-      setNewRoomType("")
-    }
-  }
-
-  const handleRemoveRoomType = (roomType) => {
-    setServiceForm((prev) => ({
+  // Update a custom field value
+  const handleCustomFieldChange = (index, field, value) => {
+    const updatedFields = [...newService.customFields];
+    updatedFields[index][field] = value;
+    setNewService(prev => ({
       ...prev,
-      roomManagement: {
-        ...prev.roomManagement,
-        roomTypes: prev.roomManagement.roomTypes.filter((type) => type !== roomType),
-      },
-    }))
+      customFields: updatedFields
+    }));
+  };
+
+  // Toggle service active status
+  const toggleServiceStatus = (serviceId) => {
+    setServices(prev => prev.map(service => 
+      service.id === serviceId 
+        ? { ...service, isActive: !service.isActive } 
+        : service
+    ));
+    showSnackbar("Service status updated", "success");
+  };
+
+  // Delete a service
+  const handleDeleteService = (serviceId) => {
+    setServices(prev => prev.filter(service => service.id !== serviceId));
+    setFavorites(prev => prev.filter(fav => fav.id !== serviceId));
+    showSnackbar("Service deleted", "info");
+  };
+
+  // Loading and error states
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <Typography>Loading services...</Typography>
+      </Box>
+    );
   }
 
-  // Amenity management
-  const handleAddAmenity = () => {
-    if (newAmenity && !serviceForm.roomManagement.amenities.includes(newAmenity)) {
-      setServiceForm((prev) => ({
-        ...prev,
-        roomManagement: {
-          ...prev.roomManagement,
-          amenities: [...prev.roomManagement.amenities, newAmenity],
-        },
-      }))
-      setNewAmenity("")
-    }
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <Typography color="error">Error: {error}</Typography>
+      </Box>
+    );
   }
 
-  const handleRemoveAmenity = (amenity) => {
-    setServiceForm((prev) => ({
-      ...prev,
-      roomManagement: {
-        ...prev.roomManagement,
-        amenities: prev.roomManagement.amenities.filter((a) => a !== amenity),
-      },
-    }))
-  }
-
-  // Insurance provider management
-  const handleAddInsuranceProvider = () => {
-    if (newInsuranceProvider && !serviceForm.patientManagement.insuranceProviders.includes(newInsuranceProvider)) {
-      setServiceForm((prev) => ({
-        ...prev,
-        patientManagement: {
-          ...prev.patientManagement,
-          insuranceProviders: [...prev.patientManagement.insuranceProviders, newInsuranceProvider],
-        },
-      }))
-      setNewInsuranceProvider("")
-    }
-  }
-
-  const handleRemoveInsuranceProvider = (provider) => {
-    setServiceForm((prev) => ({
-      ...prev,
-      patientManagement: {
-        ...prev.patientManagement,
-        insuranceProviders: prev.patientManagement.insuranceProviders.filter((p) => p !== provider),
-      },
-    }))
-  }
-
-  const BusinessTypeSelector = () => (
-    <Dialog open={showBusinessTypeSelector} maxWidth="lg" fullWidth disableEscapeKeyDown>
+  // Service Details Dialog
+  const ServiceDetailsDialog = () => (
+    <Dialog 
+      open={openServiceDialog && selectedService && !isEditing} 
+      onClose={handleDialogClose}
+      maxWidth="md"
+      fullWidth
+    >
       <DialogTitle>
-        <Typography variant="h4" align="center" sx={{ fontWeight: "bold", mb: 1 }}>
-          Select Your Business Type
-        </Typography>
-        <Typography variant="h6" align="center" color="textSecondary">
-          Choose the industry that best describes your business to see relevant service categories
-        </Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          {selectedService?.name}
+          <IconButton onClick={handleDialogClose}>
+            <Close />
+          </IconButton>
+        </Box>
       </DialogTitle>
-      <DialogContent sx={{ pt: 3 }}>
+      <DialogContent>
         <Grid container spacing={3}>
-          {Object.entries(industryStandards).map(([businessType, data]) => (
-            <Grid item xs={12} sm={6} md={4} key={businessType}>
-              <Card
-                sx={{
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  "&:hover": {
-                    transform: "translateY(-8px)",
-                    boxShadow: 6,
-                    borderColor: data.primaryColor,
-                    borderWidth: 2,
-                  },
-                  border: "2px solid transparent",
-                }}
-                onClick={() => handleBusinessTypeSelection(businessType)}
-              >
-                <CardContent sx={{ textAlign: "center", py: 4, flexGrow: 1 }}>
-                  <Box
-                    sx={{
-                      fontSize: 64,
-                      color: data.primaryColor,
-                      mb: 2,
-                      display: "flex",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {data.icon}
-                  </Box>
-                  <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
-                    {businessType}
+          <Grid item xs={12} md={6}>
+            <CardMedia
+              component="img"
+              image={selectedService?.image}
+              alt={selectedService?.name}
+              sx={{ width: '100%', maxHeight: 300, objectFit: 'contain' }}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Chip 
+                label={selectedService?.isActive ? "Active" : "Inactive"} 
+                color={selectedService?.isActive ? "success" : "error"} 
+                size="small" 
+              />
+            </Box>
+            <Typography variant="h5" gutterBottom>{selectedService?.name}</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Rating value={selectedService?.rating} precision={0.5} readOnly />
+              <Typography variant="body2" sx={{ ml: 1 }}>{selectedService?.rating}/5</Typography>
+            </Box>
+            <Typography variant="body1" paragraph>
+              <strong>Category:</strong> {selectedService?.category} › {selectedService?.subcategory}
+            </Typography>
+            <Typography variant="h4" color="primary" gutterBottom>
+              UGX {selectedService?.price?.toLocaleString()}
+            </Typography>
+            
+            <Typography variant="body1" paragraph>
+              <strong>Duration:</strong> {selectedService?.duration}
+            </Typography>
+            
+            <Divider sx={{ my: 2 }} />
+            <Typography variant="body1">
+              <strong>Description:</strong> {selectedService?.description}
+            </Typography>
+            
+            {selectedService?.customFields && selectedService.customFields.length > 0 && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>Additional Information</Typography>
+                {selectedService.customFields.map((field, index) => (
+                  <Typography key={index} variant="body2" paragraph>
+                    <strong>{field.name}:</strong> {field.value || "Not specified"}
                   </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {Object.keys(data.categories).length} categories available
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
+                ))}
+              </>
+            )}
+          </Grid>
         </Grid>
       </DialogContent>
+      <DialogActions>
+        <Button onClick={handleDialogClose}>Close</Button>
+        <Button 
+          variant="contained" 
+          onClick={() => handleEditService(selectedService)}
+          startIcon={<Edit />}
+          sx={{ backgroundColor: "purple", color: "white" }}
+        >
+          Edit Service
+        </Button>
+      </DialogActions>
     </Dialog>
-  )
+  );
 
-  const ServiceCard = ({ service }) => (
-    <Card sx={{ height: "100%", display: "flex", flexDirection: "column", borderRadius: 2 }}>
-      {service.imagePreview && (
-        <Box sx={{ height: 200, overflow: "hidden" }}>
-          <img
-            src={service.imagePreview || "/placeholder.svg"}
-            alt={service.name}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-          />
-        </Box>
-      )}
-      <CardContent sx={{ flexGrow: 1, p: 3 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: "bold", flex: 1 }}>
-            {service.name}
-          </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", ml: 2 }}>
-            <Star sx={{ color: "#FFD700", fontSize: 20 }} />
-            <Typography variant="body2" sx={{ ml: 0.5 }}>
-              {service.rating || "New"}
-            </Typography>
-          </Box>
-        </Box>
-
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {service.description}
-        </Typography>
-
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-            Industry Standards:
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {service.industryStandards}
-          </Typography>
-        </Box>
-
-        {service.features && service.features.length > 0 && (
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-              Features:
-            </Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-              {service.features.slice(0, 3).map((feature, index) => (
-                <Chip key={index} label={feature} size="small" variant="outlined" sx={{ fontSize: "0.75rem" }} />
-              ))}
-              {service.features.length > 3 && (
-                <Chip
-                  label={`+${service.features.length - 3} more`}
-                  size="small"
-                  variant="outlined"
-                  sx={{ fontSize: "0.75rem" }}
-                />
-              )}
-            </Box>
-          </Box>
-        )}
-
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: "bold", color: "primary.main" }}>
-            ${service.price}
-          </Typography>
-          {service.duration && (
-            <Typography variant="body2" color="text.secondary">
-              {service.duration} min
-            </Typography>
-          )}
-        </Box>
-
-        <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-          <Chip label={service.category} size="small" color="primary" variant="outlined" />
-          <Chip label={service.subcategory} size="small" color="secondary" variant="outlined" />
-        </Box>
-
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Provider: {service.provider}
-        </Typography>
-
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          {service.requiresAppointment && (
-            <Chip label="Appointment Required" size="small" icon={<Schedule />} variant="outlined" />
-          )}
-          {service.bookingEnabled && (
-            <Chip label="Online Booking" size="small" icon={<BookOnline />} color="success" variant="outlined" />
-          )}
-        </Box>
-      </CardContent>
-      <CardActions sx={{ p: 3, pt: 0 }}>
-        <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
-          {service.bookingEnabled && (
-            <Button
-              variant="contained"
-              fullWidth
-              startIcon={<BookOnline />}
-              sx={{
-                bgcolor: industryStandards[selectedBusinessType]?.primaryColor || "#3F51B5",
-                "&:hover": { bgcolor: industryStandards[selectedBusinessType]?.secondaryColor || "#2196F3" },
-              }}
-            >
-              Book Now
-            </Button>
-          )}
-          <IconButton onClick={() => handleEditService(service)} color="primary">
-            <Edit />
-          </IconButton>
-          <IconButton onClick={() => handleDeleteService(service.id)} color="error">
-            <Delete />
-          </IconButton>
-        </Box>
-      </CardActions>
-    </Card>
-  )
-
+  // Service Form Dialog (Add/Edit)
   const ServiceFormDialog = () => {
-    const [formErrors, setFormErrors] = useState({
-      name: false,
-      category: false,
-      subcategory: false,
-      provider: false,
-    })
+    const [localService, setLocalService] = useState(newService);
 
-    const validateForm = () => {
-      const errors = {
-        name: !serviceForm.name.trim(),
-        category: !serviceForm.category,
-        subcategory: !serviceForm.subcategory,
-        provider: !serviceForm.provider.trim(),
-      }
-      setFormErrors(errors)
-      return !Object.values(errors).some((error) => error)
-    }
+    useEffect(() => {
+      setLocalService(newService);
+    }, [newService]);
 
-    const handleSubmit = () => {
-      if (!validateForm()) {
-        setSnackbar({
-          open: true,
-          message: "Please fill in all required fields",
-          severity: "error",
-        })
-        return
-      }
+    const handleLocalChange = (e) => {
+      const { name, value } = e.target;
+      setLocalService(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
 
-      const newService = {
-        id: isEditing ? editingServiceId : Date.now(),
-        ...serviceForm,
-        price: Number.parseFloat(serviceForm.price) || 0,
-        maxParticipants: Number.parseInt(serviceForm.maxParticipants) || 1,
-        serviceType: getDefaultServiceType(selectedBusinessType),
-      }
-
+    const handleSave = () => {
+      setNewService(localService);
       if (isEditing) {
-        setServices((prev) => prev.map((service) => (service.id === editingServiceId ? newService : service)))
-        setSnackbar({
-          open: true,
-          message: "Service updated successfully!",
-          severity: "success",
-        })
+        handleSaveEditedService();
       } else {
-        setServices((prev) => [...prev, newService])
-        setSnackbar({
-          open: true,
-          message: "Service added successfully!",
-          severity: "success",
-        })
+        handleAddService();
       }
-
-      handleCloseServiceDialog()
-    }
-
-    const handleCloseServiceDialog = () => {
-      setOpenServiceDialog(false)
-      setIsEditing(false)
-      setEditingServiceId(null)
-      setServiceForm({
-        name: "",
-        category: "",
-        subcategory: "",
-        price: "",
-        duration: "",
-        rating: 0,
-        provider: "",
-        providerRating: 0,
-        available: true,
-        description: "",
-        requiresAppointment: true,
-        maxParticipants: "",
-        tags: [],
-        image: null,
-        imagePreview: "",
-        features: [],
-        industryStandards: "",
-        bookingEnabled: false,
-      })
-      setFormErrors({})
-    }
+    };
 
     return (
-      <Dialog open={openServiceDialog} onClose={handleCloseServiceDialog} maxWidth="md" fullWidth>
+      <Dialog 
+        open={openServiceDialog && (isEditing || !selectedService)} 
+        onClose={handleDialogClose}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>
-          <Typography variant="h5" component="div" sx={{ fontWeight: "bold" }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
             {isEditing ? "Edit Service" : "Add New Service"}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {isEditing ? "Update service information" : "Create a new service offering for your business"}
-          </Typography>
+            <IconButton onClick={handleDialogClose}>
+              <Close />
+            </IconButton>
+          </Box>
         </DialogTitle>
-        <DialogContent dividers>
-          <Grid container spacing={3}>
-            {/* Basic Information */}
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: "primary.main" }}>
-                Basic Information
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Service Name"
-                value={serviceForm.name}
-                onChange={(e) => handleServiceFormChange("name", e.target.value)}
-                error={formErrors.name}
-                helperText={formErrors.name ? "Service name is required" : "Enter a descriptive service name"}
-                variant="outlined"
+                name="name"
+                value={localService.name}
+                onChange={handleLocalChange}
+                error={!localService.name}
+                helperText={!localService.name ? "Service name is required" : ""}
               />
             </Grid>
-
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth error={!localService.category}>
+                <InputLabel>Category</InputLabel>
+                <Select
+                  name="category"
+                  value={localService.category}
+                  onChange={handleLocalChange}
+                  label="Category"
+                >
+                  <MenuItem value=""><em>Select Category</em></MenuItem>
+                  {Object.keys(categoryStructure).map((cat) => (
+                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                  ))}
+                </Select>
+                {!localService.category && <Typography variant="caption" color="error">Category is required</Typography>}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth error={!localService.subcategory && !!localService.category}>
+                <InputLabel>Subcategory</InputLabel>
+                <Select
+                  name="subcategory"
+                  value={localService.subcategory}
+                  onChange={handleLocalChange}
+                  label="Subcategory"
+                  disabled={!localService.category}
+                >
+                  <MenuItem value=""><em>Select Subcategory</em></MenuItem>
+                  {localService.category && categoryStructure[localService.category]?.map((subcat) => (
+                    <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
+                  ))}
+                </Select>
+                {!localService.subcategory && localService.category && (
+                  <Typography variant="caption" color="error">Subcategory is required</Typography>
+                )}
+              </FormControl>
+            </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Provider/Business Name"
-                value={serviceForm.provider}
-                onChange={(e) => handleServiceFormChange("provider", e.target.value)}
-                error={formErrors.provider}
-                helperText={formErrors.provider ? "Provider name is required" : "Your business or provider name"}
-                variant="outlined"
+                label="Price (UGX)"
+                type="number"
+                name="price"
+                value={localService.price}
+                onChange={(e) => {
+                  const value = Math.max(0, parseFloat(e.target.value) || 0);
+                  setLocalService(prev => ({...prev, price: value}));
+                }}
+                inputProps={{ min: 0, step: 100 }}
+                error={!localService.price && localService.price !== 0}
+                helperText={!localService.price && localService.price !== 0 ? "Price is required" : ""}
               />
             </Grid>
-
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth error={formErrors.category}>
-                <InputLabel>Category</InputLabel>
-                <Select
-                  value={serviceForm.category}
-                  onChange={(e) => handleServiceFormChange("category", e.target.value)}
-                  label="Category"
-                >
-                  {Object.keys(getCurrentCategories()).map((cat) => (
-                    <MenuItem key={cat} value={cat}>
-                      {cat}
-                    </MenuItem>
-                  ))}
-                </Select>
-                <FormHelperText>
-                  {formErrors.category ? "Category is required" : "Select the main service category"}
-                </FormHelperText>
-              </FormControl>
+              <TextField
+                fullWidth
+                label="Duration"
+                name="duration"
+                value={localService.duration}
+                onChange={handleLocalChange}
+                placeholder="e.g., 1 hour, 30 minutes"
+              />
             </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth error={formErrors.subcategory} disabled={!serviceForm.category}>
-                <InputLabel>Subcategory</InputLabel>
-                <Select
-                  value={serviceForm.subcategory}
-                  onChange={(e) => handleServiceFormChange("subcategory", e.target.value)}
-                  label="Subcategory"
-                >
-                  {serviceForm.category &&
-                    getCurrentCategories()[serviceForm.category]?.map((subcat) => (
-                      <MenuItem key={subcat} value={subcat}>
-                        {subcat}
-                      </MenuItem>
-                    ))}
-                </Select>
-                <FormHelperText>
-                  {formErrors.subcategory ? "Subcategory is required" : "Select a specific service type"}
-                </FormHelperText>
-              </FormControl>
-            </Grid>
-
-            {/* Service Details */}
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: "primary.main", mt: 2 }}>
-                Service Details
-              </Typography>
-            </Grid>
-
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="Description"
-                value={serviceForm.description}
-                onChange={(e) => handleServiceFormChange("description", e.target.value)}
+                name="description"
                 multiline
-                rows={3}
-                helperText="Detailed description of your service offering"
-                variant="outlined"
+                rows={4}
+                value={localService.description}
+                onChange={handleLocalChange}
               />
             </Grid>
-
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Industry Standards"
-                value={serviceForm.industryStandards}
-                onChange={(e) => handleServiceFormChange("industryStandards", e.target.value)}
-                multiline
-                rows={2}
-                helperText="Industry standards and certifications for this service"
-                variant="outlined"
+              <Typography variant="body2">Service Rating</Typography>
+              <Rating
+                name="rating"
+                value={parseFloat(localService.rating)}
+                onChange={(e, newValue) => setLocalService(prev => ({...prev, rating: newValue}))}
+                precision={0.5}
               />
             </Grid>
-
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="Price"
-                type="number"
-                value={serviceForm.price}
-                onChange={(e) => handleServiceFormChange("price", e.target.value)}
-                helperText="Service price in your currency"
-                variant="outlined"
-                InputProps={{
-                  startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="Duration (minutes)"
-                type="number"
-                value={serviceForm.duration}
-                onChange={(e) => handleServiceFormChange("duration", e.target.value)}
-                helperText="Estimated service duration"
-                variant="outlined"
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="Max Participants"
-                type="number"
-                value={serviceForm.maxParticipants}
-                onChange={(e) => handleServiceFormChange("maxParticipants", e.target.value)}
-                helperText="Maximum number of participants"
-                variant="outlined"
-              />
-            </Grid>
-
-            {/* Service Features */}
             <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: "primary.main", mt: 2 }}>
-                Service Features
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
-                {serviceForm.features.map((feature, index) => (
-                  <Chip
-                    key={index}
-                    label={feature}
-                    onDelete={() => {
-                      const newFeatures = serviceForm.features.filter((_, i) => i !== index)
-                      handleServiceFormChange("features", newFeatures)
-                    }}
-                    color="primary"
-                    variant="outlined"
-                  />
-                ))}
-              </Box>
-              <TextField
-                fullWidth
-                label="Add Feature"
-                placeholder="Type a feature and press Enter"
-                onKeyPress={(e) => {
-                  if (e.key === "Enter" && e.target.value.trim()) {
-                    const newFeatures = [...serviceForm.features, e.target.value.trim()]
-                    handleServiceFormChange("features", newFeatures)
-                    e.target.value = ""
-                  }
-                }}
-                helperText="Press Enter to add features (e.g., 'Free consultation', 'Satisfaction guarantee')"
-                variant="outlined"
-              />
-            </Grid>
-
-            {/* Service Options */}
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: "primary.main", mt: 2 }}>
-                Service Options
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
               <FormControlLabel
                 control={
                   <Switch
-                    checked={serviceForm.requiresAppointment}
-                    onChange={(e) => handleServiceFormChange("requiresAppointment", e.target.checked)}
+                    checked={localService.isActive}
+                    onChange={(e) => setLocalService(prev => ({...prev, isActive: e.target.checked}))}
+                    name="isActive"
                   />
                 }
-                label="Requires Appointment"
+                label="Service is active"
               />
             </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={serviceForm.bookingEnabled}
-                    onChange={(e) => handleServiceFormChange("bookingEnabled", e.target.checked)}
-                  />
-                }
-                label="Online Booking Available"
-              />
+            
+            {/* Custom Fields Section */}
+            <Grid item xs={12}>
+              <Accordion>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="h6">Custom Fields</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography variant="body2" color="textSecondary" paragraph>
+                    Add custom fields to collect specific information from customers when they book this service.
+                  </Typography>
+                  
+                  <Paper sx={{ p: 2, mb: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>Add New Field</Typography>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          fullWidth
+                          label="Field Name"
+                          value={newCustomField.name}
+                          onChange={(e) => setNewCustomField(prev => ({...prev, name: e.target.value}))}
+                          size="small"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={3}>
+                        <FormControl fullWidth size="small">
+                          <InputLabel>Field Type</InputLabel>
+                          <Select
+                            value={newCustomField.type}
+                            onChange={(e) => setNewCustomField(prev => ({...prev, type: e.target.value}))}
+                            label="Field Type"
+                          >
+                            <MenuItem value="text">Text</MenuItem>
+                            <MenuItem value="number">Number</MenuItem>
+                            <MenuItem value="checkbox">Checkbox</MenuItem>
+                            <MenuItem value="dropdown">Dropdown</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={3}>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={newCustomField.required}
+                              onChange={(e) => setNewCustomField(prev => ({...prev, required: e.target.checked}))}
+                            />
+                          }
+                          label="Required"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={2}>
+                        <Button 
+                          variant="contained" 
+                          onClick={handleAddCustomField}
+                          disabled={!newCustomField.name}
+                          startIcon={<Add />}
+                          fullWidth
+                        >
+                          Add
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                  
+                  {localService.customFields.length > 0 ? (
+                    <Box>
+                      <Typography variant="subtitle2" gutterBottom>Current Fields</Typography>
+                      {localService.customFields.map((field, index) => (
+                        <Paper key={index} sx={{ p: 2, mb: 1 }}>
+                          <Grid container spacing={2} alignItems="center">
+                            <Grid item xs={12} sm={3}>
+                              <Typography variant="body2"><strong>{field.name}</strong></Typography>
+                              <Typography variant="caption" color="textSecondary">{field.type} {field.required && "(Required)"}</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={7}>
+                              {field.type === "checkbox" ? (
+                                <FormControlLabel
+                                  control={
+                                    <Switch
+                                      checked={field.value === "Yes"}
+                                      onChange={(e) => handleCustomFieldChange(index, "value", e.target.checked ? "Yes" : "No")}
+                                    />
+                                  }
+                                  label={field.value === "Yes" ? "Yes" : "No"}
+                                />
+                              ) : (
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  value={field.value}
+                                  onChange={(e) => handleCustomFieldChange(index, "value", e.target.value)}
+                                  placeholder="Default value"
+                                />
+                              )}
+                            </Grid>
+                            <Grid item xs={12} sm={2}>
+                              <IconButton 
+                                color="error" 
+                                onClick={() => handleRemoveCustomField(index)}
+                                size="small"
+                              >
+                                <Delete />
+                              </IconButton>
+                            </Grid>
+                          </Grid>
+                        </Paper>
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', py: 2 }}>
+                      No custom fields added yet
+                    </Typography>
+                  )}
+                </AccordionDetails>
+              </Accordion>
             </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={serviceForm.available}
-                    onChange={(e) => handleServiceFormChange("available", e.target.checked)}
-                  />
-                }
-                label="Currently Available"
+            
+            <Grid item xs={12}>
+              <Typography variant="body2" gutterBottom>Service Image</Typography>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="service-image-upload"
+                type="file"
+                onChange={handleImageUpload}
               />
-            </Grid>
-
-            {/* Image Preview */}
-            {serviceForm.imagePreview && (
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: "primary.main", mt: 2 }}>
-                  Service Image
-                </Typography>
-                <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                  <img
-                    src={serviceForm.imagePreview || "/placeholder.svg"}
-                    alt="Service preview"
-                    style={{
-                      maxWidth: "300px",
-                      maxHeight: "200px",
-                      objectFit: "cover",
-                      borderRadius: "8px",
-                      boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                    }}
+              <label htmlFor="service-image-upload">
+                <Button variant="outlined" component="span" fullWidth>
+                  Upload Image
+                </Button>
+              </label>
+              {localService.imagePreview && (
+                <Box sx={{ mt: 2, textAlign: 'center' }}>
+                  <img 
+                    src={localService.imagePreview} 
+                    alt="Preview" 
+                    style={{ maxHeight: 200, maxWidth: '100%' }}
                   />
+                  <Button 
+                    variant="text" 
+                    color="error" 
+                    size="small"
+                    onClick={() => setLocalService(prev => ({...prev, image: null, imagePreview: ""}))}
+                    sx={{ mt: 1 }}
+                  >
+                    Remove Image
+                  </Button>
                 </Box>
-              </Grid>
-            )}
+              )}
+            </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={handleCloseServiceDialog} size="large">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            size="large"
-            sx={{
-              bgcolor: industryStandards[selectedBusinessType]?.primaryColor || "#3F51B5",
-              "&:hover": { bgcolor: industryStandards[selectedBusinessType]?.secondaryColor || "#2196F3" },
-            }}
+        <DialogActions>
+          <Button onClick={handleDialogClose}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSave}
+            disabled={!localService.name || !localService.category || !localService.subcategory || 
+                     (!localService.price && localService.price !== 0)}
+            sx={{ backgroundColor: "purple", color: "white" }}
           >
-            {isEditing ? "Update Service" : "Add Service"}
+            {isEditing ? "Save Changes" : "Save Service"}
           </Button>
         </DialogActions>
       </Dialog>
-    )
-  }
+    );
+  };
 
-  const CategoryManagementDialog = () => (
-    <Dialog
-      open={openCategoryDialog}
-      onClose={handleDialogClose}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
-          boxShadow: 10,
-        },
-      }}
-    >
-      <DialogTitle>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h5" sx={{ fontWeight: 600 }}>
-            {editingCategory ? "Edit Category" : "Add New Category"}
-          </Typography>
-          <IconButton onClick={handleDialogClose} size="large">
-            <Close />
-          </IconButton>
+  // Manage Categories Dialog
+  const ManageCategoriesDialog = () => {
+    const [localCategory, setLocalCategory] = useState(newCategory);
+    const [localSubcategory, setLocalSubcategory] = useState("");
+
+    useEffect(() => {
+      setLocalCategory(newCategory);
+      setLocalSubcategory("");
+    }, [newCategory]);
+
+    const handleAddLocalSubcategory = () => {
+      if (localSubcategory) {
+        setLocalCategory(prev => ({
+          ...prev,
+          subcategories: [...prev.subcategories, localSubcategory]
+        }));
+        setLocalSubcategory("");
+      }
+    };
+
+    const handleRemoveLocalSubcategory = (subcat) => {
+      setLocalCategory(prev => ({
+        ...prev,
+        subcategories: prev.subcategories.filter(s => s !== subcat)
+      }));
+    };
+
+    const handleSaveCategory = () => {
+      setNewCategory(localCategory);
+      handleAddCategory(localCategory);
+    };
+
+    return (
+      <Dialog 
+        open={openCategoryDialog} 
+        onClose={handleDialogClose}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            Manage Categories
+            <IconButton onClick={handleDialogClose}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom>Add New Category</Typography>
+              <TextField
+                fullWidth
+                label="Category Name"
+                value={localCategory.name}
+                onChange={(e) => setLocalCategory(prev => ({...prev, name: e.target.value}))}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="body1" gutterBottom>Subcategories</Typography>
+              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Add Subcategory"
+                  value={localSubcategory}
+                  onChange={(e) => setLocalSubcategory(e.target.value)}
+                />
+                <Button 
+                  variant="contained" 
+                  onClick={handleAddLocalSubcategory}
+                  disabled={!localSubcategory}
+                >
+                  Add
+                </Button>
+              </Box>
+              {localCategory.subcategories.length > 0 && (
+                <Paper sx={{ p: 2, mb: 2 }}>
+                  {localCategory.subcategories.map((subcat, index) => (
+                    <Chip
+                      key={index}
+                      label={subcat}
+                      onDelete={() => handleRemoveLocalSubcategory(subcat)}
+                      sx={{ m: 0.5 }}
+                    />
+                  ))}
+                </Paper>
+              )}
+            </Grid>
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom>Existing Categories</Typography>
+              {Object.entries(categoryStructure).map(([category, subcategories]) => (
+                <Box key={category} sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1">{category}</Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                    {subcategories.map((subcat, idx) => (
+                      <Chip key={idx} label={subcat} />
+                    ))}
+                  </Box>
+                </Box>
+              ))}
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSaveCategory}
+            disabled={!localCategory.name}
+            sx={{ backgroundColor: "purple", color: "white" }}
+          >
+            Save Category
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  };
+
+  return (
+    <Box sx={{ padding: 3 }}>
+      {/* Page Title and Actions */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4">Service Management</Typography>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={handleOpenAddService}
+            sx={{ backgroundColor: "purple", color: "white" }}
+          >
+            Add Service
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<Category />}
+            onClick={handleOpenManageCategories}
+            sx={{ backgroundColor: "purple", color: "white" }}
+          >
+            Manage Categories
+          </Button>
         </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          {editingCategory
-            ? "Update the category name and manage its subcategories"
-            : `Create a new category for your ${selectedBusinessType.toLowerCase()} business`}
-        </Typography>
-      </DialogTitle>
+      </Box>
 
-      <DialogContent sx={{ pt: 2 }}>
+      {/* Tabs for different views */}
+      <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} sx={{ mb: 3 }}>
+        <Tab label="All Services" />
+        <Tab label={
+          <Badge badgeContent={favorites.length} color="error">
+            Favorites
+          </Badge>
+        } />
+        <Tab label="Inactive Services" />
+      </Tabs>
+
+      {/* Filters Section */}
+      <Paper sx={{ p: 3, mb: 3 }}>
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
-              label="Category Name"
-              value={newCategory.name}
-              onChange={(e) => setNewCategory((prev) => ({ ...prev, name: e.target.value }))}
+              label="Search Services"
               variant="outlined"
-              placeholder="e.g., Hair Services, Main Courses, Consultations"
-              helperText="Enter a descriptive name for this category"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: <Search sx={{ mr: 1 }} />
+              }}
             />
           </Grid>
 
-          <Grid item xs={12}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Subcategories
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-              <TextField
-                fullWidth
-                label="Add Subcategory"
-                value={newSubcategory}
-                onChange={(e) => setNewSubcategory(e.target.value)}
-                variant="outlined"
-                placeholder="e.g., Hair Cuts, Appetizers, General Checkup"
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    handleAddSubcategory()
-                  }
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setSubcategory("");
                 }}
-              />
-              <Button
-                variant="outlined"
-                onClick={handleAddSubcategory}
-                disabled={!newSubcategory.trim()}
-                sx={{ minWidth: 100 }}
+                label="Category"
               >
-                Add
-              </Button>
-            </Box>
+                <MenuItem value="">All Categories</MenuItem>
+                {Object.keys(categoryStructure).map((cat) => (
+                  <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
 
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-              {newCategory.subcategories.map((subcat, index) => (
-                <Paper
-                  key={index}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    px: 2,
-                    py: 1,
-                    bgcolor: "grey.100",
-                  }}
-                >
-                  <Typography variant="body2">{subcat}</Typography>
-                  <IconButton size="small" onClick={() => handleRemoveSubcategory(subcat)}>
-                    <Close fontSize="small" />
-                  </IconButton>
-                </Paper>
-              ))}
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <InputLabel>Subcategory</InputLabel>
+              <Select
+                value={subcategory}
+                onChange={(e) => setSubcategory(e.target.value)}
+                label="Subcategory"
+                disabled={!category}
+              >
+                <MenuItem value="">All Subcategories</MenuItem>
+                {category && categoryStructure[category]?.map((subcat) => (
+                  <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Typography variant="body2" gutterBottom>Price Range (UGX)</Typography>
+            <Slider
+              value={[minPrice, maxPrice]}
+              onChange={(e, newValue) => {
+                setMinPrice(newValue[0]);
+                setMaxPrice(newValue[1]);
+              }}
+              valueLabelDisplay="auto"
+              min={0}
+              max={100000}
+              step={1000}
+              valueLabelFormat={(value) => value.toLocaleString()}
+            />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="caption">UGX {minPrice.toLocaleString()}</Typography>
+              <Typography variant="caption">UGX {maxPrice.toLocaleString()}</Typography>
             </Box>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Typography variant="body2" gutterBottom>Minimum Rating</Typography>
+            <Rating
+              value={rating}
+              onChange={(e, newValue) => setRating(newValue)}
+              precision={0.5}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <InputLabel>Sort By</InputLabel>
+              <Select
+                defaultValue=""
+                onChange={handleSort}
+                label="Sort By"
+              >
+                <MenuItem value="nameAsc">Name (A-Z)</MenuItem>
+                <MenuItem value="nameDesc">Name (Z-A)</MenuItem>
+                <MenuItem value="priceAsc">Price (Low to High)</MenuItem>
+                <MenuItem value="priceDesc">Price (High to Low)</MenuItem>
+                <MenuItem value="ratingAsc">Rating (Low to High)</MenuItem>
+                <MenuItem value="ratingDesc">Rating (High to Low)</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
         </Grid>
-      </DialogContent>
+      </Paper>
 
-      <DialogActions sx={{ p: 3, gap: 1 }}>
-        <Button onClick={handleDialogClose} size="large" sx={{ minWidth: 100 }}>
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          onClick={editingCategory ? handleUpdateCategory : handleAddCategory}
-          disabled={!newCategory.name.trim()}
-          size="large"
-          sx={{
-            minWidth: 140,
-            bgcolor: industryStandards[selectedBusinessType]?.primaryColor || "#3F51B5",
-            "&:hover": {
-              bgcolor: industryStandards[selectedBusinessType]?.secondaryColor || "#2196F3",
-            },
-          }}
-        >
-          {editingCategory ? "Update Category" : "Add Category"}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  )
-
-  const currentTheme = createBusinessTheme(selectedBusinessType)
-
-  return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <BusinessTypeSelector />
-
-      {selectedBusinessType && (
-        <>
-          {/* Business Type Header */}
-          <Paper
-            sx={{
-              p: 3,
-              mb: 3,
-              background: `linear-gradient(135deg, ${industryStandards[selectedBusinessType].primaryColor}, ${industryStandards[selectedBusinessType].secondaryColor})`,
-              color: "white",
-              borderRadius: 2,
-            }}
-          >
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <Box sx={{ fontSize: 48 }}>{industryStandards[selectedBusinessType].icon}</Box>
-                <Box sx={{ ml: 3 }}>
-                  <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                    {selectedBusinessType}
-                  </Typography>
-                  <Typography variant="h6" sx={{ opacity: 0.9 }}>
-                    Professional Service Management System
-                  </Typography>
+      {/* Category Navigation Sidebar and Service Grid */}
+      <Grid container spacing={3}>
+        {/* Category Navigation Sidebar */}
+        <Grid item xs={12} md={3}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>Categories</Typography>
+            {Object.entries(categoryStructure).map(([categoryName, subcategories]) => (
+              <Box key={categoryName} sx={{ mb: 1 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    p: 1,
+                    cursor: 'pointer',
+                    backgroundColor: expandedCategories[categoryName] ? '#f5f5f5' : 'transparent',
+                    borderRadius: 1
+                  }}
+                  onClick={() => toggleCategory(categoryName)}
+                >
+                  {expandedCategories[categoryName] ? <ExpandLess /> : <ExpandMoreIcon />}
+                  <Typography sx={{ ml: 1 }}>{categoryName}</Typography>
+                  <Chip label={subcategories.length} size="small" sx={{ ml: 'auto' }} />
                 </Box>
+                {expandedCategories[categoryName] && (
+                  <Box sx={{ pl: 4, mt: 1 }}>
+                    {subcategories.map(subcat => (
+                      <Typography
+                        key={subcat}
+                        variant="body2"
+                        sx={{
+                          p: 1,
+                          mb: 0.5,
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                          backgroundColor: subcategory === subcat ? '#e3f2fd' : 'transparent',
+                          '&:hover': { backgroundColor: '#f5f5f5' }
+                        }}
+                        onClick={() => handleSubcategorySelect(subcat)}
+                      >
+                        {subcat}
+                      </Typography>
+                    ))}
+                  </Box>
+                )}
               </Box>
-              <Button
-                variant="outlined"
-                sx={{
-                  color: "white",
-                  borderColor: "white",
-                  "&:hover": {
-                    backgroundColor: "rgba(255,255,255,0.1)",
-                    borderColor: "white",
-                  },
-                }}
-                onClick={() => setShowBusinessTypeSelector(true)}
-              >
-                Change Business Type
-              </Button>
-            </Box>
-          </Paper>
-
-          {/* Services Grid */}
-          <Grid container spacing={3}>
-            {filteredServices.map((service) => (
-              <Grid item xs={12} sm={6} md={4} key={service.id}>
-                <ServiceCard service={service} />
-              </Grid>
             ))}
-          </Grid>
+          </Paper>
+        </Grid>
 
-          {/* Action Buttons */}
-          <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 4 }}>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => setOpenServiceDialog(true)}
-              size="large"
-              sx={{
-                bgcolor: industryStandards[selectedBusinessType]?.primaryColor || "#3F51B5",
-                "&:hover": { bgcolor: industryStandards[selectedBusinessType]?.secondaryColor || "#2196F3" },
-              }}
-            >
-              Add New Service
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<Category />}
-              onClick={() => setOpenCategoryDialog(true)}
-              size="large"
-            >
-              Manage Categories
-            </Button>
-          </Box>
+        {/* Service Grid */}
+        <Grid item xs={12} md={9}>
+          {activeTab === 1 && favorites.length === 0 ? (
+            <Paper sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="h6">You haven't added any favorites yet</Typography>
+              <Button 
+                variant="outlined" 
+                sx={{ mt: 2 }}
+                onClick={() => setActiveTab(0)}
+              >
+                Browse Services
+              </Button>
+            </Paper>
+          ) : activeTab === 2 && filteredServices.filter(s => !s.isActive).length === 0 ? (
+            <Paper sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="h6">No inactive services</Typography>
+            </Paper>
+          ) : filteredServices.length > 0 ? (
+            <Grid container spacing={2}>
+              {filteredServices.map((service) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={service.id}>
+                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', opacity: service.isActive ? 1 : 0.7 }}>
+                    <Box sx={{ position: 'relative' }}>
+                      <CardMedia
+                        component="img"
+                        image={service.image}
+                        alt={service.name}
+                        sx={{ height: 140, objectFit: 'contain', p: 1 }}
+                      />
+                      <Chip 
+                        label={service.isActive ? "Active" : "Inactive"} 
+                        color={service.isActive ? "success" : "error"} 
+                        size="small" 
+                        sx={{ position: 'absolute', top: 10, right: 10 }}
+                      />
+                    </Box>
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom>{service.name}</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <Rating value={service.rating} precision={0.5} readOnly size="small" />
+                        <Typography variant="body2" sx={{ ml: 1 }}>{service.rating}</Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        {service.category} › {service.subcategory}
+                      </Typography>
+                      <Typography variant="body2" sx={{ mb: 1 }}>
+                        {service.description.length > 50 
+                          ? `${service.description.substring(0, 50)}...` 
+                          : service.description}
+                      </Typography>
+                      <Typography variant="h6" color="primary" sx={{ mt: 'auto' }}>
+                        UGX {service.price.toLocaleString()}
+                      </Typography>
+                      <Typography variant="body2" sx={{ mt: 1 }}>
+                        Duration: {service.duration}
+                      </Typography>
+                    </CardContent>
+                    <CardActions sx={{ justifyContent: 'space-between' }}>
+                      <Button 
+                        size="small" 
+                        onClick={() => handleViewDetails(service)}
+                      >
+                        Details
+                      </Button>
+                      <Box>
+                        <IconButton 
+                          size="small" 
+                          onClick={() => toggleServiceStatus(service.id)}
+                          color={service.isActive ? "default" : "success"}
+                        >
+                          {service.isActive ? <RemoveCircle /> : <AddCircle />}
+                        </IconButton>
+                        {favorites.some((fav) => fav.id === service.id) ? (
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleRemoveFromFavorites(service.id)}
+                            color="error"
+                          >
+                            <Favorite />
+                          </IconButton>
+                        ) : (
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleAddToFavorites(service)}
+                          >
+                            <FavoriteBorder />
+                          </IconButton>
+                        )}
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleDeleteService(service.id)}
+                          color="error"
+                        >
+                          <Delete />
+                        </IconButton>
+                      </Box>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <Paper sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="h6">No services found matching your criteria</Typography>
+              <Button 
+                variant="outlined" 
+                sx={{ mt: 2 }}
+                onClick={() => {
+                  setCategory("");
+                  setSubcategory("");
+                  setSearchTerm("");
+                  setRating(0);
+                  setMinPrice(0);
+                  setMaxPrice(100000);
+                }}
+              >
+                Clear Filters
+              </Button>
+            </Paper>
+          )}
+        </Grid>
+      </Grid>
 
-          <ServiceFormDialog />
-          {/* Other dialogs... */}
-        </>
-      )}
+      {/* Render Dialogs */}
+      <ServiceDetailsDialog />
+      <ServiceFormDialog />
+      <ManageCategoriesDialog />
 
       {/* Snackbar for notifications */}
-      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
-  )
-}
+    </Box>
+  );
+};
 
-export default ServicesPage
+export default ServicesPage;
