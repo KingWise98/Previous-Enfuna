@@ -136,7 +136,7 @@ const AddPurchasePage = () => {
   };
 
   const calculateTax = () => {
-    return calculateSubtotal() * 0.05; // 5% tax
+    return calculateSubtotal() * 0.18; // 18% tax
   };
 
   const calculateTotal = () => {
@@ -421,7 +421,7 @@ const AddPurchasePage = () => {
                 <Typography variant="h6" gutterBottom>Order Total</Typography>
                 <Box mb={2}>
                   <Typography>Subtotal: {formatCurrency(calculateSubtotal())}</Typography>
-                  <Typography>Tax (5%): {formatCurrency(calculateTax())}</Typography>
+                  <Typography>Tax (18%): {formatCurrency(calculateTax())}</Typography>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant="h6">Total: {formatCurrency(calculateTotal())}</Typography>
                 </Box>
