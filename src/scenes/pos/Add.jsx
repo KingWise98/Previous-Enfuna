@@ -21,7 +21,12 @@ import {
   useTheme,
   Stepper,
   Step,
-  StepLabel
+  StepLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton
 } from '@mui/material';
 import {
   Add,
@@ -32,7 +37,8 @@ import {
   AccountBalance,
   CheckCircle,
   ArrowBack,
-  CalendarToday
+  CalendarToday,
+  Delete
 } from '@mui/icons-material';
 
 const AddPurchasePage = () => {
@@ -42,6 +48,8 @@ const AddPurchasePage = () => {
   const [deliveryDate, setDeliveryDate] = useState('');
   const [paymentTerms, setPaymentTerms] = useState('30');
   const [notes, setNotes] = useState('');
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [supplierEmail, setSupplierEmail] = useState('');
   
   // Sample items data
   const [items, setItems] = useState([
@@ -51,6 +59,13 @@ const AddPurchasePage = () => {
     { id: 4, product: 'Sugar (1kg)', quantity: 0, price: 3500, total: 0 },
     { id: 5, product: 'Salt (1kg)', quantity: 0, price: 2000, total: 0 }
   ]);
+
+  // New item state
+  const [newItem, setNewItem] = useState({
+    product: '',
+    price: 0,
+    quantity: 0
+  });
 
   // Sample suppliers
   const suppliers = [
@@ -76,12 +91,44 @@ const AddPurchasePage = () => {
     setItems(newItems);
   };
 
+  const handleAddItem = () => {
+    if (newItem.product && newItem.price > 0) {
+      const newItemWithId = {
+        ...newItem,
+        id: items.length + 1,
+        total: newItem.quantity * newItem.price
+      };
+      setItems([...items, newItemWithId]);
+      setNewItem({
+        product: '',
+        price: 0,
+        quantity: 0
+      });
+    }
+  };
+
+  const handleRemoveItem = (id) => {
+    setItems(items.filter(item => item.id !== id));
+  };
+
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
 
   const handleBack = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  };
+
+  const handleSubmit = () => {
+    setEmailDialogOpen(true);
+  };
+
+  const handleSendEmail = () => {
+    // Here you would typically send the purchase order to the supplier's email
+    console.log('Sending purchase order to:', supplierEmail);
+    alert(`Purchase order sent to ${supplierEmail}`);
+    setEmailDialogOpen(false);
+    // Reset form or navigate away
   };
 
   const calculateSubtotal = () => {
@@ -206,6 +253,50 @@ const AddPurchasePage = () => {
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>Add Items to Purchase Order</Typography>
+            
+            {/* Add New Item Form */}
+            <Box mb={3} p={2} border={1} borderRadius={1} borderColor="grey.300">
+              <Typography variant="subtitle1" gutterBottom>Add New Item</Typography>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    label="Product Name"
+                    fullWidth
+                    value={newItem.product}
+                    onChange={(e) => setNewItem({...newItem, product: e.target.value})}
+                  />
+                </Grid>
+                <Grid item xs={12} md={2}>
+                  <TextField
+                    label="Price (UGX)"
+                    type="number"
+                    fullWidth
+                    value={newItem.price}
+                    onChange={(e) => setNewItem({...newItem, price: parseFloat(e.target.value) || 0})}
+                  />
+                </Grid>
+                <Grid item xs={12} md={2}>
+                  <TextField
+                    label="Quantity"
+                    type="number"
+                    fullWidth
+                    value={newItem.quantity}
+                    onChange={(e) => setNewItem({...newItem, quantity: parseInt(e.target.value) || 0})}
+                  />
+                </Grid>
+                <Grid item xs={12} md={2}>
+                  <Button 
+                    variant="contained" 
+                    fullWidth 
+                    onClick={handleAddItem}
+                    disabled={!newItem.product || newItem.price <= 0}
+                  >
+                    Add Item
+                  </Button>
+                </Grid>
+              </Grid>
+            </Box>
+
             <Box mb={3}>
               <TextField
                 variant="outlined"
@@ -229,6 +320,7 @@ const AddPurchasePage = () => {
                     <TableCell>Unit Price (UGX)</TableCell>
                     <TableCell>Quantity</TableCell>
                     <TableCell>Total (UGX)</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -254,6 +346,14 @@ const AddPurchasePage = () => {
                         />
                       </TableCell>
                       <TableCell>{formatCurrency(item.total)}</TableCell>
+                      <TableCell>
+                        <IconButton 
+                          color="error" 
+                          onClick={() => handleRemoveItem(item.id)}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -330,6 +430,7 @@ const AddPurchasePage = () => {
                   fullWidth
                   size="large"
                   startIcon={<CheckCircle />}
+                  onClick={handleSubmit}
                 >
                   Submit Purchase Order
                 </Button>
@@ -356,6 +457,36 @@ const AddPurchasePage = () => {
           Next
         </Button>
       </Box>
+
+      {/* Email Dialog */}
+      <Dialog open={emailDialogOpen} onClose={() => setEmailDialogOpen(false)}>
+        <DialogTitle>Send Purchase Order</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" gutterBottom>
+            Please enter the supplier's email address to send the purchase order:
+          </Typography>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Supplier Email"
+            type="email"
+            fullWidth
+            variant="outlined"
+            value={supplierEmail}
+            onChange={(e) => setSupplierEmail(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEmailDialogOpen(false)}>Cancel</Button>
+          <Button 
+            onClick={handleSendEmail} 
+            variant="contained"
+            disabled={!supplierEmail.includes('@')}
+          >
+            Send
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

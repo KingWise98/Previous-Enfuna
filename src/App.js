@@ -8,6 +8,7 @@ import Sidebar from "./scenes/global/Sidebar";
 import Super from "./scenes/super/admin";
 import SuperUser from "./scenes/super/user";
 import Subs from "./scenes/super/subs";
+import Data from "./scenes/super/data";
 
 import Pos_Sidebar from "./scenes/global/Pos_Sidebar";
 import Dashboard from "./scenes/dashboard";
@@ -230,6 +231,11 @@ function App() {
               <Route path="/super/subs" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Subs />
+                </ProtectedRoute>
+              } />
+               <Route path="/super/data" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Data />
                 </ProtectedRoute>
               } />
               
