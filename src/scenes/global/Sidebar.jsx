@@ -178,18 +178,19 @@ const Sidebar = () => {
               <Item title="Purchase Returns" to="/pos/returns" icon={<GroupAddIcon />} selected={selected} setSelected={setSelected} />
               
             </SubMenu>
-            <Item title="Print Barcode" to="/inventory/print-bar-code" icon={<InventoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+           
             <SubMenu title="Stock Movement" icon={<BusinessCenterOutlinedIcon />}>
             <Item title="Supply Chain" to="/inventory/supply" icon={<InventoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Supply Payments" to="/inventory/payments" icon={<InventoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Supplier List" to="/inventory/supplierList" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Customer List" to="/inventory/customer" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+             
               <Item title="Transfer List" to="/inventory/transfer" icon={<InventoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Stock Movement" to="/inventory/stock" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
             </SubMenu>
           </SubMenu>
 
           <SubMenu title="Customer Management" icon={<PeopleAltOutlinedIcon />}>
+           <Item title="Customer List" to="/inventory/customer" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
           
             <Item title="Leads" to="/crm/leads" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Deals" to="/crm/deals" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
