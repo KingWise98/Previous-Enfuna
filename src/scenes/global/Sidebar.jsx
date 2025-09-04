@@ -134,7 +134,7 @@ const Sidebar = () => {
             <Item title="Accounts Payable" to="/reports/payable" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Accounts Receivable" to="/reports/receivable" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <SubMenu title="Transactions" icon={<MenuBookOutlinedIcon />}>
-             <Item title="Bills" to="/bills/manage" icon={<ReceiptOutlinedIcon />} selected={selected} setSelected={setSelected} />
+            
             <SubMenu title="Voucher" icon={<LocalOfferOutlinedIcon />}>
               <Item title="Credit Voucher" to="/vouchers/credit" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Debit Voucher" to="/vouchers/debit" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
@@ -178,6 +178,7 @@ const Sidebar = () => {
               <Item title="Purchase Returns" to="/pos/returns" icon={<GroupAddIcon />} selected={selected} setSelected={setSelected} />
               
             </SubMenu>
+             <Item title="Bills" to="/bills/manage" icon={<ReceiptOutlinedIcon />} selected={selected} setSelected={setSelected} />
            
             <SubMenu title="Stock Movement" icon={<BusinessCenterOutlinedIcon />}>
             <Item title="Supply Chain" to="/inventory/supply" icon={<InventoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
