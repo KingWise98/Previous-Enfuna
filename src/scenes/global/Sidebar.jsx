@@ -135,11 +135,11 @@ const Sidebar = () => {
             <Item title="Accounts Receivable" to="/reports/receivable" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <SubMenu title="Transactions" icon={<MenuBookOutlinedIcon />}>
             
-            <SubMenu title="Voucher" icon={<LocalOfferOutlinedIcon />}>
-              <Item title="Credit Voucher" to="/vouchers/credit" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Debit Voucher" to="/vouchers/debit" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+            <SubMenu title="Notes" icon={<LocalOfferOutlinedIcon />}>
+              <Item title="Credit Note" to="/vouchers/credit" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Debit Note" to="/vouchers/debit" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
               
-              <Item title="Journal Voucher" to="/vouchers/journal" icon={<MenuBookOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Journal Legder" to="/vouchers/journal" icon={<MenuBookOutlinedIcon />} selected={selected} setSelected={setSelected} />
               
             </SubMenu>
             
