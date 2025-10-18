@@ -25,6 +25,14 @@ import {
   OutlinedInput,
   Tabs,
   Tab,
+  Card,
+  CardContent,
+  Alert,
+  Snackbar,
+  LinearProgress,
+  Tooltip,
+  Avatar,
+  Switch,
 } from "@mui/material";
 import {
   MoreVert,
@@ -39,237 +47,266 @@ import {
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
   PersonAdd as PersonAddIcon,
+  Refresh,
+  Visibility,
+  VisibilityOff,
+  Lock,
+  LockOpen,
+  Group,
+  AdminPanelSettings,
 } from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../theme";
 
-// Permission categories and options
-const PERMISSION_CATEGORIES = {
+// ============================================================================
+// API ENDPOINTS - Replace with actual backend endpoints
+// ============================================================================
+
+const API_ENDPOINTS = {
+  // Employee Management APIs
+  EMPLOYEES: {
+    LIST: '/api/employees',
+    CREATE: '/api/employees',
+    UPDATE: '/api/employees/:id',
+    DELETE: '/api/employees/:id',
+    STATUS: '/api/employees/:id/status',
+  },
+  // Role Management APIs
+  ROLES: {
+    LIST: '/api/roles',
+    CREATE: '/api/roles',
+    UPDATE: '/api/roles/:id',
+    DELETE: '/api/roles/:id',
+    PERMISSIONS: '/api/roles/:id/permissions',
+  },
+  // Permission Management APIs
+  PERMISSIONS: {
+    LIST: '/api/permissions',
+    CATEGORIES: '/api/permissions/categories',
+  },
+  // User Management APIs
+  USERS: {
+    LIST: '/api/users',
+    CREATE: '/api/users',
+    UPDATE: '/api/users/:id',
+    DELETE: '/api/users/:id',
+    PASSWORD: '/api/users/:id/password',
+  }
+};
+
+// ============================================================================
+// BACKEND PERMISSION STRUCTURE - This should match your backend schema
+// ============================================================================
+
+const BACKEND_PERMISSION_CATEGORIES = {
   products: {
     label: "Product Management",
     permissions: [
-      { id: "view_products", label: "View Products" },
-      { id: "add_products", label: "Add Products" },
-      { id: "edit_products", label: "Edit Products" },
-      { id: "delete_products", label: "Delete Products" },
-      { id: "change_prices", label: "Change Prices" },
+      { id: "products.view", label: "View Products", description: "Can view product catalog" },
+      { id: "products.create", label: "Add Products", description: "Can create new products" },
+      { id: "products.update", label: "Edit Products", description: "Can modify existing products" },
+      { id: "products.delete", label: "Delete Products", description: "Can remove products" },
+      { id: "products.pricing", label: "Change Prices", description: "Can update product pricing" },
+      { id: "products.inventory", label: "Manage Inventory", description: "Can update stock levels" },
     ],
   },
   sales: {
-    label: "Sales",
+    label: "Sales Management",
     permissions: [
-      { id: "create_sales", label: "Create Sales" },
-      { id: "view_sales", label: "View Sales" },
-      { id: "edit_sales", label: "Edit Sales" },
-      { id: "cancel_sales", label: "Cancel Sales" },
-      { id: "apply_discounts", label: "Apply Discounts" },
+      { id: "sales.create", label: "Create Sales", description: "Can process new sales" },
+      { id: "sales.view", label: "View Sales", description: "Can view sales history" },
+      { id: "sales.update", label: "Edit Sales", description: "Can modify sales records" },
+      { id: "sales.cancel", label: "Cancel Sales", description: "Can void/cancel sales" },
+      { id: "sales.discounts", label: "Apply Discounts", description: "Can apply discounts to sales" },
+      { id: "sales.refunds", label: "Process Refunds", description: "Can process refunds" },
     ],
   },
   customers: {
     label: "Customer Management",
     permissions: [
-      { id: "view_customers", label: "View Customers" },
-      { id: "add_customers", label: "Add Customers" },
-      { id: "edit_customers", label: "Edit Customers" },
-      { id: "delete_customers", label: "Delete Customers" },
+      { id: "customers.view", label: "View Customers", description: "Can view customer database" },
+      { id: "customers.create", label: "Add Customers", description: "Can create new customers" },
+      { id: "customers.update", label: "Edit Customers", description: "Can modify customer information" },
+      { id: "customers.delete", label: "Delete Customers", description: "Can remove customers" },
+    ],
+  },
+  purchases: {
+    label: "Purchase Management",
+    permissions: [
+      { id: "purchases.view", label: "View Purchases", description: "Can view purchase orders" },
+      { id: "purchases.create", label: "Create Purchases", description: "Can create purchase orders" },
+      { id: "purchases.update", label: "Edit Purchases", description: "Can modify purchase orders" },
+      { id: "purchases.approve", label: "Approve Purchases", description: "Can approve purchase orders" },
+      { id: "purchases.delete", label: "Delete Purchases", description: "Can remove purchase orders" },
     ],
   },
   reports: {
-    label: "Reports",
+    label: "Reports & Analytics",
     permissions: [
-      { id: "view_sales_reports", label: "View Sales Reports" },
-      { id: "view_inventory_reports", label: "View Inventory Reports" },
-      { id: "export_reports", label: "Export Reports" },
+      { id: "reports.sales", label: "View Sales Reports", description: "Can access sales analytics" },
+      { id: "reports.inventory", label: "View Inventory Reports", description: "Can access inventory reports" },
+      { id: "reports.financial", label: "View Financial Reports", description: "Can access financial reports" },
+      { id: "reports.export", label: "Export Reports", description: "Can export report data" },
     ],
   },
   system: {
-    label: "System",
+    label: "System Administration",
     permissions: [
-      { id: "manage_users", label: "Manage Users" },
-      { id: "manage_roles", label: "Manage Roles" },
-      { id: "system_settings", label: "System Settings" },
+      { id: "system.users", label: "Manage Users", description: "Can manage system users" },
+      { id: "system.roles", label: "Manage Roles", description: "Can manage user roles" },
+      { id: "system.settings", label: "System Settings", description: "Can modify system configuration" },
+      { id: "system.backup", label: "Backup & Restore", description: "Can manage data backups" },
+      { id: "system.audit", label: "View Audit Logs", description: "Can access system audit trails" },
     ],
   },
 };
 
-// Default roles with permissions
+// ============================================================================
+// DEFAULT ROLES - These should be created in backend initially
+// ============================================================================
+
 const DEFAULT_ROLES = {
-  Admin: {
-    description: "Full system access",
-    permissions: Object.values(PERMISSION_CATEGORIES)
+  super_admin: {
+    id: 1,
+    name: "Super Administrator",
+    description: "Full system access with all permissions",
+    is_system: true,
+    permissions: Object.values(BACKEND_PERMISSION_CATEGORIES)
       .flatMap(category => category.permissions.map(p => p.id))
   },
-  Manager: {
-    description: "Can manage products, sales, and customers",
+  admin: {
+    id: 2,
+    name: "Administrator",
+    description: "Full administrative access except system settings",
+    is_system: true,
+    permissions: Object.values(BACKEND_PERMISSION_CATEGORIES)
+      .flatMap(category => category.permissions.map(p => p.id))
+      .filter(p => !p.startsWith('system.'))
+  },
+  manager: {
+    id: 3,
+    name: "Manager",
+    description: "Can manage products, sales, customers, and view reports",
+    is_system: true,
     permissions: [
-      ...PERMISSION_CATEGORIES.products.permissions.map(p => p.id),
-      ...PERMISSION_CATEGORIES.sales.permissions.map(p => p.id),
-      ...PERMISSION_CATEGORIES.customers.permissions.map(p => p.id),
-      ...PERMISSION_CATEGORIES.reports.permissions.map(p => p.id),
+      ...BACKEND_PERMISSION_CATEGORIES.products.permissions.map(p => p.id),
+      ...BACKEND_PERMISSION_CATEGORIES.sales.permissions.map(p => p.id),
+      ...BACKEND_PERMISSION_CATEGORIES.customers.permissions.map(p => p.id),
+      ...BACKEND_PERMISSION_CATEGORIES.reports.permissions.map(p => p.id),
     ]
   },
-  Cashier: {
-    description: "Can process sales and view products",
+  cashier: {
+    id: 4,
+    name: "Cashier",
+    description: "Can process sales and view products/customers",
+    is_system: true,
     permissions: [
-      "view_products",
-      "create_sales",
-      "apply_discounts",
-      "view_customers",
-      "add_customers",
+      "products.view",
+      "sales.create",
+      "sales.discounts",
+      "customers.view",
+      "customers.create",
     ]
   },
-  Inventory: {
+  inventory_clerk: {
+    id: 5,
+    name: "Inventory Clerk",
     description: "Can manage products and inventory",
+    is_system: true,
     permissions: [
-      "view_products",
-      "add_products",
-      "edit_products",
-      "change_prices",
-      "view_inventory_reports",
-    ]
-  },
-  Sales: {
-    description: "Can manage sales and customers",
-    permissions: [
-      "view_products",
-      "create_sales",
-      "view_sales",
-      "apply_discounts",
-      "view_customers",
-      "add_customers",
-      "edit_customers",
-      "view_sales_reports",
-    ]
-  },
-  Viewer: {
-    description: "Can view reports and products",
-    permissions: [
-      "view_products",
-      "view_sales",
-      "view_customers",
-      "view_sales_reports",
-      "view_inventory_reports",
+      "products.view",
+      "products.create",
+      "products.update",
+      "products.pricing",
+      "products.inventory",
+      "reports.inventory",
     ]
   }
 };
 
-// Initial Employee Data with Categories and Sub-categories
+// ============================================================================
+// INITIAL DATA - Replace with API calls
+// ============================================================================
+
 const initialEmployees = [
   {
     id: 1,
-    employeeId: "EMP001",
+    employee_id: "EMP001",
     username: "alicej",
     name: "Alice Johnson",
     email: "alice@example.com",
     phone: "+256 123 456 789",
-    designation: "Developer",
-    category: "Tech",
-    subCategory: "Frontend",
-    joiningDate: "2024-02-15",
-    status: "Active",
-    role: "Admin",
+    designation: "Senior Developer",
+    department: "Technology",
+    position: "Frontend Lead",
+    joining_date: "2024-02-15",
+    status: "active",
+    role_id: 1,
+    role_name: "Super Administrator",
+    avatar: null,
+    last_login: "2024-01-15T10:30:00Z",
+    created_at: "2024-01-01T00:00:00Z",
   },
   {
     id: 2,
-    employeeId: "EMP002",
+    employee_id: "EMP002",
     username: "williamst",
     name: "Tumuwebazi Williams",
-    email: "bob@example.com",
+    email: "williams@example.com",
     phone: "+256 987 654 321",
-    designation: "Finance",
-    category: "Finance",
-    subCategory: "Accounting",
-    joiningDate: "2023-09-10",
-    status: "Inactive",
-    role: "Manager",
-  },
-  {
-    id: 3,
-    employeeId: "EMP003",
-    username: "victoriaq",
-    name: "Queen Victoria",
-    email: "Queen@example.com",
-    phone: "+256 987 654 321",
-    designation: "Banking",
-    category: "Finance",
-    subCategory: "Loans",
-    joiningDate: "2024-09-10",
-    status: "Suspended",
-    role: "Cashier",
-  },
-  {
-    id: 4,
-    employeeId: "EMP004",
-    username: "tulemekab",
-    name: "Bob Tulemeka",
-    email: "bobtu@example.com",
-    phone: "+256 782 654 321",
-    designation: "Marketing",
-    category: "Sales",
-    subCategory: "Digital",
-    joiningDate: "2024-09-11",
-    status: "Fired",
-    role: "Sales",
-  },
-  {
-    id: 5,
-    employeeId: "EMP005",
-    username: "tulemekag",
-    name: "Garvin Tulemeka",
-    email: "bobtu@example.com",
-    phone: "+256 782 654 321",
-    designation: "Marketing",
-    category: "Sales",
-    subCategory: "Branding",
-    joiningDate: "2024-09-11",
-    status: "Warning",
-    role: "Viewer",
+    designation: "Finance Manager",
+    department: "Finance",
+    position: "Head of Finance",
+    joining_date: "2023-09-10",
+    status: "active",
+    role_id: 2,
+    role_name: "Administrator",
+    avatar: null,
+    last_login: "2024-01-14T15:45:00Z",
+    created_at: "2023-09-01T00:00:00Z",
   },
 ];
 
 const statusColors = {
-  Active: "green",
-  Inactive: "blue",
-  Suspended: "orange",
-  Fired: "red",
-  Warning: "grey",
-  "New Joiner": "purple",
+  active: "success",
+  inactive: "warning",
+  suspended: "error",
+  pending: "info",
+  terminated: "error",
 };
 
 const EmployeeUserManagement = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [tabValue, setTabValue] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   
-  // Load roles from localStorage or use default
-  const [roles, setRoles] = useState(() => {
-    const savedRoles = localStorage.getItem("userRoles");
-    return savedRoles ? JSON.parse(savedRoles) : DEFAULT_ROLES;
-  });
-
+  // State Management
+  const [roles, setRoles] = useState(DEFAULT_ROLES);
   const [employees, setEmployees] = useState(initialEmployees);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedSubCategories, setSelectedSubCategories] = useState([]);
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedStatuses, setSelectedStatuses] = useState([]);
+  const [selectedRoles, setSelectedRoles] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [openEmployeeModal, setOpenEmployeeModal] = useState(false);
   const [openRoleModal, setOpenRoleModal] = useState(false);
   const [openRoleManager, setOpenRoleManager] = useState(false);
   const [newEmployee, setNewEmployee] = useState({
-    employeeId: "",
+    employee_id: "",
     username: "",
     name: "",
     email: "",
     phone: "",
     designation: "",
-    category: "",
-    subCategory: "",
-    joiningDate: "",
-    status: "Active",
-    role: "Cashier",
+    department: "",
+    position: "",
+    joining_date: "",
+    status: "active",
+    role_id: "",
   });
   const [newRole, setNewRole] = useState({
     name: "",
@@ -278,119 +315,246 @@ const EmployeeUserManagement = () => {
   });
   const [editingRole, setEditingRole] = useState(null);
 
-  // Extract unique categories, sub-categories, and statuses for filters
-  const allCategories = [...new Set(employees.map(emp => emp.category))];
-  const allSubCategories = [...new Set(employees.map(emp => emp.subCategory))];
+  // Extract unique values for filters
+  const allDepartments = [...new Set(employees.map(emp => emp.department))];
   const allStatuses = [...new Set(employees.map(emp => emp.status))];
+  const allRoles = [...new Set(employees.map(emp => emp.role_name))];
 
-  // Save roles to localStorage when they change
+  // ============================================================================
+  // API INTEGRATION FUNCTIONS - Replace with actual API calls
+  // ============================================================================
+
+  // Fetch employees from API
+  const fetchEmployees = async () => {
+    setLoading(true);
+    try {
+      // TODO: Replace with actual API call
+      // const response = await fetch(API_ENDPOINTS.EMPLOYEES.LIST);
+      // const data = await response.json();
+      // setEmployees(data);
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setEmployees(initialEmployees);
+    } catch (error) {
+      showSnackbar("Failed to fetch employees", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch roles from API
+  const fetchRoles = async () => {
+    try {
+      // TODO: Replace with actual API call
+      // const response = await fetch(API_ENDPOINTS.ROLES.LIST);
+      // const data = await response.json();
+      // setRoles(data);
+      
+      setRoles(DEFAULT_ROLES);
+    } catch (error) {
+      showSnackbar("Failed to fetch roles", "error");
+    }
+  };
+
+  // Create/Update employee via API
+  const saveEmployee = async (employeeData) => {
+    try {
+      const endpoint = employeeData.id 
+        ? API_ENDPOINTS.EMPLOYEES.UPDATE.replace(':id', employeeData.id)
+        : API_ENDPOINTS.EMPLOYEES.CREATE;
+      
+      const method = employeeData.id ? 'PUT' : 'POST';
+      
+      // TODO: Replace with actual API call
+      // const response = await fetch(endpoint, {
+      //   method,
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(employeeData),
+      // });
+      
+      // if (response.ok) {
+        showSnackbar(`Employee ${employeeData.id ? 'updated' : 'created'} successfully`, "success");
+        fetchEmployees(); // Refresh list
+        return true;
+      // } else {
+      //   throw new Error('Failed to save employee');
+      // }
+    } catch (error) {
+      showSnackbar("Failed to save employee", "error");
+      return false;
+    }
+  };
+
+  // Delete employee via API
+  const deleteEmployee = async (employeeId) => {
+    try {
+      // TODO: Replace with actual API call
+      // const response = await fetch(API_ENDPOINTS.EMPLOYEES.DELETE.replace(':id', employeeId), {
+      //   method: 'DELETE',
+      // });
+      
+      // if (response.ok) {
+        showSnackbar("Employee deleted successfully", "success");
+        fetchEmployees(); // Refresh list
+        return true;
+      // } else {
+      //   throw new Error('Failed to delete employee');
+      // }
+    } catch (error) {
+      showSnackbar("Failed to delete employee", "error");
+      return false;
+    }
+  };
+
+  // Create/Update role via API
+  const saveRole = async (roleData) => {
+    try {
+      const endpoint = roleData.id 
+        ? API_ENDPOINTS.ROLES.UPDATE.replace(':id', roleData.id)
+        : API_ENDPOINTS.ROLES.CREATE;
+      
+      const method = roleData.id ? 'PUT' : 'POST';
+      
+      // TODO: Replace with actual API call
+      // const response = await fetch(endpoint, {
+      //   method,
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(roleData),
+      // });
+      
+      // if (response.ok) {
+        showSnackbar(`Role ${roleData.id ? 'updated' : 'created'} successfully`, "success");
+        fetchRoles(); // Refresh list
+        return true;
+      // } else {
+      //   throw new Error('Failed to save role');
+      // }
+    } catch (error) {
+      showSnackbar("Failed to save role", "error");
+      return false;
+    }
+  };
+
+  // Delete role via API
+  const deleteRole = async (roleId) => {
+    try {
+      // TODO: Replace with actual API call
+      // const response = await fetch(API_ENDPOINTS.ROLES.DELETE.replace(':id', roleId), {
+      //   method: 'DELETE',
+      // });
+      
+      // if (response.ok) {
+        showSnackbar("Role deleted successfully", "success");
+        fetchRoles(); // Refresh list
+        return true;
+      // } else {
+      //   throw new Error('Failed to delete role');
+      // }
+    } catch (error) {
+      showSnackbar("Failed to delete role", "error");
+      return false;
+    }
+  };
+
+  // Initialize data
   useEffect(() => {
-    localStorage.setItem("userRoles", JSON.stringify(roles));
-  }, [roles]);
+    fetchEmployees();
+    fetchRoles();
+  }, []);
 
-  // Handle tab change
+  // Utility Functions
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
   // Filter employees based on search and filters
   const filteredEmployees = employees.filter((employee) => {
-    // Text search across multiple fields
     const matchesSearch = searchTerm === "" || 
       employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.employee_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.designation.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.username.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Category filter
-    const matchesCategory = selectedCategories.length === 0 || 
-      selectedCategories.includes(employee.category);
+    const matchesDepartment = selectedDepartments.length === 0 || 
+      selectedDepartments.includes(employee.department);
 
-    // Sub-category filter
-    const matchesSubCategory = selectedSubCategories.length === 0 || 
-      selectedSubCategories.includes(employee.subCategory);
-
-    // Status filter
     const matchesStatus = selectedStatuses.length === 0 || 
       selectedStatuses.includes(employee.status);
 
-    return matchesSearch && matchesCategory && matchesSubCategory && matchesStatus;
+    const matchesRole = selectedRoles.length === 0 || 
+      selectedRoles.includes(employee.role_name);
+
+    return matchesSearch && matchesDepartment && matchesStatus && matchesRole;
   });
 
-  // Handle Open Action Menu
+  // Action Handlers
   const handleOpenMenu = (event, employee) => {
     setAnchorEl(event.currentTarget);
     setSelectedEmployee(employee);
   };
 
-  // Handle Close Action Menu
   const handleCloseMenu = () => {
     setAnchorEl(null);
     setSelectedEmployee(null);
   };
 
-  // Handle Delete Employee
-  const handleDelete = (id) => {
-    setEmployees(employees.filter((employee) => employee.id !== id));
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this employee?")) {
+      await deleteEmployee(id);
+    }
     handleCloseMenu();
   };
 
-  // Handle Edit Employee
   const handleEdit = (employee) => {
     setSelectedEmployee(employee);
     setNewEmployee({
-      employeeId: employee.employeeId,
+      employee_id: employee.employee_id,
       username: employee.username,
       name: employee.name,
       email: employee.email,
       phone: employee.phone,
       designation: employee.designation,
-      category: employee.category,
-      subCategory: employee.subCategory,
-      joiningDate: employee.joiningDate,
+      department: employee.department,
+      position: employee.position,
+      joining_date: employee.joining_date,
       status: employee.status,
-      role: employee.role,
+      role_id: employee.role_id,
     });
     setOpenEmployeeModal(true);
     handleCloseMenu();
   };
 
-  // Handle Create/Update Employee
-  const handleSaveEmployee = () => {
-    if (selectedEmployee) {
-      // Update existing employee
-      setEmployees(employees.map(employee => 
-        employee.id === selectedEmployee.id ? { ...employee, ...newEmployee } : employee
-      ));
-    } else {
-      // Create new employee
-      setEmployees([
-        ...employees,
-        {
-          id: employees.length + 1,
-          ...newEmployee,
-        },
-      ]);
-    }
-    setOpenEmployeeModal(false);
-    setNewEmployee({
-      employeeId: "",
-      username: "",
-      name: "",
-      email: "",
-      phone: "",
-      designation: "",
-      category: "",
-      subCategory: "",
-      joiningDate: "",
-      status: "Active",
-      role: "Cashier",
+  const handleSaveEmployee = async () => {
+    const success = await saveEmployee({
+      ...newEmployee,
+      id: selectedEmployee?.id,
     });
-    setSelectedEmployee(null);
+    
+    if (success) {
+      setOpenEmployeeModal(false);
+      setNewEmployee({
+        employee_id: "",
+        username: "",
+        name: "",
+        email: "",
+        phone: "",
+        designation: "",
+        department: "",
+        position: "",
+        joining_date: "",
+        status: "active",
+        role_id: "",
+      });
+      setSelectedEmployee(null);
+    }
   };
 
-  // Handle Role Permission Toggle
   const handlePermissionToggle = (permissionId) => {
     setNewRole(prev => {
       const newPermissions = prev.permissions.includes(permissionId)
@@ -400,81 +564,86 @@ const EmployeeUserManagement = () => {
     });
   };
 
-  // Handle Create/Update Role
-  const handleSaveRole = () => {
-    if (editingRole) {
-      setRoles(prev => ({
-        ...prev,
-        [editingRole]: { ...newRole }
-      }));
-    } else {
-      setRoles(prev => ({
-        ...prev,
-        [newRole.name]: { 
-          description: newRole.description,
-          permissions: newRole.permissions 
-        }
-      }));
+  const handleSaveRole = async () => {
+    const roleData = {
+      ...newRole,
+      id: editingRole?.id,
+    };
+    
+    const success = await saveRole(roleData);
+    
+    if (success) {
+      setOpenRoleModal(false);
+      setNewRole({
+        name: "",
+        description: "",
+        permissions: [],
+      });
+      setEditingRole(null);
     }
-    setOpenRoleModal(false);
-    setNewRole({
-      name: "",
-      description: "",
-      permissions: [],
-    });
-    setEditingRole(null);
   };
 
-  // Handle Edit Role
-  const handleEditRole = (roleName) => {
-    setEditingRole(roleName);
+  const handleEditRole = (role) => {
+    setEditingRole(role);
     setNewRole({
-      name: roleName,
-      description: roles[roleName].description,
-      permissions: roles[roleName].permissions,
+      name: role.name,
+      description: role.description,
+      permissions: role.permissions,
     });
     setOpenRoleModal(true);
   };
 
-  // Handle Delete Role
-  const handleDeleteRole = (roleName) => {
+  const handleDeleteRole = async (role) => {
+    if (role.is_system) {
+      showSnackbar("System roles cannot be deleted", "error");
+      return;
+    }
+
     // Check if any employees are using this role
-    const employeesWithRole = employees.filter(emp => emp.role === roleName);
+    const employeesWithRole = employees.filter(emp => emp.role_id === role.id);
     if (employeesWithRole.length > 0) {
-      alert(`Cannot delete this role as it is assigned to ${employeesWithRole.length} employee(s).`);
+      showSnackbar(`Cannot delete this role as it is assigned to ${employeesWithRole.length} employee(s)`, "error");
       return;
     }
     
-    const { [roleName]: _, ...remainingRoles } = roles;
-    setRoles(remainingRoles);
-  };
-
-  // Check if permission is included in role
-  const hasPermission = (role, permissionId) => {
-    return roles[role]?.permissions?.includes(permissionId);
+    if (window.confirm(`Are you sure you want to delete the role "${role.name}"?`)) {
+      await deleteRole(role.id);
+    }
   };
 
   // Employee Table Columns
   const employeeColumns = [
-    { field: "employeeId", headerName: "Employee ID", flex: 1 },
+    { 
+      field: "employee_id", 
+      headerName: "Employee ID", 
+      flex: 1,
+      renderCell: (params) => (
+        <Box display="flex" alignItems="center" gap={1}>
+          <Avatar sx={{ width: 32, height: 32, bgcolor: colors.primary[500] }}>
+            {params.row.name.charAt(0)}
+          </Avatar>
+          <Typography variant="body2" fontWeight="bold">
+            {params.value}
+          </Typography>
+        </Box>
+      ),
+    },
     { field: "username", headerName: "Username", flex: 1 },
     { field: "name", headerName: "Full Name", flex: 1.5 },
     { field: "email", headerName: "Email", flex: 1.5 },
-    { field: "phone", headerName: "Phone Number", flex: 1.2 },
     { field: "designation", headerName: "Designation", flex: 1 },
-    { field: "category", headerName: "Category", flex: 1 },
-    { field: "subCategory", headerName: "Sub-category", flex: 1 },
-    { field: "joiningDate", headerName: "Joining Date", flex: 1 },
+    { field: "department", headerName: "Department", flex: 1 },
     { 
-      field: "role", 
+      field: "role_name", 
       headerName: "Role", 
       flex: 1,
       renderCell: (params) => (
         <Chip 
           label={params.value} 
           color="primary" 
+          variant="outlined"
           size="small"
-          onClick={() => handleEditRole(params.value)}
+          onClick={() => handleEditRole(roles[params.row.role_id])}
         />
       ),
     },
@@ -483,34 +652,45 @@ const EmployeeUserManagement = () => {
       headerName: "Status",
       flex: 1,
       renderCell: (params) => (
-        <Button
-          variant="contained"
-          sx={{
-            backgroundColor: statusColors[params.value] || "grey",
-            color: "white",
-            textTransform: "none",
-            "&:hover": { backgroundColor: statusColors[params.value] || "grey" },
-          }}
-        >
-          {params.value}
-        </Button>
+        <Chip
+          label={params.value}
+          color={statusColors[params.value] || "default"}
+          variant="filled"
+          size="small"
+        />
+      ),
+    },
+    {
+      field: "last_login",
+      headerName: "Last Login",
+      flex: 1,
+      renderCell: (params) => (
+        <Typography variant="body2" color="text.secondary">
+          {params.value ? new Date(params.value).toLocaleDateString() : 'Never'}
+        </Typography>
       ),
     },
     {
       field: "action",
-      headerName: "Action",
-      flex: 0.5,
+      headerName: "Actions",
+      flex: 1,
       renderCell: (params) => (
         <>
-          <IconButton onClick={(event) => handleOpenMenu(event, params.row)}>
-            <MoreVert />
-          </IconButton>
+          <Tooltip title="Actions">
+            <IconButton onClick={(event) => handleOpenMenu(event, params.row)} size="small">
+              <MoreVert />
+            </IconButton>
+          </Tooltip>
           <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleCloseMenu}>
             <MenuItem onClick={() => handleEdit(params.row)}>
-              <Edit sx={{ marginRight: 1 }} /> Edit
+              <Edit sx={{ marginRight: 1 }} /> Edit Employee
             </MenuItem>
-            <MenuItem onClick={() => handleDelete(params.row.id)} sx={{ color: "red" }}>
-              <Delete sx={{ marginRight: 1 }} /> Delete
+            <MenuItem onClick={() => handleEditRole(roles[params.row.role_id])}>
+              <Security sx={{ marginRight: 1 }} /> Edit Role
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={() => handleDelete(params.row.id)} sx={{ color: "error.main" }}>
+              <Delete sx={{ marginRight: 1 }} /> Delete Employee
             </MenuItem>
           </Menu>
         </>
@@ -520,264 +700,349 @@ const EmployeeUserManagement = () => {
 
   return (
     <Box m="20px">
-      <Typography variant="h4" fontWeight="bold" mb={2}>
-        Employee & User Management
-      </Typography>
+      {/* Header Section */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box>
+          <Typography variant="h4" fontWeight="bold" color="primary">
+            Employee & User Management
+          </Typography>
+          <Typography variant="subtitle1" color="text.secondary">
+            Manage system users, roles, and permissions
+          </Typography>
+        </Box>
+        <Button
+          variant="outlined"
+          startIcon={<Refresh />}
+          onClick={fetchEmployees}
+          disabled={loading}
+        >
+          Refresh
+        </Button>
+      </Box>
+
+      {loading && <LinearProgress sx={{ mb: 2 }} />}
 
       <Tabs value={tabValue} onChange={handleTabChange} sx={{ mb: 3 }}>
-        <Tab label="Employees" />
-        <Tab label="Roles & Permissions" />
+        <Tab icon={<Group />} label="Employees" />
+        <Tab icon={<AdminPanelSettings />} label="Roles & Permissions" />
       </Tabs>
 
       {tabValue === 0 ? (
         <>
-          {/* Search Filters */}
-          <Box display="flex" flexDirection="column" gap={2} mt={3}>
-            {/* General Search */}
-            <TextField
-              label="Search Employees"
-              variant="outlined"
-              fullWidth
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-
-            {/* Filter Row */}
-            <Box display="flex" gap={2} flexWrap="wrap">
-              {/* Category Filter */}
-              <FormControl sx={{ minWidth: 200, flex: 1 }}>
-                <InputLabel>Categories</InputLabel>
-                <Select
-                  multiple
-                  value={selectedCategories}
-                  onChange={(e) => setSelectedCategories(e.target.value)}
-                  input={<OutlinedInput label="Categories" />}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((value) => (
-                        <Chip key={value} label={value} />
+          {/* Search and Filters Section */}
+          <Card sx={{ mb: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Search & Filters</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    label="Search Employees"
+                    variant="outlined"
+                    fullWidth
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search by name, email, ID..."
+                  />
+                </Grid>
+                <Grid item xs={12} md={2}>
+                  <FormControl fullWidth>
+                    <InputLabel>Department</InputLabel>
+                    <Select
+                      multiple
+                      value={selectedDepartments}
+                      onChange={(e) => setSelectedDepartments(e.target.value)}
+                      input={<OutlinedInput label="Department" />}
+                      renderValue={(selected) => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selected.map((value) => (
+                            <Chip key={value} label={value} size="small" />
+                          ))}
+                        </Box>
+                      )}
+                    >
+                      {allDepartments.map((dept) => (
+                        <MenuItem key={dept} value={dept}>
+                          {dept}
+                        </MenuItem>
                       ))}
-                    </Box>
-                  )}
-                >
-                  {allCategories.map((category) => (
-                    <MenuItem key={category} value={category}>
-                      {category}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {/* Sub-category Filter */}
-              <FormControl sx={{ minWidth: 200, flex: 1 }}>
-                <InputLabel>Sub-categories</InputLabel>
-                <Select
-                  multiple
-                  value={selectedSubCategories}
-                  onChange={(e) => setSelectedSubCategories(e.target.value)}
-                  input={<OutlinedInput label="Sub-categories" />}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((value) => (
-                        <Chip key={value} label={value} />
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={2}>
+                  <FormControl fullWidth>
+                    <InputLabel>Status</InputLabel>
+                    <Select
+                      multiple
+                      value={selectedStatuses}
+                      onChange={(e) => setSelectedStatuses(e.target.value)}
+                      input={<OutlinedInput label="Status" />}
+                      renderValue={(selected) => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selected.map((value) => (
+                            <Chip 
+                              key={value} 
+                              label={value} 
+                              size="small"
+                              color={statusColors[value]}
+                            />
+                          ))}
+                        </Box>
+                      )}
+                    >
+                      {allStatuses.map((status) => (
+                        <MenuItem key={status} value={status}>
+                          <Chip 
+                            label={status} 
+                            size="small"
+                            color={statusColors[status]}
+                            sx={{ mr: 1 }}
+                          />
+                          {status}
+                        </MenuItem>
                       ))}
-                    </Box>
-                  )}
-                >
-                  {allSubCategories.map((subCategory) => (
-                    <MenuItem key={subCategory} value={subCategory}>
-                      {subCategory}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {/* Status Filter */}
-              <FormControl sx={{ minWidth: 200, flex: 1 }}>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  multiple
-                  value={selectedStatuses}
-                  onChange={(e) => setSelectedStatuses(e.target.value)}
-                  input={<OutlinedInput label="Status" />}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((value) => (
-                        <Chip 
-                          key={value} 
-                          label={value} 
-                          sx={{ 
-                            backgroundColor: statusColors[value] || 'grey',
-                            color: 'white'
-                          }} 
-                        />
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={2}>
+                  <FormControl fullWidth>
+                    <InputLabel>Role</InputLabel>
+                    <Select
+                      multiple
+                      value={selectedRoles}
+                      onChange={(e) => setSelectedRoles(e.target.value)}
+                      input={<OutlinedInput label="Role" />}
+                      renderValue={(selected) => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selected.map((value) => (
+                            <Chip key={value} label={value} size="small" color="primary" />
+                          ))}
+                        </Box>
+                      )}
+                    >
+                      {allRoles.map((role) => (
+                        <MenuItem key={role} value={role}>
+                          {role}
+                        </MenuItem>
                       ))}
-                    </Box>
-                  )}
-                >
-                  {allStatuses.map((status) => (
-                    <MenuItem key={status} value={status}>
-                      <Box sx={{ 
-                        width: 14, 
-                        height: 14, 
-                        backgroundColor: statusColors[status] || 'grey',
-                        mr: 1,
-                        borderRadius: '3px'
-                      }} />
-                      {status}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-          </Box>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={2}>
+                  <Box display="flex" gap={1} height="100%" alignItems="flex-end">
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      startIcon={<PersonAddIcon />}
+                      onClick={() => setOpenEmployeeModal(true)}
+                    >
+                      Add Employee
+                    </Button>
+                  </Box>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
 
-          {/* Button Cards */}
-          <Box display="flex" gap={2} mt={3}>
+          {/* Statistics Cards */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
             {[ 
-              { label: "Total Employees", value: filteredEmployees.length, icon: <PersonIcon />, color: "#E0E0E0" },
-              { label: "Active", value: filteredEmployees.filter((e) => e.status === "Active").length, icon: <CheckCircleIcon />, color: "#E0E0E0" },
-              { label: "Inactive", value: filteredEmployees.filter((e) => e.status === "Inactive").length, icon: <CancelIcon />, color: "#E0E0E0" },
-              { label: "New Joiners", value: filteredEmployees.filter((e) => e.status === "New Joiner").length, icon: <PersonAddIcon />, color: "#E0E0E0" },
+              { 
+                label: "Total Employees", 
+                value: filteredEmployees.length, 
+                icon: <Group color="primary" />, 
+                color: colors.primary[500] 
+              },
+              { 
+                label: "Active", 
+                value: filteredEmployees.filter((e) => e.status === "active").length, 
+                icon: <CheckCircleIcon color="success" />, 
+                color: colors.greenAccent[500] 
+              },
+              { 
+                label: "Inactive", 
+                value: filteredEmployees.filter((e) => e.status === "inactive").length, 
+                icon: <CancelIcon color="warning" />, 
+                color: colors.redAccent[500] 
+              },
+              { 
+                label: "Administrators", 
+                value: filteredEmployees.filter((e) => e.role_name.includes('Admin')).length, 
+                icon: <AdminPanelSettings color="secondary" />, 
+                color: colors.blueAccent[500] 
+              },
             ].map((card, index) => (
-              <Box
-                key={index}
-                sx={{
-                  backgroundColor: "#F9F6EE",
-                  p: 3,
-                  borderRadius: 2,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  flex: 1,
-                  boxShadow: "none",
-                }}
-              >
-                <Box sx={{ color: "black" }}>{card.icon}</Box>
-                <Typography variant="h5" fontWeight="bold" sx={{ color: "black" }}>
-                  {card.value}
-                </Typography>
-                <Typography variant="subtitle2" sx={{ color: "black" }}>
-                  {card.label}
-                </Typography>
-              </Box>
+              <Grid item xs={12} sm={6} md={3} key={index}>
+                <Card sx={{ backgroundColor: card.color, color: 'white' }}>
+                  <CardContent>
+                    <Box display="flex" justifyContent="space-between" alignItems="center">
+                      <Box>
+                        <Typography variant="h4" fontWeight="bold">
+                          {card.value}
+                        </Typography>
+                        <Typography variant="body2">
+                          {card.label}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ opacity: 0.8 }}>
+                        {card.icon}
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
             ))}
-          </Box>
-
-          {/* Action Buttons */}
-          <Box display="flex" justifyContent="space-between" alignItems="center" mt={4}>
-            <Button
-              variant="contained"
-              sx={{ backgroundColor: "purple", color: "white" }}
-              startIcon={<PersonAddIcon />}
-              onClick={() => setOpenEmployeeModal(true)}
-            >
-              Add Employee
-            </Button>
-            <Button 
-              variant="outlined" 
-              startIcon={<Security />}
-              onClick={() => setOpenRoleManager(true)}
-            >
-              Manage Roles
-            </Button>
-          </Box>
+          </Grid>
 
           {/* Employee Table */}
-          <Box mt={4} sx={{ height: "60vh" }}>
-            <DataGrid
-              rows={filteredEmployees}
-              columns={employeeColumns}
-              pageSize={5}
-              rowsPerPageOptions={[5, 10, 20]}
-              sx={{
-                "& .MuiDataGrid-root": { border: "none" },
-                "& .MuiDataGrid-columnHeaders": { backgroundColor: colors.blueAccent[700] },
-                "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.primary[400] },
-                "& .MuiDataGrid-footerContainer": { backgroundColor: colors.blueAccent[700] },
-              }}
-            />
-          </Box>
+          <Card>
+            <CardContent>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="h6">
+                  Employees ({filteredEmployees.length})
+                </Typography>
+                <Button 
+                  variant="outlined" 
+                  startIcon={<Security />}
+                  onClick={() => setOpenRoleManager(true)}
+                >
+                  Manage Roles
+                </Button>
+              </Box>
+              <Box sx={{ height: "60vh" }}>
+                <DataGrid
+                  rows={filteredEmployees}
+                  columns={employeeColumns}
+                  pageSize={10}
+                  rowsPerPageOptions={[10, 25, 50]}
+                  loading={loading}
+                  sx={{
+                    border: 0,
+                    '& .MuiDataGrid-cell': {
+                      borderBottom: `1px solid ${colors.grey[200]}`,
+                    },
+                    '& .MuiDataGrid-columnHeaders': { 
+                      backgroundColor: colors.primary[50],
+                      borderBottom: `2px solid ${colors.primary[200]}`,
+                    },
+                    '& .MuiDataGrid-footerContainer': { 
+                      backgroundColor: colors.primary[50],
+                      borderTop: `1px solid ${colors.grey[200]}`,
+                    },
+                  }}
+                />
+              </Box>
+            </CardContent>
+          </Card>
         </>
       ) : (
         <>
           {/* Roles Management Section */}
-          <Box display="flex" justifyContent="flex-end" mb={3}>
-            <Button 
-              variant="contained" 
-              startIcon={<Add />}
-              sx={{ backgroundColor: "purple", color: "white" }}
-              onClick={() => {
-                setEditingRole(null);
-                setNewRole({
-                  name: "",
-                  description: "",
-                  permissions: [],
-                });
-                setOpenRoleModal(true);
-              }}
-            >
-              New Role
-            </Button>
-          </Box>
+          <Card>
+            <CardContent>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                <Typography variant="h6">System Roles & Permissions</Typography>
+                <Button 
+                  variant="contained" 
+                  startIcon={<Add />}
+                  onClick={() => {
+                    setEditingRole(null);
+                    setNewRole({
+                      name: "",
+                      description: "",
+                      permissions: [],
+                    });
+                    setOpenRoleModal(true);
+                  }}
+                >
+                  New Role
+                </Button>
+              </Box>
 
-          <Box>
-            <Grid container spacing={2}>
-              {Object.entries(roles).map(([roleName, { description, permissions }]) => (
-                <Grid item xs={12} sm={6} md={4} key={roleName}>
-                  <Paper elevation={3} sx={{ p: 2, height: "100%" }}>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        {roleName}
-                      </Typography>
-                      <Box>
-                        <IconButton size="small" onClick={() => handleEditRole(roleName)}>
-                          <Edit fontSize="small" />
-                        </IconButton>
-                        {!Object.keys(DEFAULT_ROLES).includes(roleName) && (
-                          <IconButton 
-                            size="small" 
-                            onClick={() => handleDeleteRole(roleName)}
-                            color="error"
-                          >
-                            <Delete fontSize="small" />
-                          </IconButton>
-                        )}
-                      </Box>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" mb={2}>
-                      {description}
-                    </Typography>
-                    <Typography variant="caption" display="block" gutterBottom>
-                      Permissions:
-                    </Typography>
-                    <Box sx={{ maxHeight: "150px", overflowY: "auto" }}>
-                      {Object.entries(PERMISSION_CATEGORIES).map(([category, { permissions: categoryPermissions }]) => {
-                        const rolePermissions = categoryPermissions
-                          .filter(p => permissions.includes(p.id))
-                          .map(p => p.label);
-                        
-                        return rolePermissions.length > 0 ? (
-                          <Box key={category} mb={1}>
-                            <Typography variant="caption" fontWeight="bold">
-                              {PERMISSION_CATEGORIES[category].label}:
+              <Grid container spacing={2}>
+                {Object.values(roles).map((role) => (
+                  <Grid item xs={12} md={6} lg={4} key={role.id}>
+                    <Card 
+                      elevation={2}
+                      sx={{ 
+                        height: "100%",
+                        border: role.is_system ? `2px solid ${colors.primary[500]}` : 'none'
+                      }}
+                    >
+                      <CardContent>
+                        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                          <Box>
+                            <Typography variant="h6" gutterBottom>
+                              {role.name}
+                              {role.is_system && (
+                                <Chip 
+                                  label="System" 
+                                  size="small" 
+                                  color="primary"
+                                  sx={{ ml: 1 }}
+                                />
+                              )}
                             </Typography>
-                            <Typography variant="caption" display="block">
-                              {rolePermissions.join(", ")}
+                            <Typography variant="body2" color="text.secondary">
+                              {role.description}
                             </Typography>
                           </Box>
-                        ) : null;
-                      })}
-                    </Box>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
+                          <Box>
+                            <Tooltip title="Edit Role">
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleEditRole(role)}
+                                color="primary"
+                              >
+                                <Edit fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            {!role.is_system && (
+                              <Tooltip title="Delete Role">
+                                <IconButton 
+                                  size="small" 
+                                  onClick={() => handleDeleteRole(role)}
+                                  color="error"
+                                >
+                                  <Delete fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </Box>
+                        </Box>
+                        
+                        <Typography variant="caption" display="block" gutterBottom fontWeight="bold">
+                          Permissions ({role.permissions.length})
+                        </Typography>
+                        <Box sx={{ maxHeight: "200px", overflowY: "auto" }}>
+                          {Object.entries(BACKEND_PERMISSION_CATEGORIES).map(([category, { label, permissions }]) => {
+                            const rolePermissions = permissions
+                              .filter(p => role.permissions.includes(p.id))
+                              .map(p => p.label);
+                            
+                            return rolePermissions.length > 0 ? (
+                              <Box key={category} mb={1}>
+                                <Typography variant="caption" fontWeight="bold" color="primary">
+                                  {label}:
+                                </Typography>
+                                <Typography variant="caption" display="block" color="text.secondary">
+                                  {rolePermissions.join(", ")}
+                                </Typography>
+                              </Box>
+                            ) : null;
+                          })}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </CardContent>
+          </Card>
         </>
       )}
 
-      {/* Modal for Creating/Editing Employee */}
+      {/* Modals and Dialogs */}
+      {/* Employee Modal */}
       <Modal open={openEmployeeModal} onClose={() => setOpenEmployeeModal(false)}>
         <Box
           sx={{
@@ -786,32 +1051,35 @@ const EmployeeUserManagement = () => {
             left: "50%",
             transform: "translate(-50%, -50%)",
             backgroundColor: "white",
-            padding: "20px",
-            borderRadius: "8px",
+            padding: 3,
+            borderRadius: 2,
             boxShadow: 24,
-            width: "600px",
+            width: "90%",
+            maxWidth: 800,
             maxHeight: "90vh",
             overflowY: "auto",
           }}
         >
-          <Typography variant="h6" mb={2}>
+          <Typography variant="h5" mb={3}>
             {selectedEmployee ? "Edit Employee" : "Create New Employee"}
           </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Employee ID"
-                value={newEmployee.employeeId}
-                onChange={(e) => setNewEmployee({ ...newEmployee, employeeId: e.target.value })}
+                value={newEmployee.employee_id}
+                onChange={(e) => setNewEmployee({ ...newEmployee, employee_id: e.target.value })}
+                required
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Username"
                 value={newEmployee.username}
                 onChange={(e) => setNewEmployee({ ...newEmployee, username: e.target.value })}
+                required
               />
             </Grid>
             <Grid item xs={12}>
@@ -820,17 +1088,20 @@ const EmployeeUserManagement = () => {
                 label="Full Name"
                 value={newEmployee.name}
                 onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                required
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Email"
+                type="email"
                 value={newEmployee.email}
                 onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                required
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Phone"
@@ -838,7 +1109,7 @@ const EmployeeUserManagement = () => {
                 onChange={(e) => setNewEmployee({ ...newEmployee, phone: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Designation"
@@ -846,54 +1117,66 @@ const EmployeeUserManagement = () => {
                 onChange={(e) => setNewEmployee({ ...newEmployee, designation: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Category"
-                value={newEmployee.category}
-                onChange={(e) => setNewEmployee({ ...newEmployee, category: e.target.value })}
+                label="Department"
+                value={newEmployee.department}
+                onChange={(e) => setNewEmployee({ ...newEmployee, department: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Sub-category"
-                value={newEmployee.subCategory}
-                onChange={(e) => setNewEmployee({ ...newEmployee, subCategory: e.target.value })}
+                label="Position"
+                value={newEmployee.position}
+                onChange={(e) => setNewEmployee({ ...newEmployee, position: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Joining Date"
                 type="date"
                 InputLabelProps={{ shrink: true }}
-                value={newEmployee.joiningDate}
-                onChange={(e) => setNewEmployee({ ...newEmployee, joiningDate: e.target.value })}
+                value={newEmployee.joining_date}
+                onChange={(e) => setNewEmployee({ ...newEmployee, joining_date: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <FormControl fullWidth>
                 <InputLabel>Status</InputLabel>
                 <Select
                   value={newEmployee.status}
                   onChange={(e) => setNewEmployee({ ...newEmployee, status: e.target.value })}
+                  label="Status"
                 >
                   {allStatuses.map(status => (
-                    <MenuItem key={status} value={status}>{status}</MenuItem>
+                    <MenuItem key={status} value={status}>
+                      <Chip 
+                        label={status} 
+                        size="small" 
+                        color={statusColors[status]}
+                        sx={{ mr: 1 }}
+                      />
+                      {status}
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <FormControl fullWidth>
                 <InputLabel>Role</InputLabel>
                 <Select
-                  value={newEmployee.role}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
+                  value={newEmployee.role_id}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, role_id: e.target.value })}
+                  label="Role"
                 >
-                  {Object.keys(roles).map(role => (
-                    <MenuItem key={role} value={role}>{role}</MenuItem>
+                  {Object.values(roles).map(role => (
+                    <MenuItem key={role.id} value={role.id}>
+                      {role.name}
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -902,8 +1185,9 @@ const EmployeeUserManagement = () => {
               <Button 
                 fullWidth 
                 variant="contained" 
-                sx={{ backgroundColor: "purple" }} 
+                size="large"
                 onClick={handleSaveEmployee}
+                disabled={!newEmployee.employee_id || !newEmployee.username || !newEmployee.name || !newEmployee.email}
               >
                 {selectedEmployee ? "Update Employee" : "Create Employee"}
               </Button>
@@ -912,7 +1196,7 @@ const EmployeeUserManagement = () => {
         </Box>
       </Modal>
 
-      {/* Modal for Creating/Editing Role */}
+      {/* Role Modal */}
       <Modal open={openRoleModal} onClose={() => setOpenRoleModal(false)}>
         <Box
           sx={{
@@ -921,18 +1205,19 @@ const EmployeeUserManagement = () => {
             left: "50%",
             transform: "translate(-50%, -50%)",
             backgroundColor: "white",
-            padding: "20px",
-            borderRadius: "8px",
+            padding: 3,
+            borderRadius: 2,
             boxShadow: 24,
-            width: "600px",
+            width: "90%",
+            maxWidth: 800,
             maxHeight: "80vh",
             overflowY: "auto",
           }}
         >
-          <Typography variant="h6" mb={2}>
+          <Typography variant="h5" mb={3}>
             {editingRole ? "Edit Role" : "Create New Role"}
           </Typography>
-          <Grid container spacing={2}>
+          <Grid container spacing={3}>
             {!editingRole && (
               <Grid item xs={12}>
                 <TextField
@@ -940,6 +1225,7 @@ const EmployeeUserManagement = () => {
                   label="Role Name"
                   value={newRole.name}
                   onChange={(e) => setNewRole({ ...newRole, name: e.target.value })}
+                  required
                 />
               </Grid>
             )}
@@ -947,45 +1233,56 @@ const EmployeeUserManagement = () => {
               <TextField
                 fullWidth
                 label="Description"
+                multiline
+                rows={2}
                 value={newRole.description}
                 onChange={(e) => setNewRole({ ...newRole, description: e.target.value })}
               />
             </Grid>
             <Grid item xs={12}>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Permissions
               </Typography>
               <Divider />
-              {Object.entries(PERMISSION_CATEGORIES).map(([category, { label, permissions }]) => (
-                <Box key={category} mt={2}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    {label}
-                  </Typography>
-                  <Grid container spacing={1}>
-                    {permissions.map(({ id, label }) => (
-                      <Grid item xs={6} key={id}>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={newRole.permissions.includes(id)}
-                              onChange={() => handlePermissionToggle(id)}
-                            />
-                          }
-                          label={label}
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
+              {Object.entries(BACKEND_PERMISSION_CATEGORIES).map(([category, { label, permissions }]) => (
+                <Card key={category} sx={{ mt: 2 }}>
+                  <CardContent>
+                    <Typography variant="subtitle1" gutterBottom color="primary">
+                      {label}
+                    </Typography>
+                    <Grid container spacing={1}>
+                      {permissions.map(({ id, label, description }) => (
+                        <Grid item xs={12} sm={6} md={4} key={id}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={newRole.permissions.includes(id)}
+                                onChange={() => handlePermissionToggle(id)}
+                              />
+                            }
+                            label={
+                              <Box>
+                                <Typography variant="body2">{label}</Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {description}
+                                </Typography>
+                              </Box>
+                            }
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </CardContent>
+                </Card>
               ))}
             </Grid>
             <Grid item xs={12} mt={2}>
               <Button 
                 fullWidth 
                 variant="contained" 
-                sx={{ backgroundColor: "purple" }} 
+                size="large"
                 onClick={handleSaveRole}
-                disabled={!newRole.name && !editingRole}
+                disabled={!newRole.name}
               >
                 {editingRole ? "Update Role" : "Create Role"}
               </Button>
@@ -994,12 +1291,12 @@ const EmployeeUserManagement = () => {
         </Box>
       </Modal>
 
-      {/* Dialog for Role Management */}
+      {/* Role Management Dialog */}
       <Dialog 
         open={openRoleManager} 
         onClose={() => setOpenRoleManager(false)}
         fullWidth
-        maxWidth="md"
+        maxWidth="lg"
       >
         <DialogTitle>
           <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -1007,7 +1304,6 @@ const EmployeeUserManagement = () => {
             <Button 
               variant="contained" 
               startIcon={<Add />}
-              sx={{ backgroundColor: "purple", color: "white" }}
               onClick={() => {
                 setEditingRole(null);
                 setNewRole({
@@ -1024,53 +1320,65 @@ const EmployeeUserManagement = () => {
         </DialogTitle>
         <DialogContent dividers>
           <Grid container spacing={2}>
-            {Object.entries(roles).map(([roleName, { description, permissions }]) => (
-              <Grid item xs={12} sm={6} md={4} key={roleName}>
-                <Paper elevation={3} sx={{ p: 2, height: "100%" }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      {roleName}
-                    </Typography>
-                    <Box>
-                      <IconButton size="small" onClick={() => handleEditRole(roleName)}>
-                        <Edit fontSize="small" />
-                      </IconButton>
-                      {!Object.keys(DEFAULT_ROLES).includes(roleName) && (
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleDeleteRole(roleName)}
-                          color="error"
-                        >
-                          <Delete fontSize="small" />
+            {Object.values(roles).map((role) => (
+              <Grid item xs={12} sm={6} md={4} key={role.id}>
+                <Card elevation={2} sx={{ height: "100%" }}>
+                  <CardContent>
+                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                      <Box>
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          {role.name}
+                          {role.is_system && (
+                            <Chip 
+                              label="System" 
+                              size="small" 
+                              color="primary"
+                              sx={{ ml: 1 }}
+                            />
+                          )}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {role.description}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <IconButton size="small" onClick={() => handleEditRole(role)}>
+                          <Edit fontSize="small" />
                         </IconButton>
-                      )}
+                        {!role.is_system && (
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleDeleteRole(role)}
+                            color="error"
+                          >
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        )}
+                      </Box>
                     </Box>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" mb={2}>
-                    {description}
-                  </Typography>
-                  <Typography variant="caption" display="block" gutterBottom>
-                    Permissions:
-                  </Typography>
-                  <Box sx={{ maxHeight: "150px", overflowY: "auto" }}>
-                    {Object.entries(PERMISSION_CATEGORIES).map(([category, { permissions: categoryPermissions }]) => {
-                      const rolePermissions = categoryPermissions
-                        .filter(p => permissions.includes(p.id))
-                        .map(p => p.label);
-                      
-                      return rolePermissions.length > 0 ? (
-                        <Box key={category} mb={1}>
-                          <Typography variant="caption" fontWeight="bold">
-                            {PERMISSION_CATEGORIES[category].label}:
-                          </Typography>
-                          <Typography variant="caption" display="block">
-                            {rolePermissions.join(", ")}
-                          </Typography>
-                        </Box>
-                      ) : null;
-                    })}
-                  </Box>
-                </Paper>
+                    <Typography variant="caption" display="block" gutterBottom>
+                      Permissions ({role.permissions.length})
+                    </Typography>
+                    <Box sx={{ maxHeight: "150px", overflowY: "auto" }}>
+                      {Object.entries(BACKEND_PERMISSION_CATEGORIES).map(([category, { permissions }]) => {
+                        const rolePermissions = permissions
+                          .filter(p => role.permissions.includes(p.id))
+                          .map(p => p.label);
+                        
+                        return rolePermissions.length > 0 ? (
+                          <Box key={category} mb={1}>
+                            <Typography variant="caption" fontWeight="bold">
+                              {BACKEND_PERMISSION_CATEGORIES[category].label}:
+                            </Typography>
+                            <Typography variant="caption" display="block">
+                              {rolePermissions.join(", ")}
+                            </Typography>
+                          </Box>
+                        ) : null;
+                      })}
+                    </Box>
+                  </CardContent>
+                </Card>
               </Grid>
             ))}
           </Grid>
@@ -1079,6 +1387,20 @@ const EmployeeUserManagement = () => {
           <Button onClick={() => setOpenRoleManager(false)}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert 
+          severity={snackbar.severity}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

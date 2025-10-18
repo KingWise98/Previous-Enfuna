@@ -47,6 +47,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Switch,
 } from "@mui/material";
 import {
   ShoppingCart as ShoppingCartIcon,
@@ -90,21 +91,8 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+
 const ServiceSalesPage = () => {
-
-// Service Data - Would be fetched from backend API
-// API endpoint: GET /api/services
-const [serviceData, setServiceData] = useState([]);
-
-// Payment Methods - Would be fetched from backend API
-// API endpoint: GET /api/payment-methods
-const [paymentMethods, setPaymentMethods] = useState([]);
-
-// Discount Offers - Would be fetched from backend API
-// API endpoint: GET /api/discounts
-const [discountOffers, setDiscountOffers] = useState([]);
-
-
   // State Management
   const [services, setServices] = useState([]);
   const [cart, setCart] = useState([]);
@@ -142,50 +130,321 @@ const [discountOffers, setDiscountOffers] = useState([]);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState("12:00");
+  
+  // Payment Methods and Discounts State
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [discountOffers, setDiscountOffers] = useState([]);
+  
+  // Withholding Tax State
+  const [withholdingTaxEnabled, setWithholdingTaxEnabled] = useState(false);
+  const [withholdingTaxRate, setWithholdingTaxRate] = useState(0.06); // 6%
+  const [withholdingTaxAmount, setWithholdingTaxAmount] = useState(0);
 
   const navigate = useNavigate();
 
+  // Dummy Data
+  const dummyServices = [
+    {
+      id: 1,
+      name: "Luxury Hotel Suite",
+      description: "Premium suite with ocean view and all amenities included",
+      price: 450000,
+      category: "Hospitality",
+      subcategory: "Hotels",
+      serviceType: "hospitality",
+      hospitalityType: "hotel",
+      rating: 4.8,
+      available: true,
+      duration: 1440, // 24 hours in minutes
+      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300",
+      features: ["Free WiFi", "Swimming Pool", "Spa Access", "Breakfast Included"]
+    },
+    {
+      id: 2,
+      name: "Fine Dining Experience",
+      description: "Gourmet 5-course meal with wine pairing",
+      price: 250000,
+      category: "Hospitality",
+      subcategory: "Restaurants",
+      serviceType: "hospitality",
+      hospitalityType: "restaurant",
+      rating: 4.9,
+      available: true,
+      duration: 180, // 3 hours in minutes
+      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=300",
+      menuItems: [
+        { name: "Appetizer Platter", price: 50000 },
+        { name: "Main Course", price: 120000 },
+        { name: "Dessert", price: 30000 },
+        { name: "Wine Pairing", price: 50000 }
+      ]
+    },
+    {
+      id: 3,
+      name: "Spa & Wellness Package",
+      description: "Full body massage, facial treatment, and relaxation therapy",
+      price: 180000,
+      category: "Salons & Spas",
+      subcategory: "Spa Services",
+      serviceType: "salon",
+      rating: 4.7,
+      available: true,
+      duration: 120, // 2 hours in minutes
+      image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=300",
+      features: ["Aromatherapy", "Hot Stone", "Steam Room", "Refreshments"]
+    },
+    {
+      id: 4,
+      name: "Medical Consultation",
+      description: "Comprehensive health check-up with specialist doctor",
+      price: 150000,
+      category: "Healthcare",
+      subcategory: "Medical Services",
+      serviceType: "healthcare",
+      rating: 4.6,
+      available: true,
+      duration: 60, // 1 hour in minutes
+      image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=300",
+      features: ["Blood Tests", "ECG", "Doctor Consultation", "Health Report"]
+    },
+    {
+      id: 5,
+      name: "Haircut & Styling",
+      description: "Professional haircut, wash, and styling session",
+      price: 45000,
+      category: "Salons & Spas",
+      subcategory: "Hair Services",
+      serviceType: "salon",
+      rating: 4.4,
+      available: true,
+      duration: 90, // 1.5 hours in minutes
+      image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=300",
+      features: ["Consultation", "Hair Wash", "Cut & Style", "Finishing Products"]
+    },
+    {
+      id: 6,
+      name: "Event Planning Service",
+      description: "Complete event management for weddings, corporate events",
+      price: 2000000,
+      category: "Event Management",
+      subcategory: "Event Planning",
+      serviceType: "event",
+      rating: 4.8,
+      available: true,
+      duration: 480, // 8 hours in minutes
+      image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=300",
+      features: ["Venue Selection", "Catering", "Decoration", "Coordination"]
+    },
+    {
+      id: 7,
+      name: "Bar & Lounge Experience",
+      description: "Premium cocktail tasting with mixology session",
+      price: 120000,
+      category: "Hospitality",
+      subcategory: "Bars & Lounges",
+      serviceType: "hospitality",
+      hospitalityType: "bar",
+      rating: 4.5,
+      available: true,
+      duration: 120, // 2 hours in minutes
+      image: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=300",
+      menuItems: [
+        { name: "Craft Cocktails", price: 40000 },
+        { name: "Appetizers", price: 30000 },
+        { name: "Mixology Class", price: 50000 }
+      ]
+    },
+    {
+      id: 8,
+      name: "Dental Check-up",
+      description: "Complete dental examination and cleaning",
+      price: 80000,
+      category: "Healthcare",
+      subcategory: "Dental Services",
+      serviceType: "healthcare",
+      rating: 4.6,
+      available: true,
+      duration: 45, // 45 minutes in minutes
+      image: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=300",
+      features: ["Examination", "Cleaning", "X-Rays", "Consultation"]
+    },
+    {
+      id: 9,
+      name: "Manicure & Pedicure",
+      description: "Luxury nail care treatment with massage",
+      price: 75000,
+      category: "Salons & Spas",
+      subcategory: "Nail Services",
+      serviceType: "salon",
+      rating: 4.3,
+      available: true,
+      duration: 90, // 1.5 hours in minutes
+      image: "https://images.unsplash.com/photo-1607778833979-4a89c0bc5be1?w=300",
+      features: ["Soak", "Exfoliation", "Massage", "Polish"]
+    },
+    {
+      id: 10,
+      name: "Conference Room Booking",
+      description: "Professional meeting space with AV equipment",
+      price: 150000,
+      category: "Hospitality",
+      subcategory: "Business Services",
+      serviceType: "hospitality",
+      hospitalityType: "conference",
+      rating: 4.4,
+      available: true,
+      duration: 480, // 8 hours in minutes
+      image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=300",
+      features: ["Projector", "WiFi", "Catering", "Support Staff"]
+    },
+    {
+      id: 11,
+      name: "Fitness Training Session",
+      description: "Personal training with certified fitness instructor",
+      price: 60000,
+      category: "Healthcare",
+      subcategory: "Fitness Services",
+      serviceType: "healthcare",
+      rating: 4.7,
+      available: true,
+      duration: 60, // 1 hour in minutes
+      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=300",
+      features: ["Assessment", "Workout Plan", "Guidance", "Progress Tracking"]
+    },
+    {
+      id: 12,
+      name: "Catering Service",
+      description: "Premium catering for events and gatherings",
+      price: 350000,
+      category: "Hospitality",
+      subcategory: "Catering",
+      serviceType: "hospitality",
+      hospitalityType: "catering",
+      rating: 4.5,
+      available: true,
+      duration: 240, // 4 hours in minutes
+      image: "https://images.unsplash.com/photo-1555244162-803834f70033?w=300",
+      menuItems: [
+        { name: "Buffet Setup", price: 200000 },
+        { name: "Beverages", price: 80000 },
+        { name: "Service Staff", price: 70000 }
+      ]
+    }
+  ];
+
+  const dummyPaymentMethods = [
+    {
+      id: 1,
+      name: "Cash",
+      type: "cash",
+      icon: <CashIcon />,
+      fields: []
+    },
+    {
+      id: 2,
+      name: "Credit Card",
+      type: "card",
+      icon: <CreditCardIcon />,
+      fields: ["Card Number", "Card Holder", "Expiry Date", "CVV"]
+    },
+    {
+      id: 3,
+      name: "Mobile Money",
+      type: "mobile",
+      icon: <MobileMoneyIcon />,
+      fields: ["Phone Number", "Transaction ID"]
+    },
+    {
+      id: 4,
+      name: "Bank Transfer",
+      type: "bank",
+      icon: <BankIcon />,
+      fields: ["Bank Name", "Account Number", "Transaction Reference"]
+    }
+  ];
+
+  const dummyDiscountOffers = [
+    {
+      id: 1,
+      name: "First Time Booking",
+      code: "WELCOME15",
+      discount: 15,
+      description: "15% off on your first service booking"
+    },
+    {
+      id: 2,
+      name: "Weekend Special",
+      code: "WEEKEND20",
+      discount: 20,
+      description: "20% off on weekend bookings"
+    },
+    {
+      id: 3,
+      name: "Loyalty Discount",
+      code: "LOYALTY10",
+      discount: 10,
+      description: "10% off for loyal customers"
+    }
+  ];
+
+  const dummyCategoryMap = {
+    "Hospitality": ["Hotels", "Restaurants", "Bars & Lounges", "Business Services", "Catering"],
+    "Healthcare": ["Medical Services", "Dental Services", "Fitness Services"],
+    "Salons & Spas": ["Spa Services", "Hair Services", "Nail Services"],
+    "Event Management": ["Event Planning", "Venue Booking", "Coordination"]
+  };
+
+  const dummyPaymentHistory = [
+    {
+      id: "TXN-S001",
+      date: new Date(2024, 0, 15, 14, 30),
+      items: [
+        { id: 1, name: "Luxury Hotel Suite", price: 450000, quantity: 1 },
+        { id: 3, name: "Spa & Wellness Package", price: 180000, quantity: 1 }
+      ],
+      customer: { name: "Sarah Johnson", phone: "+256 712 345 678", email: "sarah.j@email.com" },
+      paymentMethod: dummyPaymentMethods[1],
+      paymentDetails: { "Card Number": "**** **** **** 1234", "Card Holder": "Sarah Johnson" },
+      subtotal: 630000,
+      discount: 0,
+      tax: 113400,
+      withholdingTax: 0,
+      total: 743400,
+      amountTendered: 743400,
+      changeDue: 0,
+      status: 'completed'
+    },
+    {
+      id: "TXN-S002",
+      date: new Date(2024, 0, 14, 10, 15),
+      items: [
+        { id: 5, name: "Haircut & Styling", price: 45000, quantity: 1 },
+        { id: 9, name: "Manicure & Pedicure", price: 75000, quantity: 1 }
+      ],
+      customer: { name: "", phone: "", email: "" },
+      paymentMethod: dummyPaymentMethods[0],
+      paymentDetails: {},
+      subtotal: 120000,
+      discount: 12000,
+      tax: 19440,
+      withholdingTax: 0,
+      total: 127440,
+      amountTendered: 150000,
+      changeDue: 22560,
+      status: 'completed'
+    }
+  ];
+
   // Fetch initial data from backend APIs
   useEffect(() => {
-    // Fetch services
-    // API call: GET /api/services
-    // Example:
-    /*
-    fetch('/api/services')
-      .then(response => response.json())
-      .then(data => {
-        setServices(data);
-        setFilteredServices(data);
-      })
-      .catch(error => console.error('Error fetching services:', error));
-    */
-
-    // Fetch payment methods
-    // API call: GET /api/payment-methods
-    /*
-    fetch('/api/payment-methods')
-      .then(response => response.json())
-      .then(data => setPaymentMethods(data))
-      .catch(error => console.error('Error fetching payment methods:', error));
-    */
-
-    // Fetch discount offers
-    // API call: GET /api/discounts
-    /*
-    fetch('/api/discounts')
-      .then(response => response.json())
-      .then(data => setDiscountOffers(data))
-      .catch(error => console.error('Error fetching discounts:', error));
-    */
-
-    // Fetch payment history
-    // API call: GET /api/transactions
-    /*
-    fetch('/api/transactions')
-      .then(response => response.json())
-      .then(data => setPaymentHistory(data))
-      .catch(error => console.error('Error fetching transactions:', error));
-    */
+    // Simulate API loading
+    setTimeout(() => {
+      setServices(dummyServices);
+      setFilteredServices(dummyServices);
+      setPaymentMethods(dummyPaymentMethods);
+      setDiscountOffers(dummyDiscountOffers);
+      setPaymentHistory(dummyPaymentHistory);
+    }, 1000);
   }, []);
 
   // Filter Services
@@ -207,9 +466,30 @@ const [discountOffers, setDiscountOffers] = useState([]);
     setFilteredServices(filtered);
   };
 
-  // Category Map - Would be fetched from backend API
-  // API endpoint: GET /api/categories
-  const [categoryMap, setCategoryMap] = useState({});
+  // Calculations
+  const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+  const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.discount) / 100 : 0;
+  const taxableAmount = subtotal - discountAmount;
+  const taxRate = 0.18; // 18% VAT
+  const taxAmount = taxableAmount * taxRate;
+
+  // Calculate withholding tax if enabled
+  const calculatedWithholdingTax = withholdingTaxEnabled ? taxableAmount * withholdingTaxRate : 0;
+  
+  useEffect(() => {
+    setWithholdingTaxAmount(calculatedWithholdingTax);
+  }, [withholdingTaxEnabled, taxableAmount, withholdingTaxRate]);
+
+  const totalAmount = taxableAmount + taxAmount - calculatedWithholdingTax;
+  
+  useEffect(() => {
+    if (selectedPaymentMethod?.type === 'cash' && cashAmount) {
+      const amount = parseFloat(cashAmount) || 0;
+      setChangeDue(amount - totalAmount);
+    } else {
+      setChangeDue(0);
+    }
+  }, [cashAmount, totalAmount, selectedPaymentMethod]);
 
   const renderReceipt = (transaction) => (
     <Box sx={{ p: 3, width: '100%', maxWidth: 400, bgcolor: 'background.paper' }} id="receipt">
@@ -275,6 +555,9 @@ const [discountOffers, setDiscountOffers] = useState([]);
           <Typography>Discount: -UGX {transaction.discount.toLocaleString()}</Typography>
         )}
         <Typography>Tax (18%): UGX {transaction.tax.toLocaleString()}</Typography>
+        {transaction.withholdingTax > 0 && (
+          <Typography>Withholding Tax (6%): -UGX {transaction.withholdingTax.toLocaleString()}</Typography>
+        )}
         <Typography variant="h6" fontWeight="bold" sx={{ mt: 1 }}>
           Total: UGX {transaction.total.toLocaleString()}
         </Typography>
@@ -421,47 +704,13 @@ const [discountOffers, setDiscountOffers] = useState([]);
       subtotal: subtotal,
       discount: discountAmount,
       tax: taxAmount,
+      withholdingTax: withholdingTaxAmount,
       total: totalAmount,
       amountTendered: amountTendered,
       changeDue: changeDue,
-      status: 'completed'
+      status: 'completed',
+      withholdingTaxEnabled: withholdingTaxEnabled
     };
-
-    // API call to save transaction
-    /*
-    fetch('/api/transactions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(transaction),
-    })
-    .then(response => response.json())
-    .then(data => {
-      setPaymentHistory([data, ...paymentHistory]);
-      setCurrentReceipt(data);
-      setReceiptModalOpen(true);
-      
-      // Reset system
-      setCart([]);
-      setAppliedDiscount(null);
-      setCustomerDetails({ name: "", phone: "", email: "" });
-      setSelectedPaymentMethod(null);
-      setPaymentDetails({});
-      setActiveStep(0);
-      setCartDrawerOpen(false);
-      setAmountTendered(0);
-      setChangeDue(0);
-      
-      setSnackbarMessage("Payment processed successfully!");
-      setOpenSnackbar(true);
-    })
-    .catch(error => {
-      console.error('Error saving transaction:', error);
-      setSnackbarMessage("Error processing payment. Please try again.");
-      setOpenSnackbar(true);
-    });
-    */
 
     // For demo purposes without API
     setPaymentHistory([transaction, ...paymentHistory]);
@@ -478,26 +727,13 @@ const [discountOffers, setDiscountOffers] = useState([]);
     setCartDrawerOpen(false);
     setAmountTendered(0);
     setChangeDue(0);
+    setWithholdingTaxEnabled(false);
+    setWithholdingTaxAmount(0);
+    setDiscountCode("");
     
     setSnackbarMessage("Payment processed successfully!");
     setOpenSnackbar(true);
   };
-
-  // Calculations
-  const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
-  const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.discount) / 100 : 0;
-  const taxRate = 0.18; // 18% VAT
-  const taxAmount = (subtotal - discountAmount) * taxRate;
-  const totalAmount = subtotal - discountAmount + taxRate;
-  
-  useEffect(() => {
-    if (selectedPaymentMethod?.type === 'cash' && cashAmount) {
-      const amount = parseFloat(cashAmount) || 0;
-      setChangeDue(amount - totalAmount);
-    } else {
-      setChangeDue(0);
-    }
-  }, [cashAmount, totalAmount, selectedPaymentMethod]);
 
   // Steps for checkout process
   const steps = ['Service Selection', 'Booking Details', 'Customer Info', 'Payment'];
@@ -516,14 +752,10 @@ const [discountOffers, setDiscountOffers] = useState([]);
     switch (category) {
       case "Hospitality":
         return <Restaurant />;
-      case "Retail":
-        return <ShoppingCartIcon />;
       case "Healthcare":
         return <LocalHospital />;
       case "Salons & Spas":
         return <Spa />;
-      case "Grocery Stores":
-        return <LocalGroceryStore />;
       case "Event Management":
         return <Event />;
       default:
@@ -598,6 +830,23 @@ const [discountOffers, setDiscountOffers] = useState([]);
           <Typography>Tax (18%):</Typography>
           <Typography>UGX {taxAmount.toLocaleString()}</Typography>
         </Box>
+        
+        {/* Withholding Tax Toggle */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography>Apply 6% Withholding Tax</Typography>
+          <Switch
+            checked={withholdingTaxEnabled}
+            onChange={(e) => setWithholdingTaxEnabled(e.target.checked)}
+            color="primary"
+          />
+        </Box>
+        
+        {withholdingTaxEnabled && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography>Withholding Tax (6%):</Typography>
+            <Typography color="warning.main">-UGX {withholdingTaxAmount.toLocaleString()}</Typography>
+          </Box>
+        )}
         
         <Divider sx={{ my: 1 }} />
         
@@ -823,6 +1072,7 @@ const [discountOffers, setDiscountOffers] = useState([]);
         margin="normal"
         value={customerDetails.name}
         onChange={(e) => setCustomerDetails({...customerDetails, name: e.target.value})}
+        placeholder="Optional"
       />
       <TextField
         label="Phone Number"
@@ -830,6 +1080,7 @@ const [discountOffers, setDiscountOffers] = useState([]);
         margin="normal"
         value={customerDetails.phone}
         onChange={(e) => setCustomerDetails({...customerDetails, phone: e.target.value})}
+        placeholder="Optional"
       />
       <TextField
         label="Email Address"
@@ -837,6 +1088,7 @@ const [discountOffers, setDiscountOffers] = useState([]);
         margin="normal"
         value={customerDetails.email}
         onChange={(e) => setCustomerDetails({...customerDetails, email: e.target.value})}
+        placeholder="Optional"
       />
     </Box>
   );
@@ -859,7 +1111,12 @@ const [discountOffers, setDiscountOffers] = useState([]);
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                p: 2
+                p: 2,
+                transition: 'all 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: 3
+                }
               }}
               onClick={() => handlePaymentMethodSelect(method)}
             >
@@ -870,9 +1127,17 @@ const [discountOffers, setDiscountOffers] = useState([]);
                   style={{ height: 30, marginBottom: 8 }}
                 />
               ) : (
-                React.cloneElement(method.icon, { fontSize: 'large' })
+                React.cloneElement(method.icon, { 
+                  fontSize: 'large',
+                  color: selectedPaymentMethod?.id === method.id ? 'primary' : 'action'
+                })
               )}
-              <Typography variant="body2" textAlign="center">
+              <Typography 
+                variant="body2" 
+                textAlign="center"
+                color={selectedPaymentMethod?.id === method.id ? 'primary' : 'text.primary'}
+                fontWeight={selectedPaymentMethod?.id === method.id ? 'bold' : 'normal'}
+              >
                 {method.name}
               </Typography>
             </Card>
@@ -898,6 +1163,7 @@ const [discountOffers, setDiscountOffers] = useState([]);
                 type="number"
                 inputProps={{ min: 0, step: 100 }}
                 required
+                helperText="Enter the amount received from customer"
               />
               
               <Box sx={{ 
@@ -1003,7 +1269,7 @@ const [discountOffers, setDiscountOffers] = useState([]);
                 onChange={handleCategoryChange}
               >
                 <MenuItem value="">All Categories</MenuItem>
-                {Object.keys(categoryMap).map((cat) => (
+                {Object.keys(dummyCategoryMap).map((cat) => (
                   <MenuItem key={cat} value={cat}>{cat}</MenuItem>
                 ))}
               </Select>
@@ -1020,7 +1286,7 @@ const [discountOffers, setDiscountOffers] = useState([]);
                 disabled={!category}
               >
                 <MenuItem value="">All Subcategories</MenuItem>
-                {category && categoryMap[category]?.map((subcat) => (
+                {category && dummyCategoryMap[category]?.map((subcat) => (
                   <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
                 ))}
               </Select>
@@ -1064,16 +1330,23 @@ const [discountOffers, setDiscountOffers] = useState([]);
       <Grid container spacing={3}>
         {filteredServices.map((service) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={service.id}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Card sx={{ 
+              height: '100%', 
+              display: 'flex', 
+              flexDirection: 'column',
+              transition: 'all 0.2s',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: 4
+              }
+            }}>
               <CardMedia
                 component="img"
                 height="140"
                 image={service.image}
                 alt={service.name}
                 sx={{ 
-                  objectFit: 'contain', 
-                  p: 1, 
-                  bgcolor: 'white',
+                  objectFit: 'cover', 
                   cursor: 'pointer'
                 }}
                 onClick={() => handleAddToCart(service)}
@@ -1101,10 +1374,24 @@ const [discountOffers, setDiscountOffers] = useState([]);
                 <Typography variant="body2" sx={{ mb: 1 }}>
                   {service.description}
                 </Typography>
-                {service.serviceType === "hospitality" && service.hospitalityType === "restaurant" && (
-                  <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-                    Menu: {service.menuItems.map(item => item.name).join(", ")}
-                  </Typography>
+                {service.features && (
+                  <Box sx={{ mt: 1 }}>
+                    {service.features.slice(0, 2).map((feature, index) => (
+                      <Chip 
+                        key={index}
+                        label={feature} 
+                        size="small" 
+                        sx={{ mr: 0.5, mb: 0.5 }}
+                      />
+                    ))}
+                    {service.features.length > 2 && (
+                      <Chip 
+                        label={`+${service.features.length - 2} more`} 
+                        size="small" 
+                        variant="outlined"
+                      />
+                    )}
+                  </Box>
                 )}
               </CardContent>
               <Box sx={{ p: 2 }}>
@@ -1116,6 +1403,8 @@ const [discountOffers, setDiscountOffers] = useState([]);
                     <Chip 
                       label={`${Math.floor(service.duration / 60)}h ${service.duration % 60}m`} 
                       size="small" 
+                      color="primary"
+                      variant="outlined"
                     />
                   )}
                 </Box>

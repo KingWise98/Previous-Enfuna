@@ -26,7 +26,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  IconButton
+  IconButton,
+  Switch,
+  FormControlLabel,
+  Alert,
+  Tooltip
 } from '@mui/material';
 import {
   Add,
@@ -38,7 +42,12 @@ import {
   CheckCircle,
   ArrowBack,
   CalendarToday,
-  Delete
+  Delete,
+  Receipt,
+  Print,
+  Email,
+  Info,
+  AttachMoney
 } from '@mui/icons-material';
 
 const AddPurchasePage = () => {
@@ -50,6 +59,11 @@ const AddPurchasePage = () => {
   const [notes, setNotes] = useState('');
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [supplierEmail, setSupplierEmail] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Withholding Tax State
+  const [withholdingTaxEnabled, setWithholdingTaxEnabled] = useState(false);
+  const [withholdingTaxRate, setWithholdingTaxRate] = useState(0.06); // 6%
   
   // Sample items data
   const [items, setItems] = useState([
@@ -136,12 +150,25 @@ const AddPurchasePage = () => {
   };
 
   const calculateTax = () => {
-    return calculateSubtotal() * 0.18; // 18% tax
+    return calculateSubtotal() * 0.18; // 18% VAT
+  };
+
+  const calculateWithholdingTax = () => {
+    if (!withholdingTaxEnabled) return 0;
+    return calculateSubtotal() * withholdingTaxRate;
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + calculateTax();
+    const subtotal = calculateSubtotal();
+    const tax = calculateTax();
+    const withholdingTax = calculateWithholdingTax();
+    return subtotal + tax - withholdingTax;
   };
+
+  // Filter items based on search
+  const filteredItems = items.filter(item =>
+    item.product.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const steps = ['Supplier & Details', 'Add Items', 'Review & Submit'];
 
@@ -152,25 +179,94 @@ const AddPurchasePage = () => {
     }).format(amount);
   };
 
+  const renderReceipt = () => (
+    <Box sx={{ p: 3, maxWidth: 400, bgcolor: 'background.paper' }} id="purchase-receipt">
+      <Box sx={{ textAlign: 'center', mb: 2 }}>
+        <Typography variant="h5" fontWeight="bold" gutterBottom>PURCHASE ORDER</Typography>
+        <Typography variant="body2">123 Business Street, Kampala</Typography>
+        <Typography variant="body2">Tel: +256 123 456 789</Typography>
+        <Typography variant="body2">Tax ID: 123456789</Typography>
+        <Divider sx={{ my: 1 }} />
+        <Typography variant="h6" fontWeight="bold">ORDER DETAILS</Typography>
+        <Typography variant="caption">{new Date().toLocaleDateString()}</Typography>
+        <Typography variant="body2">PO #: PO-{Date.now().toString().slice(-6)}</Typography>
+      </Box>
+      
+      <Box sx={{ mb: 2 }}>
+        <Typography fontWeight="bold">Supplier:</Typography>
+        <Typography>{supplier}</Typography>
+        <Typography>Delivery: {deliveryDate}</Typography>
+        <Typography>Terms: {paymentTerms} days</Typography>
+      </Box>
+      
+      <Divider sx={{ my: 1 }} />
+      
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Item</TableCell>
+              <TableCell align="right">Qty</TableCell>
+              <TableCell align="right">Price</TableCell>
+              <TableCell align="right">Total</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {items.filter(item => item.quantity > 0).map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>{item.product}</TableCell>
+                <TableCell align="right">{item.quantity}</TableCell>
+                <TableCell align="right">{formatCurrency(item.price)}</TableCell>
+                <TableCell align="right">{formatCurrency(item.total)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      
+      <Divider sx={{ my: 1 }} />
+      
+      <Box sx={{ textAlign: 'right' }}>
+        <Typography>Subtotal: {formatCurrency(calculateSubtotal())}</Typography>
+        <Typography>Tax (18%): {formatCurrency(calculateTax())}</Typography>
+        {withholdingTaxEnabled && (
+          <Typography>Withholding Tax (6%): -{formatCurrency(calculateWithholdingTax())}</Typography>
+        )}
+        <Typography variant="h6" fontWeight="bold" sx={{ mt: 1 }}>
+          Total: {formatCurrency(calculateTotal())}
+        </Typography>
+      </Box>
+    </Box>
+  );
+
   return (
     <Box m="20px">
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Box>
-          <Typography variant="h3" fontWeight="bold">
+          <Typography variant="h3" fontWeight="bold" color="primary">
             Create Purchase Order
           </Typography>
           <Typography variant="subtitle1" color="textSecondary">
             Add new inventory purchases
           </Typography>
         </Box>
-        <Button
-          variant="outlined"
-          startIcon={<ArrowBack />}
-          href="/purchases"
-        >
-          Back to Purchases
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="outlined"
+            startIcon={<Print />}
+            onClick={() => window.print()}
+          >
+            Print
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBack />}
+            href="/purchases"
+          >
+            Back to Purchases
+          </Button>
+        </Box>
       </Box>
 
       {/* Stepper */}
@@ -186,9 +282,11 @@ const AddPurchasePage = () => {
 
       {/* Step 1: Supplier & Details */}
       {activeStep === 0 && (
-        <Card>
+        <Card sx={{ boxShadow: 3 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>Supplier Information</Typography>
+            <Typography variant="h5" gutterBottom color="primary">
+              Supplier Information
+            </Typography>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Autocomplete
@@ -199,6 +297,7 @@ const AddPurchasePage = () => {
                       label="Select Supplier"
                       required
                       fullWidth
+                      helperText="Choose from existing suppliers or type to add new"
                     />
                   )}
                   value={supplier}
@@ -231,7 +330,32 @@ const AddPurchasePage = () => {
                   fullWidth
                   value={paymentTerms}
                   onChange={(e) => setPaymentTerms(e.target.value)}
+                  helperText="Number of days for payment"
                 />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={withholdingTaxEnabled}
+                      onChange={(e) => setWithholdingTaxEnabled(e.target.checked)}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box display="flex" alignItems="center">
+                      <Typography>Apply 6% Withholding Tax</Typography>
+                      <Tooltip title="Withholding tax is deducted from the total amount payable to the supplier">
+                        <Info sx={{ fontSize: 16, ml: 1, color: 'text.secondary' }} />
+                      </Tooltip>
+                    </Box>
+                  }
+                />
+                {withholdingTaxEnabled && (
+                  <Alert severity="info" sx={{ mt: 1 }}>
+                    6% withholding tax will be deducted from the total amount
+                  </Alert>
+                )}
               </Grid>
               <Grid item xs={12}>
                 <TextField
@@ -241,6 +365,7 @@ const AddPurchasePage = () => {
                   fullWidth
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Additional notes or special instructions..."
                 />
               </Grid>
             </Grid>
@@ -250,13 +375,15 @@ const AddPurchasePage = () => {
 
       {/* Step 2: Add Items */}
       {activeStep === 1 && (
-        <Card>
+        <Card sx={{ boxShadow: 3 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>Add Items to Purchase Order</Typography>
+            <Typography variant="h5" gutterBottom color="primary">
+              Add Items to Purchase Order
+            </Typography>
             
             {/* Add New Item Form */}
-            <Box mb={3} p={2} border={1} borderRadius={1} borderColor="grey.300">
-              <Typography variant="subtitle1" gutterBottom>Add New Item</Typography>
+            <Box mb={3} p={2} border={1} borderRadius={2} borderColor="grey.300" bgcolor="grey.50">
+              <Typography variant="h6" gutterBottom>Add New Item</Typography>
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={12} md={4}>
                   <TextField
@@ -264,6 +391,7 @@ const AddPurchasePage = () => {
                     fullWidth
                     value={newItem.product}
                     onChange={(e) => setNewItem({...newItem, product: e.target.value})}
+                    placeholder="Enter product name"
                   />
                 </Grid>
                 <Grid item xs={12} md={2}>
@@ -273,6 +401,9 @@ const AddPurchasePage = () => {
                     fullWidth
                     value={newItem.price}
                     onChange={(e) => setNewItem({...newItem, price: parseFloat(e.target.value) || 0})}
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">UGX</InputAdornment>,
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} md={2}>
@@ -282,7 +413,15 @@ const AddPurchasePage = () => {
                     fullWidth
                     value={newItem.quantity}
                     onChange={(e) => setNewItem({...newItem, quantity: parseInt(e.target.value) || 0})}
+                    InputProps={{
+                      inputProps: { min: 0 }
+                    }}
                   />
+                </Grid>
+                <Grid item xs={12} md={2}>
+                  <Typography variant="body2" color="textSecondary">
+                    Total: {formatCurrency(newItem.quantity * newItem.price)}
+                  </Typography>
                 </Grid>
                 <Grid item xs={12} md={2}>
                   <Button 
@@ -290,6 +429,7 @@ const AddPurchasePage = () => {
                     fullWidth 
                     onClick={handleAddItem}
                     disabled={!newItem.product || newItem.price <= 0}
+                    startIcon={<Add />}
                   >
                     Add Item
                   </Button>
@@ -297,11 +437,14 @@ const AddPurchasePage = () => {
               </Grid>
             </Box>
 
-            <Box mb={3}>
+            {/* Search and Summary */}
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
               <TextField
                 variant="outlined"
                 placeholder="Search products..."
                 size="small"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -311,9 +454,16 @@ const AddPurchasePage = () => {
                 }}
                 sx={{ width: 400 }}
               />
+              <Chip 
+                label={`${items.filter(item => item.quantity > 0).length} items selected`}
+                color="primary"
+                variant="outlined"
+              />
             </Box>
-            <TableContainer component={Paper}>
-              <Table>
+
+            {/* Items Table */}
+            <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+              <Table stickyHeader>
                 <TableHead>
                   <TableRow>
                     <TableCell>Product</TableCell>
@@ -324,12 +474,20 @@ const AddPurchasePage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id}>
+                  {filteredItems.map((item) => (
+                    <TableRow 
+                      key={item.id}
+                      sx={{ 
+                        backgroundColor: item.quantity > 0 ? 'action.hover' : 'transparent',
+                        '&:hover': { backgroundColor: 'action.hover' }
+                      }}
+                    >
                       <TableCell>
                         <Box display="flex" alignItems="center">
-                          <Inventory sx={{ mr: 1 }} />
-                          {item.product}
+                          <Inventory sx={{ mr: 1, color: 'primary.main' }} />
+                          <Typography fontWeight={item.quantity > 0 ? 'bold' : 'normal'}>
+                            {item.product}
+                          </Typography>
                         </Box>
                       </TableCell>
                       <TableCell>{formatCurrency(item.price)}</TableCell>
@@ -345,11 +503,19 @@ const AddPurchasePage = () => {
                           onChange={(e) => handleQuantityChange(item.id, e.target.value)}
                         />
                       </TableCell>
-                      <TableCell>{formatCurrency(item.total)}</TableCell>
+                      <TableCell>
+                        <Typography 
+                          fontWeight="bold" 
+                          color={item.total > 0 ? 'primary.main' : 'text.primary'}
+                        >
+                          {formatCurrency(item.total)}
+                        </Typography>
+                      </TableCell>
                       <TableCell>
                         <IconButton 
                           color="error" 
                           onClick={() => handleRemoveItem(item.id)}
+                          size="small"
                         >
                           <Delete />
                         </IconButton>
@@ -359,6 +525,15 @@ const AddPurchasePage = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+
+            {/* Quick Summary */}
+            {items.filter(item => item.quantity > 0).length > 0 && (
+              <Box mt={2} p={2} bgcolor="success.light" borderRadius={1}>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Order Preview: {formatCurrency(calculateSubtotal())} • {items.filter(item => item.quantity > 0).length} items
+                </Typography>
+              </Box>
+            )}
           </CardContent>
         </Card>
       )}
@@ -367,29 +542,39 @@ const AddPurchasePage = () => {
       {activeStep === 2 && (
         <Grid container spacing={3}>
           <Grid item xs={12} md={8}>
-            <Card>
+            <Card sx={{ boxShadow: 3 }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom>Order Summary</Typography>
+                <Typography variant="h5" gutterBottom color="primary">
+                  Order Summary
+                </Typography>
                 <Grid container spacing={3} mb={3}>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle1">Supplier</Typography>
+                    <Typography variant="subtitle1" fontWeight="bold">Supplier</Typography>
                     <Typography>{supplier || 'Not selected'}</Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle1">Delivery Date</Typography>
+                    <Typography variant="subtitle1" fontWeight="bold">Delivery Date</Typography>
                     <Typography>{deliveryDate || 'Not specified'}</Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle1">Payment Terms</Typography>
+                    <Typography variant="subtitle1" fontWeight="bold">Payment Terms</Typography>
                     <Typography>{paymentTerms} days</Typography>
                   </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle1" fontWeight="bold">Withholding Tax</Typography>
+                    <Typography color={withholdingTaxEnabled ? "primary.main" : "text.secondary"}>
+                      {withholdingTaxEnabled ? '6% Applied' : 'Not Applied'}
+                    </Typography>
+                  </Grid>
                   <Grid item xs={12}>
-                    <Typography variant="subtitle1">Notes</Typography>
+                    <Typography variant="subtitle1" fontWeight="bold">Notes</Typography>
                     <Typography>{notes || 'No notes'}</Typography>
                   </Grid>
                 </Grid>
 
-                <Typography variant="h6" gutterBottom>Items</Typography>
+                <Typography variant="h5" gutterBottom color="primary">
+                  Items
+                </Typography>
                 <TableContainer component={Paper}>
                   <Table>
                     <TableHead>
@@ -403,10 +588,19 @@ const AddPurchasePage = () => {
                     <TableBody>
                       {items.filter(item => item.quantity > 0).map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell>{item.product}</TableCell>
+                          <TableCell>
+                            <Box display="flex" alignItems="center">
+                              <Inventory sx={{ mr: 1, color: 'primary.main' }} />
+                              {item.product}
+                            </Box>
+                          </TableCell>
                           <TableCell>{formatCurrency(item.price)}</TableCell>
                           <TableCell>{item.quantity}</TableCell>
-                          <TableCell>{formatCurrency(item.total)}</TableCell>
+                          <TableCell>
+                            <Typography fontWeight="bold">
+                              {formatCurrency(item.total)}
+                            </Typography>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -416,14 +610,33 @@ const AddPurchasePage = () => {
             </Card>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Card>
+            <Card sx={{ boxShadow: 3, position: 'sticky', top: 20 }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom>Order Total</Typography>
+                <Typography variant="h5" gutterBottom color="primary">
+                  Order Total
+                </Typography>
                 <Box mb={2}>
-                  <Typography>Subtotal: {formatCurrency(calculateSubtotal())}</Typography>
-                  <Typography>Tax (18%): {formatCurrency(calculateTax())}</Typography>
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography>Subtotal:</Typography>
+                    <Typography>{formatCurrency(calculateSubtotal())}</Typography>
+                  </Box>
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography>Tax (18%):</Typography>
+                    <Typography>{formatCurrency(calculateTax())}</Typography>
+                  </Box>
+                  {withholdingTaxEnabled && (
+                    <Box display="flex" justifyContent="space-between" mb={1}>
+                      <Typography>Withholding Tax (6%):</Typography>
+                      <Typography color="error.main">-{formatCurrency(calculateWithholdingTax())}</Typography>
+                    </Box>
+                  )}
                   <Divider sx={{ my: 2 }} />
-                  <Typography variant="h6">Total: {formatCurrency(calculateTotal())}</Typography>
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="h6">Total:</Typography>
+                    <Typography variant="h6" color="primary.main">
+                      {formatCurrency(calculateTotal())}
+                    </Typography>
+                  </Box>
                 </Box>
                 <Button
                   variant="contained"
@@ -431,9 +644,30 @@ const AddPurchasePage = () => {
                   size="large"
                   startIcon={<CheckCircle />}
                   onClick={handleSubmit}
+                  sx={{ mb: 2 }}
                 >
                   Submit Purchase Order
                 </Button>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  startIcon={<Email />}
+                  onClick={() => setEmailDialogOpen(true)}
+                >
+                  Send via Email
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Receipt Preview */}
+            <Card sx={{ mt: 2, boxShadow: 2 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Receipt Preview
+                </Typography>
+                <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                  {renderReceipt()}
+                </Box>
               </CardContent>
             </Card>
           </Grid>
@@ -446,24 +680,41 @@ const AddPurchasePage = () => {
           variant="outlined"
           onClick={handleBack}
           disabled={activeStep === 0}
+          startIcon={<ArrowBack />}
         >
           Back
         </Button>
-        <Button
-          variant="contained"
-          onClick={handleNext}
-          disabled={activeStep === steps.length - 1}
-        >
-          Next
-        </Button>
+        <Box display="flex" gap={2}>
+          {activeStep === steps.length - 1 && (
+            <Button
+              variant="outlined"
+              startIcon={<Print />}
+              onClick={() => window.print()}
+            >
+              Print PO
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            onClick={handleNext}
+            disabled={activeStep === steps.length - 1 || (activeStep === 1 && items.filter(item => item.quantity > 0).length === 0)}
+          >
+            {activeStep === steps.length - 1 ? 'Complete' : 'Next'}
+          </Button>
+        </Box>
       </Box>
 
       {/* Email Dialog */}
-      <Dialog open={emailDialogOpen} onClose={() => setEmailDialogOpen(false)}>
-        <DialogTitle>Send Purchase Order</DialogTitle>
+      <Dialog open={emailDialogOpen} onClose={() => setEmailDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <Email sx={{ mr: 1 }} />
+            Send Purchase Order
+          </Box>
+        </DialogTitle>
         <DialogContent>
           <Typography variant="body1" gutterBottom>
-            Please enter the supplier's email address to send the purchase order:
+            Send the purchase order to the supplier's email address:
           </Typography>
           <TextField
             autoFocus
@@ -474,7 +725,11 @@ const AddPurchasePage = () => {
             variant="outlined"
             value={supplierEmail}
             onChange={(e) => setSupplierEmail(e.target.value)}
+            placeholder="supplier@company.com"
           />
+          <Alert severity="info" sx={{ mt: 2 }}>
+            The purchase order will be sent as a PDF attachment
+          </Alert>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEmailDialogOpen(false)}>Cancel</Button>
@@ -482,8 +737,9 @@ const AddPurchasePage = () => {
             onClick={handleSendEmail} 
             variant="contained"
             disabled={!supplierEmail.includes('@')}
+            startIcon={<Email />}
           >
-            Send
+            Send Purchase Order
           </Button>
         </DialogActions>
       </Dialog>

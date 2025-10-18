@@ -47,6 +47,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Switch,
 } from "@mui/material";
 import {
   ShoppingCart as ShoppingCartIcon,
@@ -119,8 +120,277 @@ const SalesPage = () => {
   const [discountOffers, setDiscountOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Withholding Tax State
+  const [withholdingTaxEnabled, setWithholdingTaxEnabled] = useState(false);
+  const [withholdingTaxRate, setWithholdingTaxRate] = useState(0.06); // 6%
+  const [withholdingTaxAmount, setWithholdingTaxAmount] = useState(0);
 
   const navigate = useNavigate();
+
+  // Dummy Data
+  const dummyCategories = [
+    { id: 1, name: "Electronics", subcategories: ["Smartphones", "Laptops", "Tablets", "Accessories"] },
+    { id: 2, name: "Clothing", subcategories: ["Men", "Women", "Kids", "Accessories"] },
+    { id: 3, name: "Home & Kitchen", subcategories: ["Appliances", "Furniture", "Cookware", "Decor"] },
+    { id: 4, name: "Beauty", subcategories: ["Skincare", "Makeup", "Haircare", "Fragrances"] },
+    { id: 5, name: "Sports", subcategories: ["Fitness", "Outdoor", "Team Sports", "Footwear"] }
+  ];
+
+  const dummyProducts = [
+    {
+      id: 1,
+      name: "iPhone 15 Pro",
+      description: "Latest Apple smartphone with advanced camera system",
+      price: 4500000,
+      stock: 15,
+      category: "Electronics",
+      subcategory: "Smartphones",
+      rating: 4.8,
+      image: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300",
+      barcode: "123456789012",
+      supplier: "Apple Inc"
+    },
+    {
+      id: 2,
+      name: "Samsung Galaxy S24",
+      description: "Powerful Android phone with AI features",
+      price: 3200000,
+      stock: 25,
+      category: "Electronics",
+      subcategory: "Smartphones",
+      rating: 4.6,
+      image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300",
+      barcode: "123456789013",
+      supplier: "Samsung Electronics"
+    },
+    {
+      id: 3,
+      name: "MacBook Air M2",
+      description: "Lightweight laptop with M2 chip",
+      price: 6500000,
+      stock: 8,
+      category: "Electronics",
+      subcategory: "Laptops",
+      rating: 4.9,
+      image: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=300",
+      barcode: "123456789014",
+      supplier: "Apple Inc"
+    },
+    {
+      id: 4,
+      name: "Nike Air Max",
+      description: "Comfortable running shoes",
+      price: 350000,
+      stock: 50,
+      category: "Sports",
+      subcategory: "Footwear",
+      rating: 4.4,
+      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300",
+      barcode: "123456789015",
+      supplier: "Nike Uganda"
+    },
+    {
+      id: 5,
+      name: "Kitchen Blender",
+      description: "High-speed blender for smoothies and cooking",
+      price: 120000,
+      stock: 30,
+      category: "Home & Kitchen",
+      subcategory: "Appliances",
+      rating: 4.2,
+      image: "https://images.unsplash.com/photo-1570222094114-d054a817e56b?w=300",
+      barcode: "123456789016",
+      supplier: "KitchenWare Ltd"
+    },
+    {
+      id: 6,
+      name: "Men's Cotton T-Shirt",
+      description: "Premium quality cotton t-shirt",
+      price: 45000,
+      stock: 100,
+      category: "Clothing",
+      subcategory: "Men",
+      rating: 4.3,
+      image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300",
+      barcode: "123456789017",
+      supplier: "Fashion Textiles"
+    },
+    {
+      id: 7,
+      name: "Wireless Headphones",
+      description: "Noise-cancelling Bluetooth headphones",
+      price: 280000,
+      stock: 20,
+      category: "Electronics",
+      subcategory: "Accessories",
+      rating: 4.5,
+      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300",
+      barcode: "123456789018",
+      supplier: "AudioTech Ltd"
+    },
+    {
+      id: 8,
+      name: "Face Cream",
+      description: "Moisturizing cream for daily use",
+      price: 75000,
+      stock: 60,
+      category: "Beauty",
+      subcategory: "Skincare",
+      rating: 4.1,
+      image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300",
+      barcode: "123456789019",
+      supplier: "Beauty Products Co"
+    },
+    {
+      id: 9,
+      name: "Yoga Mat",
+      description: "Non-slip exercise mat",
+      price: 85000,
+      stock: 40,
+      category: "Sports",
+      subcategory: "Fitness",
+      rating: 4.6,
+      image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300",
+      barcode: "123456789020",
+      supplier: "Fitness Gear Ltd"
+    },
+    {
+      id: 10,
+      name: "Coffee Maker",
+      description: "Automatic drip coffee machine",
+      price: 180000,
+      stock: 15,
+      category: "Home & Kitchen",
+      subcategory: "Appliances",
+      rating: 4.4,
+      image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=300",
+      barcode: "123456789021",
+      supplier: "KitchenWare Ltd"
+    },
+    {
+      id: 11,
+      name: "Women's Handbag",
+      description: "Leather handbag with multiple compartments",
+      price: 220000,
+      stock: 25,
+      category: "Clothing",
+      subcategory: "Women",
+      rating: 4.7,
+      image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300",
+      barcode: "123456789022",
+      supplier: "Fashion Textiles"
+    },
+    {
+      id: 12,
+      name: "Tablet Stand",
+      description: "Adjustable stand for tablets and phones",
+      price: 35000,
+      stock: 75,
+      category: "Electronics",
+      subcategory: "Accessories",
+      rating: 4.0,
+      image: "https://images.unsplash.com/photo-1558618666-fcd25856cd63?w=300",
+      barcode: "123456789023",
+      supplier: "Tech Accessories Inc"
+    }
+  ];
+
+  const dummyPaymentMethods = [
+    {
+      id: 1,
+      name: "Cash",
+      type: "cash",
+      icon: <CashIcon />,
+      fields: []
+    },
+    {
+      id: 2,
+      name: "Credit Card",
+      type: "card",
+      icon: <CreditCardIcon />,
+      fields: ["Card Number", "Card Holder", "Expiry Date", "CVV"]
+    },
+    {
+      id: 3,
+      name: "Mobile Money",
+      type: "mobile",
+      icon: <MobileMoneyIcon />,
+      fields: ["Phone Number", "Transaction ID"]
+    },
+    {
+      id: 4,
+      name: "Bank Transfer",
+      type: "bank",
+      icon: <BankIcon />,
+      fields: ["Bank Name", "Account Number", "Transaction Reference"]
+    }
+  ];
+
+  const dummyDiscountOffers = [
+    {
+      id: 1,
+      name: "Welcome Discount",
+      code: "WELCOME10",
+      discount: 10,
+      description: "10% off on your first purchase"
+    },
+    {
+      id: 2,
+      name: "Season Sale",
+      code: "SEASON20",
+      discount: 20,
+      description: "20% off on all items"
+    },
+    {
+      id: 3,
+      name: "Clearance",
+      code: "CLEARANCE15",
+      discount: 15,
+      description: "15% off on clearance items"
+    }
+  ];
+
+  const dummyPaymentHistory = [
+    {
+      id: "TXN-001",
+      date: new Date(2024, 0, 15, 14, 30),
+      items: [
+        { id: 1, name: "iPhone 15 Pro", price: 4500000, quantity: 1 },
+        { id: 7, name: "Wireless Headphones", price: 280000, quantity: 1 }
+      ],
+      customer: { name: "John Smith", phone: "+256 712 345 678", email: "john.smith@email.com" },
+      paymentMethod: dummyPaymentMethods[1],
+      paymentDetails: { "Card Number": "**** **** **** 1234", "Card Holder": "John Smith" },
+      subtotal: 4780000,
+      discount: 0,
+      tax: 860400,
+      withholdingTax: 0,
+      total: 5640400,
+      amountTendered: 5640400,
+      changeDue: 0,
+      status: 'completed'
+    },
+    {
+      id: "TXN-002",
+      date: new Date(2024, 0, 14, 10, 15),
+      items: [
+        { id: 4, name: "Nike Air Max", price: 350000, quantity: 2 },
+        { id: 6, name: "Men's Cotton T-Shirt", price: 45000, quantity: 3 }
+      ],
+      customer: { name: "", phone: "", email: "" },
+      paymentMethod: dummyPaymentMethods[0],
+      paymentDetails: {},
+      subtotal: 835000,
+      discount: 83500,
+      tax: 135270,
+      withholdingTax: 0,
+      total: 886770,
+      amountTendered: 900000,
+      changeDue: 13230,
+      status: 'completed'
+    }
+  ];
 
   // Fetch data from API - replace with your actual API calls
   useEffect(() => {
@@ -128,33 +398,23 @@ const SalesPage = () => {
       try {
         setLoading(true);
         
-        // TODO: Replace with actual API call to fetch products
-        // const productsResponse = await axios.get('/api/products');
-        // setProducts(productsResponse.data);
-        // setFilteredProducts(productsResponse.data);
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // TODO: Replace with actual API call to fetch categories
-        // const categoriesResponse = await axios.get('/api/categories');
-        // setCategories(categoriesResponse.data);
+        // Use dummy data
+        setProducts(dummyProducts);
+        setFilteredProducts(dummyProducts);
+        setCategories(dummyCategories);
+        setPaymentMethods(dummyPaymentMethods);
+        setDiscountOffers(dummyDiscountOffers);
+        setPaymentHistory(dummyPaymentHistory);
         
-        // Create category map - this would come from your API
+        // Create category map
         const map = {};
-        categories.forEach(cat => {
+        dummyCategories.forEach(cat => {
           map[cat.name] = cat.subcategories || [];
         });
         setCategoryMap(map);
-        
-        // TODO: Replace with actual API call to fetch payment methods
-        // const paymentMethodsResponse = await axios.get('/api/payment-methods');
-        // setPaymentMethods(paymentMethodsResponse.data);
-        
-        // TODO: Replace with actual API call to fetch discounts
-        // const discountsResponse = await axios.get('/api/discounts');
-        // setDiscountOffers(discountsResponse.data);
-        
-        // TODO: Replace with actual API call to fetch recent transactions
-        // const transactionsResponse = await axios.get('/api/transactions?limit=10');
-        // setPaymentHistory(transactionsResponse.data);
         
         setLoading(false);
       } catch (err) {
@@ -183,6 +443,31 @@ const SalesPage = () => {
 
     setFilteredProducts(filtered);
   };
+
+  // Calculations
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.discount) / 100 : 0;
+  const taxableAmount = subtotal - discountAmount;
+  const taxRate = 0.18; // 18% VAT
+  const taxAmount = taxableAmount * taxRate;
+
+  // Calculate withholding tax if enabled
+  const calculatedWithholdingTax = withholdingTaxEnabled ? taxableAmount * withholdingTaxRate : 0;
+  
+  useEffect(() => {
+    setWithholdingTaxAmount(calculatedWithholdingTax);
+  }, [withholdingTaxEnabled, taxableAmount, withholdingTaxRate]);
+
+  const totalAmount = taxableAmount + taxAmount - calculatedWithholdingTax;
+  
+  useEffect(() => {
+    if (selectedPaymentMethod?.type === 'cash' && cashAmount) {
+      const amount = parseFloat(cashAmount) || 0;
+      setChangeDue(amount - totalAmount);
+    } else {
+      setChangeDue(0);
+    }
+  }, [cashAmount, totalAmount, selectedPaymentMethod]);
 
   const renderReceipt = (transaction) => (
     <Box sx={{ p: 3, width: '100%', maxWidth: 400, bgcolor: 'background.paper' }} id="receipt">
@@ -243,6 +528,9 @@ const SalesPage = () => {
           <Typography>Discount: -UGX {transaction.discount.toLocaleString()}</Typography>
         )}
         <Typography>Tax (18%): UGX {transaction.tax.toLocaleString()}</Typography>
+        {transaction.withholdingTax > 0 && (
+          <Typography>Withholding Tax (6%): -UGX {transaction.withholdingTax.toLocaleString()}</Typography>
+        )}
         <Typography variant="h6" fontWeight="bold" sx={{ mt: 1 }}>
           Total: UGX {transaction.total.toLocaleString()}
         </Typography>
@@ -435,29 +723,34 @@ const SalesPage = () => {
       subtotal: subtotal,
       discount: discountAmount,
       tax: taxAmount,
+      withholdingTax: withholdingTaxAmount,
       total: totalAmount,
       amountTendered: amountTendered,
       changeDue: changeDue,
-      status: 'completed'
+      status: 'completed',
+      withholdingTaxEnabled: withholdingTaxEnabled
     };
 
     try {
-      // TODO: Replace with actual API call to save transaction
-      // const response = await axios.post('/api/transactions', transaction);
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // TODO: Replace with actual API calls to update stock levels
-      // await Promise.all(
-      //   cart.map(item => 
-      //     axios.patch(`/api/products/${item.id}`, { 
-      //       stock: products.find(p => p.id === item.id).stock - item.quantity 
-      //     })
-      // );
+      // Update stock levels
+      const updatedProducts = products.map(product => {
+        const cartItem = cart.find(item => item.id === product.id);
+        if (cartItem) {
+          return {
+            ...product,
+            stock: product.stock - cartItem.quantity
+          };
+        }
+        return product;
+      });
       
-      // TODO: Replace with actual API call to refresh products
-      // const productsResponse = await axios.get('/api/products');
-      // setProducts(productsResponse.data);
+      setProducts(updatedProducts);
+      setFilteredProducts(updatedProducts);
       
-      // Update UI - replace with actual response data when API is connected
+      // Update UI
       setPaymentHistory([transaction, ...paymentHistory]);
       setCurrentReceipt(transaction);
       setReceiptModalOpen(true);
@@ -472,6 +765,9 @@ const SalesPage = () => {
       setCartDrawerOpen(false);
       setAmountTendered(0);
       setChangeDue(0);
+      setWithholdingTaxEnabled(false);
+      setWithholdingTaxAmount(0);
+      setDiscountCode("");
       
       setSnackbarMessage("Payment processed successfully!");
       setOpenSnackbar(true);
@@ -481,22 +777,6 @@ const SalesPage = () => {
       console.error("Transaction error:", err);
     }
   };
-
-  // Calculations
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.discount) / 100 : 0;
-  const taxRate = 0.18; // 18% VAT
-  const taxAmount = (subtotal - discountAmount) * taxRate;
-  const totalAmount = subtotal - discountAmount + taxAmount;
-  
-  useEffect(() => {
-    if (selectedPaymentMethod?.type === 'cash' && cashAmount) {
-      const amount = parseFloat(cashAmount) || 0;
-      setChangeDue(amount - totalAmount);
-    } else {
-      setChangeDue(0);
-    }
-  }, [cashAmount, totalAmount, selectedPaymentMethod]);
 
   // Steps for checkout process
   const steps = ['Cart Review', 'Customer Info', 'Payment'];
@@ -531,15 +811,15 @@ const SalesPage = () => {
     if (!editingProduct) return;
     
     try {
-      // TODO: Replace with actual API call to update product
-      // const response = await axios.put(`/api/products/${editingProduct.id}`, editingProduct);
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // TODO: Replace with actual response data when API is connected
       const updatedProducts = products.map(p => 
         p.id === editingProduct.id ? editingProduct : p
       );
       
       setProducts(updatedProducts);
+      setFilteredProducts(updatedProducts);
       setEditModalOpen(false);
       setEditingProduct(null);
       setSnackbarMessage("Product updated successfully!");
@@ -562,7 +842,7 @@ const SalesPage = () => {
 
   // Render Edit Product Modal
   const renderEditProductModal = () => (
-    <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)}>
+    <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)} maxWidth="md" fullWidth>
       <DialogTitle>Edit Product</DialogTitle>
       <DialogContent>
         {editingProduct && (
@@ -609,19 +889,31 @@ const SalesPage = () => {
               fullWidth
             />
             
-            <TextField
-              label="Category"
-              value={editingProduct.category}
-              onChange={(e) => handleEditFieldChange('category', e.target.value)}
-              fullWidth
-            />
+            <FormControl fullWidth>
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={editingProduct.category}
+                label="Category"
+                onChange={(e) => handleEditFieldChange('category', e.target.value)}
+              >
+                {categories.map((cat) => (
+                  <MenuItem key={cat.id} value={cat.name}>{cat.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             
-            <TextField
-              label="Subcategory"
-              value={editingProduct.subcategory}
-              onChange={(e) => handleEditFieldChange('subcategory', e.target.value)}
-              fullWidth
-            />
+            <FormControl fullWidth>
+              <InputLabel>Subcategory</InputLabel>
+              <Select
+                value={editingProduct.subcategory}
+                label="Subcategory"
+                onChange={(e) => handleEditFieldChange('subcategory', e.target.value)}
+              >
+                {categoryMap[editingProduct.category]?.map((subcat) => (
+                  <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             
             <TextField
               label="Barcode"
@@ -637,6 +929,15 @@ const SalesPage = () => {
               onChange={(e) => handleEditFieldChange('supplier', e.target.value)}
               fullWidth
               sx={{ gridColumn: 'span 2' }}
+            />
+            
+            <TextField
+              label="Rating"
+              type="number"
+              value={editingProduct.rating}
+              onChange={(e) => handleEditFieldChange('rating', parseFloat(e.target.value) || 0)}
+              fullWidth
+              inputProps={{ min: 0, max: 5, step: 0.1 }}
             />
           </Box>
         )}
@@ -706,18 +1007,32 @@ const SalesPage = () => {
         {filteredCartItems.map((item) => (
           <ListItem key={item.id} secondaryAction={
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton 
+                size="small" 
+                onClick={() => handleDecreaseQuantity(item.id)}
+                disabled={item.quantity <= 1}
+              >
+                <RemoveIcon />
+              </IconButton>
               <TextField
                 type="number"
                 value={item.quantity}
                 onChange={(e) => handleQuantityChange(item.id, e.target.value)}
                 inputProps={{ min: 1, max: item.stock }}
                 size="small"
-                sx={{ width: 70 }}
+                sx={{ width: 70, mx: 1 }}
               />
+              <IconButton 
+                size="small" 
+                onClick={() => handleIncreaseQuantity(item.id)}
+                disabled={item.quantity >= item.stock}
+              >
+                <AddIcon />
+              </IconButton>
               <IconButton 
                 onClick={() => handleRemoveFromCart(item.id)}
                 color="error"
-                sx={{ ml: 2 }}
+                sx={{ ml: 1 }}
               >
                 <CloseIcon />
               </IconButton>
@@ -757,6 +1072,23 @@ const SalesPage = () => {
           <Typography>Tax (18%):</Typography>
           <Typography>UGX {taxAmount.toLocaleString()}</Typography>
         </Box>
+        
+        {/* Withholding Tax Toggle */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography>Apply 6% Withholding Tax</Typography>
+          <Switch
+            checked={withholdingTaxEnabled}
+            onChange={(e) => setWithholdingTaxEnabled(e.target.checked)}
+            color="primary"
+          />
+        </Box>
+        
+        {withholdingTaxEnabled && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography>Withholding Tax (6%):</Typography>
+            <Typography color="warning.main">-UGX {withholdingTaxAmount.toLocaleString()}</Typography>
+          </Box>
+        )}
         
         <Divider sx={{ my: 1 }} />
         
@@ -819,6 +1151,7 @@ const SalesPage = () => {
         margin="normal"
         value={customerDetails.name}
         onChange={(e) => setCustomerDetails({...customerDetails, name: e.target.value})}
+        placeholder="Optional"
       />
       <TextField
         label="Phone Number"
@@ -826,6 +1159,7 @@ const SalesPage = () => {
         margin="normal"
         value={customerDetails.phone}
         onChange={(e) => setCustomerDetails({...customerDetails, phone: e.target.value})}
+        placeholder="Optional"
       />
       <TextField
         label="Email Address"
@@ -833,6 +1167,7 @@ const SalesPage = () => {
         margin="normal"
         value={customerDetails.email}
         onChange={(e) => setCustomerDetails({...customerDetails, email: e.target.value})}
+        placeholder="Optional"
       />
     </Box>
   );
@@ -855,7 +1190,12 @@ const SalesPage = () => {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                p: 2
+                p: 2,
+                transition: 'all 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: 3
+                }
               }}
               onClick={() => handlePaymentMethodSelect(method)}
             >
@@ -866,9 +1206,17 @@ const SalesPage = () => {
                   style={{ height: 30, marginBottom: 8 }}
                 />
               ) : (
-                React.cloneElement(method.icon, { fontSize: 'large' })
+                React.cloneElement(method.icon, { 
+                  fontSize: 'large',
+                  color: selectedPaymentMethod?.id === method.id ? 'primary' : 'action'
+                })
               )}
-              <Typography variant="body2" textAlign="center">
+              <Typography 
+                variant="body2" 
+                textAlign="center"
+                color={selectedPaymentMethod?.id === method.id ? 'primary' : 'text.primary'}
+                fontWeight={selectedPaymentMethod?.id === method.id ? 'bold' : 'normal'}
+              >
                 {method.name}
               </Typography>
             </Card>
@@ -894,6 +1242,7 @@ const SalesPage = () => {
                 type="number"
                 inputProps={{ min: 0, step: 100 }}
                 required
+                helperText="Enter the amount received from customer"
               />
               
               <Box sx={{ 
@@ -1106,7 +1455,16 @@ const SalesPage = () => {
       <Grid container spacing={3}>
         {filteredProducts.map((product) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Card sx={{ 
+              height: '100%', 
+              display: 'flex', 
+              flexDirection: 'column',
+              transition: 'all 0.2s',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: 4
+              }
+            }}>
               <CardMedia
                 component="img"
                 height="140"
@@ -1147,8 +1505,15 @@ const SalesPage = () => {
                 <Typography variant="h6" color="primary" sx={{ mb: 1 }}>
                   UGX {product.price.toLocaleString()}
                 </Typography>
-                <Typography variant="body2" sx={{ fontStyle: 'italic', mb: 2 }}>
-                  {product.stock} in stock
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontStyle: 'italic', 
+                    mb: 2,
+                    color: product.stock > 10 ? 'success.main' : product.stock > 0 ? 'warning.main' : 'error.main'
+                  }}
+                >
+                  {product.stock > 10 ? 'In Stock' : product.stock > 0 ? `Only ${product.stock} left` : 'Out of Stock'}
                 </Typography>
               </CardContent>
               <Box sx={{ p: 2 }}>
