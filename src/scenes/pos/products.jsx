@@ -325,11 +325,11 @@ const ProductsPage = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setNewProduct({
-          ...newProduct,
+        setNewProduct(prev => ({
+          ...prev,
           image: file,
           imagePreview: reader.result
-        });
+        }));
       };
       reader.readAsDataURL(file);
     }
@@ -386,17 +386,24 @@ const ProductsPage = () => {
   // Add a new product
   const handleAddProduct = async () => {
     try {
+      // Validate required fields
+      if (!newProduct.name || !newProduct.category || !newProduct.subcategory || !newProduct.price || !newProduct.stock) {
+        showSnackbar("Please fill in all required fields", "error");
+        return;
+      }
+
       const newProductWithId = {
         ...newProduct,
         id: Date.now(),
-        price: parseFloat(newProduct.price),
-        stock: parseInt(newProduct.stock),
+        price: parseFloat(newProduct.price) || 0,
+        stock: parseInt(newProduct.stock) || 0,
         discount: parseFloat(newProduct.discount) || 0,
-        costPrice: parseFloat(newProduct.costPrice) || 0
+        costPrice: parseFloat(newProduct.costPrice) || 0,
+        rating: parseFloat(newProduct.rating) || 0
       };
       
-      setProducts([...products, newProductWithId]);
-      setFilteredProducts([...products, newProductWithId]);
+      setProducts(prev => [...prev, newProductWithId]);
+      setFilteredProducts(prev => [...prev, newProductWithId]);
       showSnackbar("Product added successfully", "success");
       handleDialogClose();
     } catch (err) {
@@ -429,13 +436,20 @@ const ProductsPage = () => {
   // Handle saving edited product
   const handleSaveEditedProduct = async () => {
     try {
+      // Validate required fields
+      if (!newProduct.name || !newProduct.category || !newProduct.subcategory || !newProduct.price || !newProduct.stock) {
+        showSnackbar("Please fill in all required fields", "error");
+        return;
+      }
+
       const updatedProduct = {
         ...newProduct,
         id: editingProductId,
-        price: parseFloat(newProduct.price),
-        stock: parseInt(newProduct.stock),
+        price: parseFloat(newProduct.price) || 0,
+        stock: parseInt(newProduct.stock) || 0,
         discount: parseFloat(newProduct.discount) || 0,
-        costPrice: parseFloat(newProduct.costPrice) || 0
+        costPrice: parseFloat(newProduct.costPrice) || 0,
+        rating: parseFloat(newProduct.rating) || 0
       };
       
       const updatedProducts = products.map(p => 
@@ -470,6 +484,26 @@ const ProductsPage = () => {
     const profit = product.price - product.costPrice;
     const profitMargin = product.costPrice > 0 ? ((profit / product.costPrice) * 100).toFixed(1) : 0;
     return { profit, profitMargin };
+  };
+
+  // Handle form field changes
+  const handleProductChange = (field, value) => {
+    setNewProduct(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Calculate profit for display
+  const calculateProfit = () => {
+    const sellingPrice = parseFloat(newProduct.price) || 0;
+    const costPrice = parseFloat(newProduct.costPrice) || 0;
+    if (costPrice > 0 && sellingPrice > 0) {
+      const profit = sellingPrice - costPrice;
+      const margin = ((profit / costPrice) * 100).toFixed(1);
+      return { profit, margin };
+    }
+    return { profit: 0, margin: 0 };
   };
 
   // Loading and error states
@@ -601,41 +635,15 @@ const ProductsPage = () => {
 
   // Product Form Dialog (Add/Edit)
   const ProductFormDialog = () => {
-    const [localProduct, setLocalProduct] = useState(newProduct);
-
-    useEffect(() => {
-      setLocalProduct(newProduct);
-    }, [newProduct]);
-
-    const handleLocalChange = (e) => {
-      const { name, value } = e.target;
-      setLocalProduct(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    };
+    const { profit, margin } = calculateProfit();
 
     const handleSave = () => {
-      setNewProduct(localProduct);
       if (isEditing) {
         handleSaveEditedProduct();
       } else {
         handleAddProduct();
       }
     };
-
-    const calculateProfit = () => {
-      const sellingPrice = parseFloat(localProduct.price) || 0;
-      const costPrice = parseFloat(localProduct.costPrice) || 0;
-      if (costPrice > 0 && sellingPrice > 0) {
-        const profit = sellingPrice - costPrice;
-        const margin = ((profit / costPrice) * 100).toFixed(1);
-        return { profit, margin };
-      }
-      return { profit: 0, margin: 0 };
-    };
-
-    const { profit, margin } = calculateProfit();
 
     return (
       <Dialog 
@@ -657,51 +665,48 @@ const ProductsPage = () => {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Product Name"
-                name="name"
-                value={localProduct.name}
-                onChange={handleLocalChange}
-                error={!localProduct.name}
-                helperText={!localProduct.name ? "Product name is required" : ""}
+                label="Product Name *"
+                value={newProduct.name}
+                onChange={(e) => handleProductChange('name', e.target.value)}
+                error={!newProduct.name}
+                helperText={!newProduct.name ? "Product name is required" : ""}
               />
             </Grid>
             
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={!localProduct.category}>
-                <InputLabel>Category</InputLabel>
+              <FormControl fullWidth error={!newProduct.category}>
+                <InputLabel>Category *</InputLabel>
                 <Select
-                  name="category"
-                  value={localProduct.category}
-                  onChange={handleLocalChange}
-                  label="Category"
+                  value={newProduct.category}
+                  onChange={(e) => handleProductChange('category', e.target.value)}
+                  label="Category *"
                 >
                   <MenuItem value=""><em>Select Category</em></MenuItem>
                   {Object.keys(categoryStructure).map((cat) => (
                     <MenuItem key={cat} value={cat}>{cat}</MenuItem>
                   ))}
                 </Select>
-                {!localProduct.category && (
+                {!newProduct.category && (
                   <Typography variant="caption" color="error">Category is required</Typography>
                 )}
               </FormControl>
             </Grid>
             
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={!localProduct.subcategory && !!localProduct.category}>
-                <InputLabel>Subcategory</InputLabel>
+              <FormControl fullWidth error={!newProduct.subcategory && !!newProduct.category}>
+                <InputLabel>Subcategory *</InputLabel>
                 <Select
-                  name="subcategory"
-                  value={localProduct.subcategory}
-                  onChange={handleLocalChange}
-                  label="Subcategory"
-                  disabled={!localProduct.category}
+                  value={newProduct.subcategory}
+                  onChange={(e) => handleProductChange('subcategory', e.target.value)}
+                  label="Subcategory *"
+                  disabled={!newProduct.category}
                 >
                   <MenuItem value=""><em>Select Subcategory</em></MenuItem>
-                  {localProduct.category && categoryStructure[localProduct.category]?.map((subcat) => (
+                  {newProduct.category && categoryStructure[newProduct.category]?.map((subcat) => (
                     <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
                   ))}
                 </Select>
-                {!localProduct.subcategory && localProduct.category && (
+                {!newProduct.subcategory && newProduct.category && (
                   <Typography variant="caption" color="error">Subcategory is required</Typography>
                 )}
               </FormControl>
@@ -710,14 +715,13 @@ const ProductsPage = () => {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Stock Quantity"
+                label="Stock Quantity *"
                 type="number"
-                name="stock"
-                value={localProduct.stock}
-                onChange={handleLocalChange}
+                value={newProduct.stock}
+                onChange={(e) => handleProductChange('stock', e.target.value)}
                 inputProps={{ min: 0 }}
-                error={!localProduct.stock && localProduct.stock !== 0}
-                helperText={!localProduct.stock && localProduct.stock !== 0 ? "Stock quantity is required" : ""}
+                error={!newProduct.stock && newProduct.stock !== 0}
+                helperText={!newProduct.stock && newProduct.stock !== 0 ? "Stock quantity is required" : ""}
               />
             </Grid>
             
@@ -726,9 +730,8 @@ const ProductsPage = () => {
                 fullWidth
                 label="Cost Price (UGX)"
                 type="number"
-                name="costPrice"
-                value={localProduct.costPrice}
-                onChange={handleLocalChange}
+                value={newProduct.costPrice}
+                onChange={(e) => handleProductChange('costPrice', e.target.value)}
                 inputProps={{ min: 0, step: 100 }}
               />
             </Grid>
@@ -736,14 +739,13 @@ const ProductsPage = () => {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Selling Price (UGX)"
+                label="Selling Price (UGX) *"
                 type="number"
-                name="price"
-                value={localProduct.price}
-                onChange={handleLocalChange}
+                value={newProduct.price}
+                onChange={(e) => handleProductChange('price', e.target.value)}
                 inputProps={{ min: 0, step: 100 }}
-                error={!localProduct.price && localProduct.price !== 0}
-                helperText={!localProduct.price && localProduct.price !== 0 ? "Price is required" : ""}
+                error={!newProduct.price && newProduct.price !== 0}
+                helperText={!newProduct.price && newProduct.price !== 0 ? "Price is required" : ""}
               />
             </Grid>
             
@@ -766,9 +768,8 @@ const ProductsPage = () => {
                 fullWidth
                 label="Discount (%)"
                 type="number"
-                name="discount"
-                value={localProduct.discount}
-                onChange={handleLocalChange}
+                value={newProduct.discount}
+                onChange={(e) => handleProductChange('discount', e.target.value)}
                 inputProps={{ min: 0, max: 100 }}
               />
             </Grid>
@@ -777,9 +778,8 @@ const ProductsPage = () => {
               <Box>
                 <Typography variant="body2" gutterBottom>Product Rating</Typography>
                 <Rating
-                  name="rating"
-                  value={parseFloat(localProduct.rating)}
-                  onChange={(e, newValue) => setLocalProduct(prev => ({...prev, rating: newValue}))}
+                  value={parseFloat(newProduct.rating)}
+                  onChange={(e, newValue) => handleProductChange('rating', newValue)}
                   precision={0.5}
                   size="large"
                 />
@@ -790,11 +790,10 @@ const ProductsPage = () => {
               <TextField
                 fullWidth
                 label="Product Description"
-                name="description"
                 multiline
                 rows={3}
-                value={localProduct.description}
-                onChange={handleLocalChange}
+                value={newProduct.description}
+                onChange={(e) => handleProductChange('description', e.target.value)}
                 placeholder="Enter product description..."
               />
             </Grid>
@@ -813,10 +812,10 @@ const ProductsPage = () => {
                   Upload Image
                 </Button>
               </label>
-              {localProduct.imagePreview && (
+              {newProduct.imagePreview && (
                 <Box sx={{ mt: 2, textAlign: 'center' }}>
                   <img 
-                    src={localProduct.imagePreview} 
+                    src={newProduct.imagePreview} 
                     alt="Preview" 
                     style={{ maxHeight: 200, maxWidth: '100%', borderRadius: 8 }}
                   />
@@ -824,7 +823,7 @@ const ProductsPage = () => {
                     variant="text" 
                     color="error" 
                     size="small"
-                    onClick={() => setLocalProduct(prev => ({...prev, image: null, imagePreview: ""}))}
+                    onClick={() => handleProductChange('imagePreview', '')}
                     sx={{ mt: 1 }}
                   >
                     Remove Image
@@ -839,9 +838,7 @@ const ProductsPage = () => {
           <Button 
             variant="contained" 
             onClick={handleSave}
-            disabled={!localProduct.name || !localProduct.category || !localProduct.subcategory || 
-                     (!localProduct.price && localProduct.price !== 0) || 
-                     (!localProduct.stock && localProduct.stock !== 0)}
+            disabled={!newProduct.name || !newProduct.category || !newProduct.subcategory || !newProduct.price || !newProduct.stock}
           >
             {isEditing ? "Save Changes" : "Add Product"}
           </Button>
