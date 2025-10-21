@@ -105,65 +105,91 @@ const ServicesPage = () => {
     required: false
   });
 
+  // Sample data for demonstration
+  const sampleCategories = {
+    "Restaurant": ["Dining", "Takeaway", "Catering"],
+    "Automotive": ["Maintenance", "Repair", "Detailing"],
+    "Beauty": ["Hair", "Nails", "Skincare"],
+    "Home Services": ["Cleaning", "Repair", "Installation"]
+  };
+
+  const demoServices = [
+    {
+      id: 1,
+      name: "Full Car Detailing",
+      category: "Automotive",
+      subcategory: "Detailing",
+      price: 150000,
+      rating: 4.8,
+      duration: "3 hours",
+      description: "Complete interior and exterior detailing service with waxing and polishing",
+      image: "https://images.unsplash.com/photo-1507136566006-cfc505b114fc?w=300",
+      isActive: true,
+      customFields: [
+        { name: "Vehicle Type", value: "SUV", type: "text", required: true },
+        { name: "Interior Cleaning", value: "Yes", type: "checkbox", required: false }
+      ]
+    },
+    {
+      id: 2,
+      name: "Fine Dining Experience",
+      category: "Restaurant",
+      subcategory: "Dining",
+      price: 85000,
+      rating: 4.9,
+      duration: "2 hours",
+      description: "Multi-course gourmet meal with wine pairing and professional service",
+      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=300",
+      isActive: true,
+      customFields: [
+        { name: "Dietary Restrictions", value: "None", type: "text", required: false },
+        { name: "Number of Guests", value: "2", type: "number", required: true }
+      ]
+    },
+    {
+      id: 3,
+      name: "Hair Styling & Coloring",
+      category: "Beauty",
+      subcategory: "Hair",
+      price: 45000,
+      rating: 4.7,
+      duration: "1.5 hours",
+      description: "Professional hair styling, cutting and coloring service",
+      image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=300",
+      isActive: true,
+      customFields: [
+        { name: "Hair Length", value: "Medium", type: "text", required: true },
+        { name: "Color Treatment", value: "Yes", type: "checkbox", required: false }
+      ]
+    },
+    {
+      id: 4,
+      name: "Home Deep Cleaning",
+      category: "Home Services",
+      subcategory: "Cleaning",
+      price: 120000,
+      rating: 4.5,
+      duration: "4 hours",
+      description: "Complete home deep cleaning service including kitchen, bathrooms, and living areas",
+      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=300",
+      isActive: false,
+      customFields: [
+        { name: "House Size", value: "3 Bedrooms", type: "text", required: true },
+        { name: "Pets", value: "No", type: "checkbox", required: false }
+      ]
+    }
+  ];
+
   // Fetch services and categories from API
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // TODO: Replace with actual API calls
-        // const servicesResponse = await fetch('/api/services');
-        // const servicesData = await servicesResponse.json();
-        // setServices(servicesData);
-        // setFilteredServices(servicesData);
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // const categoriesResponse = await fetch('/api/categories');
-        // const categoriesData = await categoriesResponse.json();
-        // setCategoryStructure(categoriesData);
-        
-        // For demo purposes, set some initial data
-        const demoCategories = {
-          "Restaurant": ["Dining", "Takeaway", "Catering"],
-          "Automotive": ["Maintenance", "Repair", "Detailing"],
-          "Beauty": ["Hair", "Nails", "Skincare"]
-        };
-        
-        const demoServices = [
-          {
-            id: 1,
-            name: "Full Car Detailing",
-            category: "Automotive",
-            subcategory: "Detailing",
-            price: 150,
-            rating: 4.8,
-            duration: "3 hours",
-            description: "Complete interior and exterior detailing service",
-            image: "/assets/cl.jpeg",
-            isActive: true,
-            customFields: [
-              { name: "Vehicle Type", value: "SUV", type: "text", required: true },
-              { name: "Interior Cleaning", value: "Yes", type: "checkbox", required: false }
-            ]
-          },
-          {
-            id: 2,
-            name: "Fine Dining Experience",
-            category: "Restaurant",
-            subcategory: "Dining",
-            price: 85,
-            rating: 4.9,
-            duration: "2 hours",
-            description: "Multi-course gourmet meal with wine pairing",
-            image: "/assets/d.jpeg",
-            isActive: true,
-            customFields: [
-              { name: "Dietary Restrictions", value: "None", type: "text", required: false },
-              { name: "Number of Guests", value: "2", type: "number", required: true }
-            ]
-          }
-        ];
-        
-        setCategoryStructure(demoCategories);
+        setCategoryStructure(sampleCategories);
         setServices(demoServices);
         setFilteredServices(demoServices);
         
@@ -306,11 +332,11 @@ const ServicesPage = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setNewService({
-          ...newService,
+        setNewService(prev => ({
+          ...prev,
           image: file,
           imagePreview: reader.result
-        });
+        }));
       };
       reader.readAsDataURL(file);
     }
@@ -366,10 +392,12 @@ const ServicesPage = () => {
       const serviceToAdd = {
         ...newService,
         id: newId,
-        rating: parseFloat(newService.rating)
+        price: parseFloat(newService.price) || 0,
+        rating: parseFloat(newService.rating) || 0
       };
       
-      setServices([...services, serviceToAdd]);
+      setServices(prev => [...prev, serviceToAdd]);
+      setFilteredServices(prev => [...prev, serviceToAdd]);
       showSnackbar("Service added successfully", "success");
       handleDialogClose();
     } catch (err) {
@@ -401,10 +429,18 @@ const ServicesPage = () => {
   // Handle saving edited service
   const handleSaveEditedService = async () => {
     try {
+      const updatedService = {
+        ...newService,
+        id: editingServiceId,
+        price: parseFloat(newService.price) || 0,
+        rating: parseFloat(newService.rating) || 0
+      };
+      
       const updatedServices = services.map(s => 
-        s.id === editingServiceId ? { ...newService, id: editingServiceId } : s
+        s.id === editingServiceId ? updatedService : s
       );
       setServices(updatedServices);
+      setFilteredServices(updatedServices);
       
       showSnackbar("Service updated successfully", "success");
       handleDialogClose();
@@ -500,7 +536,7 @@ const ServicesPage = () => {
     >
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          {selectedService?.name}
+          <Typography variant="h6">{selectedService?.name}</Typography>
           <IconButton onClick={handleDialogClose}>
             <Close />
           </IconButton>
@@ -513,7 +549,7 @@ const ServicesPage = () => {
               component="img"
               image={selectedService?.image}
               alt={selectedService?.name}
-              sx={{ width: '100%', maxHeight: 300, objectFit: 'contain' }}
+              sx={{ width: '100%', height: 250, objectFit: 'cover', borderRadius: 1 }}
             />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -524,14 +560,16 @@ const ServicesPage = () => {
                 size="small" 
               />
             </Box>
-            <Typography variant="h5" gutterBottom>{selectedService?.name}</Typography>
+            
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Rating value={selectedService?.rating} precision={0.5} readOnly />
               <Typography variant="body2" sx={{ ml: 1 }}>{selectedService?.rating}/5</Typography>
             </Box>
+            
             <Typography variant="body1" paragraph>
               <strong>Category:</strong> {selectedService?.category} › {selectedService?.subcategory}
             </Typography>
+            
             <Typography variant="h4" color="primary" gutterBottom>
               UGX {selectedService?.price?.toLocaleString()}
             </Typography>
@@ -541,7 +579,8 @@ const ServicesPage = () => {
             </Typography>
             
             <Divider sx={{ my: 2 }} />
-            <Typography variant="body1">
+            
+            <Typography variant="body1" paragraph>
               <strong>Description:</strong> {selectedService?.description}
             </Typography>
             
@@ -550,9 +589,12 @@ const ServicesPage = () => {
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="h6" gutterBottom>Additional Information</Typography>
                 {selectedService.customFields.map((field, index) => (
-                  <Typography key={index} variant="body2" paragraph>
-                    <strong>{field.name}:</strong> {field.value || "Not specified"}
-                  </Typography>
+                  <Box key={index} sx={{ mb: 1 }}>
+                    <Typography variant="body2">
+                      <strong>{field.name}:</strong> {field.value || "Not specified"}
+                      {field.required && <Chip label="Required" size="small" sx={{ ml: 1 }} />}
+                    </Typography>
+                  </Box>
                 ))}
               </>
             )}
@@ -565,7 +607,6 @@ const ServicesPage = () => {
           variant="contained" 
           onClick={() => handleEditService(selectedService)}
           startIcon={<Edit />}
-          sx={{ backgroundColor: "purple", color: "white" }}
         >
           Edit Service
         </Button>
@@ -575,22 +616,21 @@ const ServicesPage = () => {
 
   // Service Form Dialog (Add/Edit)
   const ServiceFormDialog = () => {
-    const [localService, setLocalService] = useState(newService);
-
-    useEffect(() => {
-      setLocalService(newService);
-    }, [newService]);
-
-    const handleLocalChange = (e) => {
+    const handleChange = (e) => {
       const { name, value } = e.target;
-      setLocalService(prev => ({
+      setNewService(prev => ({
         ...prev,
         [name]: value
       }));
     };
 
     const handleSave = () => {
-      setNewService(localService);
+      // Validate required fields
+      if (!newService.name || !newService.category || !newService.subcategory || !newService.price) {
+        showSnackbar("Please fill in all required fields", "error");
+        return;
+      }
+
       if (isEditing) {
         handleSaveEditedService();
       } else {
@@ -607,114 +647,124 @@ const ServicesPage = () => {
       >
         <DialogTitle>
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            {isEditing ? "Edit Service" : "Add New Service"}
+            <Typography variant="h6">{isEditing ? "Edit Service" : "Add New Service"}</Typography>
             <IconButton onClick={handleDialogClose}>
               <Close />
             </IconButton>
           </Box>
         </DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid container spacing={3} sx={{ mt: 1 }}>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Service Name"
+                label="Service Name *"
                 name="name"
-                value={localService.name}
-                onChange={handleLocalChange}
-                error={!localService.name}
-                helperText={!localService.name ? "Service name is required" : ""}
+                value={newService.name}
+                onChange={handleChange}
+                error={!newService.name}
+                helperText={!newService.name ? "Service name is required" : ""}
               />
             </Grid>
+            
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth error={!localService.category}>
-                <InputLabel>Category</InputLabel>
+              <FormControl fullWidth error={!newService.category}>
+                <InputLabel>Category *</InputLabel>
                 <Select
                   name="category"
-                  value={localService.category}
-                  onChange={handleLocalChange}
-                  label="Category"
+                  value={newService.category}
+                  onChange={handleChange}
+                  label="Category *"
                 >
                   <MenuItem value=""><em>Select Category</em></MenuItem>
                   {Object.keys(categoryStructure).map((cat) => (
                     <MenuItem key={cat} value={cat}>{cat}</MenuItem>
                   ))}
                 </Select>
-                {!localService.category && <Typography variant="caption" color="error">Category is required</Typography>}
+                {!newService.category && (
+                  <Typography variant="caption" color="error">Category is required</Typography>
+                )}
               </FormControl>
             </Grid>
+            
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth error={!localService.subcategory && !!localService.category}>
-                <InputLabel>Subcategory</InputLabel>
+              <FormControl fullWidth error={!newService.subcategory && !!newService.category}>
+                <InputLabel>Subcategory *</InputLabel>
                 <Select
                   name="subcategory"
-                  value={localService.subcategory}
-                  onChange={handleLocalChange}
-                  label="Subcategory"
-                  disabled={!localService.category}
+                  value={newService.subcategory}
+                  onChange={handleChange}
+                  label="Subcategory *"
+                  disabled={!newService.category}
                 >
                   <MenuItem value=""><em>Select Subcategory</em></MenuItem>
-                  {localService.category && categoryStructure[localService.category]?.map((subcat) => (
+                  {newService.category && categoryStructure[newService.category]?.map((subcat) => (
                     <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
                   ))}
                 </Select>
-                {!localService.subcategory && localService.category && (
+                {!newService.subcategory && newService.category && (
                   <Typography variant="caption" color="error">Subcategory is required</Typography>
                 )}
               </FormControl>
             </Grid>
+            
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Price (UGX)"
+                label="Price (UGX) *"
                 type="number"
                 name="price"
-                value={localService.price}
-                onChange={(e) => {
-                  const value = Math.max(0, parseFloat(e.target.value) || 0);
-                  setLocalService(prev => ({...prev, price: value}));
-                }}
-                inputProps={{ min: 0, step: 100 }}
-                error={!localService.price && localService.price !== 0}
-                helperText={!localService.price && localService.price !== 0 ? "Price is required" : ""}
+                value={newService.price}
+                onChange={handleChange}
+                inputProps={{ min: 0, step: 1000 }}
+                error={!newService.price && newService.price !== 0}
+                helperText={!newService.price && newService.price !== 0 ? "Price is required" : ""}
               />
             </Grid>
+            
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Duration"
                 name="duration"
-                value={localService.duration}
-                onChange={handleLocalChange}
+                value={newService.duration}
+                onChange={handleChange}
                 placeholder="e.g., 1 hour, 30 minutes"
               />
             </Grid>
+            
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="Description"
                 name="description"
                 multiline
-                rows={4}
-                value={localService.description}
-                onChange={handleLocalChange}
+                rows={3}
+                value={newService.description}
+                onChange={handleChange}
+                placeholder="Describe the service in detail..."
               />
             </Grid>
-            <Grid item xs={12}>
-              <Typography variant="body2">Service Rating</Typography>
-              <Rating
-                name="rating"
-                value={parseFloat(localService.rating)}
-                onChange={(e, newValue) => setLocalService(prev => ({...prev, rating: newValue}))}
-                precision={0.5}
-              />
+            
+            <Grid item xs={12} sm={6}>
+              <Box>
+                <Typography variant="body2" gutterBottom>Service Rating</Typography>
+                <Rating
+                  name="rating"
+                  value={parseFloat(newService.rating)}
+                  onChange={(e, newValue) => setNewService(prev => ({...prev, rating: newValue}))}
+                  precision={0.5}
+                  size="large"
+                />
+              </Box>
             </Grid>
-            <Grid item xs={12}>
+            
+            <Grid item xs={12} sm={6}>
               <FormControlLabel
                 control={
                   <Switch
-                    checked={localService.isActive}
-                    onChange={(e) => setLocalService(prev => ({...prev, isActive: e.target.checked}))}
+                    checked={newService.isActive}
+                    onChange={(e) => setNewService(prev => ({...prev, isActive: e.target.checked}))}
                     name="isActive"
                   />
                 }
@@ -785,15 +835,17 @@ const ServicesPage = () => {
                     </Grid>
                   </Paper>
                   
-                  {localService.customFields.length > 0 ? (
+                  {newService.customFields.length > 0 ? (
                     <Box>
                       <Typography variant="subtitle2" gutterBottom>Current Fields</Typography>
-                      {localService.customFields.map((field, index) => (
+                      {newService.customFields.map((field, index) => (
                         <Paper key={index} sx={{ p: 2, mb: 1 }}>
                           <Grid container spacing={2} alignItems="center">
                             <Grid item xs={12} sm={3}>
                               <Typography variant="body2"><strong>{field.name}</strong></Typography>
-                              <Typography variant="caption" color="textSecondary">{field.type} {field.required && "(Required)"}</Typography>
+                              <Typography variant="caption" color="textSecondary">
+                                {field.type} {field.required && "(Required)"}
+                              </Typography>
                             </Grid>
                             <Grid item xs={12} sm={7}>
                               {field.type === "checkbox" ? (
@@ -852,18 +904,18 @@ const ServicesPage = () => {
                   Upload Image
                 </Button>
               </label>
-              {localService.imagePreview && (
+              {newService.imagePreview && (
                 <Box sx={{ mt: 2, textAlign: 'center' }}>
                   <img 
-                    src={localService.imagePreview} 
+                    src={newService.imagePreview} 
                     alt="Preview" 
-                    style={{ maxHeight: 200, maxWidth: '100%' }}
+                    style={{ maxHeight: 200, maxWidth: '100%', borderRadius: 8 }}
                   />
                   <Button 
                     variant="text" 
                     color="error" 
                     size="small"
-                    onClick={() => setLocalService(prev => ({...prev, image: null, imagePreview: ""}))}
+                    onClick={() => setNewService(prev => ({...prev, image: null, imagePreview: ""}))}
                     sx={{ mt: 1 }}
                   >
                     Remove Image
@@ -878,11 +930,9 @@ const ServicesPage = () => {
           <Button 
             variant="contained" 
             onClick={handleSave}
-            disabled={!localService.name || !localService.category || !localService.subcategory || 
-                     (!localService.price && localService.price !== 0)}
-            sx={{ backgroundColor: "purple", color: "white" }}
+            disabled={!newService.name || !newService.category || !newService.subcategory || !newService.price}
           >
-            {isEditing ? "Save Changes" : "Save Service"}
+            {isEditing ? "Save Changes" : "Add Service"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -900,7 +950,7 @@ const ServicesPage = () => {
     }, [newCategory]);
 
     const handleAddLocalSubcategory = () => {
-      if (localSubcategory) {
+      if (localSubcategory && !localCategory.subcategories.includes(localSubcategory)) {
         setLocalCategory(prev => ({
           ...prev,
           subcategories: [...prev.subcategories, localSubcategory]
@@ -917,37 +967,48 @@ const ServicesPage = () => {
     };
 
     const handleSaveCategory = () => {
-      setNewCategory(localCategory);
-      handleAddCategory(localCategory);
+      if (localCategory.name && !categoryStructure[localCategory.name]) {
+        handleAddCategory(localCategory);
+      } else {
+        showSnackbar("Category name already exists or is invalid", "error");
+      }
+    };
+
+    const handleRemoveCategory = (categoryName) => {
+      const updatedStructure = { ...categoryStructure };
+      delete updatedStructure[categoryName];
+      setCategoryStructure(updatedStructure);
+      showSnackbar("Category removed successfully", "success");
     };
 
     return (
       <Dialog 
         open={openCategoryDialog} 
         onClose={handleDialogClose}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
       >
         <DialogTitle>
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            Manage Categories
+            <Typography variant="h6">Manage Categories</Typography>
             <IconButton onClick={handleDialogClose}>
               <Close />
             </IconButton>
           </Box>
         </DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+          <Grid container spacing={3} sx={{ mt: 1 }}>
+            {/* Add New Category Section */}
+            <Grid item xs={12} md={6}>
               <Typography variant="h6" gutterBottom>Add New Category</Typography>
               <TextField
                 fullWidth
                 label="Category Name"
                 value={localCategory.name}
                 onChange={(e) => setLocalCategory(prev => ({...prev, name: e.target.value}))}
+                sx={{ mb: 2 }}
               />
-            </Grid>
-            <Grid item xs={12}>
+              
               <Typography variant="body1" gutterBottom>Subcategories</Typography>
               <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
                 <TextField
@@ -955,6 +1016,7 @@ const ServicesPage = () => {
                   label="Add Subcategory"
                   value={localSubcategory}
                   onChange={(e) => setLocalSubcategory(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddLocalSubcategory()}
                 />
                 <Button 
                   variant="contained" 
@@ -964,45 +1026,75 @@ const ServicesPage = () => {
                   Add
                 </Button>
               </Box>
+              
               {localCategory.subcategories.length > 0 && (
                 <Paper sx={{ p: 2, mb: 2 }}>
-                  {localCategory.subcategories.map((subcat, index) => (
-                    <Chip
-                      key={index}
-                      label={subcat}
-                      onDelete={() => handleRemoveLocalSubcategory(subcat)}
-                      sx={{ m: 0.5 }}
-                    />
-                  ))}
-                </Paper>
-              )}
-            </Grid>
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" gutterBottom>Existing Categories</Typography>
-              {Object.entries(categoryStructure).map(([category, subcategories]) => (
-                <Box key={category} sx={{ mb: 2 }}>
-                  <Typography variant="subtitle1">{category}</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                    {subcategories.map((subcat, idx) => (
-                      <Chip key={idx} label={subcat} />
+                  <Typography variant="body2" gutterBottom>Subcategories:</Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {localCategory.subcategories.map((subcat, index) => (
+                      <Chip
+                        key={index}
+                        label={subcat}
+                        onDelete={() => handleRemoveLocalSubcategory(subcat)}
+                        color="primary"
+                        variant="outlined"
+                      />
                     ))}
                   </Box>
+                </Paper>
+              )}
+              
+              <Button 
+                variant="contained" 
+                onClick={handleSaveCategory}
+                disabled={!localCategory.name || localCategory.subcategories.length === 0}
+                fullWidth
+                sx={{ mt: 2 }}
+              >
+                Save Category
+              </Button>
+            </Grid>
+
+            {/* Existing Categories Section */}
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6" gutterBottom>Existing Categories</Typography>
+              {Object.entries(categoryStructure).length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  No categories created yet
+                </Typography>
+              ) : (
+                <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                  {Object.entries(categoryStructure).map(([category, subcategories]) => (
+                    <Paper key={category} sx={{ p: 2, mb: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography variant="subtitle1" fontWeight="bold">{category}</Typography>
+                        <Button 
+                          size="small" 
+                          color="error"
+                          onClick={() => handleRemoveCategory(category)}
+                        >
+                          Remove
+                        </Button>
+                      </Box>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {subcategories.map((subcat, idx) => (
+                          <Chip 
+                            key={idx} 
+                            label={subcat} 
+                            size="small"
+                            color="primary"
+                          />
+                        ))}
+                      </Box>
+                    </Paper>
+                  ))}
                 </Box>
-              ))}
+              )}
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDialogClose}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            onClick={handleSaveCategory}
-            disabled={!localCategory.name}
-            sx={{ backgroundColor: "purple", color: "white" }}
-          >
-            Save Category
-          </Button>
+          <Button onClick={handleDialogClose}>Close</Button>
         </DialogActions>
       </Dialog>
     );
@@ -1012,21 +1104,19 @@ const ServicesPage = () => {
     <Box sx={{ padding: 3 }}>
       {/* Page Title and Actions */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Service Management</Typography>
+        <Typography variant="h4" fontWeight="bold">Service Management</Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             variant="contained"
             startIcon={<Add />}
             onClick={handleOpenAddService}
-            sx={{ backgroundColor: "purple", color: "white" }}
           >
             Add Service
           </Button>
           <Button
-            variant="contained"
+            variant="outlined"
             startIcon={<Category />}
             onClick={handleOpenManageCategories}
-            sx={{ backgroundColor: "purple", color: "white" }}
           >
             Manage Categories
           </Button>
@@ -1034,15 +1124,24 @@ const ServicesPage = () => {
       </Box>
 
       {/* Tabs for different views */}
-      <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} sx={{ mb: 3 }}>
-        <Tab label="All Services" />
-        <Tab label={
-          <Badge badgeContent={favorites.length} color="error">
-            Favorites
-          </Badge>
-        } />
-        <Tab label="Inactive Services" />
-      </Tabs>
+      <Paper sx={{ mb: 3 }}>
+        <Tabs 
+          value={activeTab} 
+          onChange={(e, newValue) => setActiveTab(newValue)}
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab label="All Services" />
+          <Tab label={
+            <Badge badgeContent={favorites.length} color="error" showZero={false}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Favorite sx={{ fontSize: 20, mr: 1 }} />
+                Favorites
+              </Box>
+            </Badge>
+          } />
+          <Tab label="Inactive Services" />
+        </Tabs>
+      </Paper>
 
       {/* Filters Section */}
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -1055,7 +1154,7 @@ const ServicesPage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               InputProps={{
-                startAdornment: <Search sx={{ mr: 1 }} />
+                startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />
               }}
             />
           </Grid>
@@ -1108,7 +1207,7 @@ const ServicesPage = () => {
               min={0}
               max={100000}
               step={1000}
-              valueLabelFormat={(value) => value.toLocaleString()}
+              valueLabelFormat={(value) => `UGX ${value.toLocaleString()}`}
             />
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="caption">UGX {minPrice.toLocaleString()}</Typography>
@@ -1118,11 +1217,16 @@ const ServicesPage = () => {
 
           <Grid item xs={12} md={4}>
             <Typography variant="body2" gutterBottom>Minimum Rating</Typography>
-            <Rating
-              value={rating}
-              onChange={(e, newValue) => setRating(newValue)}
-              precision={0.5}
-            />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Rating
+                value={rating}
+                onChange={(e, newValue) => setRating(newValue)}
+                precision={0.5}
+              />
+              {rating > 0 && (
+                <Typography variant="body2">({rating}+)</Typography>
+              )}
+            </Box>
           </Grid>
 
           <Grid item xs={12} md={4}>
@@ -1159,14 +1263,27 @@ const ServicesPage = () => {
                     alignItems: 'center',
                     p: 1,
                     cursor: 'pointer',
-                    backgroundColor: expandedCategories[categoryName] ? '#f5f5f5' : 'transparent',
-                    borderRadius: 1
+                    backgroundColor: expandedCategories[categoryName] ? 'primary.light' : 'transparent',
+                    color: expandedCategories[categoryName] ? 'white' : 'inherit',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: 'primary.main',
+                      color: 'white'
+                    }
                   }}
                   onClick={() => toggleCategory(categoryName)}
                 >
                   {expandedCategories[categoryName] ? <ExpandLess /> : <ExpandMoreIcon />}
-                  <Typography sx={{ ml: 1 }}>{categoryName}</Typography>
-                  <Chip label={subcategories.length} size="small" sx={{ ml: 'auto' }} />
+                  <Typography sx={{ ml: 1, fontWeight: 'medium' }}>{categoryName}</Typography>
+                  <Chip 
+                    label={subcategories.length} 
+                    size="small" 
+                    sx={{ 
+                      ml: 'auto',
+                      backgroundColor: expandedCategories[categoryName] ? 'white' : 'primary.main',
+                      color: expandedCategories[categoryName] ? 'primary.main' : 'white'
+                    }} 
+                  />
                 </Box>
                 {expandedCategories[categoryName] && (
                   <Box sx={{ pl: 4, mt: 1 }}>
@@ -1179,8 +1296,12 @@ const ServicesPage = () => {
                           mb: 0.5,
                           borderRadius: 1,
                           cursor: 'pointer',
-                          backgroundColor: subcategory === subcat ? '#e3f2fd' : 'transparent',
-                          '&:hover': { backgroundColor: '#f5f5f5' }
+                          backgroundColor: subcategory === subcat ? 'primary.main' : 'transparent',
+                          color: subcategory === subcat ? 'white' : 'inherit',
+                          '&:hover': {
+                            backgroundColor: 'primary.light',
+                            color: 'white'
+                          }
                         }}
                         onClick={() => handleSubcategorySelect(subcat)}
                       >
@@ -1198,10 +1319,13 @@ const ServicesPage = () => {
         <Grid item xs={12} md={9}>
           {activeTab === 1 && favorites.length === 0 ? (
             <Paper sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="h6">You haven't added any favorites yet</Typography>
+              <Favorite sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h6" gutterBottom>No favorites yet</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Services you add to favorites will appear here
+              </Typography>
               <Button 
-                variant="outlined" 
-                sx={{ mt: 2 }}
+                variant="contained" 
                 onClick={() => setActiveTab(0)}
               >
                 Browse Services
@@ -1209,19 +1333,33 @@ const ServicesPage = () => {
             </Paper>
           ) : activeTab === 2 && filteredServices.filter(s => !s.isActive).length === 0 ? (
             <Paper sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="h6">No inactive services</Typography>
+              <InventoryIcon sx={{ fontSize: 48, color: 'warning.main', mb: 2 }} />
+              <Typography variant="h6" gutterBottom>No inactive services</Typography>
+              <Typography variant="body2" color="text.secondary">
+                All services are currently active
+              </Typography>
             </Paper>
           ) : filteredServices.length > 0 ? (
             <Grid container spacing={2}>
               {filteredServices.map((service) => (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={service.id}>
-                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', opacity: service.isActive ? 1 : 0.7 }}>
+                  <Card sx={{ 
+                    height: '100%', 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    transition: 'all 0.3s ease',
+                    opacity: service.isActive ? 1 : 0.7,
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: 4
+                    }
+                  }}>
                     <Box sx={{ position: 'relative' }}>
                       <CardMedia
                         component="img"
                         image={service.image}
                         alt={service.name}
-                        sx={{ height: 140, objectFit: 'contain', p: 1 }}
+                        sx={{ height: 160, objectFit: 'cover' }}
                       />
                       <Chip 
                         label={service.isActive ? "Active" : "Inactive"} 
@@ -1231,29 +1369,42 @@ const ServicesPage = () => {
                       />
                     </Box>
                     <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant="h6" gutterBottom>{service.name}</Typography>
+                      <Typography variant="h6" gutterBottom sx={{ 
+                        fontSize: '1rem',
+                        fontWeight: 'bold',
+                        height: '2.5em',
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical'
+                      }}>
+                        {service.name}
+                      </Typography>
+                      
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                         <Rating value={service.rating} precision={0.5} readOnly size="small" />
-                        <Typography variant="body2" sx={{ ml: 1 }}>{service.rating}</Typography>
+                        <Typography variant="body2" sx={{ ml: 1, color: 'text.secondary' }}>
+                          {service.rating}
+                        </Typography>
                       </Box>
+                      
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                         {service.category} › {service.subcategory}
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        {service.description.length > 50 
-                          ? `${service.description.substring(0, 50)}...` 
-                          : service.description}
-                      </Typography>
-                      <Typography variant="h6" color="primary" sx={{ mt: 'auto' }}>
-                        UGX {service.price.toLocaleString()}
-                      </Typography>
-                      <Typography variant="body2" sx={{ mt: 1 }}>
-                        Duration: {service.duration}
-                      </Typography>
+
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography variant="h6" color="primary">
+                          UGX {service.price.toLocaleString()}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {service.duration}
+                        </Typography>
+                      </Box>
                     </CardContent>
-                    <CardActions sx={{ justifyContent: 'space-between' }}>
+                    <CardActions sx={{ justifyContent: 'space-between', p: 2 }}>
                       <Button 
                         size="small" 
+                        variant="outlined"
                         onClick={() => handleViewDetails(service)}
                       >
                         Details
@@ -1278,6 +1429,7 @@ const ServicesPage = () => {
                           <IconButton 
                             size="small" 
                             onClick={() => handleAddToFavorites(service)}
+                            color="default"
                           >
                             <FavoriteBorder />
                           </IconButton>
@@ -1297,10 +1449,13 @@ const ServicesPage = () => {
             </Grid>
           ) : (
             <Paper sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="h6">No services found matching your criteria</Typography>
+              <Search sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h6" gutterBottom>No services found</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Try adjusting your search criteria or filters
+              </Typography>
               <Button 
-                variant="outlined" 
-                sx={{ mt: 2 }}
+                variant="contained" 
                 onClick={() => {
                   setCategory("");
                   setSubcategory("");
@@ -1310,7 +1465,7 @@ const ServicesPage = () => {
                   setMaxPrice(100000);
                 }}
               >
-                Clear Filters
+                Clear All Filters
               </Button>
             </Paper>
           )}

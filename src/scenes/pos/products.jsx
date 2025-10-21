@@ -29,7 +29,9 @@ import {
   Avatar,
   Stack,
   Snackbar,
-  Alert
+  Alert,
+  Switch,
+  FormControlLabel
 } from "@mui/material";
 import {
   Favorite,
@@ -43,7 +45,9 @@ import {
   Sort,
   Inventory as InventoryIcon,
   Edit,
-  Close
+  Close,
+  LocalOffer,
+  TrendingUp
 } from "@mui/icons-material";
 
 const ProductsPage = () => {
@@ -70,9 +74,9 @@ const ProductsPage = () => {
     discount: "",
     measurement: 1,
     description: "",
-    barcode: "",
     image: null,
-    imagePreview: ""
+    imagePreview: "",
+    costPrice: ""
   });
   const [isEditing, setIsEditing] = useState(false);
   const [editingProductId, setEditingProductId] = useState(null);
@@ -92,21 +96,89 @@ const ProductsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Withholding Tax State
+  const [withholdingTaxEnabled, setWithholdingTaxEnabled] = useState(false);
+  const [withholdingTaxRate, setWithholdingTaxRate] = useState(0.06); // 6%
+
+  // Sample data for demonstration
+  const sampleProducts = [
+    {
+      id: 1,
+      name: "iPhone 15 Pro",
+      description: "Latest Apple smartphone with advanced camera system",
+      price: 4500000,
+      costPrice: 3500000,
+      stock: 15,
+      category: "Electronics",
+      subcategory: "Smartphones",
+      rating: 4.8,
+      image: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300",
+      discount: 5,
+      measurement: 1
+    },
+    {
+      id: 2,
+      name: "Samsung Galaxy S24",
+      description: "Powerful Android phone with AI features",
+      price: 3200000,
+      costPrice: 2500000,
+      stock: 25,
+      category: "Electronics",
+      subcategory: "Smartphones",
+      rating: 4.6,
+      image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300",
+      discount: 0,
+      measurement: 1
+    },
+    {
+      id: 3,
+      name: "MacBook Air M2",
+      description: "Lightweight laptop with M2 chip",
+      price: 6500000,
+      costPrice: 5200000,
+      stock: 8,
+      category: "Electronics",
+      subcategory: "Laptops",
+      rating: 4.9,
+      image: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=300",
+      discount: 10,
+      measurement: 1
+    },
+    {
+      id: 4,
+      name: "Wireless Headphones",
+      description: "Noise-cancelling Bluetooth headphones",
+      price: 280000,
+      costPrice: 180000,
+      stock: 20,
+      category: "Electronics",
+      subcategory: "Accessories",
+      rating: 4.5,
+      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300",
+      discount: 15,
+      measurement: 1
+    }
+  ];
+
+  const sampleCategories = {
+    "Electronics": ["Smartphones", "Laptops", "Tablets", "Accessories"],
+    "Clothing": ["Men", "Women", "Kids", "Accessories"],
+    "Home & Kitchen": ["Appliances", "Furniture", "Cookware", "Decor"]
+  };
+
   // Fetch products and categories from API
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // TODO: Replace with actual API calls
-        // const productsResponse = await fetch('/api/products');
-        // const productsData = await productsResponse.json();
-        // setProducts(productsData);
-        // setFilteredProducts(productsData);
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // const categoriesResponse = await fetch('/api/categories');
-        // const categoriesData = await categoriesResponse.json();
-        // setCategoryStructure(categoriesData);
+        // Use sample data
+        setProducts(sampleProducts);
+        setFilteredProducts(sampleProducts);
+        setCategoryStructure(sampleCategories);
         
         setLoading(false);
       } catch (err) {
@@ -128,6 +200,11 @@ const ProductsPage = () => {
       filtered = filtered.filter(product => favorites.some(fav => fav.id === product.id));
     } else if (activeTab === 2) { // Low stock tab
       filtered = filtered.filter(product => product.stock < 10);
+    } else if (activeTab === 3) { // High profit tab
+      filtered = filtered.filter(product => {
+        const profitMargin = ((product.price - product.costPrice) / product.costPrice) * 100;
+        return profitMargin > 30;
+      });
     }
     
     // Category filter
@@ -155,8 +232,7 @@ const ProductsPage = () => {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(product => 
         product.name.toLowerCase().includes(term) ||
-        product.description.toLowerCase().includes(term) ||
-        product.barcode.includes(term)
+        product.description.toLowerCase().includes(term)
       );
     }
     
@@ -217,9 +293,9 @@ const ProductsPage = () => {
       discount: "",
       measurement: 1,
       description: "", 
-      barcode: "",
       image: null,
-      imagePreview: ""
+      imagePreview: "",
+      costPrice: ""
     });
     setIsEditing(false);
     setEditingProductId(null);
@@ -282,6 +358,13 @@ const ProductsPage = () => {
       case "nameDesc":
         sortedProducts.sort((a, b) => b.name.localeCompare(a.name));
         break;
+      case "profitMarginDesc":
+        sortedProducts.sort((a, b) => {
+          const marginA = ((a.price - a.costPrice) / a.costPrice) * 100;
+          const marginB = ((b.price - b.costPrice) / b.costPrice) * 100;
+          return marginB - marginA;
+        });
+        break;
       default:
         break;
     }
@@ -303,17 +386,17 @@ const ProductsPage = () => {
   // Add a new product
   const handleAddProduct = async () => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/products', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(newProduct)
-      // });
-      // const addedProduct = await response.json();
+      const newProductWithId = {
+        ...newProduct,
+        id: Date.now(),
+        price: parseFloat(newProduct.price),
+        stock: parseInt(newProduct.stock),
+        discount: parseFloat(newProduct.discount) || 0,
+        costPrice: parseFloat(newProduct.costPrice) || 0
+      };
       
-      // setProducts([...products, addedProduct]);
+      setProducts([...products, newProductWithId]);
+      setFilteredProducts([...products, newProductWithId]);
       showSnackbar("Product added successfully", "success");
       handleDialogClose();
     } catch (err) {
@@ -334,9 +417,9 @@ const ProductsPage = () => {
       discount: product.discount,
       measurement: product.measurement,
       description: product.description,
-      barcode: product.barcode,
       image: null,
-      imagePreview: product.image
+      imagePreview: product.image,
+      costPrice: product.costPrice
     });
     setIsEditing(true);
     setEditingProductId(product.id);
@@ -346,20 +429,20 @@ const ProductsPage = () => {
   // Handle saving edited product
   const handleSaveEditedProduct = async () => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/products/${editingProductId}`, {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(newProduct)
-      // });
-      // const updatedProduct = await response.json();
+      const updatedProduct = {
+        ...newProduct,
+        id: editingProductId,
+        price: parseFloat(newProduct.price),
+        stock: parseInt(newProduct.stock),
+        discount: parseFloat(newProduct.discount) || 0,
+        costPrice: parseFloat(newProduct.costPrice) || 0
+      };
       
-      // const updatedProducts = products.map(p => 
-      //   p.id === editingProductId ? updatedProduct : p
-      // );
-      // setProducts(updatedProducts);
+      const updatedProducts = products.map(p => 
+        p.id === editingProductId ? updatedProduct : p
+      );
+      setProducts(updatedProducts);
+      setFilteredProducts(updatedProducts);
       
       showSnackbar("Product updated successfully", "success");
       handleDialogClose();
@@ -371,17 +454,6 @@ const ProductsPage = () => {
   // Add a new category
   const handleAddCategory = async (categoryData) => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/categories', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(categoryData)
-      // });
-      // const updatedCategories = await response.json();
-      // setCategoryStructure(updatedCategories);
-      
       setCategoryStructure(prev => ({
         ...prev,
         [categoryData.name]: categoryData.subcategories
@@ -391,6 +463,13 @@ const ProductsPage = () => {
     } catch (err) {
       showSnackbar("Failed to add category", "error");
     }
+  };
+
+  // Calculate product profit
+  const calculateProductProfit = (product) => {
+    const profit = product.price - product.costPrice;
+    const profitMargin = product.costPrice > 0 ? ((profit / product.costPrice) * 100).toFixed(1) : 0;
+    return { profit, profitMargin };
   };
 
   // Loading and error states
@@ -420,7 +499,7 @@ const ProductsPage = () => {
     >
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          {selectedProduct?.name}
+          <Typography variant="h6">{selectedProduct?.name}</Typography>
           <IconButton onClick={handleDialogClose}>
             <Close />
           </IconButton>
@@ -433,37 +512,74 @@ const ProductsPage = () => {
               component="img"
               image={selectedProduct?.image}
               alt={selectedProduct?.name}
-              sx={{ width: '100%', maxHeight: 300, objectFit: 'contain' }}
+              sx={{ width: '100%', maxHeight: 300, objectFit: 'contain', borderRadius: 1 }}
             />
           </Grid>
           <Grid item xs={12} md={6}>
-            <Typography variant="h5" gutterBottom>{selectedProduct?.name}</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Rating value={selectedProduct?.rating} precision={0.5} readOnly />
               <Typography variant="body2" sx={{ ml: 1 }}>{selectedProduct?.rating}/5</Typography>
             </Box>
-            <Typography variant="body1" paragraph>
-              <strong>Category:</strong> {selectedProduct?.category} › {selectedProduct?.subcategory}
-            </Typography>
-            <Typography variant="h4" color="primary" gutterBottom>
-              UGX {selectedProduct?.price?.toLocaleString()}
-            </Typography>
-             
             
-            <Typography variant="body1" paragraph>
-              <strong>Stock:</strong> {selectedProduct?.stock} units
-            </Typography>
-            <Typography variant="body1" paragraph>
-              <strong>Unit of Measurement:</strong> {selectedProduct?.measurement} mm
-            </Typography>
-
-            <Typography variant="body1" paragraph>
-              <strong>Discount:</strong> {selectedProduct?.discount}%
-            </Typography>
-            <Typography variant="body1" paragraph>
-              <strong>Barcode:</strong> {selectedProduct?.barcode}
-            </Typography>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body1" paragraph>
+                <strong>Category:</strong> {selectedProduct?.category} › {selectedProduct?.subcategory}
+              </Typography>
+              <Typography variant="h4" color="primary" gutterBottom>
+                UGX {selectedProduct?.price?.toLocaleString()}
+              </Typography>
+              
+              {selectedProduct?.discount > 0 && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <LocalOffer color="success" fontSize="small" />
+                  <Typography variant="body1" color="success.main">
+                    {selectedProduct.discount}% Discount Applied
+                  </Typography>
+                </Box>
+              )}
+              
+              <Box sx={{ display: 'flex', gap: 2, mb: 1, flexWrap: 'wrap' }}>
+                <Typography variant="body1">
+                  <strong>Cost Price:</strong> UGX {selectedProduct?.costPrice?.toLocaleString()}
+                </Typography>
+                <Typography variant="body1" color="success.main">
+                  <strong>Profit:</strong> UGX {(selectedProduct?.price - selectedProduct?.costPrice)?.toLocaleString()}
+                </Typography>
+              </Box>
+              
+              <Typography variant="body1" paragraph>
+                <strong>Stock:</strong> {selectedProduct?.stock} units
+              </Typography>
+            </Box>
+            
             <Divider sx={{ my: 2 }} />
+            
+            {/* Withholding Tax Section */}
+            <Box sx={{ mb: 2 }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={withholdingTaxEnabled}
+                    onChange={(e) => setWithholdingTaxEnabled(e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label="Apply 6% Withholding Tax"
+              />
+              {withholdingTaxEnabled && (
+                <Box sx={{ mt: 1, p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
+                  <Typography variant="body2" color="white">
+                    Withholding Tax (6%): UGX {(selectedProduct?.price * withholdingTaxRate).toLocaleString()}
+                  </Typography>
+                  <Typography variant="body2" color="white">
+                    Net Amount: UGX {(selectedProduct?.price * (1 - withholdingTaxRate)).toLocaleString()}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+            
+            <Divider sx={{ my: 2 }} />
+            
             <Typography variant="body1">
               <strong>Description:</strong> {selectedProduct?.description}
             </Typography>
@@ -476,7 +592,6 @@ const ProductsPage = () => {
           variant="contained" 
           onClick={() => handleEditProduct(selectedProduct)}
           startIcon={<Edit />}
-          sx={{ backgroundColor: "purple", color: "white" }}
         >
           Edit Product
         </Button>
@@ -509,24 +624,37 @@ const ProductsPage = () => {
       }
     };
 
+    const calculateProfit = () => {
+      const sellingPrice = parseFloat(localProduct.price) || 0;
+      const costPrice = parseFloat(localProduct.costPrice) || 0;
+      if (costPrice > 0 && sellingPrice > 0) {
+        const profit = sellingPrice - costPrice;
+        const margin = ((profit / costPrice) * 100).toFixed(1);
+        return { profit, margin };
+      }
+      return { profit: 0, margin: 0 };
+    };
+
+    const { profit, margin } = calculateProfit();
+
     return (
       <Dialog 
         open={openProductDialog && (isEditing || !selectedProduct)} 
         onClose={handleDialogClose}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
       >
         <DialogTitle>
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            {isEditing ? "Edit Product" : "Add New Product"}
+            <Typography variant="h6">{isEditing ? "Edit Product" : "Add New Product"}</Typography>
             <IconButton onClick={handleDialogClose}>
               <Close />
             </IconButton>
           </Box>
         </DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+          <Grid container spacing={3} sx={{ mt: 1 }}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Product Name"
@@ -537,7 +665,8 @@ const ProductsPage = () => {
                 helperText={!localProduct.name ? "Product name is required" : ""}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            
+            <Grid item xs={12} md={6}>
               <FormControl fullWidth error={!localProduct.category}>
                 <InputLabel>Category</InputLabel>
                 <Select
@@ -551,10 +680,13 @@ const ProductsPage = () => {
                     <MenuItem key={cat} value={cat}>{cat}</MenuItem>
                   ))}
                 </Select>
-                {!localProduct.category && <Typography variant="caption" color="error">Category is required</Typography>}
+                {!localProduct.category && (
+                  <Typography variant="caption" color="error">Category is required</Typography>
+                )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            
+            <Grid item xs={12} md={6}>
               <FormControl fullWidth error={!localProduct.subcategory && !!localProduct.category}>
                 <InputLabel>Subcategory</InputLabel>
                 <Select
@@ -574,109 +706,99 @@ const ProductsPage = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Price (UGX)"
-                type="number"
-                name="price"
-                value={localProduct.price}
-                onChange={(e) => {
-                  const value = Math.max(0, parseFloat(e.target.value) || 0);
-                  setLocalProduct(prev => ({...prev, price: value}));
-                }}
-                inputProps={{ min: 0, step: 100 }}
-                error={!localProduct.price && localProduct.price !== 0}
-                helperText={!localProduct.price && localProduct.price !== 0 ? "Price is required" : ""}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Purchase Price (UGX)"
-                type="number"
-                name="purchasePrice"
-                value={localProduct.purchasePrice || ""}
-                onChange={(e) => {
-                  const value = Math.max(0, parseFloat(e.target.value) || 0);
-                  setLocalProduct(prev => ({...prev, purchasePrice: value}));
-                }}
-                inputProps={{ min: 0, step: 100 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Discount (%)"
-                type="number"
-                name="discount"
-                value={localProduct.discount}
-                onChange={(e) => {
-                  const value = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0));
-                  setLocalProduct(prev => ({...prev, discount: value}));
-                }}
-                inputProps={{ min: 0, max: 100 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Unit of Measurement"
-                type="number"
-                name="measurement"
-                value={localProduct.measurement}
-                onChange={(e) => {
-                  const value = Math.max(1, parseFloat(e.target.value) || 1);
-                  setLocalProduct(prev => ({...prev, measurement: value}));
-                }}
-                inputProps={{ min: 1 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Stock Quantity"
                 type="number"
                 name="stock"
                 value={localProduct.stock}
-                onChange={(e) => {
-                  const value = Math.max(0, parseInt(e.target.value) || 0);
-                  setLocalProduct(prev => ({...prev, stock: value}));
-                }}
+                onChange={handleLocalChange}
                 inputProps={{ min: 0 }}
                 error={!localProduct.stock && localProduct.stock !== 0}
                 helperText={!localProduct.stock && localProduct.stock !== 0 ? "Stock quantity is required" : ""}
               />
             </Grid>
-            <Grid item xs={12}>
+            
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Barcode/ID"
-                name="barcode"
-                value={localProduct.barcode}
+                label="Cost Price (UGX)"
+                type="number"
+                name="costPrice"
+                value={localProduct.costPrice}
                 onChange={handleLocalChange}
+                inputProps={{ min: 0, step: 100 }}
               />
             </Grid>
+            
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Selling Price (UGX)"
+                type="number"
+                name="price"
+                value={localProduct.price}
+                onChange={handleLocalChange}
+                inputProps={{ min: 0, step: 100 }}
+                error={!localProduct.price && localProduct.price !== 0}
+                helperText={!localProduct.price && localProduct.price !== 0 ? "Price is required" : ""}
+              />
+            </Grid>
+            
+            {profit !== 0 && (
+              <Grid item xs={12}>
+                <Paper sx={{ 
+                  p: 2, 
+                  bgcolor: profit > 0 ? 'success.light' : 'error.light', 
+                  color: 'white' 
+                }}>
+                  <Typography variant="body2" fontWeight="bold">
+                    {profit > 0 ? `Profit: UGX ${profit.toLocaleString()} (${margin}% Margin)` : 'Warning: Selling below cost price'}
+                  </Typography>
+                </Paper>
+              </Grid>
+            )}
+            
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Discount (%)"
+                type="number"
+                name="discount"
+                value={localProduct.discount}
+                onChange={handleLocalChange}
+                inputProps={{ min: 0, max: 100 }}
+              />
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
+              <Box>
+                <Typography variant="body2" gutterBottom>Product Rating</Typography>
+                <Rating
+                  name="rating"
+                  value={parseFloat(localProduct.rating)}
+                  onChange={(e, newValue) => setLocalProduct(prev => ({...prev, rating: newValue}))}
+                  precision={0.5}
+                  size="large"
+                />
+              </Box>
+            </Grid>
+            
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Description"
+                label="Product Description"
                 name="description"
                 multiline
-                rows={4}
+                rows={3}
                 value={localProduct.description}
                 onChange={handleLocalChange}
+                placeholder="Enter product description..."
               />
             </Grid>
-            <Grid item xs={12}>
-              <Typography variant="body2">Product Rating</Typography>
-              <Rating
-                name="rating"
-                value={localProduct.rating}
-                onChange={(e, newValue) => setLocalProduct(prev => ({...prev, rating: newValue}))}
-                precision={0.5}
-              />
-            </Grid>
+            
             <Grid item xs={12}>
               <Typography variant="body2" gutterBottom>Product Image</Typography>
               <input
@@ -696,7 +818,7 @@ const ProductsPage = () => {
                   <img 
                     src={localProduct.imagePreview} 
                     alt="Preview" 
-                    style={{ maxHeight: 200, maxWidth: '100%' }}
+                    style={{ maxHeight: 200, maxWidth: '100%', borderRadius: 8 }}
                   />
                   <Button 
                     variant="text" 
@@ -720,9 +842,8 @@ const ProductsPage = () => {
             disabled={!localProduct.name || !localProduct.category || !localProduct.subcategory || 
                      (!localProduct.price && localProduct.price !== 0) || 
                      (!localProduct.stock && localProduct.stock !== 0)}
-            sx={{ backgroundColor: "purple", color: "white" }}
           >
-            {isEditing ? "Save Changes" : "Save Product"}
+            {isEditing ? "Save Changes" : "Add Product"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -740,7 +861,7 @@ const ProductsPage = () => {
     }, [newCategory]);
 
     const handleAddLocalSubcategory = () => {
-      if (localSubcategory) {
+      if (localSubcategory && !localCategory.subcategories.includes(localSubcategory)) {
         setLocalCategory(prev => ({
           ...prev,
           subcategories: [...prev.subcategories, localSubcategory]
@@ -757,37 +878,48 @@ const ProductsPage = () => {
     };
 
     const handleSaveCategory = () => {
-      setNewCategory(localCategory);
-      handleAddCategory(localCategory);
+      if (localCategory.name && !categoryStructure[localCategory.name]) {
+        handleAddCategory(localCategory);
+      } else {
+        showSnackbar("Category name already exists or is invalid", "error");
+      }
+    };
+
+    const handleRemoveCategory = (categoryName) => {
+      const updatedStructure = { ...categoryStructure };
+      delete updatedStructure[categoryName];
+      setCategoryStructure(updatedStructure);
+      showSnackbar("Category removed successfully", "success");
     };
 
     return (
       <Dialog 
         open={openCategoryDialog} 
         onClose={handleDialogClose}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
       >
         <DialogTitle>
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            Manage Categories
+            <Typography variant="h6">Manage Categories</Typography>
             <IconButton onClick={handleDialogClose}>
               <Close />
             </IconButton>
           </Box>
         </DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+          <Grid container spacing={3} sx={{ mt: 1 }}>
+            {/* Add New Category Section */}
+            <Grid item xs={12} md={6}>
               <Typography variant="h6" gutterBottom>Add New Category</Typography>
               <TextField
                 fullWidth
                 label="Category Name"
                 value={localCategory.name}
                 onChange={(e) => setLocalCategory(prev => ({...prev, name: e.target.value}))}
+                sx={{ mb: 2 }}
               />
-            </Grid>
-            <Grid item xs={12}>
+              
               <Typography variant="body1" gutterBottom>Subcategories</Typography>
               <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
                 <TextField
@@ -795,6 +927,7 @@ const ProductsPage = () => {
                   label="Add Subcategory"
                   value={localSubcategory}
                   onChange={(e) => setLocalSubcategory(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddLocalSubcategory()}
                 />
                 <Button 
                   variant="contained" 
@@ -804,45 +937,75 @@ const ProductsPage = () => {
                   Add
                 </Button>
               </Box>
+              
               {localCategory.subcategories.length > 0 && (
                 <Paper sx={{ p: 2, mb: 2 }}>
-                  {localCategory.subcategories.map((subcat, index) => (
-                    <Chip
-                      key={index}
-                      label={subcat}
-                      onDelete={() => handleRemoveLocalSubcategory(subcat)}
-                      sx={{ m: 0.5 }}
-                    />
-                  ))}
-                </Paper>
-              )}
-            </Grid>
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" gutterBottom>Existing Categories</Typography>
-              {Object.entries(categoryStructure).map(([category, subcategories]) => (
-                <Box key={category} sx={{ mb: 2 }}>
-                  <Typography variant="subtitle1">{category}</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                    {subcategories.map((subcat, idx) => (
-                      <Chip key={idx} label={subcat} />
+                  <Typography variant="body2" gutterBottom>Subcategories:</Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {localCategory.subcategories.map((subcat, index) => (
+                      <Chip
+                        key={index}
+                        label={subcat}
+                        onDelete={() => handleRemoveLocalSubcategory(subcat)}
+                        color="primary"
+                        variant="outlined"
+                      />
                     ))}
                   </Box>
+                </Paper>
+              )}
+              
+              <Button 
+                variant="contained" 
+                onClick={handleSaveCategory}
+                disabled={!localCategory.name || localCategory.subcategories.length === 0}
+                fullWidth
+                sx={{ mt: 2 }}
+              >
+                Save Category
+              </Button>
+            </Grid>
+
+            {/* Existing Categories Section */}
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6" gutterBottom>Existing Categories</Typography>
+              {Object.entries(categoryStructure).length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  No categories created yet
+                </Typography>
+              ) : (
+                <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                  {Object.entries(categoryStructure).map(([category, subcategories]) => (
+                    <Paper key={category} sx={{ p: 2, mb: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography variant="subtitle1" fontWeight="bold">{category}</Typography>
+                        <Button 
+                          size="small" 
+                          color="error"
+                          onClick={() => handleRemoveCategory(category)}
+                        >
+                          Remove
+                        </Button>
+                      </Box>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {subcategories.map((subcat, idx) => (
+                          <Chip 
+                            key={idx} 
+                            label={subcat} 
+                            size="small"
+                            color="primary"
+                          />
+                        ))}
+                      </Box>
+                    </Paper>
+                  ))}
                 </Box>
-              ))}
+              )}
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDialogClose}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            onClick={handleSaveCategory}
-            disabled={!localCategory.name}
-            sx={{ backgroundColor: "purple", color: "white" }}
-          >
-            Save Category
-          </Button>
+          <Button onClick={handleDialogClose}>Close</Button>
         </DialogActions>
       </Dialog>
     );
@@ -852,21 +1015,19 @@ const ProductsPage = () => {
     <Box sx={{ padding: 3 }}>
       {/* Page Title and Actions */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Product Management</Typography>
+        <Typography variant="h4" fontWeight="bold">Product Management</Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             variant="contained"
             startIcon={<Add />}
             onClick={handleOpenAddProduct}
-            sx={{ backgroundColor: "purple", color: "white" }}
           >
             Add Product
           </Button>
           <Button
-            variant="contained"
+            variant="outlined"
             startIcon={<Category />}
             onClick={handleOpenManageCategories}
-            sx={{ backgroundColor: "purple", color: "white" }}
           >
             Manage Categories
           </Button>
@@ -874,15 +1035,25 @@ const ProductsPage = () => {
       </Box>
 
       {/* Tabs for different views */}
-      <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} sx={{ mb: 3 }}>
-        <Tab label="All Products" />
-        <Tab label={
-          <Badge badgeContent={favorites.length} color="error">
-            Favorites
-          </Badge>
-        } />
-        <Tab label="Low Stock" />
-      </Tabs>
+      <Paper sx={{ mb: 3 }}>
+        <Tabs 
+          value={activeTab} 
+          onChange={(e, newValue) => setActiveTab(newValue)}
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab label="All Products" />
+          <Tab label={
+            <Badge badgeContent={favorites.length} color="error" showZero={false}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Favorite sx={{ fontSize: 20, mr: 1 }} />
+                Favorites
+              </Box>
+            </Badge>
+          } />
+          <Tab label="Low Stock" />
+          <Tab label="High Profit" />
+        </Tabs>
+      </Paper>
 
       {/* Filters Section */}
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -895,7 +1066,7 @@ const ProductsPage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               InputProps={{
-                startAdornment: <Search sx={{ mr: 1 }} />
+                startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />
               }}
             />
           </Grid>
@@ -948,7 +1119,7 @@ const ProductsPage = () => {
               min={0}
               max={100000}
               step={1000}
-              valueLabelFormat={(value) => value.toLocaleString()}
+              valueLabelFormat={(value) => `UGX ${value.toLocaleString()}`}
             />
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="caption">UGX {minPrice.toLocaleString()}</Typography>
@@ -958,11 +1129,16 @@ const ProductsPage = () => {
 
           <Grid item xs={12} md={4}>
             <Typography variant="body2" gutterBottom>Minimum Rating</Typography>
-            <Rating
-              value={rating}
-              onChange={(e, newValue) => setRating(newValue)}
-              precision={0.5}
-            />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Rating
+                value={rating}
+                onChange={(e, newValue) => setRating(newValue)}
+                precision={0.5}
+              />
+              {rating > 0 && (
+                <Typography variant="body2">({rating}+)</Typography>
+              )}
+            </Box>
           </Grid>
 
           <Grid item xs={12} md={4}>
@@ -979,6 +1155,7 @@ const ProductsPage = () => {
                 <MenuItem value="priceDesc">Price (High to Low)</MenuItem>
                 <MenuItem value="ratingAsc">Rating (Low to High)</MenuItem>
                 <MenuItem value="ratingDesc">Rating (High to Low)</MenuItem>
+                <MenuItem value="profitMarginDesc">Profit Margin (High to Low)</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -999,14 +1176,27 @@ const ProductsPage = () => {
                     alignItems: 'center',
                     p: 1,
                     cursor: 'pointer',
-                    backgroundColor: expandedCategories[categoryName] ? '#f5f5f5' : 'transparent',
-                    borderRadius: 1
+                    backgroundColor: expandedCategories[categoryName] ? 'primary.light' : 'transparent',
+                    color: expandedCategories[categoryName] ? 'white' : 'inherit',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: 'primary.main',
+                      color: 'white'
+                    }
                   }}
                   onClick={() => toggleCategory(categoryName)}
                 >
                   {expandedCategories[categoryName] ? <ExpandLess /> : <ExpandMore />}
-                  <Typography sx={{ ml: 1 }}>{categoryName}</Typography>
-                  <Chip label={subcategories.length} size="small" sx={{ ml: 'auto' }} />
+                  <Typography sx={{ ml: 1, fontWeight: 'medium' }}>{categoryName}</Typography>
+                  <Chip 
+                    label={subcategories.length} 
+                    size="small" 
+                    sx={{ 
+                      ml: 'auto',
+                      backgroundColor: expandedCategories[categoryName] ? 'white' : 'primary.main',
+                      color: expandedCategories[categoryName] ? 'primary.main' : 'white'
+                    }} 
+                  />
                 </Box>
                 {expandedCategories[categoryName] && (
                   <Box sx={{ pl: 4, mt: 1 }}>
@@ -1019,8 +1209,12 @@ const ProductsPage = () => {
                           mb: 0.5,
                           borderRadius: 1,
                           cursor: 'pointer',
-                          backgroundColor: subcategory === subcat ? '#e3f2fd' : 'transparent',
-                          '&:hover': { backgroundColor: '#f5f5f5' }
+                          backgroundColor: subcategory === subcat ? 'primary.main' : 'transparent',
+                          color: subcategory === subcat ? 'white' : 'inherit',
+                          '&:hover': {
+                            backgroundColor: 'primary.light',
+                            color: 'white'
+                          }
                         }}
                         onClick={() => handleSubcategorySelect(subcat)}
                       >
@@ -1038,10 +1232,13 @@ const ProductsPage = () => {
         <Grid item xs={12} md={9}>
           {activeTab === 1 && favorites.length === 0 ? (
             <Paper sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="h6">You haven't added any favorites yet</Typography>
+              <Favorite sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h6" gutterBottom>No favorites yet</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Products you add to favorites will appear here
+              </Typography>
               <Button 
-                variant="outlined" 
-                sx={{ mt: 2 }}
+                variant="contained" 
                 onClick={() => setActiveTab(0)}
               >
                 Browse Products
@@ -1049,88 +1246,152 @@ const ProductsPage = () => {
             </Paper>
           ) : activeTab === 2 && filteredProducts.length === 0 ? (
             <Paper sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="h6">No low stock items</Typography>
-              <Button 
-                variant="contained" 
-                startIcon={<InventoryIcon />}
-                sx={{ mt: 2 }}
-                href="/inventory/overview"
-              >
-                Check Inventory
-              </Button>
+              <InventoryIcon sx={{ fontSize: 48, color: 'warning.main', mb: 2 }} />
+              <Typography variant="h6" gutterBottom>No low stock items</Typography>
+              <Typography variant="body2" color="text.secondary">
+                All products are sufficiently stocked
+              </Typography>
+            </Paper>
+          ) : activeTab === 3 && filteredProducts.length === 0 ? (
+            <Paper sx={{ p: 4, textAlign: 'center' }}>
+              <TrendingUp sx={{ fontSize: 48, color: 'success.main', mb: 2 }} />
+              <Typography variant="h6" gutterBottom>No high profit products</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Products with profit margin above 30% will appear here
+              </Typography>
             </Paper>
           ) : filteredProducts.length > 0 ? (
             <Grid container spacing={2}>
-              {filteredProducts.map((product) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <CardMedia
-                      component="img"
-                      image={product.image}
-                      alt={product.name}
-                      sx={{ height: 140, objectFit: 'contain', p: 1 }}
-                    />
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant="h6" gutterBottom>{product.name}</Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <Rating value={product.rating} precision={0.5} readOnly size="small" />
-                        <Typography variant="body2" sx={{ ml: 1 }}>{product.rating}</Typography>
+              {filteredProducts.map((product) => {
+                const { profit, profitMargin } = calculateProductProfit(product);
+                return (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+                    <Card sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 4
+                      }
+                    }}>
+                      <Box sx={{ position: 'relative' }}>
+                        <CardMedia
+                          component="img"
+                          image={product.image}
+                          alt={product.name}
+                          sx={{ 
+                            height: 160, 
+                            objectFit: 'contain', 
+                            p: 1,
+                            backgroundColor: '#f5f5f5'
+                          }}
+                        />
+                        {product.discount > 0 && (
+                          <Chip
+                            label={`${product.discount}% OFF`}
+                            color="success"
+                            size="small"
+                            sx={{ 
+                              position: 'absolute', 
+                              top: 8, 
+                              right: 8,
+                              fontWeight: 'bold'
+                            }}
+                          />
+                        )}
+                        <Chip
+                          label={`${profitMargin}% Margin`}
+                          color={profitMargin > 30 ? "success" : profitMargin > 15 ? "warning" : "default"}
+                          size="small"
+                          sx={{ 
+                            position: 'absolute', 
+                            top: 8, 
+                            left: 8,
+                            fontWeight: 'bold'
+                          }}
+                        />
                       </Box>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        {product.category} › {product.subcategory}
-                      </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        {product.description.length > 50 
-                          ? `${product.description.substring(0, 50)}...` 
-                          : product.description}
-                      </Typography>
-                      <Typography variant="h6" color="primary" sx={{ mt: 'auto' }}>
-                        UGX {product.price.toLocaleString()}
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: product.stock > 10 ? 'success.main' : 'error.main',
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
-                      </Typography>
-                    </CardContent>
-                    <CardActions sx={{ justifyContent: 'space-between' }}>
-                      <Button 
-                        size="small" 
-                        onClick={() => handleViewDetails(product)}
-                      >
-                        Details
-                      </Button>
-                      {favorites.some((fav) => fav.id === product.id) ? (
-                        <IconButton 
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <Typography variant="h6" gutterBottom sx={{ 
+                          fontSize: '1rem',
+                          fontWeight: 'bold',
+                          height: '2.5em',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical'
+                        }}>
+                          {product.name}
+                        </Typography>
+                        
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <Rating value={product.rating} precision={0.5} readOnly size="small" />
+                          <Typography variant="body2" sx={{ ml: 1, color: 'text.secondary' }}>
+                            {product.rating}
+                          </Typography>
+                        </Box>
+                        
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                          {product.category} › {product.subcategory}
+                        </Typography>
+
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                          <Typography variant="h6" color="primary">
+                            UGX {product.price.toLocaleString()}
+                          </Typography>
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              color: product.stock > 10 ? 'success.main' : product.stock > 0 ? 'warning.main' : 'error.main',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            {product.stock} in stock
+                          </Typography>
+                        </Box>
+                      </CardContent>
+                      <CardActions sx={{ justifyContent: 'space-between', p: 2 }}>
+                        <Button 
                           size="small" 
-                          onClick={() => handleRemoveFromFavorites(product.id)}
-                          color="error"
+                          variant="outlined"
+                          onClick={() => handleViewDetails(product)}
                         >
-                          <Favorite />
-                        </IconButton>
-                      ) : (
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleAddToFavorites(product)}
-                        >
-                          <FavoriteBorder />
-                        </IconButton>
-                      )}
-                    </CardActions>
-                  </Card>
-                </Grid>
-              ))}
+                          Details
+                        </Button>
+                        {favorites.some((fav) => fav.id === product.id) ? (
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleRemoveFromFavorites(product.id)}
+                            color="error"
+                          >
+                            <Favorite />
+                          </IconButton>
+                        ) : (
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleAddToFavorites(product)}
+                            color="default"
+                          >
+                            <FavoriteBorder />
+                          </IconButton>
+                        )}
+                      </CardActions>
+                    </Card>
+                  </Grid>
+                );
+              })}
             </Grid>
           ) : (
             <Paper sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="h6">No products found matching your criteria</Typography>
+              <Search sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h6" gutterBottom>No products found</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Try adjusting your search criteria or filters
+              </Typography>
               <Button 
-                variant="outlined" 
-                sx={{ mt: 2 }}
+                variant="contained" 
                 onClick={() => {
                   setCategory("");
                   setSubcategory("");
@@ -1140,7 +1401,7 @@ const ProductsPage = () => {
                   setMaxPrice(100000);
                 }}
               >
-                Clear Filters
+                Clear All Filters
               </Button>
             </Paper>
           )}

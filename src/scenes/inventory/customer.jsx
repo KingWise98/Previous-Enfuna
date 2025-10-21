@@ -95,7 +95,7 @@ const CustomerListPage = () => {
     const fetchCustomers = async () => {
       try {
         setIsLoading(true);
-        // TODO: Replace with actual API endpoint
+        // TODO: Replace with  API endpoint
         // const response = await fetch('/api/customers');
         // const data = await response.json();
         // setCustomers(data);
@@ -238,7 +238,9 @@ const CustomerListPage = () => {
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.code.toLowerCase().includes(searchTerm.toLowerCase())
+    customer.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.city.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Handle Open Action Menu
