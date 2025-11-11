@@ -62,10 +62,10 @@ function Auth({ onLogin }) {
     }
   };
 
-  const handleFinalSubmit = async (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    const errors = validateFinalForm(formValues);
+    const errors = validateLogin(formValues);
     setFormErrors(errors);
     setIsSubmit(true);
     
@@ -73,7 +73,7 @@ function Auth({ onLogin }) {
       try {
         await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
         
-        const { usernameOrEmail, password, userType } = formValues;
+        const { usernameOrEmail, password } = formValues;
         
         // Check for super admin login
         if ((usernameOrEmail.toLowerCase() === SUPER_ADMIN_CREDENTIALS.username.toLowerCase() || 
@@ -95,19 +95,6 @@ function Auth({ onLogin }) {
           return;
         }
 
-        // For sign up - complete registration based on user type
-        if (!isLogin) {
-          if (userType === "merchant" || userType === "vendor" || userType === "rider" || userType === "driver") {
-            // Business user registration
-            console.log("Business user registered:", formValues);
-            onLogin(userType);
-          } else {
-            // Regular customer registration
-            onLogin("admin");
-          }
-          return;
-        }
-        
         // If none matched for login
         setFormErrors({ auth: "Invalid username or password!" });
         
@@ -119,6 +106,48 @@ function Auth({ onLogin }) {
     } else {
       setIsLoading(false);
     }
+  };
+
+  const handleSignupSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    const errors = validateSignup(formValues);
+    setFormErrors(errors);
+    setIsSubmit(true);
+    
+    if (Object.keys(errors).length === 0) {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+        
+        // All signed up users (merchant, vendor, driver, rider) go to admin
+        onLogin("admin");
+        
+      } catch (error) {
+        setFormErrors({ auth: "An error occurred. Please try again." });
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setIsLoading(false);
+    }
+  };
+
+  const validateLogin = (values) => {
+    const errors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+    const usernameRegex = /^[a-zA-Z0-9_]+$/;
+
+    if (!values.usernameOrEmail) {
+      errors.usernameOrEmail = "Email or Username is required!";
+    } else if (!emailRegex.test(values.usernameOrEmail) && !usernameRegex.test(values.usernameOrEmail)) {
+      errors.usernameOrEmail = "Enter a valid email or username!";
+    }
+
+    if (!values.password) {
+      errors.password = "Password is required";
+    }
+
+    return errors;
   };
 
   const validateBasicInfo = (values) => {
@@ -153,15 +182,15 @@ function Auth({ onLogin }) {
     return errors;
   };
 
-  const validateFinalForm = (values) => {
+  const validateSignup = (values) => {
     const errors = {};
 
     if (!values.userType) {
       errors.userType = "Please select your account type";
     }
 
-    // Common required fields for all business types
-    if (values.userType && values.userType !== "customer") {
+    // Required fields for all business types
+    if (values.userType) {
       if (!values.phoneNumber) {
         errors.phoneNumber = "Phone number is required";
       }
@@ -188,7 +217,6 @@ function Auth({ onLogin }) {
       <h3 className={styles.sectionTitle}>Select Account Type</h3>
       <p className={styles.sectionSubtitle}>Choose how you want to use our platform</p>
       <div className={styles.userTypeGrid}>
-       
         <button
           type="button"
           className={`${styles.userTypeButton} ${userType === "merchant" ? styles.selected : ""}`}
@@ -236,7 +264,7 @@ function Auth({ onLogin }) {
   );
 
   const renderAdditionalFields = () => {
-    if (!userType || userType === "customer") return null;
+    if (!userType) return null;
 
     return (
       <div className={styles.additionalFields}>
@@ -444,7 +472,7 @@ function Auth({ onLogin }) {
   );
 
   const renderUserTypeForm = () => (
-    <form onSubmit={handleFinalSubmit} className={styles.authForm}>
+    <form onSubmit={handleSignupSubmit} className={styles.authForm}>
       <div className={styles.formHeader}>
         <button
           type="button"
@@ -480,7 +508,7 @@ function Auth({ onLogin }) {
   );
 
   const renderLoginForm = () => (
-    <form onSubmit={handleFinalSubmit} className={styles.authForm}>
+    <form onSubmit={handleLoginSubmit} className={styles.authForm}>
       <h1 className={styles.authTitle}>Welcome Back</h1>
       <p className={styles.authSubtitle}>
         Sign in to your account
