@@ -36,8 +36,6 @@ function Auth({ onLogin }) {
     password: "enfuna"
   };
 
-  
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormValues({ ...formValues, [name]: value });
@@ -92,21 +90,19 @@ function Auth({ onLogin }) {
         }
 
         // Vendor 
-         if (usernameOrEmail.toLowerCase() === "vendor" && password === "vendor") {
+        if (usernameOrEmail.toLowerCase() === "vendor" && password === "vendor") {
           onLogin("vendor");
           return;
         }
 
-         
-
-         // Driver 
-         if (usernameOrEmail.toLowerCase() === "driver" && password === "driver") {
+        // Driver 
+        if (usernameOrEmail.toLowerCase() === "driver" && password === "driver") {
           onLogin("driver");
           return;
         }
 
-         // Rider 
-         if (usernameOrEmail.toLowerCase() === "rider" && password === "rider") {
+        // Rider 
+        if (usernameOrEmail.toLowerCase() === "rider" && password === "rider") {
           onLogin("rider");
           return;
         }
@@ -141,8 +137,25 @@ function Auth({ onLogin }) {
       try {
         await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
         
-        // All signed up users (merchant, vendor, driver, rider) go to admin
-        onLogin("admin");
+        // Redirect users based on their selected user type
+        const { userType } = formValues;
+        
+        switch (userType) {
+          case "rider":
+            onLogin("rider");
+            break;
+          case "driver":
+            onLogin("driver");
+            break;
+          case "vendor":
+            onLogin("vendor");
+            break;
+          case "merchant":
+            onLogin("admin"); // Merchant goes to admin as specified
+            break;
+          default:
+            onLogin("normal"); // Fallback for any unexpected user type
+        }
         
       } catch (error) {
         setFormErrors({ auth: "An error occurred. Please try again." });
