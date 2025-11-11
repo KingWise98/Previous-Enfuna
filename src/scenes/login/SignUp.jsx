@@ -97,11 +97,7 @@ function Auth({ onLogin }) {
           return;
         }
 
-         // Vendor 
-         if (usernameOrEmail.toLowerCase() === "vendor" && password === "vendor") {
-          onLogin("vendor");
-          return;
-        }
+         
 
          // Driver 
          if (usernameOrEmail.toLowerCase() === "driver" && password === "driver") {
