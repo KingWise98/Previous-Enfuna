@@ -31,10 +31,12 @@ function Auth({ onLogin }) {
 
   // Super admin credentials
   const SUPER_ADMIN_CREDENTIALS = {
-    username: "admin",
+    username: "super",
     email: "admin@efuna.com",
-    password: "Enfuna@2025"
+    password: "enfuna"
   };
+
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -79,13 +81,37 @@ function Auth({ onLogin }) {
         if ((usernameOrEmail.toLowerCase() === SUPER_ADMIN_CREDENTIALS.username.toLowerCase() || 
              usernameOrEmail.toLowerCase() === SUPER_ADMIN_CREDENTIALS.email.toLowerCase()) && 
              password === SUPER_ADMIN_CREDENTIALS.password) {
-          onLogin("superadmin");
+          onLogin("super");
           return;
         }
         
         // Regular admin login
         if (usernameOrEmail.toLowerCase() === "admin" && password === "enfuna") {
           onLogin("admin");
+          return;
+        }
+
+        // Vendor 
+         if (usernameOrEmail.toLowerCase() === "vendor" && password === "vendor") {
+          onLogin("vendor");
+          return;
+        }
+
+         // Vendor 
+         if (usernameOrEmail.toLowerCase() === "vendor" && password === "vendor") {
+          onLogin("vendor");
+          return;
+        }
+
+         // Driver 
+         if (usernameOrEmail.toLowerCase() === "driver" && password === "driver") {
+          onLogin("driver");
+          return;
+        }
+
+         // Rider 
+         if (usernameOrEmail.toLowerCase() === "rider" && password === "rider") {
+          onLogin("rider");
           return;
         }
         
@@ -595,12 +621,15 @@ function Auth({ onLogin }) {
         </button>
       </div>
 
-      {/* Super Admin Login Hint (remove in production) */}
+      {/* Login Passwords*/}
       {process.env.NODE_ENV === "development" && (
         <div className={styles.devHint}>
-          <p>Super Admin: admin / Enfuna@2025</p>
+          <p>Super Admin: super / enfuna</p>
           <p>Admin: admin / enfuna</p>
           <p>Normal User: normal / normal</p>
+          <p>Vendor User: vendor / vendor</p>
+          <p>Driver User: driver / driver</p>
+          <p>Rider User: rider / rider</p>
         </div>
       )}
     </form>

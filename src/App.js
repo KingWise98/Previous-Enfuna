@@ -4,6 +4,54 @@ import Admin from "./admins/admin";
 import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
 
+
+//Driver
+import Driver from "./admins/driver/dashboard";
+
+//Rider
+import Rider from "./admins/rider/dashboard";
+
+//Vendor
+import Vendor from "./admins/vendor/dashboard";
+import Vendor_Dashboards from "./admins/vendor/pos/dashboard";
+
+//VENDOR REPORTS
+import Vendor_Income from "./admins/vendor/reports/income";
+import Vendor_Expense from "./admins/vendor/reports/expense";
+import Vendor_IncomeVsExpenses from "./admins/vendor/reports/income-vs-expenses";
+import Vendor_TrialBalance from "./admins/vendor/reports/trial-balance";
+import Vendor_BalanceSheet from "./admins/vendor/reports/balance-sheet";
+
+import Vendor_AccountBalance from "./admins/vendor/reports/account-balance";
+import Vendor_ProfitAndLoss from "./admins/vendor/reports/profit-and-loss";
+import Vendor_Receipts from "./admins/vendor/pos/receipts";
+import Vendor_Cash from "./admins/vendor/reports/cash";
+import Vendor_Payable from "./admins/vendor/reports/payable";
+import Vendor_Receive from "./admins/vendor/reports/receivable";
+import Vendor_ERP from "./admins/vendor/reports/erp";
+
+//VENDOR POS
+
+import Vendor_Pos_Dashboard from "./admins/vendor/pos/all";
+import Vendor_New_Sales from "./admins/vendor/pos/new_sales";
+import Vendor_Service_Sales from "./admins/vendor/pos/service_sales";
+import Vendor_Hold from "./admins/vendor/pos/hold";
+import Vendor_Dis from "./admins/vendor/pos/dis";
+import Vendor_Refund from "./admins/vendor/pos/refund";
+import Vendor_Products from "./admins/vendor/pos/products";
+import Vendor_Services from "./admins/vendor/pos/services";
+import Vendor_Manage_Sales from "./admins/vendor/pos/manage";
+import Vendor_Inventory_Manage from "./admins/vendor/pos/inventory";
+import Vendor_Manage_Payments from "./admins/vendor/pos/payments";
+
+import Vendor_Manage_Reports from "./admins/vendor/pos/reports";
+import Vendor_Manage_Settings from "./admins/vendor/pos/settings";
+import Vendor_User_Contact from "./admins/vendor/pos/contacts";
+
+// Vendor Ledger
+import Vendor_LedgerList from "./admins/vendor/ledger/index";
+
+
 // Global Admin
 import Super from "./scenes/super/admin";
 import SuperUser from "./scenes/super/user";
@@ -11,6 +59,10 @@ import Subs from "./scenes/super/subs";
 import Data from "./scenes/super/data";
 
 import Pos_Sidebar from "./scenes/global/Pos_Sidebar";
+import Admin_side from "./scenes/global/admin_side";
+import Rider_side from "./scenes/global/riders_side";
+import Driver_side from "./scenes/global/driver_side";
+import Vendor_side from "./scenes/global/vendor_side";
 import Dashboard from "./scenes/dashboard";
 import Payment from "./scenes/payment";
 import ReceiptSale from "./scenes/payment/receipt";
@@ -111,7 +163,7 @@ import Returns from "./scenes/pos/returns";
 // User
 import New_Sale from "./scenes/user/new_sales";
 import Service_Sale from "./scenes/user/service_sales";
-import Fav from "./scenes/user/fav";
+import Fav from "./scenes/user/service";
 import Beverage from "./scenes/user/beverages";
 import Desserts from "./scenes/user/dessert";
 import Holds from "./scenes/user/hold";
@@ -156,8 +208,20 @@ function App() {
     localStorage.setItem('userRole', role);
     if (role === "admin") {
       navigate("/dashboard");
+       } else if (role === "super") {
+      navigate("/super/admin");
+
     } else if (role === "normal") {
       navigate("/user/new_sales");
+    }
+     else if (role === "vendor") {
+      navigate("/vendor/dashboard");
+    }
+     else if (role === "rider") {
+      navigate("/rider/dashboard");
+    }
+     else if (role === "driver") {
+      navigate("/driver/dashboard");
     }
   };
 
@@ -186,6 +250,11 @@ function App() {
           {/* Conditionally render Sidebar or Pos_Sidebar based on user role */}
           {userRole === "admin" && <Sidebar isSidebar={isSidebar} />}
           {userRole === "normal" && <Pos_Sidebar isSidebar={isSidebar} />}
+          {userRole === "super" && <Admin_side isSidebar={isSidebar} />}
+          {userRole === "vendor" && <Vendor_side isSidebar={isSidebar} />}
+          {userRole === "rider" && <Rider_side isSidebar={isSidebar} />}
+          {userRole === "driver" && <Driver_side isSidebar={isSidebar} />}
+
 
           <main className="content">
             {/* Render Topbar only if user is logged in */}
@@ -219,22 +288,22 @@ function App() {
               } />
 
                <Route path="/super/admin" element={
-                <ProtectedRoute allowedRoles={["admin"]}>
+                <ProtectedRoute allowedRoles={["super"]}>
                   <Super />
                 </ProtectedRoute>
               } />
                <Route path="/super/user" element={
-                <ProtectedRoute allowedRoles={["admin"]}>
+                <ProtectedRoute allowedRoles={["super"]}>
                   <SuperUser />
                 </ProtectedRoute>
               } />
               <Route path="/super/subs" element={
-                <ProtectedRoute allowedRoles={["admin"]}>
+                <ProtectedRoute allowedRoles={["super"]}>
                   <Subs />
                 </ProtectedRoute>
               } />
                <Route path="/super/data" element={
-                <ProtectedRoute allowedRoles={["admin"]}>
+                <ProtectedRoute allowedRoles={["super"]}>
                   <Data />
                 </ProtectedRoute>
               } />
@@ -647,7 +716,7 @@ function App() {
                   <Service_Sale />
                 </ProtectedRoute>
               } />
-              <Route path="/user/fav" element={
+              <Route path="/user/service" element={
                 <ProtectedRoute allowedRoles={["normal"]}>
                   <Fav />
                 </ProtectedRoute>
@@ -713,6 +782,193 @@ function App() {
                   <Manage_Report />
                 </ProtectedRoute>
               } />
+
+              {/* VENDOR */}
+
+              <Route path="/vendor/dashboard" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor />
+                </ProtectedRoute>
+              } />
+
+               {/* Vendor Reports */}
+              <Route path="/vendor/pos/receipts" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Receipts />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/reports/cash" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Cash />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/reports/income" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Income />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/reports/expense" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Expense />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/reports/income-vs-expenses" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_IncomeVsExpenses />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/reports/trial-balance" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_TrialBalance />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/reports/balance-sheet" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_BalanceSheet />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/reports/account-balance" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_AccountBalance />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/reports/profit-and-loss" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_ProfitAndLoss />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/reports/receivable" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Receive />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/reports/payable" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Payable />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/vendor/reports/erp" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_ERP />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/vendor/pos/dashboard" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Dashboards />
+                </ProtectedRoute>
+              } />
+               {/* Vendor Ledger */}
+              <Route path="/vendor/ledger/list" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_LedgerList />
+                </ProtectedRoute>
+              } />
+
+               {/* VENDOR POS */}
+              <Route path="/vendor/pos/all" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Pos_Dashboard />
+                </ProtectedRoute>
+              } />
+               <Route path="/vendor/pos/dashboard" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Dashboards />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/pos/new_sales" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_New_Sales />
+                </ProtectedRoute>
+              } />
+               <Route path="/vendor/pos/service_sales" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Service_Sales />
+                </ProtectedRoute>
+              } />
+             
+              <Route path="/vendor/pos/hold" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Hold />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/pos/dis" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Dis />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/pos/refund" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Refund />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/vendor/pos/products" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Products />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/pos/services" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Services />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/pos/manage" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Manage_Sales />
+                </ProtectedRoute>
+              } />
+             
+              <Route path="/vendor/pos/payments" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Manage_Payments />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/vendor/pos/reports" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Manage_Reports />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/pos/settings" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Manage_Settings />
+                </ProtectedRoute>
+              } />
+            
+             
+             
+             
+              <Route path="/vednor/pos/contacts" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_User_Contact />
+                </ProtectedRoute>
+              } />
+
+               {/* DRIVER */}
+
+              <Route path="/driver/dashboard" element={
+                <ProtectedRoute allowedRoles={["driver"]}>
+                  <Driver />
+                </ProtectedRoute>
+              } />
+
+               {/* RIDER */}
+
+              <Route path="/rider/dashboard" element={
+                <ProtectedRoute allowedRoles={["rider"]}>
+                  <Rider />
+                </ProtectedRoute>
+              } />
+
+
+             
+              
+             
+            
+             
+              
 
               {/* Catch-all route redirects to login */}
               <Route path="*" element={<Navigate to="/" replace />} />

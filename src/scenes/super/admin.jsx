@@ -473,7 +473,7 @@ const SuperAdminDashboard = () => {
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Box>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            FunderSpick Super Admin Dashboard
+            Enfuna Super Admin Dashboard
           </Typography>
           <Typography variant="subtitle1" color="textSecondary">
             Welcome back, Walter Bwire • CEO • {new Date().toLocaleDateString()}

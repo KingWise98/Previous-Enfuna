@@ -8,6 +8,8 @@ import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import CakeIcon from "@mui/icons-material/Cake";
+import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
+import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import LocalCafeIcon from "@mui/icons-material/LocalCafe";
 import SyncAltIcon from "@mui/icons-material/SyncAlt";
 import PauseCircleOutlineIcon from "@mui/icons-material/PauseCircleOutline";
@@ -44,17 +46,17 @@ const POSSidebar = () => {
       <ProSidebar collapsed={isCollapsed}>
         <Menu iconShape="square">
           <MenuItem onClick={() => setIsCollapsed(!isCollapsed)} icon={<MenuOutlinedIcon />}>
-            {!isCollapsed && <Typography variant="h3">POS</Typography>}
+            {!isCollapsed && <Typography variant="h3">SYSTEM ADMIN</Typography>}
           </MenuItem>
 
-          <SubMenu title="Admin" icon={<ShoppingCartOutlinedIcon />}>
-            <SubMenu title="Dashoard" icon={<BusinessCenterOutlinedIcon />}>
-              <Item title="Dashboard" to="./admins/admin" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              
-            </SubMenu>
-
-            
-          </SubMenu>
+          <SubMenu title="DASHBOARD" icon={<PeopleAltOutlinedIcon />}>
+          
+          <Item title="Admin" to="/super/admin" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+           <Item title="User Managment" to="/super/user" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+            <Item title="Billing Management" to="/super/subs" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+             
+          
+        </SubMenu>
            <Item title="LOG OUT" to="/" icon={<ReplayIcon />} selected={selected} setSelected={setSelected} />
         </Menu>
       </ProSidebar>
