@@ -397,7 +397,7 @@ const RiderDashboardDesktop = () => {
                     fullWidth
                     sx={{ mb: 1 }}
                   >
-                    Start New Ride
+                    Start New Drive
                   </Button>
                 ) : (
                   <Button
@@ -560,7 +560,7 @@ const RiderDashboardDesktop = () => {
                     <Typography variant="h6" color="textPrimary">
                       {dashboardData.today.rides}
                     </Typography>
-                    <Typography variant="body2" color="textSecondary">Dives</Typography>
+                    <Typography variant="body2" color="textSecondary">Drives</Typography>
                   </Box>
                 </Grid>
                 <Grid item xs={3}>
@@ -595,7 +595,7 @@ const RiderDashboardDesktop = () => {
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h5" fontWeight="bold">Recent Dives</Typography>
+                <Typography variant="h5" fontWeight="bold">Recent Drives</Typography>
                 <Button startIcon={<Download />} variant="outlined" size="small">
                   Export
                 </Button>
@@ -670,7 +670,7 @@ const RiderDashboardDesktop = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Weekly Target Achieved!"
-                    secondary="You've completed 52 dives this week"
+                    secondary="You've completed 52 drives this week"
                   />
                 </ListItem>
                 <ListItem>
@@ -779,7 +779,7 @@ const RiderDashboardDesktop = () => {
         <DialogTitle>
           <Box display="flex" justifyContent="space-between" alignItems="center">
             <Typography variant="h5">
-              {isRiding ? 'End Ride' : 'Start New Ride'}
+              {isRiding ? 'End Ride' : 'Start New Drive '}
             </Typography>
             <IconButton onClick={() => setShowRideDialog(false)}>
               <Close />
@@ -908,7 +908,7 @@ const RiderDashboardDesktop = () => {
             size="large"
             startIcon={isRiding ? <Stop /> : <PlayArrow />}
           >
-            {isRiding ? 'End Dive' : 'Start Dive'}
+            {isRiding ? 'End Drive' : 'Start Drive'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1012,7 +1012,7 @@ const RiderDashboardDesktop = () => {
                 Dismiss
               </Button>
               <Button variant="contained" fullWidth onClick={handleStartRide}>
-                Start Ride Logging
+                Start Drive Logging
               </Button>
             </Box>
           </Box>
