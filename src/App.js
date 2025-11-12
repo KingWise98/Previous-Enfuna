@@ -14,6 +14,8 @@ import Driver_Page from "./admins/driver/page";
 import Rider from "./admins/rider/dashboard";
 import Riders from "./admins/rider/dashboards";
 import Rider_Page from "./admins/rider/page";
+import Rider_Payments from "./admins/rider/payments";
+import Rider_Group from "./admins/rider/group";
 
 //Vendor
 import Vendor from "./admins/vendor/dashboard";
@@ -985,6 +987,16 @@ function App() {
               <Route path="/rider/page" element={
                 <ProtectedRoute allowedRoles={["rider"]}>
                   <Rider_Page />
+                </ProtectedRoute>
+              } />
+               <Route path="/rider/payments" element={
+                <ProtectedRoute allowedRoles={["rider"]}>
+                  <Rider_Payments />
+                </ProtectedRoute>
+              } />
+               <Route path="/rider/group" element={
+                <ProtectedRoute allowedRoles={["rider"]}>
+                  <Rider_Group />
                 </ProtectedRoute>
               } />
 
