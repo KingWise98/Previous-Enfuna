@@ -100,62 +100,8 @@ const Riders = () => {
 
           
 
-          <SubMenu title="Financial Management" icon={<AccountBalanceOutlinedIcon />}>
-          <Item title="Dashboard" to="/pos/dashboard" icon={<HomeOutlinedIcon />} selected={selected} setSelected={setSelected} />
-          
-          
-            <SubMenu title="Sales" icon={<MonetizationOnOutlinedIcon />}>
-
-            
-              
-              
-              
-            
-
-            
-              <Item title="Payment listing" to="/payment-listings" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Sales Receipt" to="/payment/receipt" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
-             
-            </SubMenu>
-
-           
-            <Item title="General Ledger" to="/ledger/list" icon={<MenuBookOutlinedIcon />} selected={selected} setSelected={setSelected} />
-            <Item title="Accounts Payable" to="/reports/payable" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
-            <Item title="Accounts Receivable" to="/reports/receivable" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
-            <SubMenu title="Transactions" icon={<MenuBookOutlinedIcon />}>
-            
-            <SubMenu title="Notes" icon={<LocalOfferOutlinedIcon />}>
-              <Item title="Credit Note" to="/vouchers/credit" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Debit Note" to="/vouchers/debit" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              
-              <Item title="Journal Legder" to="/vouchers/journal" icon={<MenuBookOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              
-            </SubMenu>
-            
-             
-              
-            
-              
-              
-             
-             
-            </SubMenu>
-            
-            <SubMenu title="Reports" icon={<AssessmentOutlinedIcon />}>
-            
-            <Item title="Income" to="/reports/income" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Expense" to="/reports/expense" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Income vs Expenses" to="/reports/income-vs-expenses" icon={<PaymentIcon />} selected={selected} setSelected={setSelected} />
-              
-              <Item title="Profit & Loss" to="/reports/profit-and-loss" icon={<BalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Trial Balance" to="/reports/trial-balance" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Account Balance" to="/reports/account-Balance" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Cash Flow Statement" to="/reports/cash" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Balance Sheet" to="/reports/balance-sheet" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              
-              
-            </SubMenu>
-          </SubMenu>
+  
+        
 
          
 
