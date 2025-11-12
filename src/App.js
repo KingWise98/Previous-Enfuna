@@ -228,10 +228,10 @@ function App() {
       navigate("/vendor/dashboard");
     }
      else if (role === "rider") {
-      navigate("/rider/dashboard");
+      navigate("/rider/profile");
     }
      else if (role === "driver") {
-      navigate("/driver/dashboard");
+      navigate("/driver/profile");
     }
   };
 

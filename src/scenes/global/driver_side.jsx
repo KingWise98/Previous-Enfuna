@@ -74,12 +74,12 @@ const Driver = () => {
           <MenuItem onClick={() => setIsCollapsed(!isCollapsed)} icon={<MenuOutlinedIcon />}> 
             {!isCollapsed && <Typography variant="h3">DRIVER</Typography>}
           </MenuItem>
-           <Item title="Business Summary" to="/driver/dashboard" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+           <Item title="Profile" to="/driver/profile" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
-          <SubMenu title="Point Of Sale (POS)" icon={<ShoppingCartOutlinedIcon />}>
+          <SubMenu title="Dashboard" icon={<ShoppingCartOutlinedIcon />}>
          
          
-           <Item title="Profile" to="/driver/profile" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          
      <Item title="Dashboard" to="/driver/dashboards" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
     
           <Item title="Rewards" to="/driver/page" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />

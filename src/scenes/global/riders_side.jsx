@@ -74,10 +74,10 @@ const Riders = () => {
           <MenuItem onClick={() => setIsCollapsed(!isCollapsed)} icon={<MenuOutlinedIcon />}> 
             {!isCollapsed && <Typography variant="h3">RIDER</Typography>}
           </MenuItem>
-           <Item title="Business Summary" to="/rider/dashboard" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+           <Item title="Profile" to="/rider/profile" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
           <SubMenu title="Dashboard" icon={<ShoppingCartOutlinedIcon />}>
-          <Item title="Profile" to="/rider/profile" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          
          
           <Item title="Dashboard" to="/rider/dashboards" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
     
