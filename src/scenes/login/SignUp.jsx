@@ -151,7 +151,7 @@ function Auth({ onLogin }) {
             onLogin("vendor");
             break;
           case "merchant":
-            onLogin("admin"); // Merchant goes to admin as specified
+            onLogin("admin"); 
             break;
           default:
             onLogin("normal"); // Fallback for any unexpected user type
@@ -258,7 +258,7 @@ function Auth({ onLogin }) {
           onClick={() => handleUserTypeSelect("merchant")}
         >
           <div className={styles.userTypeIcon}>🏪</div>
-          <span className={styles.userTypeLabel}>Merchant</span>
+          <span className={styles.userTypeLabel}>Business</span>
           <span className={styles.userTypeDesc}>Sell products</span>
         </button>
 
