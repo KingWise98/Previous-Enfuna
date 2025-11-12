@@ -1002,7 +1002,7 @@ const RiderDashboardDesktop = () => {
               <DirectionsBike color="primary" fontSize="large" />
             </Avatar>
             <Typography variant="h6" gutterBottom>
-              Dving Detected! 🚕
+              Driving Detected! 🚕
             </Typography>
             <Typography variant="body2" color="textSecondary" paragraph>
               We noticed you're moving. Start logging your trip to track your earnings and maintain your driver score?
