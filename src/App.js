@@ -958,16 +958,14 @@ function App() {
 
                {/* DRIVER */}
 
-              <Route path="/driver/dashboard" element={
-                <ProtectedRoute allowedRoles={["driver"]}>
-                  <Driver />
-                </ProtectedRoute>
-              } />
-               <Route path="/driver/profile" element={
+                <Route path="/driver/profile" element={
                 <ProtectedRoute allowedRoles={["driver"]}>
                   <Driver_Profile />
                 </ProtectedRoute>
               } />
+
+           
+              
 
                <Route path="/driver/dashboards" element={
                 <ProtectedRoute allowedRoles={["driver"]}>

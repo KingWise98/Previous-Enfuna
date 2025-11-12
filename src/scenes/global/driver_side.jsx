@@ -82,7 +82,7 @@ const Driver = () => {
           
      <Item title="Dashboard" to="/driver/dashboards" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
     
-          <Item title="Rewards" to="/driver/page" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          <Item title="Payments" to="/driver/payments" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
         
   
 
