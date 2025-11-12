@@ -908,7 +908,7 @@ const RiderDashboardDesktop = () => {
             size="large"
             startIcon={isRiding ? <Stop /> : <PlayArrow />}
           >
-            {isRiding ? 'End Ride' : 'Start Ride'}
+            {isRiding ? 'End Dive' : 'Start Dive'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1002,7 +1002,7 @@ const RiderDashboardDesktop = () => {
               <DirectionsBike color="primary" fontSize="large" />
             </Avatar>
             <Typography variant="h6" gutterBottom>
-              Riding Detected! 🚴
+              Dving Detected! 🚕
             </Typography>
             <Typography variant="body2" color="textSecondary" paragraph>
               We noticed you're moving. Start logging your trip to track your earnings and maintain your driver score?
