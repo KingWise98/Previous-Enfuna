@@ -59,13 +59,12 @@ const RiderProfilePage = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState('pending'); // pending, verified, rejected
+  const [verificationStatus, setVerificationStatus] = useState('pending');
   const [uploadProgress, setUploadProgress] = useState({});
-  const [profileCompletion, setProfileCompletion] = useState(65);
+  const [profileCompletion, setProfileCompletion] = useState(0);
 
-  // Profile data state
-  const [profileData, setProfileData] = useState({
-    // Personal Information
+  // Initialize with proper empty state
+  const initialProfileData = {
     personalInfo: {
       firstName: '',
       lastName: '',
@@ -74,8 +73,6 @@ const RiderProfilePage = () => {
       nationality: 'Ugandan',
       maritalStatus: ''
     },
-    
-    // Identification
     identification: {
       nationalId: '',
       nationalIdPhoto: null,
@@ -83,10 +80,8 @@ const RiderProfilePage = () => {
       drivingLicense: '',
       drivingLicensePhoto: null
     },
-    
-    // Vehicle Information
     vehicleInfo: {
-      vehicleType: '', // motorcycle, boda-boda, scooter, bicycle
+      vehicleType: '',
       make: '',
       model: '',
       year: '',
@@ -97,8 +92,6 @@ const RiderProfilePage = () => {
       insuranceProvider: '',
       insuranceExpiry: ''
     },
-    
-    // Contact Information
     contactInfo: {
       phone: '',
       email: '',
@@ -111,16 +104,12 @@ const RiderProfilePage = () => {
         relationship: ''
       }
     },
-    
-    // Banking Information
     bankingInfo: {
       bankName: '',
       accountNumber: '',
       accountName: '',
       branch: ''
     },
-    
-    // Profile Media
     profileMedia: {
       profilePhoto: null,
       nationalIdFront: null,
@@ -129,8 +118,6 @@ const RiderProfilePage = () => {
       drivingLicenseBack: null,
       vehiclePhoto: null
     },
-    
-    // Preferences
     preferences: {
       notifications: true,
       smsAlerts: true,
@@ -138,10 +125,12 @@ const RiderProfilePage = () => {
       autoStartRide: true,
       shareLocation: true
     }
-  });
+  };
 
-  // Mock initial data
-  const initialData = {
+  const [profileData, setProfileData] = useState(initialProfileData);
+
+  // Mock initial data with all required fields
+  const mockData = {
     personalInfo: {
       firstName: 'David',
       lastName: 'Kato',
@@ -153,7 +142,9 @@ const RiderProfilePage = () => {
     identification: {
       nationalId: 'CM9141515151515',
       tinNumber: '123456789',
-      drivingLicense: 'UB542315678'
+      drivingLicense: 'UB542315678',
+      nationalIdPhoto: null,
+      drivingLicensePhoto: null
     },
     vehicleInfo: {
       vehicleType: 'boda-boda',
@@ -184,13 +175,28 @@ const RiderProfilePage = () => {
       accountNumber: '1234567890',
       accountName: 'David Kato',
       branch: 'Kampala Main'
+    },
+    profileMedia: {
+      profilePhoto: null,
+      nationalIdFront: null,
+      nationalIdBack: null,
+      drivingLicenseFront: null,
+      drivingLicenseBack: null,
+      vehiclePhoto: null
+    },
+    preferences: {
+      notifications: true,
+      smsAlerts: true,
+      emailUpdates: false,
+      autoStartRide: true,
+      shareLocation: true
     }
   };
 
   useEffect(() => {
     // Simulate loading profile data
-    setProfileData(initialData);
-    calculateProfileCompletion(initialData);
+    setProfileData(mockData);
+    calculateProfileCompletion(mockData);
   }, []);
 
   const vehicleTypes = [
@@ -227,11 +233,12 @@ const RiderProfilePage = () => {
     setActiveTab(newValue);
   };
 
+  // Safe input change handlers
   const handleInputChange = (section, field, value) => {
     setProfileData(prev => ({
       ...prev,
       [section]: {
-        ...prev[section],
+        ...(prev[section] || {}),
         [field]: value
       }
     }));
@@ -241,9 +248,9 @@ const RiderProfilePage = () => {
     setProfileData(prev => ({
       ...prev,
       [section]: {
-        ...prev[section],
+        ...(prev[section] || {}),
         [nestedField]: {
-          ...prev[section][nestedField],
+          ...(prev[section]?.[nestedField] || {}),
           [field]: value
         }
       }
@@ -262,8 +269,8 @@ const RiderProfilePage = () => {
             clearInterval(progressInterval);
             setProfileData(prevData => ({
               ...prevData,
-              profileMedia: {
-                ...prevData.profileMedia,
+              [section]: {
+                ...(prevData[section] || {}),
                 [field]: URL.createObjectURL(file)
               }
             }));
@@ -282,12 +289,23 @@ const RiderProfilePage = () => {
     const sections = ['personalInfo', 'identification', 'vehicleInfo', 'contactInfo', 'bankingInfo'];
     
     sections.forEach(section => {
-      Object.keys(data[section]).forEach(field => {
-        totalFields++;
-        if (data[section][field] && data[section][field] !== '') {
-          completedFields++;
-        }
-      });
+      if (data[section]) {
+        Object.keys(data[section]).forEach(field => {
+          totalFields++;
+          const value = data[section][field];
+          if (value !== null && value !== undefined && value !== '') {
+            if (typeof value === 'object') {
+              // Check nested objects like emergencyContact
+              const hasNestedValues = Object.values(value).some(nestedValue => 
+                nestedValue !== null && nestedValue !== undefined && nestedValue !== ''
+              );
+              if (hasNestedValues) completedFields++;
+            } else {
+              completedFields++;
+            }
+          }
+        });
+      }
     });
 
     const completionPercentage = Math.round((completedFields / totalFields) * 100);
@@ -295,6 +313,27 @@ const RiderProfilePage = () => {
   };
 
   const handleSaveProfile = () => {
+    // Validate required fields
+    const requiredFields = [
+      profileData.personalInfo?.firstName,
+      profileData.personalInfo?.lastName,
+      profileData.identification?.nationalId,
+      profileData.identification?.drivingLicense,
+      profileData.vehicleInfo?.vehicleType,
+      profileData.vehicleInfo?.licensePlate,
+      profileData.contactInfo?.phone,
+      profileData.bankingInfo?.bankName,
+      profileData.bankingInfo?.accountNumber,
+      profileData.bankingInfo?.accountName
+    ];
+
+    const missingFields = requiredFields.filter(field => !field);
+    
+    if (missingFields.length > 0) {
+      alert('Please fill in all required fields (marked with *) before saving.');
+      return;
+    }
+
     // Simulate API call to save profile
     console.log('Saving profile:', profileData);
     calculateProfileCompletion(profileData);
@@ -305,7 +344,7 @@ const RiderProfilePage = () => {
   };
 
   const handleCancelEdit = () => {
-    setProfileData(initialData);
+    setProfileData(mockData);
     setIsEditing(false);
   };
 
@@ -333,6 +372,16 @@ const RiderProfilePage = () => {
     { name: 'Vehicle Photo', field: 'vehiclePhoto', required: true },
     { name: 'Profile Photo', field: 'profilePhoto', required: true }
   ];
+
+  // Safe value getters with fallbacks
+  const getProfilePhoto = () => profileData.profileMedia?.profilePhoto || null;
+  const getPersonalInfo = (field) => profileData.personalInfo?.[field] || '';
+  const getIdentification = (field) => profileData.identification?.[field] || '';
+  const getVehicleInfo = (field) => profileData.vehicleInfo?.[field] || '';
+  const getContactInfo = (field) => profileData.contactInfo?.[field] || '';
+  const getBankingInfo = (field) => profileData.bankingInfo?.[field] || '';
+  const getEmergencyContact = (field) => profileData.contactInfo?.emergencyContact?.[field] || '';
+  const getPreference = (field) => profileData.preferences?.[field] || false;
 
   return (
     <Box sx={{ p: 3, minHeight: '100vh', backgroundColor: 'grey.50' }}>
@@ -384,7 +433,7 @@ const RiderProfilePage = () => {
             <CardContent sx={{ textAlign: 'center' }}>
               <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
                 <Avatar
-                  src={profileData.profileMedia.profilePhoto}
+                  src={getProfilePhoto()}
                   sx={{ width: 120, height: 120, mx: 'auto', mb: 2 }}
                 >
                   <Person sx={{ fontSize: 60 }} />
@@ -413,7 +462,7 @@ const RiderProfilePage = () => {
               </Box>
 
               <Typography variant="h5" gutterBottom>
-                {profileData.personalInfo.firstName} {profileData.personalInfo.lastName}
+                {getPersonalInfo('firstName')} {getPersonalInfo('lastName')}
               </Typography>
               <Typography variant="body2" color="textSecondary" gutterBottom>
                 Rider ID: RDR-ENF00124
@@ -509,7 +558,7 @@ const RiderProfilePage = () => {
                 {requiredDocuments.map((doc, index) => (
                   <ListItem key={index}>
                     <ListItemIcon>
-                      {profileData.profileMedia[doc.field] ? (
+                      {profileData.profileMedia?.[doc.field] ? (
                         <CheckCircle color="success" />
                       ) : (
                         <Error color={doc.required ? 'error' : 'disabled'} />
@@ -559,8 +608,8 @@ const RiderProfilePage = () => {
                     <Grid item xs={6}>
                       <TextField
                         fullWidth
-                        label="First Name"
-                        value={profileData.personalInfo.firstName}
+                        label="First Name *"
+                        value={getPersonalInfo('firstName')}
                         onChange={(e) => handleInputChange('personalInfo', 'firstName', e.target.value)}
                         disabled={!isEditing}
                         required
@@ -569,8 +618,8 @@ const RiderProfilePage = () => {
                     <Grid item xs={6}>
                       <TextField
                         fullWidth
-                        label="Last Name"
-                        value={profileData.personalInfo.lastName}
+                        label="Last Name *"
+                        value={getPersonalInfo('lastName')}
                         onChange={(e) => handleInputChange('personalInfo', 'lastName', e.target.value)}
                         disabled={!isEditing}
                         required
@@ -581,7 +630,7 @@ const RiderProfilePage = () => {
                         fullWidth
                         label="Date of Birth"
                         type="date"
-                        value={profileData.personalInfo.dateOfBirth}
+                        value={getPersonalInfo('dateOfBirth')}
                         onChange={(e) => handleInputChange('personalInfo', 'dateOfBirth', e.target.value)}
                         disabled={!isEditing}
                         InputLabelProps={{ shrink: true }}
@@ -591,7 +640,7 @@ const RiderProfilePage = () => {
                       <FormControl fullWidth disabled={!isEditing}>
                         <InputLabel>Gender</InputLabel>
                         <Select
-                          value={profileData.personalInfo.gender}
+                          value={getPersonalInfo('gender')}
                           onChange={(e) => handleInputChange('personalInfo', 'gender', e.target.value)}
                           label="Gender"
                         >
@@ -605,7 +654,7 @@ const RiderProfilePage = () => {
                       <FormControl fullWidth disabled={!isEditing}>
                         <InputLabel>Nationality</InputLabel>
                         <Select
-                          value={profileData.personalInfo.nationality}
+                          value={getPersonalInfo('nationality')}
                           onChange={(e) => handleInputChange('personalInfo', 'nationality', e.target.value)}
                           label="Nationality"
                         >
@@ -622,7 +671,7 @@ const RiderProfilePage = () => {
                       <FormControl fullWidth disabled={!isEditing}>
                         <InputLabel>Marital Status</InputLabel>
                         <Select
-                          value={profileData.personalInfo.maritalStatus}
+                          value={getPersonalInfo('maritalStatus')}
                           onChange={(e) => handleInputChange('personalInfo', 'maritalStatus', e.target.value)}
                           label="Marital Status"
                         >
@@ -651,8 +700,8 @@ const RiderProfilePage = () => {
                     <Grid item xs={6}>
                       <TextField
                         fullWidth
-                        label="National ID Number"
-                        value={profileData.identification.nationalId}
+                        label="National ID Number *"
+                        value={getIdentification('nationalId')}
                         onChange={(e) => handleInputChange('identification', 'nationalId', e.target.value)}
                         disabled={!isEditing}
                         required
@@ -662,7 +711,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="TIN Number (Optional)"
-                        value={profileData.identification.tinNumber}
+                        value={getIdentification('tinNumber')}
                         onChange={(e) => handleInputChange('identification', 'tinNumber', e.target.value)}
                         disabled={!isEditing}
                         helperText="Tax Identification Number"
@@ -671,8 +720,8 @@ const RiderProfilePage = () => {
                     <Grid item xs={6}>
                       <TextField
                         fullWidth
-                        label="Driving License Number"
-                        value={profileData.identification.drivingLicense}
+                        label="Driving License Number *"
+                        value={getIdentification('drivingLicense')}
                         onChange={(e) => handleInputChange('identification', 'drivingLicense', e.target.value)}
                         disabled={!isEditing}
                         required
@@ -783,7 +832,7 @@ const RiderProfilePage = () => {
                       <FormControl fullWidth disabled={!isEditing}>
                         <InputLabel>Vehicle Type *</InputLabel>
                         <Select
-                          value={profileData.vehicleInfo.vehicleType}
+                          value={getVehicleInfo('vehicleType')}
                           onChange={(e) => handleInputChange('vehicleInfo', 'vehicleType', e.target.value)}
                           label="Vehicle Type *"
                         >
@@ -799,7 +848,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="License Plate *"
-                        value={profileData.vehicleInfo.licensePlate}
+                        value={getVehicleInfo('licensePlate')}
                         onChange={(e) => handleInputChange('vehicleInfo', 'licensePlate', e.target.value)}
                         disabled={!isEditing}
                         required
@@ -809,7 +858,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="Make (Brand)"
-                        value={profileData.vehicleInfo.make}
+                        value={getVehicleInfo('make')}
                         onChange={(e) => handleInputChange('vehicleInfo', 'make', e.target.value)}
                         disabled={!isEditing}
                       />
@@ -818,7 +867,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="Model"
-                        value={profileData.vehicleInfo.model}
+                        value={getVehicleInfo('model')}
                         onChange={(e) => handleInputChange('vehicleInfo', 'model', e.target.value)}
                         disabled={!isEditing}
                       />
@@ -828,7 +877,7 @@ const RiderProfilePage = () => {
                         fullWidth
                         label="Year"
                         type="number"
-                        value={profileData.vehicleInfo.year}
+                        value={getVehicleInfo('year')}
                         onChange={(e) => handleInputChange('vehicleInfo', 'year', e.target.value)}
                         disabled={!isEditing}
                       />
@@ -837,7 +886,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="Color"
-                        value={profileData.vehicleInfo.color}
+                        value={getVehicleInfo('color')}
                         onChange={(e) => handleInputChange('vehicleInfo', 'color', e.target.value)}
                         disabled={!isEditing}
                       />
@@ -846,7 +895,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="Engine Number"
-                        value={profileData.vehicleInfo.engineNumber}
+                        value={getVehicleInfo('engineNumber')}
                         onChange={(e) => handleInputChange('vehicleInfo', 'engineNumber', e.target.value)}
                         disabled={!isEditing}
                       />
@@ -855,7 +904,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="Chasis Number"
-                        value={profileData.vehicleInfo.chasisNumber}
+                        value={getVehicleInfo('chasisNumber')}
                         onChange={(e) => handleInputChange('vehicleInfo', 'chasisNumber', e.target.value)}
                         disabled={!isEditing}
                       />
@@ -864,7 +913,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="Insurance Provider"
-                        value={profileData.vehicleInfo.insuranceProvider}
+                        value={getVehicleInfo('insuranceProvider')}
                         onChange={(e) => handleInputChange('vehicleInfo', 'insuranceProvider', e.target.value)}
                         disabled={!isEditing}
                       />
@@ -874,7 +923,7 @@ const RiderProfilePage = () => {
                         fullWidth
                         label="Insurance Expiry"
                         type="date"
-                        value={profileData.vehicleInfo.insuranceExpiry}
+                        value={getVehicleInfo('insuranceExpiry')}
                         onChange={(e) => handleInputChange('vehicleInfo', 'insuranceExpiry', e.target.value)}
                         disabled={!isEditing}
                         InputLabelProps={{ shrink: true }}
@@ -933,7 +982,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="Phone Number *"
-                        value={profileData.contactInfo.phone}
+                        value={getContactInfo('phone')}
                         onChange={(e) => handleInputChange('contactInfo', 'phone', e.target.value)}
                         disabled={!isEditing}
                         required
@@ -947,7 +996,7 @@ const RiderProfilePage = () => {
                         fullWidth
                         label="Email Address"
                         type="email"
-                        value={profileData.contactInfo.email}
+                        value={getContactInfo('email')}
                         onChange={(e) => handleInputChange('contactInfo', 'email', e.target.value)}
                         disabled={!isEditing}
                         InputProps={{
@@ -959,7 +1008,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="Address"
-                        value={profileData.contactInfo.address}
+                        value={getContactInfo('address')}
                         onChange={(e) => handleInputChange('contactInfo', 'address', e.target.value)}
                         disabled={!isEditing}
                         multiline
@@ -970,7 +1019,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="City"
-                        value={profileData.contactInfo.city}
+                        value={getContactInfo('city')}
                         onChange={(e) => handleInputChange('contactInfo', 'city', e.target.value)}
                         disabled={!isEditing}
                       />
@@ -979,7 +1028,7 @@ const RiderProfilePage = () => {
                       <FormControl fullWidth disabled={!isEditing}>
                         <InputLabel>District</InputLabel>
                         <Select
-                          value={profileData.contactInfo.district}
+                          value={getContactInfo('district')}
                           onChange={(e) => handleInputChange('contactInfo', 'district', e.target.value)}
                           label="District"
                         >
@@ -1003,7 +1052,7 @@ const RiderProfilePage = () => {
                           <TextField
                             fullWidth
                             label="Contact Name"
-                            value={profileData.contactInfo.emergencyContact.name}
+                            value={getEmergencyContact('name')}
                             onChange={(e) => handleNestedInputChange('contactInfo', 'emergencyContact', 'name', e.target.value)}
                             disabled={!isEditing}
                           />
@@ -1012,7 +1061,7 @@ const RiderProfilePage = () => {
                           <TextField
                             fullWidth
                             label="Phone Number"
-                            value={profileData.contactInfo.emergencyContact.phone}
+                            value={getEmergencyContact('phone')}
                             onChange={(e) => handleNestedInputChange('contactInfo', 'emergencyContact', 'phone', e.target.value)}
                             disabled={!isEditing}
                           />
@@ -1021,7 +1070,7 @@ const RiderProfilePage = () => {
                           <TextField
                             fullWidth
                             label="Relationship"
-                            value={profileData.contactInfo.emergencyContact.relationship}
+                            value={getEmergencyContact('relationship')}
                             onChange={(e) => handleNestedInputChange('contactInfo', 'emergencyContact', 'relationship', e.target.value)}
                             disabled={!isEditing}
                           />
@@ -1047,7 +1096,7 @@ const RiderProfilePage = () => {
                       <FormControl fullWidth disabled={!isEditing}>
                         <InputLabel>Bank Name *</InputLabel>
                         <Select
-                          value={profileData.bankingInfo.bankName}
+                          value={getBankingInfo('bankName')}
                           onChange={(e) => handleInputChange('bankingInfo', 'bankName', e.target.value)}
                           label="Bank Name *"
                         >
@@ -1063,7 +1112,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="Account Number *"
-                        value={profileData.bankingInfo.accountNumber}
+                        value={getBankingInfo('accountNumber')}
                         onChange={(e) => handleInputChange('bankingInfo', 'accountNumber', e.target.value)}
                         disabled={!isEditing}
                         required
@@ -1073,7 +1122,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="Account Name *"
-                        value={profileData.bankingInfo.accountName}
+                        value={getBankingInfo('accountName')}
                         onChange={(e) => handleInputChange('bankingInfo', 'accountName', e.target.value)}
                         disabled={!isEditing}
                         required
@@ -1083,7 +1132,7 @@ const RiderProfilePage = () => {
                       <TextField
                         fullWidth
                         label="Branch"
-                        value={profileData.bankingInfo.branch}
+                        value={getBankingInfo('branch')}
                         onChange={(e) => handleInputChange('bankingInfo', 'branch', e.target.value)}
                         disabled={!isEditing}
                       />
@@ -1107,7 +1156,7 @@ const RiderProfilePage = () => {
                       <FormControlLabel
                         control={
                           <Switch
-                            checked={profileData.preferences.notifications}
+                            checked={getPreference('notifications')}
                             onChange={(e) => handleInputChange('preferences', 'notifications', e.target.checked)}
                             disabled={!isEditing}
                           />
@@ -1117,7 +1166,7 @@ const RiderProfilePage = () => {
                       <FormControlLabel
                         control={
                           <Switch
-                            checked={profileData.preferences.smsAlerts}
+                            checked={getPreference('smsAlerts')}
                             onChange={(e) => handleInputChange('preferences', 'smsAlerts', e.target.checked)}
                             disabled={!isEditing}
                           />
@@ -1127,7 +1176,7 @@ const RiderProfilePage = () => {
                       <FormControlLabel
                         control={
                           <Switch
-                            checked={profileData.preferences.emailUpdates}
+                            checked={getPreference('emailUpdates')}
                             onChange={(e) => handleInputChange('preferences', 'emailUpdates', e.target.checked)}
                             disabled={!isEditing}
                           />
@@ -1143,7 +1192,7 @@ const RiderProfilePage = () => {
                       <FormControlLabel
                         control={
                           <Switch
-                            checked={profileData.preferences.autoStartRide}
+                            checked={getPreference('autoStartRide')}
                             onChange={(e) => handleInputChange('preferences', 'autoStartRide', e.target.checked)}
                             disabled={!isEditing}
                           />
@@ -1153,7 +1202,7 @@ const RiderProfilePage = () => {
                       <FormControlLabel
                         control={
                           <Switch
-                            checked={profileData.preferences.shareLocation}
+                            checked={getPreference('shareLocation')}
                             onChange={(e) => handleInputChange('preferences', 'shareLocation', e.target.checked)}
                             disabled={!isEditing}
                           />
