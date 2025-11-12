@@ -78,7 +78,8 @@ const Driver = () => {
 
           <SubMenu title="Point Of Sale (POS)" icon={<ShoppingCartOutlinedIcon />}>
          
-          <Item title="Dashboard" to="/pos/all" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+         
+           <Item title="Profile" to="/driver/profile" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
      <Item title="Dashboard" to="/driver/dashboards" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
     
           <Item title="Rewards" to="/driver/page" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />

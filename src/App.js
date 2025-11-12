@@ -7,6 +7,7 @@ import Sidebar from "./scenes/global/Sidebar";
 
 //Driver
 import Driver from "./admins/driver/dashboard";
+import Driver_Profile from "./admins/driver/profile";
 import Drivers from "./admins/driver/dashboards";
 import Driver_Page from "./admins/driver/page";
 import Driver_Contacts from "./admins/driver/contacts";
@@ -960,6 +961,11 @@ function App() {
               <Route path="/driver/dashboard" element={
                 <ProtectedRoute allowedRoles={["driver"]}>
                   <Driver />
+                </ProtectedRoute>
+              } />
+               <Route path="/driver/profile" element={
+                <ProtectedRoute allowedRoles={["driver"]}>
+                  <Driver_Profile />
                 </ProtectedRoute>
               } />
 
