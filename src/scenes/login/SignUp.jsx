@@ -544,7 +544,9 @@ function Auth({ onLogin }) {
 
   const renderLoginForm = () => (
     <form onSubmit={handleLoginSubmit} className={styles.authForm}>
-      <h1 className={styles.authTitle}>Welcome Back</h1>
+      
+      <h1 className={styles.authTitle}>Welcome Back To Enfuna</h1>
+      
       <p className={styles.authSubtitle}>
         Sign in to your account
       </p>
