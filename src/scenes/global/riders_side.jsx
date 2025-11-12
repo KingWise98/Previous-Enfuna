@@ -82,7 +82,7 @@ const Riders = () => {
     
           <Item title="Rewards" to="/rider/page" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
           <Item title="Payments" to="/rider/payments" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
-          <Item title="Rewards" to="/rider/group" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          <Item title="Groups" to="/rider/group" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
          
   
 
