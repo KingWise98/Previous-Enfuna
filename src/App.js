@@ -7,9 +7,13 @@ import Sidebar from "./scenes/global/Sidebar";
 
 //Driver
 import Driver from "./admins/driver/dashboard";
+import Drivers from "./admins/driver/dashboards";
+import Driver_Page from "./admins/driver/page";
 
 //Rider
 import Rider from "./admins/rider/dashboard";
+import Riders from "./admins/rider/dashboards";
+import Rider_Page from "./admins/rider/page";
 
 //Vendor
 import Vendor from "./admins/vendor/dashboard";
@@ -954,11 +958,33 @@ function App() {
                 </ProtectedRoute>
               } />
 
+               <Route path="/driver/dashboards" element={
+                <ProtectedRoute allowedRoles={["driver"]}>
+                  <Drivers />
+                </ProtectedRoute>
+              } />
+              <Route path="/driver/page" element={
+                <ProtectedRoute allowedRoles={["driver"]}>
+                  <Driver_Page />
+                </ProtectedRoute>
+              } />
+
                {/* RIDER */}
 
               <Route path="/rider/dashboard" element={
                 <ProtectedRoute allowedRoles={["rider"]}>
                   <Rider />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/rider/dashboards" element={
+                <ProtectedRoute allowedRoles={["rider"]}>
+                  <Riders />
+                </ProtectedRoute>
+              } />
+              <Route path="/rider/page" element={
+                <ProtectedRoute allowedRoles={["rider"]}>
+                  <Rider_Page />
                 </ProtectedRoute>
               } />
 

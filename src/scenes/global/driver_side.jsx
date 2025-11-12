@@ -79,20 +79,11 @@ const Driver = () => {
           <SubMenu title="Point Of Sale (POS)" icon={<ShoppingCartOutlinedIcon />}>
          
           <Item title="Dashboard" to="/pos/all" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+     <Item title="Dashboard" to="/driver/dashboards" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
     
-          <Item title="Product Sales" to="/pos/new_sales" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
-          <Item title="Service Sales" to="/pos/service_sales" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          <Item title="Rewards" to="/driver/page" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
         
-  <SubMenu title="Products" icon={<HomeOutlinedIcon />}>
-   <Item title="Manage Products" to="/pos/products" icon={<StorageIcon />} selected={selected} setSelected={setSelected} />
-  <Item title="Manage Services" to="/pos/services" icon={<AssessmentIcon />} selected={selected} setSelected={setSelected} />
   
-      
-      
-      <Item title="Order Management" to="/pos/hold" icon={<PauseCircleOutlineIcon />} selected={selected} setSelected={setSelected} />
-      <Item title="Discounts & Promotions" to="/pos/dis" icon={<LocalOfferIcon />} selected={selected} setSelected={setSelected} />
-      <Item title="Refunds & Returns" to="/pos/refund" icon={<ReplayIcon />} selected={selected} setSelected={setSelected} />
-  </SubMenu>
 
   
 
@@ -100,13 +91,7 @@ const Driver = () => {
             
             
 
-  <Item title="Manage Sales" to="/pos/manage" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
-   <Item title="Invoices & Quotation" to="/payment" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
- 
- 
   
-  <Item title="POS Report" to="/pos/reports" icon={<ReportIcon />} selected={selected} setSelected={setSelected} />
-  <Item title="Settings" to="/pos/settings" icon={<SettingsIcon />} selected={selected} setSelected={setSelected} />
 </SubMenu>
 
           
