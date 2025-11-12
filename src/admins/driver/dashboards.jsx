@@ -46,7 +46,7 @@ import {
 import {
   PlayArrow,
   Stop,
-  DirectionsBike,
+  DirectionsCar,
   Security,
   LocalAtm,
   Receipt,
@@ -999,7 +999,7 @@ const RiderDashboardDesktop = () => {
         <DialogContent>
           <Box textAlign="center" p={2}>
             <Avatar sx={{ bgcolor: 'primary.100', width: 80, height: 80, mx: 'auto', mb: 2 }}>
-              <DirectionsBike color="primary" fontSize="large" />
+              <DirectionsCar color="primary" fontSize="large" />
             </Avatar>
             <Typography variant="h6" gutterBottom>
               Driving Detected! 🚕
