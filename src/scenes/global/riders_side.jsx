@@ -77,6 +77,7 @@ const Riders = () => {
            <Item title="Business Summary" to="/rider/dashboard" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
           <SubMenu title="Dashboard" icon={<ShoppingCartOutlinedIcon />}>
+          <Item title="Profile" to="/rider/profile" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
          
           <Item title="Dashboard" to="/rider/dashboards" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
     
@@ -88,7 +89,7 @@ const Riders = () => {
 
   
 
-             <Item title="Contacts" to="/pos/contacts" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
+             <Item title="Contacts" to="/rider/contacts" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
             
             
 

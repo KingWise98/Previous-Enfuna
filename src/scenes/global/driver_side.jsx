@@ -87,7 +87,7 @@ const Driver = () => {
 
   
 
-             <Item title="Contacts" to="/pos/contacts" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
+             <Item title="Contacts" to="/driver/contacts" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
             
             
 
