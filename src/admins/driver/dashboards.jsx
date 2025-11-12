@@ -560,7 +560,7 @@ const RiderDashboardDesktop = () => {
                     <Typography variant="h6" color="textPrimary">
                       {dashboardData.today.rides}
                     </Typography>
-                    <Typography variant="body2" color="textSecondary">Rides</Typography>
+                    <Typography variant="body2" color="textSecondary">Dives</Typography>
                   </Box>
                 </Grid>
                 <Grid item xs={3}>
@@ -595,7 +595,7 @@ const RiderDashboardDesktop = () => {
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h5" fontWeight="bold">Recent Rides</Typography>
+                <Typography variant="h5" fontWeight="bold">Recent Dives</Typography>
                 <Button startIcon={<Download />} variant="outlined" size="small">
                   Export
                 </Button>
@@ -670,7 +670,7 @@ const RiderDashboardDesktop = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Weekly Target Achieved!"
-                    secondary="You've completed 52 rides this week"
+                    secondary="You've completed 52 dives this week"
                   />
                 </ListItem>
                 <ListItem>
