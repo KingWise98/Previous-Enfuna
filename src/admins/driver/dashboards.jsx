@@ -1005,7 +1005,7 @@ const RiderDashboardDesktop = () => {
               Riding Detected! 🚴
             </Typography>
             <Typography variant="body2" color="textSecondary" paragraph>
-              We noticed you're moving. Start logging your trip to track your earnings and maintain your rider score?
+              We noticed you're moving. Start logging your trip to track your earnings and maintain your driver score?
             </Typography>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button variant="outlined" fullWidth onClick={() => setShowAlert(false)}>
