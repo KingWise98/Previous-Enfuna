@@ -53,7 +53,9 @@ const POSSidebar = () => {
           
           <Item title="Admin" to="/super/admin" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
            <Item title="User Managment" to="/super/user" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
-            <Item title="Billing Management" to="/super/subs" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+           <Item title="Billing Management" to="/super/subs" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+           
+            <Item title="Track" to="/super/subs" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
              
           
         </SubMenu>

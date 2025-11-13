@@ -67,6 +67,7 @@ import Super from "./scenes/super/admin";
 import SuperUser from "./scenes/super/user";
 import Subs from "./scenes/super/subs";
 import Data from "./scenes/super/data";
+import Track from "./scenes/super/track";
 
 import Pos_Sidebar from "./scenes/global/Pos_Sidebar";
 import Admin_side from "./scenes/global/admin_side";
@@ -310,6 +311,12 @@ function App() {
               <Route path="/super/subs" element={
                 <ProtectedRoute allowedRoles={["super"]}>
                   <Subs />
+                </ProtectedRoute>
+              } />
+
+               <Route path="/super/track" element={
+                <ProtectedRoute allowedRoles={["super"]}>
+                  <Track />
                 </ProtectedRoute>
               } />
                <Route path="/super/data" element={
