@@ -34,7 +34,8 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  Snackbar
 } from '@mui/material';
 import {
   Storefront,
@@ -65,16 +66,21 @@ import {
   QrCode2,
   Payment,
   TwoWheeler,
-  DirectionsCar
+  DirectionsCar,
+  Save
 } from '@mui/icons-material';
 
 const VendorProfile = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [showDocumentUpload, setShowDocumentUpload] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [selectedFile, setSelectedFile] = useState(null);
 
-  // Vendor data
+  // Vendor data with editable fields
   const [vendor, setVendor] = useState({
     id: 'VEND001',
     businessName: 'Quick Deliveries Uganda',
@@ -184,6 +190,16 @@ const VendorProfile = () => {
     lastActivity: '2024-01-15T16:45:00'
   });
 
+  const [editForm, setEditForm] = useState({ ...vendor });
+  const [newVehicle, setNewVehicle] = useState({
+    type: 'motorcycle',
+    plate: '',
+    model: '',
+    year: new Date().getFullYear(),
+    insurance: 'pending',
+    registration: 'pending'
+  });
+
   const vendorComplianceRequirements = [
     {
       id: 1,
@@ -227,15 +243,113 @@ const VendorProfile = () => {
     }
   ];
 
+  // Functional handlers
   const handleDocumentUpload = (documentType) => {
     setUploadingDoc(documentType);
     setShowDocumentUpload(true);
+  };
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      showSnackbar(`Selected file: ${file.name}`, 'info');
+    }
+  };
+
+  const handleUploadDocument = () => {
+    if (selectedFile) {
+      // Simulate upload process
+      setTimeout(() => {
+        const updatedVendor = { ...vendor };
+        if (updatedVendor.compliance[uploadingDoc]) {
+          updatedVendor.compliance[uploadingDoc].document = selectedFile.name;
+          updatedVendor.compliance[uploadingDoc].verified = false;
+          updatedVendor.compliance[uploadingDoc].status = 'pending_review';
+        }
+        setVendor(updatedVendor);
+        setShowDocumentUpload(false);
+        setSelectedFile(null);
+        showSnackbar(`Document uploaded successfully! Awaiting verification.`, 'success');
+      }, 1500);
+    } else {
+      showSnackbar('Please select a file to upload', 'error');
+    }
+  };
+
+  const handleDownloadDocument = (documentType) => {
+    const doc = vendor.compliance[documentType];
+    if (doc && doc.document) {
+      showSnackbar(`Downloading ${documentType.replace(/([A-Z])/g, ' $1').toLowerCase()}...`, 'info');
+      // Simulate download
+      setTimeout(() => {
+        showSnackbar('Document downloaded successfully!', 'success');
+      }, 1000);
+    } else {
+      showSnackbar('No document available for download', 'warning');
+    }
+  };
+
+  const handleEditProfile = () => {
+    setEditForm({ ...vendor });
+    setShowEditModal(true);
+  };
+
+  const handleSaveProfile = () => {
+    setVendor(editForm);
+    setShowEditModal(false);
+    showSnackbar('Profile updated successfully!', 'success');
+  };
+
+  const handleAddVehicle = () => {
+    if (newVehicle.plate && newVehicle.model) {
+      const vehicle = {
+        ...newVehicle,
+        id: `VH00${vendor.vehicles.length + 1}`
+      };
+      const updatedVendor = {
+        ...vendor,
+        vehicles: [...vendor.vehicles, vehicle]
+      };
+      setVendor(updatedVendor);
+      setShowAddVehicleModal(false);
+      setNewVehicle({
+        type: 'motorcycle',
+        plate: '',
+        model: '',
+        year: new Date().getFullYear(),
+        insurance: 'pending',
+        registration: 'pending'
+      });
+      showSnackbar('Vehicle added successfully!', 'success');
+    } else {
+      showSnackbar('Please fill in all required fields', 'error');
+    }
+  };
+
+  const handleExportDocuments = () => {
+    showSnackbar('Exporting all compliance documents...', 'info');
+    setTimeout(() => {
+      showSnackbar('All documents exported successfully!', 'success');
+    }, 2000);
+  };
+
+  const handleViewVehicleDetails = (vehicleId) => {
+    showSnackbar(`Viewing details for vehicle ${vehicleId}`, 'info');
   };
 
   const calculateComplianceScore = () => {
     const totalDocs = Object.keys(vendor.compliance).length;
     const validDocs = Object.values(vendor.compliance).filter(doc => doc.verified).length;
     return (validDocs / totalDocs) * 100;
+  };
+
+  const showSnackbar = (message, severity) => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   const complianceScore = calculateComplianceScore();
@@ -253,10 +367,18 @@ const VendorProfile = () => {
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button startIcon={<Download />} variant="outlined">
+          <Button 
+            startIcon={<Download />} 
+            variant="outlined"
+            onClick={handleExportDocuments}
+          >
             Export Documents
           </Button>
-          <Button startIcon={<Edit />} variant="contained">
+          <Button 
+            startIcon={<Edit />} 
+            variant="contained"
+            onClick={handleEditProfile}
+          >
             Edit Profile
           </Button>
         </Box>
@@ -469,7 +591,7 @@ const VendorProfile = () => {
                             <TableCell>
                               <Chip 
                                 label={doc.status} 
-                                color={doc.verified ? 'success' : 'error'}
+                                color={doc.verified ? 'success' : doc.status === 'pending_review' ? 'warning' : 'error'}
                                 size="small"
                               />
                             </TableCell>
@@ -481,12 +603,19 @@ const VendorProfile = () => {
                             <TableCell>
                               {doc.verified ? (
                                 <CheckCircle color="success" />
+                              ) : doc.status === 'pending_review' ? (
+                                <Schedule color="warning" />
                               ) : (
-                                <Warning color="warning" />
+                                <Warning color="error" />
                               )}
                             </TableCell>
                             <TableCell>
-                              <Button size="small" startIcon={<Download />}>
+                              <Button 
+                                size="small" 
+                                startIcon={<Download />}
+                                onClick={() => handleDownloadDocument(key)}
+                                disabled={!doc.document}
+                              >
                                 Download
                               </Button>
                               <Button 
@@ -533,7 +662,16 @@ const VendorProfile = () => {
 
               {activeTab === 2 && (
                 <Box>
-                  <Typography variant="h6" gutterBottom>Vehicle Fleet Management</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6" gutterBottom>Vehicle Fleet Management</Typography>
+                    <Button 
+                      startIcon={<Add />} 
+                      variant="outlined"
+                      onClick={() => setShowAddVehicleModal(true)}
+                    >
+                      Add New Vehicle
+                    </Button>
+                  </Box>
                   
                   <TableContainer component={Paper}>
                     <Table>
@@ -581,17 +719,18 @@ const VendorProfile = () => {
                               />
                             </TableCell>
                             <TableCell>
-                              <Button size="small">View Details</Button>
+                              <Button 
+                                size="small"
+                                onClick={() => handleViewVehicleDetails(vehicle.id)}
+                              >
+                                View Details
+                              </Button>
                             </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
                   </TableContainer>
-
-                  <Button startIcon={<Add />} variant="outlined" sx={{ mt: 2 }}>
-                    Add New Vehicle
-                  </Button>
                 </Box>
               )}
 
@@ -743,24 +882,180 @@ const VendorProfile = () => {
       </Dialog>
 
       {/* Document Upload Modal */}
-      <Dialog open={showDocumentUpload} onClose={() => setShowDocumentUpload(false)}>
+      <Dialog open={showDocumentUpload} onClose={() => setShowDocumentUpload(false)} maxWidth="sm" fullWidth>
         <DialogTitle>
-          <Typography variant="h6">Upload {uploadingDoc} Document</Typography>
+          <Typography variant="h6">Upload {uploadingDoc.replace(/([A-Z])/g, ' $1').toLowerCase()} Document</Typography>
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" paragraph>
-            Please upload the required document for verification.
+            Please upload the required document for verification. Supported formats: PDF, JPG, PNG
           </Typography>
-          <Button variant="outlined" component="label" fullWidth>
+          
+          <Button 
+            variant="outlined" 
+            component="label" 
+            fullWidth 
+            sx={{ mb: 2 }}
+            startIcon={<Upload />}
+          >
             Select Document
-            <input type="file" hidden />
+            <input 
+              type="file" 
+              hidden 
+              accept=".pdf,.jpg,.jpeg,.png" 
+              onChange={handleFileSelect}
+            />
           </Button>
+
+          {selectedFile && (
+            <Alert severity="info">
+              Selected: {selectedFile.name}
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowDocumentUpload(false)}>Cancel</Button>
-          <Button variant="contained">Upload</Button>
+          <Button onClick={() => {
+            setShowDocumentUpload(false);
+            setSelectedFile(null);
+          }}>
+            Cancel
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleUploadDocument}
+            disabled={!selectedFile}
+          >
+            Upload Document
+          </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Edit Profile Modal */}
+      <Dialog open={showEditModal} onClose={() => setShowEditModal(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          <Typography variant="h5">Edit Vendor Profile</Typography>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Business Name"
+                value={editForm.businessName}
+                onChange={(e) => setEditForm({...editForm, businessName: e.target.value})}
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Trading Name"
+                value={editForm.tradingName}
+                onChange={(e) => setEditForm({...editForm, tradingName: e.target.value})}
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Contact Person"
+                value={editForm.contactPerson}
+                onChange={(e) => setEditForm({...editForm, contactPerson: e.target.value})}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Phone Number"
+                value={editForm.phone}
+                onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Email Address"
+                value={editForm.email}
+                onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Business Address"
+                value={editForm.businessAddress}
+                onChange={(e) => setEditForm({...editForm, businessAddress: e.target.value})}
+                margin="normal"
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowEditModal(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleSaveProfile}>
+            Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Vehicle Modal */}
+      <Dialog open={showAddVehicleModal} onClose={() => setShowAddVehicleModal(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <Typography variant="h5">Add New Vehicle</Typography>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Vehicle Type</InputLabel>
+                <Select
+                  value={newVehicle.type}
+                  onChange={(e) => setNewVehicle({...newVehicle, type: e.target.value})}
+                  label="Vehicle Type"
+                >
+                  <MenuItem value="motorcycle">Motorcycle</MenuItem>
+                  <MenuItem value="car">Car</MenuItem>
+                  <MenuItem value="van">Van</MenuItem>
+                  <MenuItem value="truck">Truck</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                fullWidth
+                label="Plate Number"
+                value={newVehicle.plate}
+                onChange={(e) => setNewVehicle({...newVehicle, plate: e.target.value.toUpperCase()})}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Model"
+                value={newVehicle.model}
+                onChange={(e) => setNewVehicle({...newVehicle, model: e.target.value})}
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Year"
+                type="number"
+                value={newVehicle.year}
+                onChange={(e) => setNewVehicle({...newVehicle, year: parseInt(e.target.value)})}
+                margin="normal"
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowAddVehicleModal(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleAddVehicle}>
+            Add Vehicle
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        message={snackbar.message}
+      />
     </Box>
   );
 };
