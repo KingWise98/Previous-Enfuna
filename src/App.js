@@ -42,7 +42,7 @@ import Vendor_ERP from "./admins/vendor/reports/erp";
 
 //VENDOR POS
 
-import Vendor_Pos_Dashboard from "./admins/vendor/pos/all";
+import Vendor_Profile from "./admins/vendor/profile";
 import Vendor_New_Sales from "./admins/vendor/pos/new_sales";
 import Vendor_Service_Sales from "./admins/vendor/pos/service_sales";
 import Vendor_Hold from "./admins/vendor/pos/hold";
@@ -60,6 +60,10 @@ import Vendor_User_Contact from "./admins/vendor/pos/contacts";
 
 // Vendor Ledger
 import Vendor_LedgerList from "./admins/vendor/ledger/index";
+
+// Merchant
+
+import Merchant_Profile from "./admins/merchant/profile";
 
 
 // Global Admin
@@ -218,7 +222,7 @@ function App() {
     setUserRole(role);
     localStorage.setItem('userRole', role);
     if (role === "admin") {
-      navigate("/dashboard");
+      navigate("/merchant/profile");
        } else if (role === "super") {
       navigate("/super/admin");
 
@@ -226,7 +230,7 @@ function App() {
       navigate("/user/new_sales");
     }
      else if (role === "vendor") {
-      navigate("/vendor/dashboard");
+      navigate("/vendor/profile");
     }
      else if (role === "rider") {
       navigate("/rider/profile");
@@ -884,6 +888,11 @@ function App() {
               } />
 
                {/* VENDOR POS */}
+               <Route path="/vendor/profile" element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <Vendor_Profile />
+                </ProtectedRoute>
+              } />
               <Route path="/vendor/pos/all" element={
                 <ProtectedRoute allowedRoles={["vendor"]}>
                   <Pos_Dashboard />
@@ -960,6 +969,15 @@ function App() {
               <Route path="/vednor/pos/contacts" element={
                 <ProtectedRoute allowedRoles={["vendor"]}>
                   <Vendor_User_Contact />
+                </ProtectedRoute>
+              } />
+
+
+              {/* MERCHANT */}
+
+               <Route path="/merchant/profile" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Merchant_Profile />
                 </ProtectedRoute>
               } />
 

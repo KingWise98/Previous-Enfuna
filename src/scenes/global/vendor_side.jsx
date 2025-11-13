@@ -74,6 +74,8 @@ const Vendors = () => {
           <MenuItem onClick={() => setIsCollapsed(!isCollapsed)} icon={<MenuOutlinedIcon />}> 
             {!isCollapsed && <Typography variant="h3">VENDOR</Typography>}
           </MenuItem>
+
+          <Item title="Profile" to="/vendor/profile" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
            <Item title="Dashboard" to="/vendor/dashboard" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
           <SubMenu title="Point Of Sale (POS)" icon={<ShoppingCartOutlinedIcon />}>
