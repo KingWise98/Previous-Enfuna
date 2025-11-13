@@ -76,7 +76,7 @@ const Riders = () => {
           </MenuItem>
            <Item title="Profile" to="/rider/profile" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
-          <SubMenu title="Dashboard" icon={<ShoppingCartOutlinedIcon />}>
+          <SubMenu title="Point Of Sale (POS)" icon={<ShoppingCartOutlinedIcon />}>
           
          
           <Item title="Dashboard" to="/rider/dashboards" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
