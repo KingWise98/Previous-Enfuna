@@ -1,1063 +1,1224 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Button,
   Card,
   CardContent,
   Grid,
-  Chip,
   Avatar,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Button,
   TextField,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
+  Divider,
+  Paper,
+  useTheme,
+  IconButton,
+  Switch,
+  FormControlLabel,
+  Stepper,
+  Step,
+  StepLabel,
+  StepContent,
+  Chip,
+  Alert,
+  CircularProgress,
+  Tabs,
+  Tab,
   List,
   ListItem,
   ListItemText,
   ListItemIcon,
-  Paper,
-  LinearProgress,
-  Badge,
-  Alert,
-  Divider,
-  Tabs,
-  Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Snackbar
+  LinearProgress
 } from '@mui/material';
 import {
-  Storefront,
   Person,
-  Security,
-  LocalAtm,
-  Receipt,
-  TrendingUp,
-  Notifications,
-  Add,
-  Close,
-  LocationOn,
-  Schedule,
-  Money,
-  VerifiedUser,
-  Warning,
-  CheckCircle,
-  Cancel,
+  CameraAlt,
   Edit,
-  Upload,
-  Download,
-  History,
-  Inventory,
-  DeliveryDining,
-  AccountBalance,
-  Gavel,
-  Assignment,
-  QrCode2,
-  Payment,
+  Save,
+  Cancel,
+  Verified,
+  Warning,
   TwoWheeler,
-  DirectionsCar,
-  Save
+  BusinessCenter,
+  Security,
+  LocationOn,
+  Phone,
+  Email,
+  CalendarToday,
+  CreditCard,
+  DocumentScanner,
+  CloudUpload,
+  CheckCircle,
+  Error
 } from '@mui/icons-material';
 
-const VendorProfile = () => {
+const RiderProfilePage = () => {
+  const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
-  const [showVerificationModal, setShowVerificationModal] = useState(false);
-  const [showDocumentUpload, setShowDocumentUpload] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
-  const [uploadingDoc, setUploadingDoc] = useState('');
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState('pending');
+  const [uploadProgress, setUploadProgress] = useState({});
+  const [profileCompletion, setProfileCompletion] = useState(0);
 
-  // Vendor data with editable fields
-  const [vendor, setVendor] = useState({
-    id: 'VEND001',
-    businessName: 'Quick Deliveries Uganda',
-    tradingName: 'QuickDeliveries',
-    vendorType: 'logistics',
-    registrationNumber: '800200789012',
-    tinNumber: '1023456789',
-    businessAddress: 'Plot 456, Bombo Road, Kampala',
-    contactPerson: 'Sarah Nalwoga',
-    phone: '+256782345678',
-    email: 'sarah@quickdeliveries.ug',
-    
-    // Vehicle Information
-    vehicles: [
-      {
-        id: 'VH001',
-        type: 'motorcycle',
-        plate: 'UAB 789X',
-        model: 'Bajaj Boxer',
-        year: 2023,
-        insurance: 'valid',
-        registration: 'valid'
-      },
-      {
-        id: 'VH002',
-        type: 'motorcycle',
-        plate: 'UAB 790Y',
-        model: 'TVS Star',
-        year: 2022,
-        insurance: 'valid',
-        registration: 'valid'
-      }
-    ],
-    
-    // Legal Compliance
-    compliance: {
-      businessRegistration: {
-        verified: true,
-        expiry: '2025-12-31',
-        document: 'business_registration.pdf',
-        status: 'valid'
-      },
-      tradingLicense: {
-        verified: true,
-        expiry: '2024-12-31',
-        document: 'trading_license.pdf',
-        status: 'valid'
-      },
-      tinCertificate: {
-        verified: true,
-        expiry: 'permanent',
-        document: 'tin_certificate.pdf',
-        status: 'valid'
-      },
-      nationalId: {
-        verified: true,
-        document: 'national_id.pdf',
-        status: 'valid'
-      },
-      operatorLicense: {
-        verified: true,
-        expiry: '2024-12-31',
-        document: 'transport_operator_license.pdf',
-        status: 'valid'
-      },
-      vehicleInsurance: {
-        verified: true,
-        expiry: '2024-06-30',
-        document: 'vehicle_insurance.pdf',
-        status: 'valid'
-      },
-      kyc: {
-        verified: true,
-        completed: true,
-        level: 'standard',
-        lastVerified: '2024-01-08'
+  // Initialize with proper empty state
+  const initialProfileData = {
+    personalInfo: {
+      firstName: '',
+      lastName: '',
+      dateOfBirth: '',
+      gender: '',
+      nationality: 'Ugandan',
+      maritalStatus: ''
+    },
+    identification: {
+      nationalId: '',
+      nationalIdPhoto: null,
+      tinNumber: '',
+      drivingLicense: '',
+      drivingLicensePhoto: null
+    },
+    vehicleInfo: {
+      vehicleType: '',
+      make: '',
+      model: '',
+      year: '',
+      licensePlate: '',
+      color: '',
+      engineNumber: '',
+      chasisNumber: '',
+      insuranceProvider: '',
+      insuranceExpiry: ''
+    },
+    contactInfo: {
+      phone: '',
+      email: '',
+      address: '',
+      city: '',
+      district: '',
+      emergencyContact: {
+        name: '',
+        phone: '',
+        relationship: ''
       }
     },
-    
-    // Service Information
-    services: ['package_delivery', 'food_delivery', 'document_delivery'],
-    serviceAreas: ['Kampala Central', 'Najjera', 'Naalya', 'Buziga'],
-    operatingHours: '06:00 - 22:00',
-    
-    // Performance Metrics
-    performance: {
-      completedDeliveries: 1250,
-      onTimeRate: 94.5,
-      customerRating: 4.7,
-      monthlyRevenue: 3500000,
-      activeRiders: 8
+    bankingInfo: {
+      bankName: '',
+      accountNumber: '',
+      accountName: '',
+      branch: ''
     },
-    
-    // Payment Information
-    payment: {
-      bankName: 'Centenary Bank',
-      accountNumber: '3012345678901',
-      accountName: 'Quick Deliveries Uganda',
-      mobileMoney: {
-        mtn: '+256782345678',
-        airtel: '+256712345678'
-      }
+    profileMedia: {
+      profilePhoto: null,
+      nationalIdFront: null,
+      nationalIdBack: null,
+      drivingLicenseFront: null,
+      drivingLicenseBack: null,
+      vehiclePhoto: null
     },
-    
-    status: 'active',
-    registrationDate: '2021-08-20',
-    lastActivity: '2024-01-15T16:45:00'
-  });
-
-  const [editForm, setEditForm] = useState({ ...vendor });
-  const [newVehicle, setNewVehicle] = useState({
-    type: 'motorcycle',
-    plate: '',
-    model: '',
-    year: new Date().getFullYear(),
-    insurance: 'pending',
-    registration: 'pending'
-  });
-
-  const vendorComplianceRequirements = [
-    {
-      id: 1,
-      name: 'Business Registration Certificate',
-      authority: 'Uganda Registration Services Bureau (URSB)',
-      requirement: 'Mandatory',
-      frequency: 'Annual Renewal',
-      penalty: 'UGX 500,000 + suspension'
-    },
-    {
-      id: 2,
-      name: 'Trading License',
-      authority: 'Local Authority (KCCA/Municipal)',
-      requirement: 'Mandatory',
-      frequency: 'Annual Renewal',
-      penalty: 'UGX 200,000 + closure'
-    },
-    {
-      id: 3,
-      name: 'Transport Operator License',
-      authority: 'Ministry of Works and Transport',
-      requirement: 'Mandatory for logistics',
-      frequency: 'Annual Renewal',
-      penalty: 'UGX 1,000,000 + operation ban'
-    },
-    {
-      id: 4,
-      name: 'Vehicle Insurance',
-      authority: 'Insurance Regulatory Authority',
-      requirement: 'Mandatory for all vehicles',
-      frequency: 'Annual Renewal',
-      penalty: 'UGX 500,000 per vehicle'
-    },
-    {
-      id: 5,
-      name: 'Rider KYC Compliance',
-      authority: 'Financial Intelligence Authority',
-      requirement: 'Mandatory for all riders',
-      frequency: 'Continuous monitoring',
-      penalty: 'UGX 5,000,000 + license revocation'
+    preferences: {
+      notifications: true,
+      smsAlerts: true,
+      emailUpdates: false,
+      autoStartRide: true,
+      shareLocation: true
     }
+  };
+
+  const [profileData, setProfileData] = useState(initialProfileData);
+
+  // Mock initial data with all required fields
+  const mockData = {
+    personalInfo: {
+      firstName: 'David',
+      lastName: 'Kato',
+      dateOfBirth: '1990-05-15',
+      gender: 'male',
+      nationality: 'Ugandan',
+      maritalStatus: 'single'
+    },
+    identification: {
+      nationalId: 'CM9141515151515',
+      tinNumber: '123456789',
+      drivingLicense: 'UB542315678',
+      nationalIdPhoto: null,
+      drivingLicensePhoto: null
+    },
+    vehicleInfo: {
+      vehicleType: 'boda-boda',
+      make: 'Bajaj',
+      model: 'Boxer',
+      year: '2022',
+      licensePlate: 'UBA 123A',
+      color: 'Red',
+      engineNumber: 'BG123456789',
+      chasisNumber: 'CH123456789',
+      insuranceProvider: 'Liberty Health',
+      insuranceExpiry: '2024-12-31'
+    },
+    contactInfo: {
+      phone: '+256712345678',
+      email: 'david.kato@example.com',
+      address: 'Plot 123, Kampala Road',
+      city: 'Kampala',
+      district: 'Kampala Central',
+      emergencyContact: {
+        name: 'Sarah Kato',
+        phone: '+256781234567',
+        relationship: 'Sister'
+      }
+    },
+    bankingInfo: {
+      bankName: 'Centenary Bank',
+      accountNumber: '1234567890',
+      accountName: 'David Kato',
+      branch: 'Kampala Main'
+    },
+    profileMedia: {
+      profilePhoto: null,
+      nationalIdFront: null,
+      nationalIdBack: null,
+      drivingLicenseFront: null,
+      drivingLicenseBack: null,
+      vehiclePhoto: null
+    },
+    preferences: {
+      notifications: true,
+      smsAlerts: true,
+      emailUpdates: false,
+      autoStartRide: true,
+      shareLocation: true
+    }
+  };
+
+  useEffect(() => {
+    // Simulate loading profile data
+    setProfileData(mockData);
+    calculateProfileCompletion(mockData);
+  }, []);
+
+  const vehicleTypes = [
+    { value: 'motorcycle', label: '🏍️ Motorcycle', description: 'Standard motorcycle' },
+    { value: 'boda-boda', label: '🚲 Boda Boda', description: 'Motorcycle taxi' },
+    { value: 'scooter', label: '🛵 Scooter', description: 'Automatic scooter' },
+    { value: 'bicycle', label: '🚴 Bicycle', description: 'Pedal bicycle' },
+    { value: 'tuk-tuk', label: '🛺 Tuk Tuk', description: 'Three-wheeler' }
   ];
 
-  // Functional handlers
-  const handleDocumentUpload = (documentType) => {
-    setUploadingDoc(documentType);
-    setShowDocumentUpload(true);
+  const banks = [
+    'Centenary Bank',
+    'Stanbic Bank',
+    'Standard Chartered',
+    'DFCU Bank',
+    'Bank of Africa',
+    'Equity Bank',
+    'Absa Bank',
+    'Opportunity Bank'
+  ];
+
+  const districts = [
+    'Kampala Central',
+    'Kawempe',
+    'Makindye',
+    'Nakawa',
+    'Rubaga',
+    'Wakiso',
+    'Mukono',
+    'Entebbe'
+  ];
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
   };
 
-  const handleFileSelect = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      showSnackbar(`Selected file: ${file.name}`, 'info');
-    }
+  // Safe input change handlers
+  const handleInputChange = (section, field, value) => {
+    setProfileData(prev => ({
+      ...prev,
+      [section]: {
+        ...(prev[section] || {}),
+        [field]: value
+      }
+    }));
   };
 
-  const handleUploadDocument = () => {
-    if (selectedFile) {
-      // Simulate upload process
-      setTimeout(() => {
-        const updatedVendor = { ...vendor };
-        if (updatedVendor.compliance[uploadingDoc]) {
-          updatedVendor.compliance[uploadingDoc].document = selectedFile.name;
-          updatedVendor.compliance[uploadingDoc].verified = false;
-          updatedVendor.compliance[uploadingDoc].status = 'pending_review';
+  const handleNestedInputChange = (section, nestedField, field, value) => {
+    setProfileData(prev => ({
+      ...prev,
+      [section]: {
+        ...(prev[section] || {}),
+        [nestedField]: {
+          ...(prev[section]?.[nestedField] || {}),
+          [field]: value
         }
-        setVendor(updatedVendor);
-        setShowDocumentUpload(false);
-        setSelectedFile(null);
-        showSnackbar(`Document uploaded successfully! Awaiting verification.`, 'success');
-      }, 1500);
-    } else {
-      showSnackbar('Please select a file to upload', 'error');
+      }
+    }));
+  };
+
+  const handleFileUpload = (section, field, file) => {
+    if (file) {
+      // Simulate upload progress
+      setUploadProgress(prev => ({ ...prev, [field]: 0 }));
+      
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          const newProgress = prev[field] + 10;
+          if (newProgress >= 100) {
+            clearInterval(progressInterval);
+            setProfileData(prevData => ({
+              ...prevData,
+              [section]: {
+                ...(prevData[section] || {}),
+                [field]: URL.createObjectURL(file)
+              }
+            }));
+            return { ...prev, [field]: 100 };
+          }
+          return { ...prev, [field]: newProgress };
+        });
+      }, 100);
     }
   };
 
-  const handleDownloadDocument = (documentType) => {
-    const doc = vendor.compliance[documentType];
-    if (doc && doc.document) {
-      showSnackbar(`Downloading ${documentType.replace(/([A-Z])/g, ' $1').toLowerCase()}...`, 'info');
-      // Simulate download
-      setTimeout(() => {
-        showSnackbar('Document downloaded successfully!', 'success');
-      }, 1000);
-    } else {
-      showSnackbar('No document available for download', 'warning');
-    }
-  };
+  const calculateProfileCompletion = (data) => {
+    let completedFields = 0;
+    let totalFields = 0;
 
-  const handleEditProfile = () => {
-    setEditForm({ ...vendor });
-    setShowEditModal(true);
+    const sections = ['personalInfo', 'identification', 'vehicleInfo', 'contactInfo', 'bankingInfo'];
+    
+    sections.forEach(section => {
+      if (data[section]) {
+        Object.keys(data[section]).forEach(field => {
+          totalFields++;
+          const value = data[section][field];
+          if (value !== null && value !== undefined && value !== '') {
+            if (typeof value === 'object') {
+              // Check nested objects like emergencyContact
+              const hasNestedValues = Object.values(value).some(nestedValue => 
+                nestedValue !== null && nestedValue !== undefined && nestedValue !== ''
+              );
+              if (hasNestedValues) completedFields++;
+            } else {
+              completedFields++;
+            }
+          }
+        });
+      }
+    });
+
+    const completionPercentage = Math.round((completedFields / totalFields) * 100);
+    setProfileCompletion(completionPercentage);
   };
 
   const handleSaveProfile = () => {
-    setVendor(editForm);
-    setShowEditModal(false);
-    showSnackbar('Profile updated successfully!', 'success');
+    // Validate required fields
+    const requiredFields = [
+      profileData.personalInfo?.firstName,
+      profileData.personalInfo?.lastName,
+      profileData.identification?.nationalId,
+      profileData.identification?.drivingLicense,
+      profileData.vehicleInfo?.vehicleType,
+      profileData.vehicleInfo?.licensePlate,
+      profileData.contactInfo?.phone,
+      profileData.bankingInfo?.bankName,
+      profileData.bankingInfo?.accountNumber,
+      profileData.bankingInfo?.accountName
+    ];
+
+    const missingFields = requiredFields.filter(field => !field);
+    
+    if (missingFields.length > 0) {
+      alert('Please fill in all required fields (marked with *) before saving.');
+      return;
+    }
+
+    // Simulate API call to save profile
+    console.log('Saving profile:', profileData);
+    calculateProfileCompletion(profileData);
+    setIsEditing(false);
+    
+    // Show success message
+    alert('Profile updated successfully!');
   };
 
-  const handleAddVehicle = () => {
-    if (newVehicle.plate && newVehicle.model) {
-      const vehicle = {
-        ...newVehicle,
-        id: `VH00${vendor.vehicles.length + 1}`
-      };
-      const updatedVendor = {
-        ...vendor,
-        vehicles: [...vendor.vehicles, vehicle]
-      };
-      setVendor(updatedVendor);
-      setShowAddVehicleModal(false);
-      setNewVehicle({
-        type: 'motorcycle',
-        plate: '',
-        model: '',
-        year: new Date().getFullYear(),
-        insurance: 'pending',
-        registration: 'pending'
-      });
-      showSnackbar('Vehicle added successfully!', 'success');
-    } else {
-      showSnackbar('Please fill in all required fields', 'error');
+  const handleCancelEdit = () => {
+    setProfileData(mockData);
+    setIsEditing(false);
+  };
+
+  const getVerificationStatusColor = () => {
+    switch (verificationStatus) {
+      case 'verified': return 'success';
+      case 'rejected': return 'error';
+      default: return 'warning';
     }
   };
 
-  const handleExportDocuments = () => {
-    showSnackbar('Exporting all compliance documents...', 'info');
-    setTimeout(() => {
-      showSnackbar('All documents exported successfully!', 'success');
-    }, 2000);
+  const getVerificationStatusText = () => {
+    switch (verificationStatus) {
+      case 'verified': return 'Verified';
+      case 'rejected': return 'Verification Failed';
+      default: return 'Pending Verification';
+    }
   };
 
-  const handleViewVehicleDetails = (vehicleId) => {
-    showSnackbar(`Viewing details for vehicle ${vehicleId}`, 'info');
-  };
+  const requiredDocuments = [
+    { name: 'National ID Front', field: 'nationalIdFront', required: true },
+    { name: 'National ID Back', field: 'nationalIdBack', required: true },
+    { name: 'Driving License Front', field: 'drivingLicenseFront', required: true },
+    { name: 'Driving License Back', field: 'drivingLicenseBack', required: false },
+    { name: 'Vehicle Photo', field: 'vehiclePhoto', required: true },
+    { name: 'Profile Photo', field: 'profilePhoto', required: true }
+  ];
 
-  const calculateComplianceScore = () => {
-    const totalDocs = Object.keys(vendor.compliance).length;
-    const validDocs = Object.values(vendor.compliance).filter(doc => doc.verified).length;
-    return (validDocs / totalDocs) * 100;
-  };
-
-  const showSnackbar = (message, severity) => {
-    setSnackbar({ open: true, message, severity });
-  };
-
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
-
-  const complianceScore = calculateComplianceScore();
+  // Safe value getters with fallbacks
+  const getProfilePhoto = () => profileData.profileMedia?.profilePhoto || null;
+  const getPersonalInfo = (field) => profileData.personalInfo?.[field] || '';
+  const getIdentification = (field) => profileData.identification?.[field] || '';
+  const getVehicleInfo = (field) => profileData.vehicleInfo?.[field] || '';
+  const getContactInfo = (field) => profileData.contactInfo?.[field] || '';
+  const getBankingInfo = (field) => profileData.bankingInfo?.[field] || '';
+  const getEmergencyContact = (field) => profileData.contactInfo?.emergencyContact?.[field] || '';
+  const getPreference = (field) => profileData.preferences?.[field] || false;
 
   return (
     <Box sx={{ p: 3, minHeight: '100vh', backgroundColor: 'grey.50' }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
         <Box>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Vendor Profile
+            Rider Profile 👤
           </Typography>
-          <Typography variant="body1" color="textSecondary">
-            Logistics and delivery service provider management
+          <Typography variant="h6" color="textSecondary">
+            Manage your personal information and verification status
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button 
-            startIcon={<Download />} 
-            variant="outlined"
-            onClick={handleExportDocuments}
-          >
-            Export Documents
-          </Button>
-          <Button 
-            startIcon={<Edit />} 
-            variant="contained"
-            onClick={handleEditProfile}
-          >
-            Edit Profile
-          </Button>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          {!isEditing ? (
+            <Button
+              startIcon={<Edit />}
+              variant="contained"
+              onClick={() => setIsEditing(true)}
+            >
+              Edit Profile
+            </Button>
+          ) : (
+            <>
+              <Button
+                startIcon={<Cancel />}
+                variant="outlined"
+                onClick={handleCancelEdit}
+              >
+                Cancel
+              </Button>
+              <Button
+                startIcon={<Save />}
+                variant="contained"
+                onClick={handleSaveProfile}
+              >
+                Save Changes
+              </Button>
+            </>
+          )}
         </Box>
       </Box>
 
       <Grid container spacing={3}>
-        {/* Left Sidebar - Quick Info */}
+        {/* Left Sidebar - Profile Summary */}
         <Grid item xs={4}>
-          {/* Vendor Profile Card */}
+          {/* Profile Card */}
           <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Avatar sx={{ width: 80, height: 80, bgcolor: 'secondary.main' }}>
-                  <Storefront />
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
+                <Avatar
+                  src={getProfilePhoto()}
+                  sx={{ width: 120, height: 120, mx: 'auto', mb: 2 }}
+                >
+                  <Person sx={{ fontSize: 60 }} />
                 </Avatar>
-                <Box>
-                  <Typography variant="h6" fontWeight="bold">
-                    {vendor.businessName}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {vendor.tradingName}
-                  </Typography>
-                  <Chip 
-                    label={vendor.status.toUpperCase()} 
-                    color={vendor.status === 'active' ? 'success' : 'error'}
-                    size="small"
-                  />
-                </Box>
+                {isEditing && (
+                  <IconButton
+                    sx={{
+                      position: 'absolute',
+                      bottom: 8,
+                      right: 8,
+                      bgcolor: 'primary.main',
+                      color: 'white',
+                      '&:hover': { bgcolor: 'primary.dark' }
+                    }}
+                    component="label"
+                  >
+                    <CameraAlt />
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload('profileMedia', 'profilePhoto', e.target.files[0])}
+                    />
+                  </IconButton>
+                )}
               </Box>
 
-              <Divider sx={{ my: 2 }} />
+              <Typography variant="h5" gutterBottom>
+                {getPersonalInfo('firstName')} {getPersonalInfo('lastName')}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" gutterBottom>
+                Rider ID: RDR-ENF00124
+              </Typography>
+
+              <Chip
+                icon={verificationStatus === 'verified' ? <Verified /> : <Warning />}
+                label={getVerificationStatusText()}
+                color={getVerificationStatusColor()}
+                variant={verificationStatus === 'verified' ? 'filled' : 'outlined'}
+                sx={{ mb: 2 }}
+              />
+
+              {/* Profile Completion */}
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="body2">Profile Completion</Typography>
+                  <Typography variant="body2" fontWeight="bold">
+                    {profileCompletion}%
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={profileCompletion}
+                  color={profileCompletion >= 80 ? 'success' : profileCompletion >= 50 ? 'warning' : 'error'}
+                  sx={{ height: 8, borderRadius: 4 }}
+                />
+              </Box>
 
               {/* Quick Stats */}
-              <Grid container spacing={2}>
+              <Grid container spacing={1} sx={{ mt: 2 }}>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">Deliveries</Typography>
-                  <Typography variant="h6" color="primary.main">
-                    {vendor.performance.completedDeliveries}
-                  </Typography>
+                  <Paper sx={{ p: 1, textAlign: 'center' }}>
+                    <Typography variant="h6" color="primary.main">
+                      156
+                    </Typography>
+                    <Typography variant="caption">Total Rides</Typography>
+                  </Paper>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">On-time Rate</Typography>
-                  <Typography variant="h6">
-                    {vendor.performance.onTimeRate}%
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">Rating</Typography>
-                  <Typography variant="h6">
-                    ⭐ {vendor.performance.customerRating}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">Active Riders</Typography>
-                  <Typography variant="h6">
-                    {vendor.performance.activeRiders}
-                  </Typography>
+                  <Paper sx={{ p: 1, textAlign: 'center' }}>
+                    <Typography variant="h6" color="success.main">
+                      4.8
+                    </Typography>
+                    <Typography variant="caption">Rating</Typography>
+                  </Paper>
                 </Grid>
               </Grid>
             </CardContent>
           </Card>
 
-          {/* Compliance Score */}
+          {/* Verification Status */}
           <Card sx={{ mb: 3 }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>Compliance Score</Typography>
-              <Box sx={{ textAlign: 'center', mb: 2 }}>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={complianceScore} 
-                  sx={{ height: 20, borderRadius: 10, mb: 2 }}
-                  color={complianceScore >= 80 ? 'success' : complianceScore >= 60 ? 'warning' : 'error'}
-                />
-                <Typography variant="h4" fontWeight="bold">
-                  {complianceScore.toFixed(0)}%
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Overall Compliance Status
-                </Typography>
-              </Box>
-              <Button 
-                fullWidth 
-                variant="outlined" 
-                startIcon={<VerifiedUser />}
-                onClick={() => setShowVerificationModal(true)}
-              >
-                View Verification Status
-              </Button>
+              <Typography variant="h6" gutterBottom>Verification Status</Typography>
+              <Stepper orientation="vertical" activeStep={verificationStatus === 'verified' ? 3 : 1}>
+                <Step>
+                  <StepLabel>Profile Information</StepLabel>
+                  <StepContent>
+                    <Typography variant="body2">
+                      Basic personal details completed
+                    </Typography>
+                  </StepContent>
+                </Step>
+                <Step>
+                  <StepLabel>Document Upload</StepLabel>
+                  <StepContent>
+                    <Typography variant="body2">
+                      Upload required identification documents
+                    </Typography>
+                  </StepContent>
+                </Step>
+                <Step>
+                  <StepLabel>Background Check</StepLabel>
+                  <StepContent>
+                    <Typography variant="body2">
+                      Verification in progress
+                    </Typography>
+                  </StepContent>
+                </Step>
+                <Step>
+                  <StepLabel>Account Activated</StepLabel>
+                </Step>
+              </Stepper>
             </CardContent>
           </Card>
 
-          {/* Service Areas */}
+          {/* Required Documents */}
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>Service Areas</Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {vendor.serviceAreas.map((area, index) => (
-                  <Chip key={index} label={area} size="small" variant="outlined" />
+              <Typography variant="h6" gutterBottom>Required Documents</Typography>
+              <List dense>
+                {requiredDocuments.map((doc, index) => (
+                  <ListItem key={index}>
+                    <ListItemIcon>
+                      {profileData.profileMedia?.[doc.field] ? (
+                        <CheckCircle color="success" />
+                      ) : (
+                        <Error color={doc.required ? 'error' : 'disabled'} />
+                      )}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={doc.name}
+                      secondary={doc.required ? 'Required' : 'Optional'}
+                    />
+                  </ListItem>
                 ))}
-              </Box>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="body2" color="textSecondary">
-                Operating Hours: {vendor.operatingHours}
-              </Typography>
+              </List>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Main Content */}
+        {/* Main Content Area */}
         <Grid item xs={8}>
           <Card>
-            <CardContent>
-              <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} sx={{ mb: 3 }}>
-                <Tab icon={<Storefront />} label="Vendor Info" />
-                <Tab icon={<Gavel />} label="Legal Compliance" />
-                <Tab icon={<Inventory />} label="Vehicles & Fleet" />
-                <Tab icon={<TrendingUp />} label="Performance" />
-                <Tab icon={<AccountBalance />} label="Banking & Payments" />
-              </Tabs>
+            <Tabs
+              value={activeTab}
+              onChange={handleTabChange}
+              variant="scrollable"
+              scrollButtons="auto"
+              sx={{ borderBottom: 1, borderColor: 'divider' }}
+            >
+              <Tab icon={<Person />} label="Personal Info" />
+              <Tab icon={<DocumentScanner />} label="Identification" />
+              <Tab icon={<TwoWheeler />} label="Vehicle Info" />
+              <Tab icon={<LocationOn />} label="Contact Info" />
+              <Tab icon={<CreditCard />} label="Banking Info" />
+              <Tab icon={<Security />} label="Preferences" />
+            </Tabs>
 
+            <CardContent sx={{ minHeight: 500, p: 4 }}>
+              {/* Personal Information Tab */}
               {activeTab === 0 && (
-                <Grid container spacing={3}>
-                  <Grid item xs={6}>
-                    <Typography variant="h6" gutterBottom>Business Information</Typography>
-                    <Paper sx={{ p: 2 }}>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">Business Name</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.businessName}</Typography>
-                      </Box>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">Trading Name</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.tradingName}</Typography>
-                      </Box>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">Vendor Type</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.vendorType}</Typography>
-                      </Box>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">Registration Number</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.registrationNumber}</Typography>
-                      </Box>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">TIN Number</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.tinNumber}</Typography>
-                      </Box>
-                    </Paper>
-                  </Grid>
+                <Box>
+                  <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Person /> Personal Information
+                  </Typography>
+                  <Alert severity="info" sx={{ mb: 3 }}>
+                    This information helps us verify your identity and provide better services.
+                  </Alert>
 
-                  <Grid item xs={6}>
-                    <Typography variant="h6" gutterBottom>Contact Information</Typography>
-                    <Paper sx={{ p: 2 }}>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">Contact Person</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.contactPerson}</Typography>
-                      </Box>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">Phone Number</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.phone}</Typography>
-                      </Box>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">Email Address</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.email}</Typography>
-                      </Box>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">Business Address</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.businessAddress}</Typography>
-                      </Box>
-                    </Paper>
-
-                    <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Services Offered</Typography>
-                    <Paper sx={{ p: 2 }}>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                        {vendor.services.map((service, index) => (
-                          <Chip 
-                            key={index} 
-                            label={service.replace('_', ' ').toUpperCase()} 
-                            color="primary"
-                            size="small"
-                          />
-                        ))}
-                      </Box>
-                    </Paper>
+                  <Grid container spacing={3}>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="First Name *"
+                        value={getPersonalInfo('firstName')}
+                        onChange={(e) => handleInputChange('personalInfo', 'firstName', e.target.value)}
+                        disabled={!isEditing}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Last Name *"
+                        value={getPersonalInfo('lastName')}
+                        onChange={(e) => handleInputChange('personalInfo', 'lastName', e.target.value)}
+                        disabled={!isEditing}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Date of Birth"
+                        type="date"
+                        value={getPersonalInfo('dateOfBirth')}
+                        onChange={(e) => handleInputChange('personalInfo', 'dateOfBirth', e.target.value)}
+                        disabled={!isEditing}
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth disabled={!isEditing}>
+                        <InputLabel>Gender</InputLabel>
+                        <Select
+                          value={getPersonalInfo('gender')}
+                          onChange={(e) => handleInputChange('personalInfo', 'gender', e.target.value)}
+                          label="Gender"
+                        >
+                          <MenuItem value="male">Male</MenuItem>
+                          <MenuItem value="female">Female</MenuItem>
+                          <MenuItem value="other">Other</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth disabled={!isEditing}>
+                        <InputLabel>Nationality</InputLabel>
+                        <Select
+                          value={getPersonalInfo('nationality')}
+                          onChange={(e) => handleInputChange('personalInfo', 'nationality', e.target.value)}
+                          label="Nationality"
+                        >
+                          <MenuItem value="Ugandan">Ugandan</MenuItem>
+                          <MenuItem value="Kenyan">Kenyan</MenuItem>
+                          <MenuItem value="Tanzanian">Tanzanian</MenuItem>
+                          <MenuItem value="Rwandan">Rwandan</MenuItem>
+                          <MenuItem value="Burundian">Burundian</MenuItem>
+                          <MenuItem value="Other">Other</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth disabled={!isEditing}>
+                        <InputLabel>Marital Status</InputLabel>
+                        <Select
+                          value={getPersonalInfo('maritalStatus')}
+                          onChange={(e) => handleInputChange('personalInfo', 'maritalStatus', e.target.value)}
+                          label="Marital Status"
+                        >
+                          <MenuItem value="single">Single</MenuItem>
+                          <MenuItem value="married">Married</MenuItem>
+                          <MenuItem value="divorced">Divorced</MenuItem>
+                          <MenuItem value="widowed">Widowed</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
                   </Grid>
-                </Grid>
+                </Box>
               )}
 
+              {/* Identification Tab */}
               {activeTab === 1 && (
                 <Box>
-                  <Typography variant="h6" gutterBottom>Legal Compliance Documents</Typography>
-                  
-                  <TableContainer component={Paper} sx={{ mb: 3 }}>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Document Type</TableCell>
-                          <TableCell>Status</TableCell>
-                          <TableCell>Expiry Date</TableCell>
-                          <TableCell>Verification</TableCell>
-                          <TableCell>Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {Object.entries(vendor.compliance).map(([key, doc]) => (
-                          <TableRow key={key}>
-                            <TableCell>
-                              <Typography variant="body2" fontWeight="500">
-                                {key.split(/(?=[A-Z])/).join(' ').toUpperCase()}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Chip 
-                                label={doc.status} 
-                                color={doc.verified ? 'success' : doc.status === 'pending_review' ? 'warning' : 'error'}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2">
-                                {doc.expiry === 'permanent' ? 'Permanent' : new Date(doc.expiry).toLocaleDateString()}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              {doc.verified ? (
-                                <CheckCircle color="success" />
-                              ) : doc.status === 'pending_review' ? (
-                                <Schedule color="warning" />
-                              ) : (
-                                <Warning color="error" />
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <Button 
-                                size="small" 
-                                startIcon={<Download />}
-                                onClick={() => handleDownloadDocument(key)}
-                                disabled={!doc.document}
-                              >
-                                Download
-                              </Button>
-                              <Button 
-                                size="small" 
-                                startIcon={<Upload />}
-                                onClick={() => handleDocumentUpload(key)}
-                              >
-                                Update
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                  <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <DocumentScanner /> Identification Documents
+                  </Typography>
+                  <Alert severity="warning" sx={{ mb: 3 }}>
+                    All identification documents must be clear, valid, and match the information provided.
+                  </Alert>
 
-                  <Typography variant="h6" gutterBottom>Vendor-Specific Legal Requirements</Typography>
-                  <List>
-                    {vendorComplianceRequirements.map((req) => (
-                      <ListItem key={req.id} divider>
-                        <ListItemIcon>
-                          <Gavel color="primary" />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={req.name}
-                          secondary={
-                            <Box>
-                              <Typography variant="body2">
-                                Authority: {req.authority}
-                              </Typography>
-                              <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                                <Chip label={req.requirement} size="small" color="primary" />
-                                <Chip label={req.frequency} size="small" variant="outlined" />
-                                <Chip label={`Penalty: ${req.penalty}`} size="small" color="error" />
-                              </Box>
-                            </Box>
-                          }
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
+                  <Grid container spacing={3}>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="National ID Number *"
+                        value={getIdentification('nationalId')}
+                        onChange={(e) => handleInputChange('identification', 'nationalId', e.target.value)}
+                        disabled={!isEditing}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="TIN Number (Optional)"
+                        value={getIdentification('tinNumber')}
+                        onChange={(e) => handleInputChange('identification', 'tinNumber', e.target.value)}
+                        disabled={!isEditing}
+                        helperText="Tax Identification Number"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Driving License Number *"
+                        value={getIdentification('drivingLicense')}
+                        onChange={(e) => handleInputChange('identification', 'drivingLicense', e.target.value)}
+                        disabled={!isEditing}
+                        required
+                      />
+                    </Grid>
+
+                    {/* Document Upload Section */}
+                    <Grid item xs={12}>
+                      <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                        Upload Documents
+                      </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={4}>
+                          <Paper
+                            sx={{
+                              p: 2,
+                              textAlign: 'center',
+                              border: '2px dashed',
+                              borderColor: 'grey.300',
+                              cursor: isEditing ? 'pointer' : 'default',
+                              '&:hover': isEditing ? { borderColor: 'primary.main' } : {}
+                            }}
+                            onClick={() => isEditing && document.getElementById('nationalIdFront').click()}
+                          >
+                            <input
+                              id="nationalIdFront"
+                              type="file"
+                              hidden
+                              accept="image/*"
+                              onChange={(e) => handleFileUpload('profileMedia', 'nationalIdFront', e.target.files[0])}
+                            />
+                            <DocumentScanner sx={{ fontSize: 40, color: 'grey.400', mb: 1 }} />
+                            <Typography variant="body2">National ID Front</Typography>
+                            {uploadProgress.nationalIdFront && (
+                              <CircularProgress
+                                variant="determinate"
+                                value={uploadProgress.nationalIdFront}
+                                size={20}
+                                sx={{ mt: 1 }}
+                              />
+                            )}
+                          </Paper>
+                        </Grid>
+                        <Grid item xs={4}>
+                          <Paper
+                            sx={{
+                              p: 2,
+                              textAlign: 'center',
+                              border: '2px dashed',
+                              borderColor: 'grey.300',
+                              cursor: isEditing ? 'pointer' : 'default',
+                              '&:hover': isEditing ? { borderColor: 'primary.main' } : {}
+                            }}
+                            onClick={() => isEditing && document.getElementById('nationalIdBack').click()}
+                          >
+                            <input
+                              id="nationalIdBack"
+                              type="file"
+                              hidden
+                              accept="image/*"
+                              onChange={(e) => handleFileUpload('profileMedia', 'nationalIdBack', e.target.files[0])}
+                            />
+                            <DocumentScanner sx={{ fontSize: 40, color: 'grey.400', mb: 1 }} />
+                            <Typography variant="body2">National ID Back</Typography>
+                          </Paper>
+                        </Grid>
+                        <Grid item xs={4}>
+                          <Paper
+                            sx={{
+                              p: 2,
+                              textAlign: 'center',
+                              border: '2px dashed',
+                              borderColor: 'grey.300',
+                              cursor: isEditing ? 'pointer' : 'default',
+                              '&:hover': isEditing ? { borderColor: 'primary.main' } : {}
+                            }}
+                            onClick={() => isEditing && document.getElementById('drivingLicenseFront').click()}
+                          >
+                            <input
+                              id="drivingLicenseFront"
+                              type="file"
+                              hidden
+                              accept="image/*"
+                              onChange={(e) => handleFileUpload('profileMedia', 'drivingLicenseFront', e.target.files[0])}
+                            />
+                            <CreditCard sx={{ fontSize: 40, color: 'grey.400', mb: 1 }} />
+                            <Typography variant="body2">Driving License</Typography>
+                          </Paper>
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                  </Grid>
                 </Box>
               )}
 
+              {/* Vehicle Information Tab */}
               {activeTab === 2 && (
                 <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6" gutterBottom>Vehicle Fleet Management</Typography>
-                    <Button 
-                      startIcon={<Add />} 
-                      variant="outlined"
-                      onClick={() => setShowAddVehicleModal(true)}
-                    >
-                      Add New Vehicle
-                    </Button>
-                  </Box>
-                  
-                  <TableContainer component={Paper}>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Vehicle ID</TableCell>
-                          <TableCell>Type</TableCell>
-                          <TableCell>Plate Number</TableCell>
-                          <TableCell>Model</TableCell>
-                          <TableCell>Year</TableCell>
-                          <TableCell>Insurance</TableCell>
-                          <TableCell>Registration</TableCell>
-                          <TableCell>Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {vendor.vehicles.map((vehicle) => (
-                          <TableRow key={vehicle.id}>
-                            <TableCell>{vehicle.id}</TableCell>
-                            <TableCell>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                {vehicle.type === 'motorcycle' ? <TwoWheeler /> : <DirectionsCar />}
-                                {vehicle.type}
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" fontWeight="500">
-                                {vehicle.plate}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>{vehicle.model}</TableCell>
-                            <TableCell>{vehicle.year}</TableCell>
-                            <TableCell>
-                              <Chip 
-                                label={vehicle.insurance} 
-                                color={vehicle.insurance === 'valid' ? 'success' : 'error'}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Chip 
-                                label={vehicle.registration} 
-                                color={vehicle.registration === 'valid' ? 'success' : 'error'}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Button 
-                                size="small"
-                                onClick={() => handleViewVehicleDetails(vehicle.id)}
-                              >
-                                View Details
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                  <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <TwoWheeler /> Vehicle Information
+                  </Typography>
+                  <Alert severity="info" sx={{ mb: 3 }}>
+                    Provide accurate details about your vehicle for insurance and verification purposes.
+                  </Alert>
+
+                  <Grid container spacing={3}>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth disabled={!isEditing}>
+                        <InputLabel>Vehicle Type *</InputLabel>
+                        <Select
+                          value={getVehicleInfo('vehicleType')}
+                          onChange={(e) => handleInputChange('vehicleInfo', 'vehicleType', e.target.value)}
+                          label="Vehicle Type *"
+                        >
+                          {vehicleTypes.map((type) => (
+                            <MenuItem key={type.value} value={type.value}>
+                              {type.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="License Plate *"
+                        value={getVehicleInfo('licensePlate')}
+                        onChange={(e) => handleInputChange('vehicleInfo', 'licensePlate', e.target.value)}
+                        disabled={!isEditing}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Make (Brand)"
+                        value={getVehicleInfo('make')}
+                        onChange={(e) => handleInputChange('vehicleInfo', 'make', e.target.value)}
+                        disabled={!isEditing}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Model"
+                        value={getVehicleInfo('model')}
+                        onChange={(e) => handleInputChange('vehicleInfo', 'model', e.target.value)}
+                        disabled={!isEditing}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Year"
+                        type="number"
+                        value={getVehicleInfo('year')}
+                        onChange={(e) => handleInputChange('vehicleInfo', 'year', e.target.value)}
+                        disabled={!isEditing}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Color"
+                        value={getVehicleInfo('color')}
+                        onChange={(e) => handleInputChange('vehicleInfo', 'color', e.target.value)}
+                        disabled={!isEditing}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Engine Number"
+                        value={getVehicleInfo('engineNumber')}
+                        onChange={(e) => handleInputChange('vehicleInfo', 'engineNumber', e.target.value)}
+                        disabled={!isEditing}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Chasis Number"
+                        value={getVehicleInfo('chasisNumber')}
+                        onChange={(e) => handleInputChange('vehicleInfo', 'chasisNumber', e.target.value)}
+                        disabled={!isEditing}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Insurance Provider"
+                        value={getVehicleInfo('insuranceProvider')}
+                        onChange={(e) => handleInputChange('vehicleInfo', 'insuranceProvider', e.target.value)}
+                        disabled={!isEditing}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Insurance Expiry"
+                        type="date"
+                        value={getVehicleInfo('insuranceExpiry')}
+                        onChange={(e) => handleInputChange('vehicleInfo', 'insuranceExpiry', e.target.value)}
+                        disabled={!isEditing}
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Grid>
+
+                    {/* Vehicle Photo Upload */}
+                    <Grid item xs={12}>
+                      <Paper
+                        sx={{
+                          p: 3,
+                          textAlign: 'center',
+                          border: '2px dashed',
+                          borderColor: 'grey.300',
+                          cursor: isEditing ? 'pointer' : 'default',
+                          '&:hover': isEditing ? { borderColor: 'primary.main' } : {}
+                        }}
+                        onClick={() => isEditing && document.getElementById('vehiclePhoto').click()}
+                      >
+                        <input
+                          id="vehiclePhoto"
+                          type="file"
+                          hidden
+                          accept="image/*"
+                          onChange={(e) => handleFileUpload('profileMedia', 'vehiclePhoto', e.target.files[0])}
+                        />
+                        <TwoWheeler sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
+                        <Typography variant="h6" gutterBottom>
+                          Upload Vehicle Photo
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          Clear photo showing license plate and entire vehicle
+                        </Typography>
+                        {uploadProgress.vehiclePhoto && (
+                          <CircularProgress
+                            variant="determinate"
+                            value={uploadProgress.vehiclePhoto}
+                            sx={{ mt: 2 }}
+                          />
+                        )}
+                      </Paper>
+                    </Grid>
+                  </Grid>
                 </Box>
               )}
 
+              {/* Contact Information Tab */}
               {activeTab === 3 && (
-                <Grid container spacing={3}>
-                  <Grid item xs={6}>
-                    <Paper sx={{ p: 3, textAlign: 'center' }}>
-                      <DeliveryDining color="primary" sx={{ fontSize: 40, mb: 1 }} />
-                      <Typography variant="h4" color="primary.main">
-                        {vendor.performance.completedDeliveries}
+                <Box>
+                  <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <LocationOn /> Contact Information
+                  </Typography>
+
+                  <Grid container spacing={3}>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Phone Number *"
+                        value={getContactInfo('phone')}
+                        onChange={(e) => handleInputChange('contactInfo', 'phone', e.target.value)}
+                        disabled={!isEditing}
+                        required
+                        InputProps={{
+                          startAdornment: <Phone sx={{ mr: 1, color: 'grey.400' }} />
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Email Address"
+                        type="email"
+                        value={getContactInfo('email')}
+                        onChange={(e) => handleInputChange('contactInfo', 'email', e.target.value)}
+                        disabled={!isEditing}
+                        InputProps={{
+                          startAdornment: <Email sx={{ mr: 1, color: 'grey.400' }} />
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Address"
+                        value={getContactInfo('address')}
+                        onChange={(e) => handleInputChange('contactInfo', 'address', e.target.value)}
+                        disabled={!isEditing}
+                        multiline
+                        rows={2}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="City"
+                        value={getContactInfo('city')}
+                        onChange={(e) => handleInputChange('contactInfo', 'city', e.target.value)}
+                        disabled={!isEditing}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth disabled={!isEditing}>
+                        <InputLabel>District</InputLabel>
+                        <Select
+                          value={getContactInfo('district')}
+                          onChange={(e) => handleInputChange('contactInfo', 'district', e.target.value)}
+                          label="District"
+                        >
+                          {districts.map((district) => (
+                            <MenuItem key={district} value={district}>
+                              {district}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+
+                    {/* Emergency Contact */}
+                    <Grid item xs={12}>
+                      <Divider sx={{ my: 3 }} />
+                      <Typography variant="h6" gutterBottom>
+                        Emergency Contact
                       </Typography>
-                      <Typography variant="body2">Completed Deliveries</Typography>
-                    </Paper>
+                      <Grid container spacing={3}>
+                        <Grid item xs={4}>
+                          <TextField
+                            fullWidth
+                            label="Contact Name"
+                            value={getEmergencyContact('name')}
+                            onChange={(e) => handleNestedInputChange('contactInfo', 'emergencyContact', 'name', e.target.value)}
+                            disabled={!isEditing}
+                          />
+                        </Grid>
+                        <Grid item xs={4}>
+                          <TextField
+                            fullWidth
+                            label="Phone Number"
+                            value={getEmergencyContact('phone')}
+                            onChange={(e) => handleNestedInputChange('contactInfo', 'emergencyContact', 'phone', e.target.value)}
+                            disabled={!isEditing}
+                          />
+                        </Grid>
+                        <Grid item xs={4}>
+                          <TextField
+                            fullWidth
+                            label="Relationship"
+                            value={getEmergencyContact('relationship')}
+                            onChange={(e) => handleNestedInputChange('contactInfo', 'emergencyContact', 'relationship', e.target.value)}
+                            disabled={!isEditing}
+                          />
+                        </Grid>
+                      </Grid>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={6}>
-                    <Paper sx={{ p: 3, textAlign: 'center' }}>
-                      <Schedule color="success" sx={{ fontSize: 40, mb: 1 }} />
-                      <Typography variant="h4" color="success.main">
-                        {vendor.performance.onTimeRate}%
-                      </Typography>
-                      <Typography variant="body2">On-time Delivery Rate</Typography>
-                    </Paper>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Paper sx={{ p: 3, textAlign: 'center' }}>
-                      <TrendingUp color="info" sx={{ fontSize: 40, mb: 1 }} />
-                      <Typography variant="h4" color="info.main">
-                        UGX {vendor.performance.monthlyRevenue.toLocaleString()}
-                      </Typography>
-                      <Typography variant="body2">Monthly Revenue</Typography>
-                    </Paper>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Paper sx={{ p: 3, textAlign: 'center' }}>
-                      <Person color="warning" sx={{ fontSize: 40, mb: 1 }} />
-                      <Typography variant="h4" color="warning.main">
-                        {vendor.performance.activeRiders}
-                      </Typography>
-                      <Typography variant="body2">Active Riders</Typography>
-                    </Paper>
-                  </Grid>
-                </Grid>
+                </Box>
               )}
 
+              {/* Banking Information Tab */}
               {activeTab === 4 && (
-                <Grid container spacing={3}>
-                  <Grid item xs={6}>
-                    <Typography variant="h6" gutterBottom>Bank Account Details</Typography>
-                    <Paper sx={{ p: 2 }}>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">Bank Name</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.payment.bankName}</Typography>
-                      </Box>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">Account Number</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.payment.accountNumber}</Typography>
-                      </Box>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">Account Name</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.payment.accountName}</Typography>
-                      </Box>
-                    </Paper>
-                  </Grid>
+                <Box>
+                  <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CreditCard /> Banking Information
+                  </Typography>
+                  <Alert severity="info" sx={{ mb: 3 }}>
+                    This information is used for processing your earnings and withdrawals securely.
+                  </Alert>
 
-                  <Grid item xs={6}>
-                    <Typography variant="h6" gutterBottom>Mobile Money Accounts</Typography>
-                    <Paper sx={{ p: 2 }}>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">MTN Mobile Money</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.payment.mobileMoney.mtn}</Typography>
-                      </Box>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="textSecondary">Airtel Money</Typography>
-                        <Typography variant="body1" fontWeight="500">{vendor.payment.mobileMoney.airtel}</Typography>
-                      </Box>
-                    </Paper>
+                  <Grid container spacing={3}>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth disabled={!isEditing}>
+                        <InputLabel>Bank Name *</InputLabel>
+                        <Select
+                          value={getBankingInfo('bankName')}
+                          onChange={(e) => handleInputChange('bankingInfo', 'bankName', e.target.value)}
+                          label="Bank Name *"
+                        >
+                          {banks.map((bank) => (
+                            <MenuItem key={bank} value={bank}>
+                              {bank}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Account Number *"
+                        value={getBankingInfo('accountNumber')}
+                        onChange={(e) => handleInputChange('bankingInfo', 'accountNumber', e.target.value)}
+                        disabled={!isEditing}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Account Name *"
+                        value={getBankingInfo('accountName')}
+                        onChange={(e) => handleInputChange('bankingInfo', 'accountName', e.target.value)}
+                        disabled={!isEditing}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Branch"
+                        value={getBankingInfo('branch')}
+                        onChange={(e) => handleInputChange('bankingInfo', 'branch', e.target.value)}
+                        disabled={!isEditing}
+                      />
+                    </Grid>
                   </Grid>
-                </Grid>
+                </Box>
+              )}
+
+              {/* Preferences Tab */}
+              {activeTab === 5 && (
+                <Box>
+                  <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Security /> Preferences & Settings
+                  </Typography>
+
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <Typography variant="h6" gutterBottom>
+                        Notification Preferences
+                      </Typography>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={getPreference('notifications')}
+                            onChange={(e) => handleInputChange('preferences', 'notifications', e.target.checked)}
+                            disabled={!isEditing}
+                          />
+                        }
+                        label="Push Notifications"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={getPreference('smsAlerts')}
+                            onChange={(e) => handleInputChange('preferences', 'smsAlerts', e.target.checked)}
+                            disabled={!isEditing}
+                          />
+                        }
+                        label="SMS Alerts"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={getPreference('emailUpdates')}
+                            onChange={(e) => handleInputChange('preferences', 'emailUpdates', e.target.checked)}
+                            disabled={!isEditing}
+                          />
+                        }
+                        label="Email Updates"
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Typography variant="h6" gutterBottom>
+                        Ride Preferences
+                      </Typography>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={getPreference('autoStartRide')}
+                            onChange={(e) => handleInputChange('preferences', 'autoStartRide', e.target.checked)}
+                            disabled={!isEditing}
+                          />
+                        }
+                        label="Auto-start Ride Detection"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={getPreference('shareLocation')}
+                            onChange={(e) => handleInputChange('preferences', 'shareLocation', e.target.checked)}
+                            disabled={!isEditing}
+                          />
+                        }
+                        label="Share Location for Better Matching"
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
               )}
             </CardContent>
           </Card>
         </Grid>
       </Grid>
-
-      {/* Verification Status Modal */}
-      <Dialog open={showVerificationModal} onClose={() => setShowVerificationModal(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          <Typography variant="h5">Vendor Verification Status</Typography>
-        </DialogTitle>
-        <DialogContent dividers>
-          <Grid container spacing={3}>
-            <Grid item xs={6}>
-              <Typography variant="h6" gutterBottom>Business Verification</Typography>
-              <List>
-                <ListItem>
-                  <ListItemIcon>
-                    <CheckCircle color="success" />
-                  </ListItemIcon>
-                  <ListItemText primary="Business Registration" secondary="Verified with URSB" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <CheckCircle color="success" />
-                  </ListItemIcon>
-                  <ListItemText primary="Trading License" secondary="Valid until Dec 2024" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <CheckCircle color="success" />
-                  </ListItemIcon>
-                  <ListItemText primary="Tax Compliance" secondary="TIN registered with URA" />
-                </ListItem>
-              </List>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="h6" gutterBottom>Operational Compliance</Typography>
-              <List>
-                <ListItem>
-                  <ListItemIcon>
-                    <CheckCircle color="success" />
-                  </ListItemIcon>
-                  <ListItemText primary="Operator License" secondary="Transport authority approved" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <CheckCircle color="success" />
-                  </ListItemIcon>
-                  <ListItemText primary="Vehicle Insurance" secondary="All vehicles insured" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <CheckCircle color="success" />
-                  </ListItemIcon>
-                  <ListItemText primary="Rider KYC" secondary="All riders verified" />
-                </ListItem>
-              </List>
-            </Grid>
-          </Grid>
-          
-          <Alert severity="success" sx={{ mt: 2 }}>
-            <Typography variant="body2">
-              Vendor is fully compliant with Ugandan logistics and transportation regulations.
-            </Typography>
-          </Alert>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowVerificationModal(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Document Upload Modal */}
-      <Dialog open={showDocumentUpload} onClose={() => setShowDocumentUpload(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          <Typography variant="h6">Upload {uploadingDoc.replace(/([A-Z])/g, ' $1').toLowerCase()} Document</Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" paragraph>
-            Please upload the required document for verification. Supported formats: PDF, JPG, PNG
-          </Typography>
-          
-          <Button 
-            variant="outlined" 
-            component="label" 
-            fullWidth 
-            sx={{ mb: 2 }}
-            startIcon={<Upload />}
-          >
-            Select Document
-            <input 
-              type="file" 
-              hidden 
-              accept=".pdf,.jpg,.jpeg,.png" 
-              onChange={handleFileSelect}
-            />
-          </Button>
-
-          {selectedFile && (
-            <Alert severity="info">
-              Selected: {selectedFile.name}
-            </Alert>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => {
-            setShowDocumentUpload(false);
-            setSelectedFile(null);
-          }}>
-            Cancel
-          </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleUploadDocument}
-            disabled={!selectedFile}
-          >
-            Upload Document
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Edit Profile Modal */}
-      <Dialog open={showEditModal} onClose={() => setShowEditModal(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          <Typography variant="h5">Edit Vendor Profile</Typography>
-        </DialogTitle>
-        <DialogContent dividers>
-          <Grid container spacing={2}>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Business Name"
-                value={editForm.businessName}
-                onChange={(e) => setEditForm({...editForm, businessName: e.target.value})}
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Trading Name"
-                value={editForm.tradingName}
-                onChange={(e) => setEditForm({...editForm, tradingName: e.target.value})}
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Contact Person"
-                value={editForm.contactPerson}
-                onChange={(e) => setEditForm({...editForm, contactPerson: e.target.value})}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Phone Number"
-                value={editForm.phone}
-                onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Email Address"
-                value={editForm.email}
-                onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Business Address"
-                value={editForm.businessAddress}
-                onChange={(e) => setEditForm({...editForm, businessAddress: e.target.value})}
-                margin="normal"
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowEditModal(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSaveProfile}>
-            Save Changes
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Add Vehicle Modal */}
-      <Dialog open={showAddVehicleModal} onClose={() => setShowAddVehicleModal(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          <Typography variant="h5">Add New Vehicle</Typography>
-        </DialogTitle>
-        <DialogContent dividers>
-          <Grid container spacing={2}>
-            <Grid item xs={6}>
-              <FormControl fullWidth margin="normal">
-                <InputLabel>Vehicle Type</InputLabel>
-                <Select
-                  value={newVehicle.type}
-                  onChange={(e) => setNewVehicle({...newVehicle, type: e.target.value})}
-                  label="Vehicle Type"
-                >
-                  <MenuItem value="motorcycle">Motorcycle</MenuItem>
-                  <MenuItem value="car">Car</MenuItem>
-                  <MenuItem value="van">Van</MenuItem>
-                  <MenuItem value="truck">Truck</MenuItem>
-                </Select>
-              </FormControl>
-              <TextField
-                fullWidth
-                label="Plate Number"
-                value={newVehicle.plate}
-                onChange={(e) => setNewVehicle({...newVehicle, plate: e.target.value.toUpperCase()})}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Model"
-                value={newVehicle.model}
-                onChange={(e) => setNewVehicle({...newVehicle, model: e.target.value})}
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Year"
-                type="number"
-                value={newVehicle.year}
-                onChange={(e) => setNewVehicle({...newVehicle, year: parseInt(e.target.value)})}
-                margin="normal"
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowAddVehicleModal(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleAddVehicle}>
-            Add Vehicle
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={handleCloseSnackbar}
-        message={snackbar.message}
-      />
     </Box>
   );
 };
 
-export default VendorProfile;
+export default RiderProfilePage;
