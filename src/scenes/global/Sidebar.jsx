@@ -81,12 +81,12 @@ const Sidebar = () => {
          
           <Item title="Dashboard" to="/pos/all" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
     
-          <Item title="Product List" to="/pos/new_sales" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
-          <Item title="Service List" to="/pos/service_sales" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          <Item title="New Sales" to="/pos/new_sales" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          <Item title="New Service" to="/pos/service_sales" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
         
   <SubMenu title="Products" icon={<HomeOutlinedIcon />}>
-   <Item title="Manage Products" to="/pos/products" icon={<StorageIcon />} selected={selected} setSelected={setSelected} />
-  <Item title="Manage Services" to="/pos/services" icon={<AssessmentIcon />} selected={selected} setSelected={setSelected} />
+   <Item title="Product List" to="/pos/products" icon={<StorageIcon />} selected={selected} setSelected={setSelected} />
+  <Item title="Service List" to="/pos/services" icon={<AssessmentIcon />} selected={selected} setSelected={setSelected} />
   
       
       
