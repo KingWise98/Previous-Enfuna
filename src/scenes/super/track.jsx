@@ -44,7 +44,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Divider
+  Divider,
+  Snackbar
 } from '@mui/material';
 import {
   PlayArrow,
@@ -109,7 +110,10 @@ const SuperAdminDashboard = () => {
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [showLegalDialog, setShowLegalDialog] = useState(false);
   const [showSOSAlert, setShowSOSAlert] = useState(false);
+  const [showComplianceReport, setShowComplianceReport] = useState(false);
+  const [showSystemHealth, setShowSystemHealth] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [filters, setFilters] = useState({
     status: 'all',
     type: 'all',
@@ -345,37 +349,118 @@ const SuperAdminDashboard = () => {
     }
   ]);
 
-  // Filter users based on search and filters
-  const filteredUsers = [...users.riders, ...users.drivers].filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filters.status === 'all' || user.status === filters.status;
-    const matchesType = filters.type === 'all' || user.type === filters.type;
-    const matchesCompliance = filters.compliance === 'all' || 
-                             (filters.compliance === 'compliant' && isUserCompliant(user)) ||
-                             (filters.compliance === 'non_compliant' && !isUserCompliant(user));
+  // Filter users based on active tab, search and filters
+  const getFilteredUsers = () => {
+    let userList = [];
     
-    return matchesSearch && matchesStatus && matchesType && matchesCompliance;
-  });
+    // Determine which users to show based on active tab
+    switch (activeTab) {
+      case 0: // All Users
+        userList = [...users.riders, ...users.drivers];
+        break;
+      case 1: // Riders
+        userList = users.riders;
+        break;
+      case 2: // Drivers
+        userList = users.drivers;
+        break;
+      case 3: // Compliance Issues
+        userList = [...users.riders, ...users.drivers].filter(user => !isUserCompliant(user));
+        break;
+      default:
+        userList = [...users.riders, ...users.drivers];
+    }
+
+    return userList.filter(user => {
+      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           user.id.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = filters.status === 'all' || user.status === filters.status;
+      const matchesType = filters.type === 'all' || user.type === filters.type;
+      const matchesCompliance = filters.compliance === 'all' || 
+                               (filters.compliance === 'compliant' && isUserCompliant(user)) ||
+                               (filters.compliance === 'non_compliant' && !isUserCompliant(user));
+      
+      return matchesSearch && matchesStatus && matchesType && matchesCompliance;
+    });
+  };
 
   const isUserCompliant = (user) => {
     return Object.values(user.compliance).every(doc => doc.valid);
   };
 
   const handleUserAction = (userId, action) => {
-    // Implementation for user actions (suspend, activate, etc.)
-    console.log(`Action: ${action} for user: ${userId}`);
+    const updatedUsers = { ...users };
+    let message = '';
+    
+    // Find user in riders or drivers
+    let user = updatedUsers.riders.find(u => u.id === userId) || 
+               updatedUsers.drivers.find(u => u.id === userId);
+    
+    if (user) {
+      switch (action) {
+        case 'suspend':
+          user.status = 'suspended';
+          user.suspensionReason = 'Admin manual suspension';
+          message = `User ${userId} suspended successfully`;
+          break;
+        case 'activate':
+          user.status = 'active';
+          user.suspensionReason = '';
+          message = `User ${userId} activated successfully`;
+          break;
+        case 'view':
+          setSelectedUser(user);
+          setShowUserDetails(true);
+          return;
+        default:
+          break;
+      }
+      
+      setUsers(updatedUsers);
+      showSnackbar(message, 'success');
+    }
   };
 
-  const handleViewDetails = (user) => {
-    setSelectedUser(user);
-    setShowUserDetails(true);
+  const handleRefreshData = () => {
+    // Simulate data refresh
+    showSnackbar('Data refreshed successfully', 'info');
+    // In real app, this would fetch new data from API
+  };
+
+  const handleGenerateComplianceReport = () => {
+    setShowComplianceReport(true);
+    showSnackbar('Generating compliance report...', 'info');
+  };
+
+  const handleSystemHealthCheck = () => {
+    setShowSystemHealth(true);
+    showSnackbar('Running system health check...', 'info');
+  };
+
+  const handleLegalComplianceAudit = () => {
+    setShowLegalDialog(true);
+    showSnackbar('Starting legal compliance audit...', 'info');
+  };
+
+  const handleExportReports = () => {
+    showSnackbar('Exporting reports...', 'info');
+    // Simulate export process
+    setTimeout(() => {
+      showSnackbar('Reports exported successfully!', 'success');
+    }, 2000);
   };
 
   const handleSOSResponse = (alert) => {
     setShowSOSAlert(true);
-    // In real implementation, this would trigger emergency response
-    console.log('Responding to SOS alert:', alert);
+    showSnackbar(`Responding to SOS alert from ${alert.userName}`, 'warning');
+  };
+
+  const showSnackbar = (message, severity) => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   const ComplianceStatus = ({ user }) => {
@@ -410,23 +495,33 @@ const SuperAdminDashboard = () => {
     return <Chip label={config.label} color={config.color} size="small" />;
   };
 
+  const filteredUsers = getFilteredUsers();
+
   return (
     <Box sx={{ p: 3, minHeight: '100vh', backgroundColor: 'grey.50' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Rider & Driver Dashboard
+            Rider & Driver  Dashboard
           </Typography>
           <Typography variant="body1" color="textSecondary">
             Comprehensive monitoring and compliance management for riders and drivers
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button startIcon={<Download />} variant="outlined">
+          <Button 
+            startIcon={<Download />} 
+            variant="outlined"
+            onClick={handleExportReports}
+          >
             Export Reports
           </Button>
-          <Button startIcon={<Policy />} variant="contained">
+          <Button 
+            startIcon={<Policy />} 
+            variant="contained"
+            onClick={() => setShowLegalDialog(true)}
+          >
             Legal Framework
           </Button>
         </Box>
@@ -498,16 +593,35 @@ const SuperAdminDashboard = () => {
           <Card sx={{ mb: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>Quick Actions</Typography>
-              <Button fullWidth startIcon={<Refresh />} sx={{ mb: 1 }}>
+              <Button 
+                fullWidth 
+                startIcon={<Refresh />} 
+                sx={{ mb: 1 }}
+                onClick={handleRefreshData}
+              >
                 Refresh All Data
               </Button>
-              <Button fullWidth startIcon={<Assignment />} sx={{ mb: 1 }}>
+              <Button 
+                fullWidth 
+                startIcon={<Assignment />} 
+                sx={{ mb: 1 }}
+                onClick={handleGenerateComplianceReport}
+              >
                 Generate Compliance Report
               </Button>
-              <Button fullWidth startIcon={<Report />} sx={{ mb: 1 }}>
+              <Button 
+                fullWidth 
+                startIcon={<Report />} 
+                sx={{ mb: 1 }}
+                onClick={handleSystemHealthCheck}
+              >
                 System Health Check
               </Button>
-              <Button fullWidth startIcon={<Gavel />}>
+              <Button 
+                fullWidth 
+                startIcon={<Gavel />}
+                onClick={handleLegalComplianceAudit}
+              >
                 Legal Compliance Audit
               </Button>
             </CardContent>
@@ -740,7 +854,10 @@ const SuperAdminDashboard = () => {
                         <TableCell>
                           <Box sx={{ display: 'flex', gap: 1 }}>
                             <Tooltip title="View Details">
-                              <IconButton size="small" onClick={() => handleViewDetails(user)}>
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleUserAction(user.id, 'view')}
+                              >
                                 <Visibility />
                               </IconButton>
                             </Tooltip>
@@ -751,13 +868,21 @@ const SuperAdminDashboard = () => {
                             </Tooltip>
                             {user.status === 'active' ? (
                               <Tooltip title="Suspend">
-                                <IconButton size="small" color="warning">
+                                <IconButton 
+                                  size="small" 
+                                  color="warning"
+                                  onClick={() => handleUserAction(user.id, 'suspend')}
+                                >
                                   <Block />
                                 </IconButton>
                               </Tooltip>
                             ) : (
                               <Tooltip title="Activate">
-                                <IconButton size="small" color="success">
+                                <IconButton 
+                                  size="small" 
+                                  color="success"
+                                  onClick={() => handleUserAction(user.id, 'activate')}
+                                >
                                   <CheckCircle />
                                 </IconButton>
                               </Tooltip>
@@ -769,6 +894,14 @@ const SuperAdminDashboard = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
+
+              {filteredUsers.length === 0 && (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="h6" color="textSecondary">
+                    No users found matching your criteria
+                  </Typography>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
@@ -876,44 +1009,6 @@ const SuperAdminDashboard = () => {
                   </Grid>
                 </Paper>
               </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>Location & Activity</Typography>
-                <Paper sx={{ p: 2 }}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <Typography variant="body2" fontWeight="bold">Last Known Location</Typography>
-                      <Typography variant="body1">
-                        Lat: {selectedUser.location.lat}, Lng: {selectedUser.location.lng}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="body2" fontWeight="bold">Last Update</Typography>
-                      <Typography variant="body1">
-                        {new Date(selectedUser.location.lastUpdate).toLocaleString()}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography variant="body2" fontWeight="bold">Today's Earnings</Typography>
-                      <Typography variant="body1" color="success.main">
-                        UGX {selectedUser.earnings.today.toLocaleString()}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography variant="body2" fontWeight="bold">Weekly Earnings</Typography>
-                      <Typography variant="body1">
-                        UGX {selectedUser.earnings.weekly.toLocaleString()}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography variant="body2" fontWeight="bold">Monthly Earnings</Typography>
-                      <Typography variant="body1">
-                        UGX {selectedUser.earnings.monthly.toLocaleString()}
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                </Paper>
-              </Grid>
             </Grid>
           )}
         </DialogContent>
@@ -921,6 +1016,56 @@ const SuperAdminDashboard = () => {
           <Button onClick={() => setShowUserDetails(false)}>Close</Button>
           <Button variant="contained" color="primary">
             Generate Report
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Legal Framework Dialog */}
+      <Dialog open={showLegalDialog} onClose={() => setShowLegalDialog(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h5">Legal Framework & Compliance Requirements</Typography>
+            <IconButton onClick={() => setShowLegalDialog(false)}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="h6" gutterBottom>Legal Requirements Overview</Typography>
+          <List>
+            {legalRequirements.map((req) => (
+              <ListItem key={req.id} divider>
+                <ListItemIcon>
+                  <Gavel color="primary" />
+                </ListItemIcon>
+                <ListItemText
+                  primary={req.name}
+                  secondary={
+                    <Box>
+                      <Typography variant="body2">{req.description}</Typography>
+                      <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                        <Chip label={`Validity: ${req.validityPeriod}`} size="small" />
+                        <Chip label={`Grace: ${req.gracePeriod} days`} size="small" color="warning" />
+                        <Chip label={`Penalty: ${req.penalty}`} size="small" color="error" />
+                      </Box>
+                    </Box>
+                  }
+                />
+              </ListItem>
+            ))}
+          </List>
+          
+          <Alert severity="info" sx={{ mt: 2 }}>
+            <Typography variant="body2">
+              All requirements are enforced according to national transportation laws and regulations.
+              Non-compliance may result in automatic suspension and legal penalties.
+            </Typography>
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowLegalDialog(false)}>Close</Button>
+          <Button variant="contained" onClick={handleLegalComplianceAudit}>
+            Run Compliance Audit
           </Button>
         </DialogActions>
       </Dialog>
@@ -954,6 +1099,115 @@ const SuperAdminDashboard = () => {
           </Box>
         </DialogContent>
       </Dialog>
+
+      {/* Compliance Report Dialog */}
+      <Dialog open={showComplianceReport} onClose={() => setShowComplianceReport(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          <Typography variant="h5">Compliance Report</Typography>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="h6" gutterBottom>System Compliance Overview</Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <Paper sx={{ p: 2, textAlign: 'center' }}>
+                <Typography variant="h4" color="success.main">
+                  {systemStats.complianceRate}%
+                </Typography>
+                <Typography variant="body2">Overall Compliance Rate</Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={6}>
+              <Paper sx={{ p: 2, textAlign: 'center' }}>
+                <Typography variant="h4" color="warning.main">
+                  {users.riders.length + users.drivers.length - filteredUsers.length}
+                </Typography>
+                <Typography variant="body2">Non-Compliant Users</Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+          
+          <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>Compliance Breakdown</Typography>
+          <List>
+            <ListItem>
+              <ListItemText
+                primary="Riders Compliance"
+                secondary={`${users.riders.filter(r => isUserCompliant(r)).length}/${users.riders.length} compliant`}
+              />
+              <LinearProgress 
+                variant="determinate" 
+                value={(users.riders.filter(r => isUserCompliant(r)).length / users.riders.length) * 100}
+                sx={{ width: 100 }}
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="Drivers Compliance"
+                secondary={`${users.drivers.filter(d => isUserCompliant(d)).length}/${users.drivers.length} compliant`}
+              />
+              <LinearProgress 
+                variant="determinate" 
+                value={(users.drivers.filter(d => isUserCompliant(d)).length / users.drivers.length) * 100}
+                sx={{ width: 100 }}
+              />
+            </ListItem>
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowComplianceReport(false)}>Close</Button>
+          <Button variant="contained" startIcon={<Download />}>
+            Download Report
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* System Health Dialog */}
+      <Dialog open={showSystemHealth} onClose={() => setShowSystemHealth(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <Typography variant="h5">System Health Check</Typography>
+        </DialogTitle>
+        <DialogContent dividers>
+          <List>
+            <ListItem>
+              <ListItemIcon>
+                <CheckCircle color="success" />
+              </ListItemIcon>
+              <ListItemText primary="Database Connection" secondary="Connected and responsive" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <CheckCircle color="success" />
+              </ListItemIcon>
+              <ListItemText primary="GPS Tracking" secondary="All devices reporting" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <CheckCircle color="success" />
+              </ListItemIcon>
+              <ListItemText primary="Payment Processing" secondary="Operational" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <CheckCircle color="success" />
+              </ListItemIcon>
+              <ListItemText primary="Compliance Monitoring" secondary="Active and scanning" />
+            </ListItem>
+          </List>
+          <Alert severity="success" sx={{ mt: 2 }}>
+            All systems operational. No issues detected.
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowSystemHealth(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        message={snackbar.message}
+      />
     </Box>
   );
 };
