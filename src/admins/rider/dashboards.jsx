@@ -221,7 +221,7 @@ const SimpleRiderApp = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Boda Boda Rider Dashboard 🏍️
+            Rider Dashboard 🏍️
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Chip 
