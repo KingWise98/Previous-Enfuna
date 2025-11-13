@@ -360,7 +360,7 @@ const VendorProfile = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            🚚 Vendor Profile
+            Vendor Profile
           </Typography>
           <Typography variant="body1" color="textSecondary">
             Logistics and delivery service provider management
