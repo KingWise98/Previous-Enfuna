@@ -132,8 +132,8 @@ const RiderProfilePage = () => {
   // Mock initial data with all required fields
   const mockData = {
     personalInfo: {
-      firstName: 'David',
-      lastName: 'Kato',
+      firstName: 'Peter',
+      lastName: 'Kure',
       dateOfBirth: '1990-05-15',
       gender: 'male',
       nationality: 'Ugandan',
@@ -160,7 +160,7 @@ const RiderProfilePage = () => {
     },
     contactInfo: {
       phone: '+256712345678',
-      email: 'david.kato@example.com',
+      email: 'kure@enfuna.com',
       address: 'Plot 123, Kampala Road',
       city: 'Kampala',
       district: 'Kampala Central',
@@ -173,7 +173,7 @@ const RiderProfilePage = () => {
     bankingInfo: {
       bankName: 'Centenary Bank',
       accountNumber: '1234567890',
-      accountName: 'David Kato',
+      accountName: 'Peter Kure',
       branch: 'Kampala Main'
     },
     profileMedia: {
