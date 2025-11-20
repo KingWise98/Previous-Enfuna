@@ -56,28 +56,28 @@ const SimpleDriverApp = () => {
       description: 'Begin a new trip',
       icon: <DirectionsCar sx={{ fontSize: isMobile ? 30 : 40 }} />,
       color: 'primary',
-      link: '/rider/ride'
+      link: '/driver/drive'
     },
     {
       title: 'Add Expense',
       description: 'Record spending',
       icon: <Money sx={{ fontSize: isMobile ? 30 : 40 }} />,
       color: 'error',
-      link: '/rider/expense'
+      link: '/driver/expense'
     },
     {
       title: 'View Payments',
       description: 'See your earnings',
       icon: <Payment sx={{ fontSize: isMobile ? 30 : 40 }} />,
       color: 'success',
-      link: '/rider/page'
+      link: '/driver/page'
     },
     {
       title: 'My Wallet',
       description: 'Check balance',
       icon: <Receipt sx={{ fontSize: isMobile ? 30 : 40 }} />,
       color: 'warning',
-      link: '/rider/wallet'
+      link: '/driver/page'
     }
   ];
 
