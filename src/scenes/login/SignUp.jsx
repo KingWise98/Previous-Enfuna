@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Auth.module.css";
 import companyLogo from "./enfuna.png";
-import authImage from "./ride.png"; // You'll need to add this image
+import authImage from "./rides.jpg"; // You'll need to add this image
 
 function Auth({ onLogin }) {
   const navigate = useNavigate();
@@ -692,25 +692,11 @@ function Auth({ onLogin }) {
                     padding: 2rem;
                     text-align: center;
                   ">
-                    <div style="font-size: 4rem; margin-bottom: 1rem;">🚀</div>
-                    <h2 style="font-size: 2rem; margin-bottom: 1rem; font-weight: bold;">Welcome to Enfuna</h2>
-                    <p style="font-size: 1.1rem; opacity: 0.9;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
+                    <h2 style="font-size: 1.5rem; margin-bottom: 1rem; font-weight: bold;">Welcome to Enfuna</h2>
+                    <p style="font-size: 1rem; opacity: 0.9; max-width: 300px;">
                       Join thousands of users managing their business efficiently
                     </p>
-                    <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
-                      <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; backdrop-filter: blur(10px);">
-                        <div style="font-size: 2rem;">🏪</div>
-                        <p>Business Owners</p>
-                      </div>
-                      <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; backdrop-filter: blur(10px);">
-                        <div style="font-size: 2rem;">🚚</div>
-                        <p>Delivery Partners</p>
-                      </div>
-                      <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; backdrop-filter: blur(10px);">
-                        <div style="font-size: 2rem;">🛒</div>
-                        <p>Vendors</p>
-                      </div>
-                    </div>
                   </div>
                 `;
               }}
