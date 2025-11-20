@@ -96,7 +96,7 @@ const Riders = () => {
              <Item title="Customers" to="/rider/contacts" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
              
             
-            
+            <Item title="Earninngs" to="/driver/earning" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
 
  
   
