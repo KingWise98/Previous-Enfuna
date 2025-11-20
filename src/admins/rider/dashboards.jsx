@@ -77,7 +77,7 @@ const SimpleRiderApp = () => {
       description: 'Check balance',
       icon: <Receipt sx={{ fontSize: isMobile ? 30 : 40 }} />,
       color: 'warning',
-      link: '/rider/earnings'
+      link: '/rider/earning'
     }
   ];
 
