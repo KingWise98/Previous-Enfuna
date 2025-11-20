@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -30,7 +31,8 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel
+  InputLabel,
+  IconButton
 } from '@mui/material';
 import {
   AccountBalanceWallet,
@@ -49,12 +51,15 @@ import {
   EmojiEvents,
   Star,
   StarHalf,
-  StarBorder
+  StarBorder,
+  ArrowBack,
+  Visibility
 } from '@mui/icons-material';
 
 const EarningsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [selectedPeriod, setSelectedPeriod] = useState('week');
 
@@ -130,11 +135,11 @@ const EarningsPage = () => {
 
   const getTrendIcon = (trend) => {
     if (trend > 0) {
-      return <TrendingUp color="success" />;
+      return <TrendingUp sx={{ color: '#10B981' }} />;
     } else if (trend < 0) {
-      return <TrendingDown color="error" />;
+      return <TrendingDown sx={{ color: '#EF4444' }} />;
     }
-    return <TrendingUp color="action" />;
+    return <TrendingUp sx={{ color: '#6B7280' }} />;
   };
 
   const renderStars = (score) => {
@@ -144,30 +149,146 @@ const EarningsPage = () => {
     
     for (let i = 0; i < 5; i++) {
       if (i < fullStars) {
-        stars.push(<Star key={i} sx={{ color: '#FFD700' }} />);
+        stars.push(<Star key={i} sx={{ color: '#FFEC01' }} />);
       } else if (i === fullStars && halfStar) {
-        stars.push(<StarHalf key={i} sx={{ color: '#FFD700' }} />);
+        stars.push(<StarHalf key={i} sx={{ color: '#FFEC01' }} />);
       } else {
-        stars.push(<StarBorder key={i} sx={{ color: '#FFD700' }} />);
+        stars.push(<StarBorder key={i} sx={{ color: '#FFEC01' }} />);
       }
     }
     return stars;
   };
 
+  // Financial Summary Cards for Top Section
+  const FinancialSummary = () => (
+    <Grid container spacing={2} sx={{ mb: 3 }}>
+      {/* Total Earnings */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
+          color: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 37, 221, 0.2)'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <AccountBalanceWallet sx={{ fontSize: 40, opacity: 0.8 }} />
+              <TrendingUp sx={{ fontSize: 20 }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" sx={{ mb: 1 }}>
+              {formatCurrency(3250000)}
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              Total Earnings
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              <TrendingUp sx={{ fontSize: 16, mr: 0.5 }} />
+              <Typography variant="caption">
+                +8.3% this month
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* This Month */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <MonetizationOn sx={{ fontSize: 40, color: '#0025DD' }} />
+              <TrendingUp sx={{ fontSize: 20, color: '#10B981' }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" color="#0025DD" sx={{ mb: 1 }}>
+              {formatCurrency(785000)}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              This Month
+            </Typography>
+            <Typography variant="caption" color="#10B981" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              112 trips completed
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Loan Score */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <CreditScore sx={{ fontSize: 40, color: '#10B981' }} />
+              <EmojiEvents sx={{ fontSize: 20, color: '#10B981' }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" color="#10B981" sx={{ mb: 1 }}>
+              {loanScore.score}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Loan Score
+            </Typography>
+            <Box sx={{ display: 'flex', mt: 1 }}>
+              {renderStars(loanScore.score)}
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Total Trips */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <ReceiptLong sx={{ fontSize: 40, color: '#FF6B6B' }} />
+              <TrendingUp sx={{ fontSize: 20, color: '#10B981' }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" color="#FF6B6B" sx={{ mb: 1 }}>
+              597
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Total Trips
+            </Typography>
+            <Typography variant="caption" color="#10B981" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              94% success rate
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
+
   const DailySummary = () => (
     <Grid container spacing={3}>
       {/* Key Metrics */}
       <Grid item xs={12}>
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom color="primary">
+            <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
               Today's Summary - {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', 'day': 'numeric' })}
             </Typography>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.50' }}>
-                  <MonetizationOn color="primary" sx={{ mb: 1 }} />
-                  <Typography variant="h5" fontWeight="bold">
+                <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#0025DD10' }}>
+                  <MonetizationOn sx={{ color: '#0025DD', mb: 1 }} />
+                  <Typography variant="h5" fontWeight="bold" color="#0025DD">
                     {formatCurrency(earningsData.daily.total)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -176,8 +297,8 @@ const EarningsPage = () => {
                 </Paper>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'secondary.50' }}>
-                  <LocalAtm color="secondary" sx={{ mb: 1 }} />
+                <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#FFEC0120' }}>
+                  <LocalAtm sx={{ color: '#000', mb: 1 }} />
                   <Typography variant="h6" fontWeight="bold">
                     {earningsData.daily.trips} Trips
                   </Typography>
@@ -187,9 +308,9 @@ const EarningsPage = () => {
                 </Paper>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.50' }}>
-                  <AccessTime color="success" sx={{ mb: 1 }} />
-                  <Typography variant="h6" fontWeight="bold">
+                <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#10B98120' }}>
+                  <AccessTime sx={{ color: '#10B981', mb: 1 }} />
+                  <Typography variant="h6" fontWeight="bold" color="#10B981">
                     {earningsData.daily.onlineHours}h
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -198,9 +319,9 @@ const EarningsPage = () => {
                 </Paper>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'info.50' }}>
-                  <AccountBalanceWallet color="info" sx={{ mb: 1 }} />
-                  <Typography variant="h6" fontWeight="bold">
+                <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#0025DD10' }}>
+                  <AccountBalanceWallet sx={{ color: '#0025DD', mb: 1 }} />
+                  <Typography variant="h6" fontWeight="bold" color="#0025DD">
                     {formatCurrency(earningsData.daily.total / earningsData.daily.trips)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -215,9 +336,13 @@ const EarningsPage = () => {
 
       {/* Earnings Breakdown */}
       <Grid item xs={12} md={8}>
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
               Earnings Breakdown
             </Typography>
             <TableContainer>
@@ -232,10 +357,12 @@ const EarningsPage = () => {
                 </TableHead>
                 <TableBody>
                   {earningsData.daily.breakdown.map((period, index) => (
-                    <TableRow key={index}>
+                    <TableRow key={index} hover>
                       <TableCell>{period.time}</TableCell>
                       <TableCell align="right">{period.trips}</TableCell>
-                      <TableCell align="right">{formatCurrency(period.amount)}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold', color: '#0025DD' }}>
+                        {formatCurrency(period.amount)}
+                      </TableCell>
                       <TableCell align="right">{formatCurrency(Math.round(period.amount / period.trips))}</TableCell>
                     </TableRow>
                   ))}
@@ -248,43 +375,53 @@ const EarningsPage = () => {
 
       {/* Payment Methods */}
       <Grid item xs={12} md={4}>
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
               Payment Methods
             </Typography>
             <List>
               <ListItem>
                 <ListItemIcon>
-                  <LocalAtm color="primary" />
+                  <LocalAtm sx={{ color: '#0025DD' }} />
                 </ListItemIcon>
                 <ListItemText
                   primary="Cash Payments"
                   secondary={formatCurrency(earningsData.daily.cashEarnings)}
                 />
-                <Chip label={`${Math.round((earningsData.daily.cashEarnings / earningsData.daily.total) * 100)}%`} />
+                <Chip 
+                  label={`${Math.round((earningsData.daily.cashEarnings / earningsData.daily.total) * 100)}%`} 
+                  sx={{ backgroundColor: '#0025DD', color: 'white' }}
+                />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
-                  <CreditScore color="secondary" />
+                  <CreditScore sx={{ color: '#0025DD' }} />
                 </ListItemIcon>
                 <ListItemText
                   primary="Digital Payments"
                   secondary={formatCurrency(earningsData.daily.digitalEarnings)}
                 />
-                <Chip label={`${Math.round((earningsData.daily.digitalEarnings / earningsData.daily.total) * 100)}%`} />
+                <Chip 
+                  label={`${Math.round((earningsData.daily.digitalEarnings / earningsData.daily.total) * 100)}%`}
+                  sx={{ backgroundColor: '#0025DD', color: 'white' }}
+                />
               </ListItem>
             </List>
             <Divider sx={{ my: 2 }} />
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2">Bonuses</Typography>
-              <Typography variant="body2" color="success.main">
+              <Typography variant="body2" color="#10B981" fontWeight="bold">
                 +{formatCurrency(earningsData.daily.bonuses)}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
               <Typography variant="body2">Deductions</Typography>
-              <Typography variant="body2" color="error.main">
+              <Typography variant="body2" color="#EF4444" fontWeight="bold">
                 -{formatCurrency(earningsData.daily.deductions)}
               </Typography>
             </Box>
@@ -298,23 +435,30 @@ const EarningsPage = () => {
     <Grid container spacing={3}>
       {/* Weekly Overview */}
       <Grid item xs={12}>
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6">
+              <Typography variant="h6" fontWeight="bold" color="#0025DD">
                 Weekly Summary - {earningsData.weekly.period}
               </Typography>
               <Chip 
                 icon={getTrendIcon(earningsData.weekly.trend)} 
                 label={`${earningsData.weekly.trend}% from last week`} 
-                color={earningsData.weekly.trend > 0 ? "success" : "error"}
+                sx={{ 
+                  backgroundColor: earningsData.weekly.trend > 0 ? '#10B98120' : '#EF444420',
+                  color: earningsData.weekly.trend > 0 ? '#10B981' : '#EF4444'
+                }}
               />
             </Box>
             
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center' }}>
-                  <Typography variant="h4" fontWeight="bold" color="primary">
+                <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#0025DD10' }}>
+                  <Typography variant="h4" fontWeight="bold" color="#0025DD">
                     {formatCurrency(earningsData.weekly.total)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -323,7 +467,7 @@ const EarningsPage = () => {
                 </Paper>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center' }}>
+                <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#FFEC0120' }}>
                   <Typography variant="h5" fontWeight="bold">
                     {earningsData.weekly.trips}
                   </Typography>
@@ -333,8 +477,8 @@ const EarningsPage = () => {
                 </Paper>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center' }}>
-                  <Typography variant="h5" fontWeight="bold">
+                <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#10B98120' }}>
+                  <Typography variant="h5" fontWeight="bold" color="#10B981">
                     {earningsData.weekly.onlineHours}h
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -343,8 +487,8 @@ const EarningsPage = () => {
                 </Paper>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center' }}>
-                  <Typography variant="h5" fontWeight="bold">
+                <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#0025DD10' }}>
+                  <Typography variant="h5" fontWeight="bold" color="#0025DD">
                     {formatCurrency(earningsData.weekly.averageDaily)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -359,19 +503,23 @@ const EarningsPage = () => {
 
       {/* Daily Breakdown */}
       <Grid item xs={12}>
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
               Daily Performance
             </Typography>
             <Grid container spacing={2}>
               {earningsData.weekly.days.map((day, index) => (
                 <Grid item xs={6} sm={4} md={2} key={index}>
-                  <Paper sx={{ p: 2, textAlign: 'center' }}>
+                  <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#0025DD10' }}>
                     <Typography variant="body2" fontWeight="bold" color="text.secondary">
                       {day.day}
                     </Typography>
-                    <Typography variant="h6" fontWeight="bold">
+                    <Typography variant="h6" fontWeight="bold" color="#0025DD">
                       {formatCurrency(day.amount)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
@@ -384,41 +532,6 @@ const EarningsPage = () => {
           </CardContent>
         </Card>
       </Grid>
-
-      {/* Weekly Chart Visualization */}
-      <Grid item xs={12}>
-        <Card elevation={3}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Earnings Trend
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'flex-end', height: 200, gap: 1, mt: 3 }}>
-              {earningsData.weekly.days.map((day, index) => {
-                const maxAmount = Math.max(...earningsData.weekly.days.map(d => d.amount));
-                const height = (day.amount / maxAmount) * 150;
-                return (
-                  <Box key={index} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Typography variant="caption" sx={{ mb: 1 }}>
-                      {formatCurrency(day.amount)}
-                    </Typography>
-                    <Paper
-                      sx={{
-                        width: '80%',
-                        height: height,
-                        backgroundColor: theme.palette.primary.main,
-                        borderRadius: 1
-                      }}
-                    />
-                    <Typography variant="body2" sx={{ mt: 1 }}>
-                      {day.day}
-                    </Typography>
-                  </Box>
-                );
-              })}
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
     </Grid>
   );
 
@@ -426,23 +539,30 @@ const EarningsPage = () => {
     <Grid container spacing={3}>
       {/* Monthly Overview */}
       <Grid item xs={12}>
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6">
+              <Typography variant="h6" fontWeight="bold" color="#0025DD">
                 Monthly Income - {earningsData.monthly.period}
               </Typography>
               <Chip 
                 icon={getTrendIcon(earningsData.monthly.trend)} 
                 label={`${earningsData.monthly.trend}% from last month`} 
-                color={earningsData.monthly.trend > 0 ? "success" : "error"}
+                sx={{ 
+                  backgroundColor: earningsData.monthly.trend > 0 ? '#10B98120' : '#EF444420',
+                  color: earningsData.monthly.trend > 0 ? '#10B981' : '#EF4444'
+                }}
               />
             </Box>
 
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'primary.50' }}>
-                  <Typography variant="h3" fontWeight="bold" color="primary">
+                <Paper sx={{ p: 3, textAlign: 'center', backgroundColor: '#0025DD10' }}>
+                  <Typography variant="h3" fontWeight="bold" color="#0025DD">
                     {formatCurrency(earningsData.monthly.total)}
                   </Typography>
                   <Typography variant="h6" color="text.secondary">
@@ -453,7 +573,7 @@ const EarningsPage = () => {
               <Grid item xs={12} md={6}>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
-                    <Paper sx={{ p: 2, textAlign: 'center' }}>
+                    <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#FFEC0120' }}>
                       <Typography variant="h5" fontWeight="bold">
                         {earningsData.monthly.trips}
                       </Typography>
@@ -463,8 +583,8 @@ const EarningsPage = () => {
                     </Paper>
                   </Grid>
                   <Grid item xs={6}>
-                    <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <Typography variant="h5" fontWeight="bold">
+                    <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#10B98120' }}>
+                      <Typography variant="h5" fontWeight="bold" color="#10B981">
                         {earningsData.monthly.onlineHours}h
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
@@ -473,8 +593,8 @@ const EarningsPage = () => {
                     </Paper>
                   </Grid>
                   <Grid item xs={6}>
-                    <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <Typography variant="h6" fontWeight="bold">
+                    <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#0025DD10' }}>
+                      <Typography variant="h6" fontWeight="bold" color="#0025DD">
                         {formatCurrency(earningsData.monthly.averageWeekly)}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
@@ -483,8 +603,8 @@ const EarningsPage = () => {
                     </Paper>
                   </Grid>
                   <Grid item xs={6}>
-                    <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <Typography variant="h6" fontWeight="bold">
+                    <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#0025DD10' }}>
+                      <Typography variant="h6" fontWeight="bold" color="#0025DD">
                         {formatCurrency(Math.round(earningsData.monthly.total / earningsData.monthly.trips))}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
@@ -501,17 +621,21 @@ const EarningsPage = () => {
 
       {/* Weekly Breakdown */}
       <Grid item xs={12}>
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
               Weekly Breakdown
             </Typography>
             <List>
               {earningsData.monthly.weeks.map((week, index) => (
                 <ListItem key={index} divider>
                   <ListItemIcon>
-                    <Avatar sx={{ bgcolor: 'primary.main' }}>
-                      <Typography variant="body2" fontWeight="bold">
+                    <Avatar sx={{ bgcolor: '#0025DD' }}>
+                      <Typography variant="body2" fontWeight="bold" color="white">
                         W{index + 1}
                       </Typography>
                     </Avatar>
@@ -521,7 +645,7 @@ const EarningsPage = () => {
                     secondary={`${week.trips} trips completed`}
                   />
                   <Box sx={{ textAlign: 'right' }}>
-                    <Typography variant="h6" fontWeight="bold">
+                    <Typography variant="h6" fontWeight="bold" color="#0025DD">
                       {formatCurrency(week.amount)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
@@ -541,13 +665,17 @@ const EarningsPage = () => {
     <Grid container spacing={3}>
       {/* Loan Score Overview */}
       <Grid item xs={12} md={6}>
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent sx={{ textAlign: 'center', p: 4 }}>
-            <CreditScore sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
+            <CreditScore sx={{ fontSize: 60, color: '#0025DD', mb: 2 }} />
+            <Typography variant="h4" fontWeight="bold" gutterBottom color="#0025DD">
               {loanScore.score}
             </Typography>
-            <Typography variant="h6" color="primary" gutterBottom>
+            <Typography variant="h6" color="#0025DD" gutterBottom>
               {loanScore.level} Credit Score
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
@@ -557,8 +685,16 @@ const EarningsPage = () => {
             <LinearProgress 
               variant="determinate" 
               value={loanScore.eligibility} 
-              sx={{ height: 10, borderRadius: 5, mb: 3 }}
-              color="success"
+              sx={{ 
+                height: 10, 
+                borderRadius: 5, 
+                mb: 3,
+                backgroundColor: '#e2e8f0',
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: '#0025DD',
+                  borderRadius: 5
+                }
+              }}
             />
             
             <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -570,32 +706,42 @@ const EarningsPage = () => {
         {/* Loan Offers */}
         <Card sx={{ mt: 3 }} elevation={3}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
               Available Loan Offers
             </Typography>
             <List>
               <ListItem divider>
                 <ListItemIcon>
-                  <Savings color="success" />
+                  <Savings sx={{ color: '#0025DD' }} />
                 </ListItemIcon>
                 <ListItemText
                   primary="Quick Cash Advance"
                   secondary={`Up to ${formatCurrency(loanScore.maxAmount)}`}
                 />
-                <Chip label={`${loanScore.interestRate}% APR`} color="primary" />
+                <Chip label={`${loanScore.interestRate}% APR`} sx={{ backgroundColor: '#0025DD', color: 'white' }} />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
-                  <RequestQuote color="info" />
+                  <RequestQuote sx={{ color: '#0025DD' }} />
                 </ListItemIcon>
                 <ListItemText
                   primary="Vehicle Upgrade Loan"
                   secondary="Up to UGX 5,000,000"
                 />
-                <Chip label="14.5% APR" color="secondary" />
+                <Chip label="14.5% APR" sx={{ backgroundColor: '#FFEC01', color: '#000' }} />
               </ListItem>
             </List>
-            <Button variant="contained" fullWidth sx={{ mt: 2 }}>
+            <Button 
+              variant="contained" 
+              fullWidth 
+              sx={{ 
+                mt: 2,
+                backgroundColor: '#0025DD',
+                '&:hover': {
+                  backgroundColor: '#001FB8'
+                }
+              }}
+            >
               View All Loan Offers
             </Button>
           </CardContent>
@@ -604,9 +750,13 @@ const EarningsPage = () => {
 
       {/* Score Factors */}
       <Grid item xs={12} md={6}>
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
               Score Factors
             </Typography>
             <List>
@@ -614,11 +764,12 @@ const EarningsPage = () => {
                 <ListItem key={index} divider>
                   <ListItemIcon>
                     <Avatar sx={{ 
-                      bgcolor: factor.impact === 'positive' ? 'success.main' : 
-                              factor.impact === 'negative' ? 'error.main' : 'warning.main',
-                      width: 32, height: 32
+                      bgcolor: factor.impact === 'positive' ? '#10B981' : 
+                              factor.impact === 'negative' ? '#EF4444' : '#FFEC01',
+                      width: 32, 
+                      height: 32
                     }}>
-                      <ShowChart fontSize="small" />
+                      <ShowChart fontSize="small" sx={{ color: 'white' }} />
                     </Avatar>
                   </ListItemIcon>
                   <ListItemText
@@ -627,8 +778,12 @@ const EarningsPage = () => {
                   />
                   <Chip 
                     label={factor.impact} 
-                    color={factor.impact === 'positive' ? 'success' : 
-                           factor.impact === 'negative' ? 'error' : 'warning'}
+                    sx={{ 
+                      backgroundColor: factor.impact === 'positive' ? '#10B98120' : 
+                                     factor.impact === 'negative' ? '#EF444420' : '#FFEC01',
+                      color: factor.impact === 'positive' ? '#10B981' : 
+                            factor.impact === 'negative' ? '#EF4444' : '#000'
+                    }}
                     size="small"
                   />
                 </ListItem>
@@ -640,7 +795,7 @@ const EarningsPage = () => {
         {/* Tips to Improve */}
         <Card sx={{ mt: 3 }} elevation={3}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
               💡 Tips to Improve Your Score
             </Typography>
             <List dense>
@@ -673,95 +828,51 @@ const EarningsPage = () => {
   return (
     <Box sx={{ 
       minHeight: '100vh', 
-      backgroundColor: 'background.default',
+      backgroundColor: '#f8fafc',
       pb: 3
     }}>
-      {/* Mobile Header */}
-      {isMobile && (
-        <AppBar position="static" color="primary">
-          <Toolbar>
-            <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>
-              Earnings & Reports 💰
-            </Typography>
-          </Toolbar>
-        </AppBar>
-      )}
+      {/* Header */}
+      <AppBar 
+        position="static" 
+        sx={{ 
+          backgroundColor: '#0025DD',
+          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
+          boxShadow: 'none'
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            edge="start"
+            sx={{ color: 'white', mr: 2 }}
+            onClick={() => navigate(-1)}
+          >
+            <ArrowBack />
+          </IconButton>
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            Earnings & Reports
+          </Typography>
+          <Chip 
+            label="Active Driver" 
+            sx={{ 
+              backgroundColor: '#FFEC01', 
+              color: '#000',
+              fontWeight: 'bold'
+            }}
+          />
+        </Toolbar>
+      </AppBar>
 
       {/* Main Content */}
       <Box sx={{ p: isMobile ? 2 : 3 }}>
-        {/* Header */}
-        <Box sx={{ mb: 4, textAlign: isMobile ? 'center' : 'left' }}>
-          <Typography 
-            variant={isMobile ? "h5" : "h4"} 
-            fontWeight="bold" 
-            gutterBottom
-            color="primary"
-          >
-            Earnings & Reports
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Track your earnings, analyze performance, and check loan eligibility
-          </Typography>
-        </Box>
-
-        {/* Quick Stats */}
-        <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card elevation={2}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <AccountBalanceWallet color="primary" sx={{ mb: 1 }} />
-                <Typography variant="h6" fontWeight="bold">
-                  {formatCurrency(3250000)}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Total Earnings
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card elevation={2}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <EmojiEvents color="secondary" sx={{ mb: 1 }} />
-                <Typography variant="h6" fontWeight="bold">
-                  {loanScore.score}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Loan Score
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card elevation={2}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <ReceiptLong color="success" sx={{ mb: 1 }} />
-                <Typography variant="h6" fontWeight="bold">
-                  597
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Total Trips
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card elevation={2}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <TrendingUp color="warning" sx={{ mb: 1 }} />
-                <Typography variant="h6" fontWeight="bold">
-                  +8.3%
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Growth Rate
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+        {/* Financial Summary Cards */}
+        <FinancialSummary />
 
         {/* Tabs */}
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent sx={{ p: 0 }}>
             <Tabs
               value={activeTab}
@@ -771,7 +882,16 @@ const EarningsPage = () => {
               sx={{ 
                 borderBottom: 1, 
                 borderColor: 'divider',
-                '& .MuiTab-root': { minHeight: 64 }
+                '& .MuiTab-root': { 
+                  minHeight: 64,
+                  color: '#6B7280',
+                  '&.Mui-selected': {
+                    color: '#0025DD'
+                  }
+                },
+                '& .MuiTabs-indicator': {
+                  backgroundColor: '#0025DD'
+                }
               }}
             >
               {tabContent.map((tab, index) => (
