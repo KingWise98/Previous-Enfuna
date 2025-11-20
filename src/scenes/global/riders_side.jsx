@@ -235,13 +235,7 @@ const Riders = () => {
                 selected={selected} 
                 setSelected={handleItemClick} 
               />
-              <Item 
-                title="Rewards" 
-                to="/rider/page" 
-                icon={<BusinessCenterOutlinedIcon />} 
-                selected={selected} 
-                setSelected={handleItemClick} 
-              />
+              
               <Item 
                 title="Payments" 
                 to="/rider/payments" 
@@ -256,13 +250,7 @@ const Riders = () => {
                 selected={selected} 
                 setSelected={handleItemClick} 
               />
-              <Item 
-                title="Groups" 
-                to="/rider/group" 
-                icon={<GroupAddIcon />} 
-                selected={selected} 
-                setSelected={handleItemClick} 
-              />
+              
               <Item 
                 title="Statements" 
                 to="/rider/statements" 
