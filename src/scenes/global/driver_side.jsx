@@ -82,6 +82,7 @@ const Driver = () => {
           
      <Item title="Dashboard" to="/driver/dashboards" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
      <Item title="New Drive" to="/driver/drive" icon={<LocalOfferIcon />} selected={selected} setSelected={setSelected} />
+      <Item title="Queue" to="/driver/queue" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
       <Item title="Deliveries" to="/driver/delivery" icon={<WorkOutlineIcon />} selected={selected} setSelected={setSelected} />
     
           <Item title="Payments" to="/driver/page" icon={<MonetizationOnOutlinedIcon />} selected={selected} setSelected={setSelected} />

@@ -73,11 +73,11 @@ const SimpleDriverApp = () => {
       link: '/driver/page'
     },
     {
-      title: 'My Wallet',
+      title: 'My Earnings',
       description: 'Check balance',
       icon: <Receipt sx={{ fontSize: isMobile ? 30 : 40 }} />,
       color: 'warning',
-      link: '/driver/page'
+      link: '/driver/earning'
     }
   ];
 

@@ -16,6 +16,7 @@ import Driver_Delivery from "./admins/driver/delivery";
 import Driver_Expenses from "./admins/driver/expense";
 import Driver_Group from "./admins/driver/group";
 import Driver_Earning from "./admins/driver/earning";
+import Driver_Queue from "./admins/driver/queue";
 
 
 //Rider
@@ -31,6 +32,7 @@ import Rider_Statements from "./admins/rider/statements";
 import Rider_Delivery from "./admins/rider/delivery";
 import Rider_Expenses from "./admins/rider/expense";
 import Rider_Earning from "./admins/rider/earning";
+
 
 //Vendor
 import Vendor from "./admins/vendor/dashboard";
@@ -1050,6 +1052,12 @@ function App() {
                <Route path="/driver/earning" element={
                 <ProtectedRoute allowedRoles={["driver"]}>
                   <Driver_Earning />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/driver/queue" element={
+                <ProtectedRoute allowedRoles={["driver"]}>
+                  <Driver_Queue />
                 </ProtectedRoute>
               } />
 

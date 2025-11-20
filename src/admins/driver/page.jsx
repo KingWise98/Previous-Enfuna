@@ -371,7 +371,7 @@ const SimplePaymentsPage = () => {
             gutterBottom
             color="primary"
           >
-            Payments & Earnings
+            Payments
           </Typography>
           <Typography variant="body1" color="text.secondary">
             Manage your money and track earnings
