@@ -188,7 +188,7 @@ import Add from "./scenes/pos/add";
 import List_p from "./scenes/pos/list";
 import Returns from "./scenes/pos/returns";
 
-// User
+// Users
 import New_Sale from "./scenes/user/new_sales";
 import Service_Sale from "./scenes/user/service_sales";
 import Fav from "./scenes/user/service";
