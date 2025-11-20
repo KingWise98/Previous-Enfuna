@@ -184,7 +184,7 @@ import Roles from "./scenes/pos/roles";
 import User_Sales from "./scenes/pos/sales";
 import User_Contact from "./scenes/pos/contacts";
 import Import_Contact from "./scenes/pos/import_contacts";
-import Add from "./scenes/pos/add";
+import Add from "./scenes/pos/Add";
 import List_p from "./scenes/pos/list";
 import Returns from "./scenes/pos/returns";
 
