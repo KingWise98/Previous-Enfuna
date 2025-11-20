@@ -31,7 +31,7 @@ const SplashScreen = () => {
           height: 150,
           mb: 3,
           borderRadius: 2,
-          // If logo.png doesn't exist, you can use a colored box as fallback
+          
           
         }}
         onError={(e) => {
