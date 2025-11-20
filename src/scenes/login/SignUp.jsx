@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Auth.module.css";
 import companyLogo from "./enfuna.png";
+import authImage from "./ride.png"; // You'll need to add this image
 
 function Auth({ onLogin }) {
   const navigate = useNavigate();
@@ -648,20 +649,74 @@ function Auth({ onLogin }) {
 
   return (
     <div className={styles.authContainer}>
-      <div className={styles.authCard}>
-        <div className={styles.logoContainer}>
-          <img src={companyLogo} alt="Company Logo" className={styles.logo} />
+      <div className={styles.authLayout}>
+        {/* Left Side - Form */}
+        <div className={styles.authFormContainer}>
+          <div className={styles.authCard}>
+            <div className={styles.logoContainer}>
+              <img src={companyLogo} alt="Company Logo" className={styles.logo} />
+            </div>
+
+            {Object.keys(formErrors).length === 0 && isSubmit && (
+              <div className={styles.successMessage}>
+                {isLogin ? "Logged in successfully" : "Account created successfully"}
+              </div>
+            )}
+
+            {isLogin ? renderLoginForm() : (
+              showUserType ? renderUserTypeForm() : renderBasicInfoForm()
+            )}
+          </div>
         </div>
 
-        {Object.keys(formErrors).length === 0 && isSubmit && (
-          <div className={styles.successMessage}>
-            {isLogin ? "Logged in successfully" : "Account created successfully"}
+        {/* Right Side - Image */}
+        <div className={styles.authImageContainer}>
+          <div className={styles.imageContent}>
+            <img 
+              src={authImage} 
+              alt="Authentication" 
+              className={styles.authImage}
+              onError={(e) => {
+                // Fallback if image doesn't exist - create a gradient background
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = `
+                  <div style="
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    color: white;
+                    padding: 2rem;
+                    text-align: center;
+                  ">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🚀</div>
+                    <h2 style="font-size: 2rem; margin-bottom: 1rem; font-weight: bold;">Welcome to Enfuna</h2>
+                    <p style="font-size: 1.1rem; opacity: 0.9;">
+                      Join thousands of users managing their business efficiently
+                    </p>
+                    <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                      <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; backdrop-filter: blur(10px);">
+                        <div style="font-size: 2rem;">🏪</div>
+                        <p>Business Owners</p>
+                      </div>
+                      <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; backdrop-filter: blur(10px);">
+                        <div style="font-size: 2rem;">🚚</div>
+                        <p>Delivery Partners</p>
+                      </div>
+                      <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; backdrop-filter: blur(10px);">
+                        <div style="font-size: 2rem;">🛒</div>
+                        <p>Vendors</p>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }}
+            />
           </div>
-        )}
-
-        {isLogin ? renderLoginForm() : (
-          showUserType ? renderUserTypeForm() : renderBasicInfoForm()
-        )}
+        </div>
       </div>
     </div>
   );
