@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import Admin from "./admins/admin";
 import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
-
+import {  Box, Typography } from "@mui/material";
 
 //Driver
 import Drive from "./admins/driver/drive";
@@ -18,7 +18,6 @@ import Driver_Group from "./admins/driver/group";
 import Driver_Earning from "./admins/driver/earning";
 import Driver_Queue from "./admins/driver/queue";
 
-
 //Rider
 import Rider from "./admins/rider/dashboard";
 import Ride from "./admins/rider/ride";
@@ -32,7 +31,6 @@ import Rider_Statements from "./admins/rider/statements";
 import Rider_Delivery from "./admins/rider/delivery";
 import Rider_Expenses from "./admins/rider/expense";
 import Rider_Earning from "./admins/rider/earning";
-
 
 //Vendor
 import Vendor from "./admins/vendor/dashboard";
@@ -77,7 +75,6 @@ import Vendor_LedgerList from "./admins/vendor/ledger/index";
 // Merchant
 
 import Merchant_Profile from "./admins/merchant/profile";
-
 
 // Global Admin
 import Super from "./scenes/super/admin";
@@ -208,27 +205,73 @@ import Manage_Report from "./scenes/user/reports";
 // Login
 import Login from "./scenes/login/SignUp";
 
+// Splash Screen
+import SplashScreen from "./components/SplashScreen";
+
 function App() {
   const [theme, colorMode] = useMode();
   const [isSidebar, setIsSidebar] = useState(true);
-  const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || null);
+  const [userRole, setUserRole] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Added port configuration (for logging/debugging)
   const port = process.env.PORT || 1000;
   console.log(`Application configured to run on port: ${port}`);
 
+  // Check for logout when navigating to root
   useEffect(() => {
-    // Check if user was logged in before refresh
-    const savedRole = localStorage.getItem('userRole');
-    if (savedRole) {
-      setUserRole(savedRole);
-    } else {
-      // If no user role is found, ensure we're at the login page
-      if (window.location.pathname !== "/") {
-        navigate("/");
-      }
+    if (location.pathname === "/" && userRole) {
+      // This indicates logout was triggered from sidebar
+      handleLogout();
     }
+  }, [location.pathname, userRole]);
+
+  useEffect(() => {
+    // Check authentication status
+    const checkAuth = async () => {
+      const savedRole = localStorage.getItem('userRole');
+      const currentPath = window.location.pathname;
+      
+      // Simulate some loading time for better splash screen experience
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      if (savedRole && savedRole !== "null" && savedRole !== "undefined") {
+        setUserRole(savedRole);
+        // If user is logged in but on login page, redirect to appropriate dashboard
+        if (currentPath === "/") {
+          if (savedRole === "admin") {
+            navigate("/pos/all");
+          } else if (savedRole === "super") {
+            navigate("/super/admin");
+          } else if (savedRole === "normal") {
+            navigate("/user/new_sales");
+          } else if (savedRole === "vendor") {
+            navigate("/vendor/pos/all");
+          } else if (savedRole === "rider") {
+            navigate("/rider/dashboards");
+          } else if (savedRole === "driver") {
+            navigate("/driver/dashboards");
+          }
+        }
+      } else {
+        // If no user role and not on login page, redirect to login
+        if (currentPath !== "/") {
+          navigate("/");
+        }
+      }
+      
+      setIsLoading(false);
+      
+      // Hide splash screen after everything is loaded
+      setTimeout(() => {
+        setShowSplash(false);
+      }, 500);
+    };
+
+    checkAuth();
   }, [navigate]);
 
   const handleLogin = (role) => {
@@ -236,27 +279,24 @@ function App() {
     localStorage.setItem('userRole', role);
     if (role === "admin") {
       navigate("/pos/all");
-       } else if (role === "super") {
+    } else if (role === "super") {
       navigate("/super/admin");
-
     } else if (role === "normal") {
       navigate("/user/new_sales");
-    }
-     else if (role === "vendor") {
+    } else if (role === "vendor") {
       navigate("/vendor/pos/all");
-    }
-     else if (role === "rider") {
+    } else if (role === "rider") {
       navigate("/rider/dashboards");
-    }
-     else if (role === "driver") {
+    } else if (role === "driver") {
       navigate("/driver/dashboards");
     }
   };
 
   const handleLogout = () => {
+    console.log("Logging out user...");
     setUserRole(null);
     localStorage.removeItem('userRole');
-    navigate("/");
+    // The navigation to "/" will happen naturally from the sidebar link
   };
 
   // Protected Route component
@@ -270,19 +310,45 @@ function App() {
     return children;
   };
 
+  // Show splash screen while loading
+  if (showSplash) {
+    return <SplashScreen />;
+  }
+
+  // Show loading indicator after splash but before auth check completes
+  if (isLoading) {
+    return (
+      <ColorModeContext.Provider value={colorMode}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100vh",
+              backgroundColor: theme.palette.background.default,
+            }}
+          >
+            <Typography>Loading application...</Typography>
+          </Box>
+        </ThemeProvider>
+      </ColorModeContext.Provider>
+    );
+  }
+
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <div className="app">
-          {/* Conditionally render Sidebar or Pos_Sidebar based on user role */}
-          {userRole === "admin" && <Sidebar isSidebar={isSidebar} />}
-          {userRole === "normal" && <Pos_Sidebar isSidebar={isSidebar} />}
-          {userRole === "super" && <Admin_side isSidebar={isSidebar} />}
-          {userRole === "vendor" && <Vendor_side isSidebar={isSidebar} />}
-          {userRole === "rider" && <Rider_side isSidebar={isSidebar} />}
-          {userRole === "driver" && <Driver_side isSidebar={isSidebar} />}
-
+          {/* Conditionally render Sidebar or Pos_Sidebar based on user role - ONLY when user is authenticated */}
+          {userRole && userRole === "admin" && <Sidebar isSidebar={isSidebar} onLogout={handleLogout} />}
+          {userRole && userRole === "normal" && <Pos_Sidebar isSidebar={isSidebar} onLogout={handleLogout} />}
+          {userRole && userRole === "super" && <Admin_side isSidebar={isSidebar} onLogout={handleLogout} />}
+          {userRole && userRole === "vendor" && <Vendor_side isSidebar={isSidebar} onLogout={handleLogout} />}
+          {userRole && userRole === "rider" && <Rider_side isSidebar={isSidebar} onLogout={handleLogout} />}
+          {userRole && userRole === "driver" && <Driver_side isSidebar={isSidebar} onLogout={handleLogout} />}
 
           <main className="content">
             {/* Render Topbar only if user is logged in */}
@@ -298,7 +364,6 @@ function App() {
                   <Dashboard />
                 </ProtectedRoute>
               } />
-               {/* Admin Routes */}
               <Route path="./admins/admin" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Admin />
@@ -315,12 +380,12 @@ function App() {
                 </ProtectedRoute>
               } />
 
-               <Route path="/super/admin" element={
+              <Route path="/super/admin" element={
                 <ProtectedRoute allowedRoles={["super"]}>
                   <Super />
                 </ProtectedRoute>
               } />
-               <Route path="/super/user" element={
+              <Route path="/super/user" element={
                 <ProtectedRoute allowedRoles={["super"]}>
                   <SuperUser />
                 </ProtectedRoute>
@@ -331,12 +396,12 @@ function App() {
                 </ProtectedRoute>
               } />
 
-               <Route path="/super/track" element={
+              <Route path="/super/track" element={
                 <ProtectedRoute allowedRoles={["super"]}>
                   <Track />
                 </ProtectedRoute>
               } />
-               <Route path="/super/data" element={
+              <Route path="/super/data" element={
                 <ProtectedRoute allowedRoles={["super"]}>
                   <Data />
                 </ProtectedRoute>
@@ -976,9 +1041,6 @@ function App() {
                 </ProtectedRoute>
               } />
             
-             
-             
-             
               <Route path="/vednor/pos/contacts" element={
                 <ProtectedRoute allowedRoles={["vendor"]}>
                   <Vendor_User_Contact />
@@ -1128,14 +1190,6 @@ function App() {
                   <Rider_Delivery />
                 </ProtectedRoute>
               } />
-
-
-             
-              
-             
-            
-             
-              
 
               {/* Catch-all route redirects to login */}
               <Route path="*" element={<Navigate to="/" replace />} />
