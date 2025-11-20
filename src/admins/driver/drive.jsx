@@ -32,7 +32,12 @@ import {
   FormControl,
   InputAdornment,
   MenuItem,
-  Select
+  Select,
+  Tabs,
+  Tab,
+  Stepper,
+  Step,
+  StepLabel
 } from '@mui/material';
 import {
   DirectionsCar,
@@ -49,7 +54,13 @@ import {
   Smartphone,
   AccessTime,
   Speed,
-  Map
+  Map,
+  Edit,
+  Cancel,
+  Add,
+  SwapHoriz,
+  Route,
+  Payment
 } from '@mui/icons-material';
 
 const DrivePage = () => {
@@ -59,14 +70,26 @@ const DrivePage = () => {
   const [activeTrip, setActiveTrip] = useState(null);
   const [showNewTripDialog, setShowNewTripDialog] = useState(false);
   const [showEndTripDialog, setShowEndTripDialog] = useState(false);
+  const [showEditTripDialog, setShowEditTripDialog] = useState(false);
+  const [showCancelTripDialog, setShowCancelTripDialog] = useState(false);
+  const [showAddDestinationDialog, setShowAddDestinationDialog] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [tripTime, setTripTime] = useState(0);
   const [earnings, setEarnings] = useState(0);
+  const [editTab, setEditTab] = useState(0);
 
   const [tripForm, setTripForm] = useState({
     destination: '',
     fare: '',
     paymentMethod: 'cash'
+  });
+
+  const [editForm, setEditForm] = useState({
+    destination: '',
+    fare: '',
+    paymentMethod: 'cash',
+    additionalStop: '',
+    cancelReason: ''
   });
 
   const [tripHistory, setTripHistory] = useState([
@@ -122,6 +145,16 @@ const DrivePage = () => {
     { name: 'Jinja Town', area: 'Jinja', emoji: '🌊' }
   ];
 
+  const cancelReasons = [
+    'Passenger changed mind',
+    'Traffic conditions',
+    'Vehicle issue',
+    'Personal emergency',
+    'Route not feasible',
+    'Payment issue',
+    'Other'
+  ];
+
   // Real-time trip timer
   useEffect(() => {
     let interval;
@@ -144,12 +177,32 @@ const DrivePage = () => {
     }
   }, [tripTime, activeTrip]);
 
+  // Initialize edit form when opening edit dialog
+  useEffect(() => {
+    if (activeTrip && showEditTripDialog) {
+      setEditForm({
+        destination: activeTrip.destination,
+        fare: activeTrip.fare.toString(),
+        paymentMethod: activeTrip.paymentMethod,
+        additionalStop: '',
+        cancelReason: ''
+      });
+    }
+  }, [showEditTripDialog, activeTrip]);
+
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
   };
 
   const handleInputChange = (field) => (event) => {
     setTripForm(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+  };
+
+  const handleEditInputChange = (field) => (event) => {
+    setEditForm(prev => ({
       ...prev,
       [field]: event.target.value
     }));
@@ -178,7 +231,8 @@ const DrivePage = () => {
       paymentMethod: tripForm.paymentMethod,
       startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       startTimestamp: new Date(),
-      status: 'active'
+      status: 'active',
+      additionalStops: []
     };
 
     setActiveTrip(newTrip);
@@ -195,11 +249,79 @@ const DrivePage = () => {
     showSnackbar('Trip started! Drive safely.');
   };
 
+  const handleUpdateTrip = () => {
+    if (!editForm.destination || !editForm.fare) {
+      showSnackbar('Please enter destination and fare', 'error');
+      return;
+    }
+
+    const selectedDestination = popularDestinations.find(dest => dest.name === editForm.destination);
+
+    const updatedTrip = {
+      ...activeTrip,
+      destination: editForm.destination,
+      area: selectedDestination?.area,
+      emoji: selectedDestination?.emoji,
+      fare: parseInt(editForm.fare),
+      paymentMethod: editForm.paymentMethod,
+      updatedAt: new Date()
+    };
+
+    setActiveTrip(updatedTrip);
+    setShowEditTripDialog(false);
+    showSnackbar('Trip updated successfully!');
+  };
+
+  const handleAddDestination = () => {
+    if (!editForm.additionalStop) {
+      showSnackbar('Please enter an additional stop', 'error');
+      return;
+    }
+
+    const newStop = {
+      id: Date.now(),
+      name: editForm.additionalStop,
+      addedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    const updatedTrip = {
+      ...activeTrip,
+      additionalStops: [...(activeTrip.additionalStops || []), newStop]
+    };
+
+    setActiveTrip(updatedTrip);
+    setShowAddDestinationDialog(false);
+    setEditForm(prev => ({ ...prev, additionalStop: '' }));
+    showSnackbar('Additional stop added!');
+  };
+
+  const handleCancelTrip = () => {
+    if (!editForm.cancelReason) {
+      showSnackbar('Please select a cancellation reason', 'error');
+      return;
+    }
+
+    const cancelledTrip = {
+      ...activeTrip,
+      status: 'cancelled',
+      endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      duration: formatTime(tripTime),
+      distance: `${calculateDistance().toFixed(1)} km`,
+      cancelReason: editForm.cancelReason,
+      date: 'Today'
+    };
+
+    setTripHistory(prev => [cancelledTrip, ...prev]);
+    setActiveTrip(null);
+    setShowCancelTripDialog(false);
+    showSnackbar(`Trip cancelled. Reason: ${editForm.cancelReason}`);
+  };
+
   const handleEndTrip = () => {
     if (!activeTrip) return;
 
     const tripDuration = formatTime(tripTime);
-    const distance = calculateDistance(); // Simulated distance calculation
+    const distance = calculateDistance();
 
     const completedTrip = {
       ...activeTrip,
@@ -263,16 +385,26 @@ const DrivePage = () => {
           <Grid item xs={12} md={8}>
             <Card elevation={3}>
               <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom color="text.secondary">
-                  Trip Details
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                  <Typography variant="h6" color="text.secondary">
+                    Trip Details
+                  </Typography>
+                  <Button
+                    startIcon={<Edit />}
+                    onClick={() => setShowEditTripDialog(true)}
+                    variant="outlined"
+                    size="small"
+                  >
+                    Edit Trip
+                  </Button>
+                </Box>
                 
                 <Box sx={{ mb: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
                       <LocationOn />
                     </Avatar>
-                    <Box>
+                    <Box sx={{ flex: 1 }}>
                       <Typography variant="body2" color="text.secondary">
                         Destination
                       </Typography>
@@ -284,6 +416,24 @@ const DrivePage = () => {
                       </Typography>
                     </Box>
                   </Box>
+
+                  {/* Additional Stops */}
+                  {activeTrip.additionalStops && activeTrip.additionalStops.length > 0 && (
+                    <Box sx={{ ml: 6, mb: 2 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        Additional Stops:
+                      </Typography>
+                      {activeTrip.additionalStops.map((stop, index) => (
+                        <Chip
+                          key={stop.id}
+                          label={`${stop.name} (${stop.addedAt})`}
+                          size="small"
+                          color="secondary"
+                          sx={{ mr: 1, mb: 1 }}
+                        />
+                      ))}
+                    </Box>
+                  )}
                 </Box>
 
                 <Divider sx={{ my: 2 }} />
@@ -399,13 +549,21 @@ const DrivePage = () => {
 
                   <Button
                     variant="outlined"
+                    color="secondary"
+                    size="large"
+                    startIcon={<Add />}
+                    onClick={() => setShowAddDestinationDialog(true)}
+                    fullWidth
+                  >
+                    Add Stop
+                  </Button>
+
+                  <Button
+                    variant="outlined"
                     color="error"
                     size="large"
-                    startIcon={<Close />}
-                    onClick={() => {
-                      setActiveTrip(null);
-                      showSnackbar('Trip cancelled');
-                    }}
+                    startIcon={<Cancel />}
+                    onClick={() => setShowCancelTripDialog(true)}
                     fullWidth
                   >
                     Cancel Trip
@@ -450,6 +608,237 @@ const DrivePage = () => {
             </Card>
           </Grid>
         </Grid>
+
+        {/* Edit Trip Dialog */}
+        <Dialog 
+          open={showEditTripDialog} 
+          onClose={() => setShowEditTripDialog(false)} 
+          maxWidth="md" 
+          fullWidth
+        >
+          <DialogTitle>
+            <Typography variant="h6">Edit Trip Details</Typography>
+          </DialogTitle>
+          <DialogContent>
+            <Tabs value={editTab} onChange={(e, newValue) => setEditTab(newValue)} sx={{ mb: 3 }}>
+              <Tab label="Change Destination" />
+              <Tab label="Adjust Fare" />
+              <Tab label="Payment Method" />
+            </Tabs>
+
+            {editTab === 0 && (
+              <Box>
+                <Typography variant="body1" gutterBottom>
+                  Change your destination
+                </Typography>
+                <FormControl fullWidth sx={{ mt: 2 }}>
+                  <Select
+                    value={editForm.destination}
+                    onChange={handleEditInputChange('destination')}
+                    displayEmpty
+                    startAdornment={<LocationOn color="action" sx={{ mr: 1 }} />}
+                  >
+                    <MenuItem value="">
+                      <em>Choose a new destination...</em>
+                    </MenuItem>
+                    {popularDestinations.map((dest) => (
+                      <MenuItem key={dest.name} value={dest.name}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography>{dest.emoji}</Typography>
+                          <Box>
+                            <Typography variant="body1">{dest.name}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {dest.area}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            )}
+
+            {editTab === 1 && (
+              <Box>
+                <Typography variant="body1" gutterBottom>
+                  Adjust trip fare
+                </Typography>
+                <TextField
+                  fullWidth
+                  label="New Fare (UGX)"
+                  type="number"
+                  value={editForm.fare}
+                  onChange={handleEditInputChange('fare')}
+                  sx={{ mt: 2 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AttachMoney color="action" />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  Current fare: UGX {activeTrip?.fare?.toLocaleString()}
+                </Typography>
+              </Box>
+            )}
+
+            {editTab === 2 && (
+              <Box>
+                <Typography variant="body1" gutterBottom>
+                  Change payment method
+                </Typography>
+                <RadioGroup
+                  value={editForm.paymentMethod}
+                  onChange={handleEditInputChange('paymentMethod')}
+                  sx={{ mt: 2 }}
+                >
+                  <FormControlLabel 
+                    value="cash" 
+                    control={<Radio />} 
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <AttachMoney />
+                        <Typography>Cash</Typography>
+                      </Box>
+                    } 
+                  />
+                  <FormControlLabel 
+                    value="card" 
+                    control={<Radio />} 
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CreditCard />
+                        <Typography>Card</Typography>
+                      </Box>
+                    } 
+                  />
+                  <FormControlLabel 
+                    value="mobile" 
+                    control={<Radio />} 
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Smartphone />
+                        <Typography>Mobile Money</Typography>
+                      </Box>
+                    } 
+                  />
+                </RadioGroup>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowEditTripDialog(false)}>Cancel</Button>
+            <Button 
+              variant="contained" 
+              onClick={handleUpdateTrip}
+              disabled={!editForm.destination || !editForm.fare}
+            >
+              Update Trip
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Add Destination Dialog */}
+        <Dialog 
+          open={showAddDestinationDialog} 
+          onClose={() => setShowAddDestinationDialog(false)} 
+          maxWidth="sm" 
+          fullWidth
+        >
+          <DialogTitle>
+            <Typography variant="h6">Add Additional Stop</Typography>
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Add an intermediate stop to your current trip
+            </Typography>
+            <TextField
+              fullWidth
+              label="Stop Location"
+              value={editForm.additionalStop}
+              onChange={handleEditInputChange('additionalStop')}
+              placeholder="Enter stop location..."
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LocationOn color="action" />
+                  </InputAdornment>
+                )
+              }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowAddDestinationDialog(false)}>Cancel</Button>
+            <Button 
+              variant="contained" 
+              onClick={handleAddDestination}
+              disabled={!editForm.additionalStop}
+            >
+              Add Stop
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Cancel Trip Dialog */}
+        <Dialog 
+          open={showCancelTripDialog} 
+          onClose={() => setShowCancelTripDialog(false)} 
+          maxWidth="sm" 
+          fullWidth
+        >
+          <DialogTitle>
+            <Typography variant="h6">Cancel Trip</Typography>
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" gutterBottom color="error">
+              Are you sure you want to cancel this trip?
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              This action cannot be undone.
+            </Typography>
+            
+            <FormControl fullWidth>
+              <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                Reason for cancellation
+              </Typography>
+              <Select
+                value={editForm.cancelReason}
+                onChange={handleEditInputChange('cancelReason')}
+                displayEmpty
+              >
+                <MenuItem value="">
+                  <em>Select a reason...</em>
+                </MenuItem>
+                {cancelReasons.map((reason) => (
+                  <MenuItem key={reason} value={reason}>
+                    {reason}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Paper sx={{ p: 2, mt: 2, bgcolor: 'error.50' }}>
+              <Typography variant="body2" color="error.main">
+                <strong>Note:</strong> Cancelling this trip will end it immediately and it will be recorded in your trip history as cancelled.
+              </Typography>
+            </Paper>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowCancelTripDialog(false)}>Continue Trip</Button>
+            <Button 
+              variant="contained" 
+              color="error"
+              onClick={handleCancelTrip}
+              disabled={!editForm.cancelReason}
+              startIcon={<Cancel />}
+            >
+              Confirm Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         {/* End Trip Dialog */}
         <Dialog 
@@ -516,7 +905,7 @@ const DrivePage = () => {
     );
   }
 
-  // Main Drive Page
+  // Main Drive Page (unchanged from your original code)
   return (
     <Box sx={{ 
       minHeight: '100vh', 
@@ -599,8 +988,8 @@ const DrivePage = () => {
                     sx={{ px: isMobile ? 0 : 2 }}
                   >
                     <ListItemIcon>
-                      <Avatar sx={{ bgcolor: 'primary.100' }}>
-                        <DirectionsCar color="primary" />
+                      <Avatar sx={{ bgcolor: trip.status === 'cancelled' ? 'error.100' : 'primary.100' }}>
+                        <DirectionsCar color={trip.status === 'cancelled' ? 'error' : 'primary'} />
                       </Avatar>
                     </ListItemIcon>
                     <ListItemText
@@ -612,19 +1001,27 @@ const DrivePage = () => {
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                               {trip.distance} • {trip.duration} • {trip.startTime}
+                              {trip.cancelReason && ` • ${trip.cancelReason}`}
                             </Typography>
                           </Box>
                           <Box sx={{ textAlign: 'right', ml: 2 }}>
-                            <Typography variant="body1" fontWeight="bold" color="success.main">
-                              UGX {trip.fare.toLocaleString()}
+                            <Typography 
+                              variant="body1" 
+                              fontWeight="bold" 
+                              color={trip.status === 'cancelled' ? 'error.main' : 'success.main'}
+                            >
+                              {trip.status === 'cancelled' ? 'Cancelled' : `UGX ${trip.fare.toLocaleString()}`}
                             </Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                               <Chip 
                                 label={trip.status}
                                 size="small"
-                                color={trip.status === 'completed' ? 'success' : 'warning'}
+                                color={
+                                  trip.status === 'completed' ? 'success' : 
+                                  trip.status === 'cancelled' ? 'error' : 'warning'
+                                }
                               />
-                              {getPaymentIcon(trip.paymentMethod)}
+                              {trip.status !== 'cancelled' && getPaymentIcon(trip.paymentMethod)}
                             </Box>
                           </Box>
                         </Box>
