@@ -17,644 +17,625 @@ import {
   ListItemIcon,
   Chip,
   Button,
+  Avatar,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  LinearProgress,
-  Avatar,
+  TablePagination,
+  TextField,
+  InputAdornment,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Tabs,
   Tab,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel
+  LinearProgress
 } from '@mui/material';
 import {
   AccountBalanceWallet,
+  ReceiptLong,
+  Download,
+  FilterList,
+  Search,
+  Visibility,
+  AttachMoney,
+  MoneyOff,
   TrendingUp,
   TrendingDown,
-  CalendarToday,
-  AccessTime,
   DateRange,
-  MonetizationOn,
   LocalAtm,
-  CreditScore,
+  CreditCard,
+  Smartphone,
   Savings,
-  RequestQuote,
-  ShowChart,
-  ReceiptLong,
-  EmojiEvents,
-  Star,
-  StarHalf,
-  StarBorder
+  Payment,
+  QrCode,
+  Share,
+  PictureAsPdf,
+  Description,
+  CalendarMonth,
+  BarChart,
+  PieChart,
+  Summarize
 } from '@mui/icons-material';
 
-const EarningsPage = () => {
+const StatementsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [activeTab, setActiveTab] = useState(0);
-  const [selectedPeriod, setSelectedPeriod] = useState('week');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [filterPeriod, setFilterPeriod] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [showTransactionDialog, setShowTransactionDialog] = useState(false);
 
-  // Mock data for earnings
-  const [earningsData, setEarningsData] = useState({
-    daily: {
-      date: '2024-01-15',
-      total: 125000,
-      trips: 18,
-      onlineHours: 8.5,
-      cashEarnings: 85000,
-      digitalEarnings: 40000,
-      bonuses: 5000,
-      deductions: 5000,
-      breakdown: [
-        { time: '06:00-09:00', amount: 45000, trips: 6 },
-        { time: '09:00-12:00', amount: 35000, trips: 5 },
-        { time: '12:00-15:00', amount: 25000, trips: 4 },
-        { time: '15:00-18:00', amount: 20000, trips: 3 }
-      ]
-    },
-    weekly: {
-      period: 'Jan 8-14, 2024',
-      total: 785000,
-      trips: 112,
-      onlineHours: 48,
-      averageDaily: 112143,
-      trend: 12.5,
-      days: [
-        { day: 'Mon', amount: 105000, trips: 15 },
-        { day: 'Tue', amount: 98000, trips: 14 },
-        { day: 'Wed', amount: 120000, trips: 17 },
-        { day: 'Thu', amount: 115000, trips: 16 },
-        { day: 'Fri', amount: 145000, trips: 21 },
-        { day: 'Sat', amount: 132000, trips: 19 },
-        { day: 'Sun', amount: 70000, trips: 10 }
-      ]
-    },
-    monthly: {
-      period: 'December 2023',
-      total: 3250000,
-      trips: 465,
-      onlineHours: 210,
-      averageWeekly: 812500,
-      trend: 8.3,
-      weeks: [
-        { week: 'Week 1', amount: 780000, trips: 112 },
-        { week: 'Week 2', amount: 820000, trips: 117 },
-        { week: 'Week 3', amount: 850000, trips: 121 },
-        { week: 'Week 4', amount: 800000, trips: 115 }
-      ]
-    }
-  });
-
-  const [loanScore, setLoanScore] = useState({
-    score: 745,
-    level: 'Excellent',
-    maxAmount: 2000000,
-    interestRate: 12.5,
-    eligibility: 85,
-    factors: [
-      { factor: 'Consistent Earnings', impact: 'positive', weight: 35 },
-      { factor: 'Payment History', impact: 'positive', weight: 25 },
-      { factor: 'Trip Completion Rate', impact: 'positive', weight: 20 },
-      { factor: 'Account Age', impact: 'neutral', weight: 15 },
-      { factor: 'Recent Activity', impact: 'positive', weight: 5 }
+  // Mock statements data
+  const [statements, setStatements] = useState({
+    daily: [
+      {
+        id: 1,
+        date: '2024-01-15',
+        type: 'earning',
+        description: 'Trip Completion - Garden City to Makerere',
+        amount: 15000,
+        fee: -1500,
+        netAmount: 13500,
+        paymentMethod: 'cash',
+        status: 'completed',
+        time: '14:30',
+        tripId: 'TRIP-001'
+      },
+      {
+        id: 2,
+        date: '2024-01-15',
+        type: 'earning',
+        description: 'Trip Completion - Nakasero to Kololo',
+        amount: 8000,
+        fee: -800,
+        netAmount: 7200,
+        paymentMethod: 'mobile',
+        status: 'completed',
+        time: '11:15',
+        tripId: 'TRIP-002'
+      },
+      {
+        id: 3,
+        date: '2024-01-15',
+        type: 'deduction',
+        description: 'Platform Service Fee',
+        amount: -2300,
+        fee: 0,
+        netAmount: -2300,
+        paymentMethod: 'system',
+        status: 'processed',
+        time: '18:00',
+        tripId: 'FEE-001'
+      },
+      {
+        id: 4,
+        date: '2024-01-15',
+        type: 'earning',
+        description: 'Weekly Bonus',
+        amount: 5000,
+        fee: 0,
+        netAmount: 5000,
+        paymentMethod: 'system',
+        status: 'completed',
+        time: '09:00',
+        tripId: 'BNS-001'
+      }
+    ],
+    weekly: [
+      {
+        id: 1,
+        period: 'Jan 8-14, 2024',
+        earnings: 785000,
+        fees: -78500,
+        bonuses: 25000,
+        netEarnings: 731500,
+        trips: 112,
+        status: 'processed'
+      },
+      {
+        id: 2,
+        period: 'Jan 1-7, 2024',
+        earnings: 698000,
+        fees: -69800,
+        bonuses: 20000,
+        netEarnings: 648200,
+        trips: 98,
+        status: 'processed'
+      }
+    ],
+    monthly: [
+      {
+        id: 1,
+        period: 'December 2023',
+        earnings: 3250000,
+        fees: -325000,
+        bonuses: 100000,
+        netEarnings: 3025000,
+        trips: 465,
+        status: 'processed'
+      },
+      {
+        id: 2,
+        period: 'November 2023',
+        earnings: 2980000,
+        fees: -298000,
+        bonuses: 80000,
+        netEarnings: 2762000,
+        trips: 432,
+        status: 'processed'
+      }
     ]
   });
 
+  const [transactions, setTransactions] = useState([
+    ...statements.daily,
+    {
+      id: 5,
+      date: '2024-01-14',
+      type: 'earning',
+      description: 'Trip Completion - Acacia Mall to Bugolobi',
+      amount: 12000,
+      fee: -1200,
+      netAmount: 10800,
+      paymentMethod: 'card',
+      status: 'completed',
+      time: '16:45',
+      tripId: 'TRIP-003'
+    },
+    {
+      id: 6,
+      date: '2024-01-14',
+      type: 'earning',
+      description: 'Airport Transfer - Entebbe to Kampala',
+      amount: 45000,
+      fee: -4500,
+      netAmount: 40500,
+      paymentMethod: 'cash',
+      status: 'completed',
+      time: '21:30',
+      tripId: 'TRIP-004'
+    },
+    {
+      id: 7,
+      date: '2024-01-14',
+      type: 'deduction',
+      description: 'Fuel Advance',
+      amount: -50000,
+      fee: 0,
+      netAmount: -50000,
+      paymentMethod: 'system',
+      status: 'processed',
+      time: '08:15',
+      tripId: 'ADV-001'
+    },
+    {
+      id: 8,
+      date: '2024-01-13',
+      type: 'earning',
+      description: 'Corporate Ride - Industrial Area',
+      amount: 25000,
+      fee: -2500,
+      netAmount: 22500,
+      paymentMethod: 'card',
+      status: 'completed',
+      time: '14:20',
+      tripId: 'TRIP-005'
+    }
+  ]);
+
   const formatCurrency = (amount) => {
-    return `UGX ${amount.toLocaleString()}`;
+    return `UGX ${Math.abs(amount).toLocaleString()}`;
   };
 
-  const getTrendIcon = (trend) => {
-    if (trend > 0) {
-      return <TrendingUp color="success" />;
-    } else if (trend < 0) {
-      return <TrendingDown color="error" />;
+  const getTransactionIcon = (type, paymentMethod) => {
+    if (type === 'deduction') {
+      return <MoneyOff color="error" />;
     }
-    return <TrendingUp color="action" />;
-  };
-
-  const renderStars = (score) => {
-    const stars = [];
-    const fullStars = Math.floor(score / 100);
-    const halfStar = score % 100 >= 50;
     
-    for (let i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        stars.push(<Star key={i} sx={{ color: '#FFD700' }} />);
-      } else if (i === fullStars && halfStar) {
-        stars.push(<StarHalf key={i} sx={{ color: '#FFD700' }} />);
-      } else {
-        stars.push(<StarBorder key={i} sx={{ color: '#FFD700' }} />);
-      }
+    switch (paymentMethod) {
+      case 'cash': return <LocalAtm color="success" />;
+      case 'card': return <CreditCard color="info" />;
+      case 'mobile': return <Smartphone color="secondary" />;
+      default: return <AttachMoney color="success" />;
     }
-    return stars;
   };
 
-  const DailySummary = () => (
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed': return 'success';
+      case 'processed': return 'info';
+      case 'pending': return 'warning';
+      case 'failed': return 'error';
+      default: return 'default';
+    }
+  };
+
+  const getTypeColor = (type) => {
+    return type === 'earning' ? 'success' : 'error';
+  };
+
+  const filteredTransactions = transactions.filter(transaction => {
+    const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         transaction.tripId.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesPeriod = filterPeriod === 'all' || 
+                         (filterPeriod === 'today' && transaction.date === '2024-01-15') ||
+                         (filterPeriod === 'week' && ['2024-01-15', '2024-01-14', '2024-01-13'].includes(transaction.date));
+    
+    return matchesSearch && matchesPeriod;
+  });
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const SummaryCards = () => (
+    <Grid container spacing={3} sx={{ mb: 3 }}>
+      <Grid item xs={12} sm={6} md={3}>
+        <Card elevation={2}>
+          <CardContent sx={{ textAlign: 'center' }}>
+            <AccountBalanceWallet color="primary" sx={{ mb: 1 }} />
+            <Typography variant="h5" fontWeight="bold" color="primary">
+              {formatCurrency(785000)}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              This Week's Earnings
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+      <Grid item xs={12} sm={6} md={3}>
+        <Card elevation={2}>
+          <CardContent sx={{ textAlign: 'center' }}>
+            <TrendingUp color="success" sx={{ mb: 1 }} />
+            <Typography variant="h5" fontWeight="bold" color="success.main">
+              +12.5%
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Growth vs Last Week
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+      <Grid item xs={12} sm={6} md={3}>
+        <Card elevation={2}>
+          <CardContent sx={{ textAlign: 'center' }}>
+            <ReceiptLong color="secondary" sx={{ mb: 1 }} />
+            <Typography variant="h5" fontWeight="bold">
+              112
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Completed Trips
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+      <Grid item xs={12} sm={6} md={3}>
+        <Card elevation={2}>
+          <CardContent sx={{ textAlign: 'center' }}>
+            <MoneyOff color="error" sx={{ mb: 1 }} />
+            <Typography variant="h5" fontWeight="bold" color="error.main">
+              {formatCurrency(78500)}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Total Fees
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
+
+  const TransactionTable = () => (
+    <Card elevation={3}>
+      <CardContent>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h6">
+            Transaction History
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <TextField
+              size="small"
+              placeholder="Search transactions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <Select
+                value={filterPeriod}
+                onChange={(e) => setFilterPeriod(e.target.value)}
+              >
+                <MenuItem value="all">All Time</MenuItem>
+                <MenuItem value="today">Today</MenuItem>
+                <MenuItem value="week">This Week</MenuItem>
+                <MenuItem value="month">This Month</MenuItem>
+              </Select>
+            </FormControl>
+            <Button startIcon={<Download />} variant="outlined">
+              Export
+            </Button>
+          </Box>
+        </Box>
+
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Date & Time</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Payment Method</TableCell>
+                <TableCell align="right">Amount</TableCell>
+                <TableCell align="right">Fee</TableCell>
+                <TableCell align="right">Net Amount</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredTransactions
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((transaction) => (
+                <TableRow key={transaction.id} hover>
+                  <TableCell>
+                    <Box>
+                      <Typography variant="body2">
+                        {new Date(transaction.date).toLocaleDateString()}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {transaction.time}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {getTransactionIcon(transaction.type, transaction.paymentMethod)}
+                      <Box>
+                        <Typography variant="body2" fontWeight="500">
+                          {transaction.description}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {transaction.tripId}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={transaction.paymentMethod} 
+                      size="small"
+                      variant="outlined"
+                    />
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography 
+                      variant="body2" 
+                      fontWeight="bold"
+                      color={transaction.type === 'earning' ? 'success.main' : 'error.main'}
+                    >
+                      {transaction.type === 'earning' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="body2" color="text.secondary">
+                      {transaction.fee !== 0 ? formatCurrency(transaction.fee) : '-'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography 
+                      variant="body2" 
+                      fontWeight="bold"
+                      color={transaction.netAmount >= 0 ? 'success.main' : 'error.main'}
+                    >
+                      {transaction.netAmount >= 0 ? '+' : ''}{formatCurrency(transaction.netAmount)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={transaction.status}
+                      color={getStatusColor(transaction.status)}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <IconButton 
+                      size="small"
+                      onClick={() => {
+                        setSelectedTransaction(transaction);
+                        setShowTransactionDialog(true);
+                      }}
+                    >
+                      <Visibility />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={filteredTransactions.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </CardContent>
+    </Card>
+  );
+
+  const StatementCards = () => (
     <Grid container spacing={3}>
-      {/* Key Metrics */}
-      <Grid item xs={12}>
+      {/* Weekly Statements */}
+      <Grid item xs={12} md={6}>
         <Card elevation={3}>
           <CardContent>
-            <Typography variant="h6" gutterBottom color="primary">
-              Today's Summary - {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', 'day': 'numeric' })}
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+              <DateRange sx={{ mr: 1 }} />
+              Weekly Statements
             </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.50' }}>
-                  <MonetizationOn color="primary" sx={{ mb: 1 }} />
-                  <Typography variant="h5" fontWeight="bold">
-                    {formatCurrency(earningsData.daily.total)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Total Earnings
-                  </Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'secondary.50' }}>
-                  <LocalAtm color="secondary" sx={{ mb: 1 }} />
-                  <Typography variant="h6" fontWeight="bold">
-                    {earningsData.daily.trips} Trips
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Completed
-                  </Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.50' }}>
-                  <AccessTime color="success" sx={{ mb: 1 }} />
-                  <Typography variant="h6" fontWeight="bold">
-                    {earningsData.daily.onlineHours}h
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Online Time
-                  </Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'info.50' }}>
-                  <AccountBalanceWallet color="info" sx={{ mb: 1 }} />
-                  <Typography variant="h6" fontWeight="bold">
-                    {formatCurrency(earningsData.daily.total / earningsData.daily.trips)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Avg. per Trip
-                  </Typography>
-                </Paper>
-              </Grid>
-            </Grid>
+            <List>
+              {statements.weekly.map((statement) => (
+                <ListItem key={statement.id} divider>
+                  <ListItemIcon>
+                    <Avatar sx={{ bgcolor: 'primary.main' }}>
+                      <Summarize />
+                    </Avatar>
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={statement.period}
+                    secondary={`${statement.trips} trips • Net: ${formatCurrency(statement.netEarnings)}`}
+                  />
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Chip label={statement.status} color="success" size="small" />
+                    <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                      <IconButton size="small">
+                        <PictureAsPdf />
+                      </IconButton>
+                      <IconButton size="small">
+                        <Download />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                </ListItem>
+              ))}
+            </List>
           </CardContent>
         </Card>
       </Grid>
 
-      {/* Earnings Breakdown */}
+      {/* Monthly Statements */}
+      <Grid item xs={12} md={6}>
+        <Card elevation={3}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+              <CalendarMonth sx={{ mr: 1 }} />
+              Monthly Statements
+            </Typography>
+            <List>
+              {statements.monthly.map((statement) => (
+                <ListItem key={statement.id} divider>
+                  <ListItemIcon>
+                    <Avatar sx={{ bgcolor: 'secondary.main' }}>
+                      <BarChart />
+                    </Avatar>
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={statement.period}
+                    secondary={`${statement.trips} trips • Net: ${formatCurrency(statement.netEarnings)}`}
+                  />
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Chip label={statement.status} color="success" size="small" />
+                    <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                      <IconButton size="small">
+                        <PictureAsPdf />
+                      </IconButton>
+                      <IconButton size="small">
+                        <Download />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                </ListItem>
+              ))}
+            </List>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
+
+  const AnalyticsView = () => (
+    <Grid container spacing={3}>
       <Grid item xs={12} md={8}>
         <Card elevation={3}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
-              Earnings Breakdown
+              Earnings Distribution
             </Typography>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Time Period</TableCell>
-                    <TableCell align="right">Trips</TableCell>
-                    <TableCell align="right">Earnings</TableCell>
-                    <TableCell align="right">Avg. per Trip</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {earningsData.daily.breakdown.map((period, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{period.time}</TableCell>
-                      <TableCell align="right">{period.trips}</TableCell>
-                      <TableCell align="right">{formatCurrency(period.amount)}</TableCell>
-                      <TableCell align="right">{formatCurrency(Math.round(period.amount / period.trips))}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 3 }}>
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="body2">Cash Payments</Typography>
+                  <Typography variant="body2" fontWeight="bold">65%</Typography>
+                </Box>
+                <LinearProgress variant="determinate" value={65} color="success" sx={{ height: 8 }} />
+              </Box>
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="body2">Mobile Money</Typography>
+                  <Typography variant="body2" fontWeight="bold">25%</Typography>
+                </Box>
+                <LinearProgress variant="determinate" value={25} color="info" sx={{ height: 8 }} />
+              </Box>
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="body2">Card Payments</Typography>
+                  <Typography variant="body2" fontWeight="bold">10%</Typography>
+                </Box>
+                <LinearProgress variant="determinate" value={10} color="secondary" sx={{ height: 8 }} />
+              </Box>
+            </Box>
           </CardContent>
         </Card>
       </Grid>
 
-      {/* Payment Methods */}
       <Grid item xs={12} md={4}>
         <Card elevation={3}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
-              Payment Methods
-            </Typography>
-            <List>
-              <ListItem>
-                <ListItemIcon>
-                  <LocalAtm color="primary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Cash Payments"
-                  secondary={formatCurrency(earningsData.daily.cashEarnings)}
-                />
-                <Chip label={`${Math.round((earningsData.daily.cashEarnings / earningsData.daily.total) * 100)}%`} />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <CreditScore color="secondary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Digital Payments"
-                  secondary={formatCurrency(earningsData.daily.digitalEarnings)}
-                />
-                <Chip label={`${Math.round((earningsData.daily.digitalEarnings / earningsData.daily.total) * 100)}%`} />
-              </ListItem>
-            </List>
-            <Divider sx={{ my: 2 }} />
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2">Bonuses</Typography>
-              <Typography variant="body2" color="success.main">
-                +{formatCurrency(earningsData.daily.bonuses)}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-              <Typography variant="body2">Deductions</Typography>
-              <Typography variant="body2" color="error.main">
-                -{formatCurrency(earningsData.daily.deductions)}
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
-  );
-
-  const WeeklySummary = () => (
-    <Grid container spacing={3}>
-      {/* Weekly Overview */}
-      <Grid item xs={12}>
-        <Card elevation={3}>
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6">
-                Weekly Summary - {earningsData.weekly.period}
-              </Typography>
-              <Chip 
-                icon={getTrendIcon(earningsData.weekly.trend)} 
-                label={`${earningsData.weekly.trend}% from last week`} 
-                color={earningsData.weekly.trend > 0 ? "success" : "error"}
-              />
-            </Box>
-            
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center' }}>
-                  <Typography variant="h4" fontWeight="bold" color="primary">
-                    {formatCurrency(earningsData.weekly.total)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Total Weekly Earnings
-                  </Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center' }}>
-                  <Typography variant="h5" fontWeight="bold">
-                    {earningsData.weekly.trips}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Total Trips
-                  </Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center' }}>
-                  <Typography variant="h5" fontWeight="bold">
-                    {earningsData.weekly.onlineHours}h
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Online Hours
-                  </Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Paper sx={{ p: 2, textAlign: 'center' }}>
-                  <Typography variant="h5" fontWeight="bold">
-                    {formatCurrency(earningsData.weekly.averageDaily)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Average Daily
-                  </Typography>
-                </Paper>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      </Grid>
-
-      {/* Daily Breakdown */}
-      <Grid item xs={12}>
-        <Card elevation={3}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Daily Performance
-            </Typography>
-            <Grid container spacing={2}>
-              {earningsData.weekly.days.map((day, index) => (
-                <Grid item xs={6} sm={4} md={2} key={index}>
-                  <Paper sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography variant="body2" fontWeight="bold" color="text.secondary">
-                      {day.day}
-                    </Typography>
-                    <Typography variant="h6" fontWeight="bold">
-                      {formatCurrency(day.amount)}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {day.trips} trips
-                    </Typography>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          </CardContent>
-        </Card>
-      </Grid>
-
-      {/* Weekly Chart Visualization */}
-      <Grid item xs={12}>
-        <Card elevation={3}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Earnings Trend
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'flex-end', height: 200, gap: 1, mt: 3 }}>
-              {earningsData.weekly.days.map((day, index) => {
-                const maxAmount = Math.max(...earningsData.weekly.days.map(d => d.amount));
-                const height = (day.amount / maxAmount) * 150;
-                return (
-                  <Box key={index} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Typography variant="caption" sx={{ mb: 1 }}>
-                      {formatCurrency(day.amount)}
-                    </Typography>
-                    <Paper
-                      sx={{
-                        width: '80%',
-                        height: height,
-                        backgroundColor: theme.palette.primary.main,
-                        borderRadius: 1
-                      }}
-                    />
-                    <Typography variant="body2" sx={{ mt: 1 }}>
-                      {day.day}
-                    </Typography>
-                  </Box>
-                );
-              })}
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
-  );
-
-  const MonthlyIncome = () => (
-    <Grid container spacing={3}>
-      {/* Monthly Overview */}
-      <Grid item xs={12}>
-        <Card elevation={3}>
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6">
-                Monthly Income - {earningsData.monthly.period}
-              </Typography>
-              <Chip 
-                icon={getTrendIcon(earningsData.monthly.trend)} 
-                label={`${earningsData.monthly.trend}% from last month`} 
-                color={earningsData.monthly.trend > 0 ? "success" : "error"}
-              />
-            </Box>
-
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'primary.50' }}>
-                  <Typography variant="h3" fontWeight="bold" color="primary">
-                    {formatCurrency(earningsData.monthly.total)}
-                  </Typography>
-                  <Typography variant="h6" color="text.secondary">
-                    Total Monthly Income
-                  </Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <Typography variant="h5" fontWeight="bold">
-                        {earningsData.monthly.trips}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Total Trips
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <Typography variant="h5" fontWeight="bold">
-                        {earningsData.monthly.onlineHours}h
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Online Hours
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <Typography variant="h6" fontWeight="bold">
-                        {formatCurrency(earningsData.monthly.averageWeekly)}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Avg. Weekly
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <Typography variant="h6" fontWeight="bold">
-                        {formatCurrency(Math.round(earningsData.monthly.total / earningsData.monthly.trips))}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Avg. per Trip
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                </Grid>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      </Grid>
-
-      {/* Weekly Breakdown */}
-      <Grid item xs={12}>
-        <Card elevation={3}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Weekly Breakdown
-            </Typography>
-            <List>
-              {earningsData.monthly.weeks.map((week, index) => (
-                <ListItem key={index} divider>
-                  <ListItemIcon>
-                    <Avatar sx={{ bgcolor: 'primary.main' }}>
-                      <Typography variant="body2" fontWeight="bold">
-                        W{index + 1}
-                      </Typography>
-                    </Avatar>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={week.week}
-                    secondary={`${week.trips} trips completed`}
-                  />
-                  <Box sx={{ textAlign: 'right' }}>
-                    <Typography variant="h6" fontWeight="bold">
-                      {formatCurrency(week.amount)}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {Math.round((week.amount / earningsData.monthly.total) * 100)}% of monthly total
-                    </Typography>
-                  </Box>
-                </ListItem>
-              ))}
-            </List>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
-  );
-
-  const LoanScore = () => (
-    <Grid container spacing={3}>
-      {/* Loan Score Overview */}
-      <Grid item xs={12} md={6}>
-        <Card elevation={3}>
-          <CardContent sx={{ textAlign: 'center', p: 4 }}>
-            <CreditScore sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
-              {loanScore.score}
-            </Typography>
-            <Typography variant="h6" color="primary" gutterBottom>
-              {loanScore.level} Credit Score
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-              {renderStars(loanScore.score)}
-            </Box>
-            
-            <LinearProgress 
-              variant="determinate" 
-              value={loanScore.eligibility} 
-              sx={{ height: 10, borderRadius: 5, mb: 3 }}
-              color="success"
-            />
-            
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Eligibility Score: {loanScore.eligibility}%
-            </Typography>
-          </CardContent>
-        </Card>
-
-        {/* Loan Offers */}
-        <Card sx={{ mt: 3 }} elevation={3}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Available Loan Offers
-            </Typography>
-            <List>
-              <ListItem divider>
-                <ListItemIcon>
-                  <Savings color="success" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Quick Cash Advance"
-                  secondary={`Up to ${formatCurrency(loanScore.maxAmount)}`}
-                />
-                <Chip label={`${loanScore.interestRate}% APR`} color="primary" />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <RequestQuote color="info" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Vehicle Upgrade Loan"
-                  secondary="Up to UGX 5,000,000"
-                />
-                <Chip label="14.5% APR" color="secondary" />
-              </ListItem>
-            </List>
-            <Button variant="contained" fullWidth sx={{ mt: 2 }}>
-              View All Loan Offers
-            </Button>
-          </CardContent>
-        </Card>
-      </Grid>
-
-      {/* Score Factors */}
-      <Grid item xs={12} md={6}>
-        <Card elevation={3}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Score Factors
-            </Typography>
-            <List>
-              {loanScore.factors.map((factor, index) => (
-                <ListItem key={index} divider>
-                  <ListItemIcon>
-                    <Avatar sx={{ 
-                      bgcolor: factor.impact === 'positive' ? 'success.main' : 
-                              factor.impact === 'negative' ? 'error.main' : 'warning.main',
-                      width: 32, height: 32
-                    }}>
-                      <ShowChart fontSize="small" />
-                    </Avatar>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={factor.factor}
-                    secondary={`Impact: ${factor.weight}%`}
-                  />
-                  <Chip 
-                    label={factor.impact} 
-                    color={factor.impact === 'positive' ? 'success' : 
-                           factor.impact === 'negative' ? 'error' : 'warning'}
-                    size="small"
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </CardContent>
-        </Card>
-
-        {/* Tips to Improve */}
-        <Card sx={{ mt: 3 }} elevation={3}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              💡 Tips to Improve Your Score
+              Quick Stats
             </Typography>
             <List dense>
               <ListItem>
-                <ListItemText primary="Maintain consistent daily earnings" />
+                <ListItemText
+                  primary="Total Earnings"
+                  secondary={formatCurrency(3250000)}
+                />
               </ListItem>
               <ListItem>
-                <ListItemText primary="Complete more trips during peak hours" />
+                <ListItemText
+                  primary="Total Trips"
+                  secondary="597 trips"
+                />
               </ListItem>
               <ListItem>
-                <ListItemText primary="Keep your cancellation rate below 5%" />
+                <ListItemText
+                  primary="Average per Trip"
+                  secondary={formatCurrency(5440)}
+                />
               </ListItem>
               <ListItem>
-                <ListItemText primary="Maintain a high customer rating" />
+                <ListItemText
+                  primary="Success Rate"
+                  secondary="98.5%"
+                />
               </ListItem>
             </List>
           </CardContent>
@@ -664,10 +645,9 @@ const EarningsPage = () => {
   );
 
   const tabContent = [
-    { label: 'Daily Summary', component: <DailySummary /> },
-    { label: 'Weekly Summary', component: <WeeklySummary /> },
-    { label: 'Monthly Income', component: <MonthlyIncome /> },
-    { label: 'Loan Score', component: <LoanScore /> }
+    { label: 'Transactions', component: <TransactionTable /> },
+    { label: 'Statements', component: <StatementCards /> },
+    { label: 'Analytics', component: <AnalyticsView /> }
   ];
 
   return (
@@ -681,7 +661,7 @@ const EarningsPage = () => {
         <AppBar position="static" color="primary">
           <Toolbar>
             <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>
-              Earnings & Reports 💰
+              Statements & Reports 📊
             </Typography>
           </Toolbar>
         </AppBar>
@@ -697,68 +677,15 @@ const EarningsPage = () => {
             gutterBottom
             color="primary"
           >
-            Earnings & Reports
+            Financial Statements
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Track your earnings, analyze performance, and check loan eligibility
+            Track your earnings, view transaction history, and download statements
           </Typography>
         </Box>
 
-        {/* Quick Stats */}
-        <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card elevation={2}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <AccountBalanceWallet color="primary" sx={{ mb: 1 }} />
-                <Typography variant="h6" fontWeight="bold">
-                  {formatCurrency(3250000)}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Total Earnings
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card elevation={2}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <EmojiEvents color="secondary" sx={{ mb: 1 }} />
-                <Typography variant="h6" fontWeight="bold">
-                  {loanScore.score}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Loan Score
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card elevation={2}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <ReceiptLong color="success" sx={{ mb: 1 }} />
-                <Typography variant="h6" fontWeight="bold">
-                  597
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Total Trips
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card elevation={2}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <TrendingUp color="warning" sx={{ mb: 1 }} />
-                <Typography variant="h6" fontWeight="bold">
-                  +8.3%
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Growth Rate
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+        {/* Summary Cards */}
+        <SummaryCards />
 
         {/* Tabs */}
         <Card elevation={3}>
@@ -778,10 +705,9 @@ const EarningsPage = () => {
                 <Tab 
                   key={index}
                   icon={
-                    index === 0 ? <CalendarToday /> :
-                    index === 1 ? <DateRange /> :
-                    index === 2 ? <MonetizationOn /> :
-                    <CreditScore />
+                    index === 0 ? <ReceiptLong /> :
+                    index === 1 ? <Description /> :
+                    <PieChart />
                   }
                   label={tab.label}
                 />
@@ -794,8 +720,128 @@ const EarningsPage = () => {
           </CardContent>
         </Card>
       </Box>
+
+      {/* Transaction Detail Dialog */}
+      <Dialog 
+        open={showTransactionDialog} 
+        onClose={() => setShowTransactionDialog(false)} 
+        maxWidth="sm" 
+        fullWidth
+      >
+        {selectedTransaction && (
+          <>
+            <DialogTitle>
+              Transaction Details
+            </DialogTitle>
+            <DialogContent>
+              <Grid container spacing={3} sx={{ mt: 1 }}>
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Avatar sx={{ bgcolor: selectedTransaction.type === 'earning' ? 'success.main' : 'error.main' }}>
+                      {getTransactionIcon(selectedTransaction.type, selectedTransaction.paymentMethod)}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="h6">
+                        {selectedTransaction.description}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {selectedTransaction.tripId}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">
+                    Date & Time
+                  </Typography>
+                  <Typography variant="body1" fontWeight="500">
+                    {new Date(selectedTransaction.date).toLocaleDateString()} at {selectedTransaction.time}
+                  </Typography>
+                </Grid>
+
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">
+                    Status
+                  </Typography>
+                  <Chip 
+                    label={selectedTransaction.status} 
+                    color={getStatusColor(selectedTransaction.status)}
+                    size="small"
+                  />
+                </Grid>
+
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">
+                    Payment Method
+                  </Typography>
+                  <Typography variant="body1" fontWeight="500">
+                    {selectedTransaction.paymentMethod}
+                  </Typography>
+                </Grid>
+
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">
+                    Type
+                  </Typography>
+                  <Chip 
+                    label={selectedTransaction.type} 
+                    color={getTypeColor(selectedTransaction.type)}
+                    size="small"
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 1 }} />
+                </Grid>
+
+                <Grid item xs={4}>
+                  <Typography variant="body2" color="text.secondary">
+                    Amount
+                  </Typography>
+                  <Typography 
+                    variant="h6" 
+                    fontWeight="bold"
+                    color={selectedTransaction.type === 'earning' ? 'success.main' : 'error.main'}
+                  >
+                    {selectedTransaction.type === 'earning' ? '+' : '-'}{formatCurrency(selectedTransaction.amount)}
+                  </Typography>
+                </Grid>
+
+                <Grid item xs={4}>
+                  <Typography variant="body2" color="text.secondary">
+                    Service Fee
+                  </Typography>
+                  <Typography variant="h6" color="text.secondary">
+                    {formatCurrency(selectedTransaction.fee)}
+                  </Typography>
+                </Grid>
+
+                <Grid item xs={4}>
+                  <Typography variant="body2" color="text.secondary">
+                    Net Amount
+                  </Typography>
+                  <Typography 
+                    variant="h6" 
+                    fontWeight="bold"
+                    color={selectedTransaction.netAmount >= 0 ? 'success.main' : 'error.main'}
+                  >
+                    {selectedTransaction.netAmount >= 0 ? '+' : ''}{formatCurrency(selectedTransaction.netAmount)}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setShowTransactionDialog(false)}>Close</Button>
+              <Button variant="contained" startIcon={<Download />}>
+                Download Receipt
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
     </Box>
   );
 };
 
-export default EarningsPage;
+export default StatementsPage;
