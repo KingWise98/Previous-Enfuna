@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -27,7 +28,15 @@ import {
   FormControl,
   InputLabel,
   Divider,
-  useTheme
+  useTheme,
+  useMediaQuery,
+  AppBar,
+  Toolbar,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  ListItemSecondaryAction
 } from '@mui/material';
 import {
   Search,
@@ -45,11 +54,15 @@ import {
   CheckCircle,
   Star,
   Loyalty,
-  CameraAlt
+  CameraAlt,
+  ArrowBack
 } from '@mui/icons-material';
 
 const ContactsPage = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
+  
   const [contacts, setContacts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
@@ -60,27 +73,28 @@ const ContactsPage = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
 
-  // Fetch contacts from API
+  // Mock data for demonstration
   useEffect(() => {
-    const fetchContacts = async () => {
-      try {
-        setIsLoading(true);
-        // TODO: Replace with actual API endpoint
-        // const response = await fetch('/api/contacts');
-        // const data = await response.json();
-        // setContacts(data);
-        
-        // For now, initialize with empty array
-        setContacts([]);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error fetching contacts:', error);
-        setIsLoading(false);
-        // TODO: Add error handling (show notification to user)
-      }
-    };
-    
-    fetchContacts();
+    const mockContacts = [
+      {
+        id: 1,
+        name: "Peter Kure",
+        type: "customer",
+        phone: "+256 712 345 678",
+        email: "kure@email.com",
+        location: "Kampala, Uganda",
+        business: "Kure's Car Wash",
+        loyaltyPoints: 1250,
+        lastPurchase: "2024-01-15",
+        totalSpent: 450000,
+        status: "vip",
+        avatar: ""
+      },
+     
+    ];
+
+    setContacts(mockContacts);
+    setIsLoading(false);
   }, []);
 
   // Handle file selection for profile picture
@@ -162,17 +176,6 @@ const ContactsPage = () => {
       
       // Upload new profile picture if selected
       if (selectedFile) {
-        // TODO: Implement file upload to server
-        // const formData = new FormData();
-        // formData.append('avatar', selectedFile);
-        // const uploadResponse = await fetch('/api/upload', {
-        //   method: 'POST',
-        //   body: formData,
-        // });
-        // const { url } = await uploadResponse.json();
-        // avatarUrl = url;
-        
-        // For demo purposes, use the preview URL
         avatarUrl = previewImage;
       }
 
@@ -181,271 +184,452 @@ const ContactsPage = () => {
         avatar: avatarUrl
       };
 
-      if (editMode) {
-        if (currentContact.id > contacts.length) {
-          // Add new contact
-          // TODO: Implement API call to add contact
-          // const response = await fetch('/api/contacts', {
-          //   method: 'POST',
-          //   headers: {
-          //     'Content-Type': 'application/json',
-          //   },
-          //   body: JSON.stringify(contactToSave),
-          // });
-          // const newContact = await response.json();
-          // setContacts([...contacts, newContact]);
-          
-          // Temporary local state update
-          setContacts([...contacts, contactToSave]);
-        } else {
-          // Update existing contact
-          // TODO: Implement API call to update contact
-          // const response = await fetch(`/api/contacts/${currentContact.id}`, {
-          //   method: 'PUT',
-          //   headers: {
-          //     'Content-Type': 'application/json',
-          //   },
-          //   body: JSON.stringify(contactToSave),
-          // });
-          // const updatedContact = await response.json();
-          // setContacts(contacts.map(contact => 
-          //   contact.id === updatedContact.id ? updatedContact : contact
-          // ));
-          
-          // Temporary local state update
-          setContacts(contacts.map(contact => 
-            contact.id === contactToSave.id ? contactToSave : contact
-          ));
-        }
+      if (currentContact.id > contacts.length) {
+        // Add new contact
+        setContacts([...contacts, contactToSave]);
+      } else {
+        // Update existing contact
+        setContacts(contacts.map(contact => 
+          contact.id === contactToSave.id ? contactToSave : contact
+        ));
       }
       setOpenDialog(false);
       setPreviewImage(null);
       setSelectedFile(null);
     } catch (error) {
       console.error('Error saving contact:', error);
-      // TODO: Add error handling
     }
   };
 
   const handleDeleteContact = async (id) => {
-    try {
-      // TODO: Implement API call to delete contact
-      // await fetch(`/api/contacts/${id}`, {
-      //   method: 'DELETE',
-      // });
-      // setContacts(contacts.filter(contact => contact.id !== id));
-      
-      // Temporary local state update
-      setContacts(contacts.filter(contact => contact.id !== id));
-    } catch (error) {
-      console.error('Error deleting contact:', error);
-      // TODO: Add error handling
-    }
+    setContacts(contacts.filter(contact => contact.id !== id));
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-UG', {
-      style: 'currency',
-      currency: 'UGX'
-    }).format(amount);
+    return `UGX ${amount.toLocaleString()}`;
   };
 
-  return (
-    <Box m="20px">
-      {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Box>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Contacts Management
-          </Typography>
-          <Typography variant="subtitle1" color="textSecondary">
-            Manage your customers, suppliers, and employees
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleOpenAddDialog}
-        >
-          Add Contact
-        </Button>
-      </Box>
+  const getTypeColor = (type) => {
+    switch (type) {
+      case 'customer': return '#0025DD';
+      case 'supplier': return '#FFEC01';
+      case 'employee': return '#10B981';
+      default: return '#6B7280';
+    }
+  };
 
-      {/* Search and Filter Bar */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <TextField
-          variant="outlined"
-          placeholder="Search contacts..."
-          size="small"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ width: 400 }}
-        />
-        <Box display="flex" alignItems="center" gap={2}>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Filter</InputLabel>
-            <Select
-              value={filter}
-              label="Filter"
-              onChange={(e) => setFilter(e.target.value)}
-              startAdornment={
-                <InputAdornment position="start">
-                  <FilterList />
-                </InputAdornment>
-              }
-            >
-              <MenuItem value="all">All Contacts</MenuItem>
-              <MenuItem value="customer">Customers</MenuItem>
-              <MenuItem value="supplier">Suppliers</MenuItem>
-              <MenuItem value="employee">Employees</MenuItem>
-              <MenuItem value="vip">VIP Customers</MenuItem>
-              <MenuItem value="inactive">Inactive</MenuItem>
-            </Select>
-          </FormControl>
-          <IconButton onClick={() => { setSearchTerm(''); setFilter('all'); }}>
-            <Refresh />
-          </IconButton>
-        </Box>
-      </Box>
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'vip': return '#FFEC01';
+      case 'active': return '#10B981';
+      case 'inactive': return '#EF4444';
+      default: return '#6B7280';
+    }
+  };
 
-      {/* Loading State */}
-      {isLoading ? (
-        <Box display="flex" justifyContent="center" p={4}>
-          <Typography>Loading contacts...</Typography>
-        </Box>
-      ) : (
-        /* Contacts Table */
-        <Card>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Contact</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Contact Info</TableCell>
-                  <TableCell>Business</TableCell>
-                  <TableCell>Loyalty</TableCell>
-                  <TableCell>Last Purchase</TableCell>
-                  <TableCell>Total Spent</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredContacts.length > 0 ? (
-                  filteredContacts.map((contact) => (
-                    <TableRow key={contact.id} hover>
-                      <TableCell>
-                        <Box display="flex" alignItems="center" gap={2}>
-                          <Avatar src={contact.avatar} alt={contact.name}>
-                            {contact.name.charAt(0)}
-                          </Avatar>
-                          <Typography fontWeight="bold">{contact.name}</Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={contact.type.charAt(0).toUpperCase() + contact.type.slice(1)}
-                          color={
-                            contact.type === 'customer' ? 'primary' :
-                            contact.type === 'supplier' ? 'secondary' : 'info'
-                          }
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Box display="flex" flexDirection="column">
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <Phone fontSize="small" />
-                            <Typography variant="body2">{contact.phone}</Typography>
-                          </Box>
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <Email fontSize="small" />
-                            <Typography variant="body2">{contact.email}</Typography>
-                          </Box>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        {contact.business || '-'}
-                      </TableCell>
-                      <TableCell>
-                        {contact.type === 'customer' ? (
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <Loyalty color="primary" />
-                            <Typography>{contact.loyaltyPoints} pts</Typography>
-                          </Box>
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        {contact.lastPurchase || '-'}
-                      </TableCell>
-                      <TableCell>
-                        {contact.type === 'customer' ? formatCurrency(contact.totalSpent) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={contact.status === 'vip' ? 'VIP' : 
-                                contact.status === 'active' ? 'Active' : 'Inactive'}
-                          color={
-                            contact.status === 'vip' ? 'success' :
-                            contact.status === 'active' ? 'primary' : 'default'
-                          }
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Box display="flex" gap={1}>
-                          <IconButton size="small" onClick={() => handleOpenViewDialog(contact)}>
-                            <Person />
-                          </IconButton>
-                          <IconButton size="small" onClick={() => handleOpenEditDialog(contact)}>
-                            <Edit />
-                          </IconButton>
-                          <IconButton size="small" onClick={() => handleDeleteContact(contact.id)}>
-                            <Delete color="error" />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={9} align="center">
-                      {contacts.length === 0 ? 'No contacts found' : 'No matching contacts found'}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+  // Mobile Contact List View
+  const MobileContactList = () => (
+    <List>
+      {filteredContacts.map((contact) => (
+        <Card key={contact.id} sx={{ mb: 2, border: `1px solid #e2e8f0` }}>
+          <CardContent sx={{ p: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Avatar 
+                  src={contact.avatar} 
+                  sx={{ 
+                    width: 50, 
+                    height: 50,
+                    backgroundColor: getTypeColor(contact.type)
+                  }}
+                >
+                  {contact.name.charAt(0)}
+                </Avatar>
+                <Box>
+                  <Typography variant="h6" fontWeight="bold">
+                    {contact.name}
+                  </Typography>
+                  <Chip
+                    label={contact.type}
+                    size="small"
+                    sx={{
+                      backgroundColor: `${getTypeColor(contact.type)}20`,
+                      color: getTypeColor(contact.type),
+                      fontWeight: 'bold'
+                    }}
+                  />
+                </Box>
+              </Box>
+              <Chip
+                label={contact.status === 'vip' ? 'VIP' : contact.status}
+                size="small"
+                sx={{
+                  backgroundColor: `${getStatusColor(contact.status)}20`,
+                  color: getStatusColor(contact.status),
+                  fontWeight: 'bold'
+                }}
+              />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Phone sx={{ fontSize: 16, color: '#0025DD' }} />
+                <Typography variant="body2">{contact.phone}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Email sx={{ fontSize: 16, color: '#0025DD' }} />
+                <Typography variant="body2">{contact.email}</Typography>
+              </Box>
+              {contact.business && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Business sx={{ fontSize: 16, color: '#0025DD' }} />
+                  <Typography variant="body2">{contact.business}</Typography>
+                </Box>
+              )}
+            </Box>
+
+            {contact.type === 'customer' && (
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Loyalty Points
+                  </Typography>
+                  <Typography variant="body2" fontWeight="bold" color="#0025DD">
+                    {contact.loyaltyPoints} pts
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Total Spent
+                  </Typography>
+                  <Typography variant="body2" fontWeight="bold" color="#10B981">
+                    {formatCurrency(contact.totalSpent)}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Button
+                size="small"
+                sx={{ color: '#0025DD' }}
+                onClick={() => handleOpenViewDialog(contact)}
+              >
+                View
+              </Button>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <IconButton 
+                  size="small" 
+                  onClick={() => handleOpenEditDialog(contact)}
+                  sx={{ color: '#0025DD' }}
+                >
+                  <Edit />
+                </IconButton>
+                <IconButton 
+                  size="small" 
+                  onClick={() => handleDeleteContact(contact.id)}
+                  sx={{ color: '#EF4444' }}
+                >
+                  <Delete />
+                </IconButton>
+              </Box>
+            </Box>
+          </CardContent>
         </Card>
-      )}
+      ))}
+    </List>
+  );
+
+  // Desktop Table View
+  const DesktopContactTable = () => (
+    <Card sx={{ 
+      borderRadius: 3,
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+      border: '1px solid #e2e8f0'
+    }}>
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Contact</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Contact Info</TableCell>
+              <TableCell>Business</TableCell>
+              <TableCell>Loyalty</TableCell>
+              <TableCell>Last Purchase</TableCell>
+              <TableCell>Total Spent</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredContacts.map((contact) => (
+              <TableRow key={contact.id} hover>
+                <TableCell>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Avatar 
+                      src={contact.avatar} 
+                      sx={{ backgroundColor: getTypeColor(contact.type) }}
+                    >
+                      {contact.name.charAt(0)}
+                    </Avatar>
+                    <Typography fontWeight="bold">{contact.name}</Typography>
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={contact.type}
+                    sx={{
+                      backgroundColor: `${getTypeColor(contact.type)}20`,
+                      color: getTypeColor(contact.type),
+                      fontWeight: 'bold'
+                    }}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Box display="flex" flexDirection="column">
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Phone fontSize="small" sx={{ color: '#0025DD' }} />
+                      <Typography variant="body2">{contact.phone}</Typography>
+                    </Box>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Email fontSize="small" sx={{ color: '#0025DD' }} />
+                      <Typography variant="body2">{contact.email}</Typography>
+                    </Box>
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  {contact.business || '-'}
+                </TableCell>
+                <TableCell>
+                  {contact.type === 'customer' ? (
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Loyalty sx={{ color: '#0025DD' }} />
+                      <Typography>{contact.loyaltyPoints} pts</Typography>
+                    </Box>
+                  ) : '-'}
+                </TableCell>
+                <TableCell>
+                  {contact.lastPurchase || '-'}
+                </TableCell>
+                <TableCell>
+                  {contact.type === 'customer' ? (
+                    <Typography fontWeight="bold" color="#10B981">
+                      {formatCurrency(contact.totalSpent)}
+                    </Typography>
+                  ) : '-'}
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={contact.status === 'vip' ? 'VIP' : contact.status}
+                    sx={{
+                      backgroundColor: `${getStatusColor(contact.status)}20`,
+                      color: getStatusColor(contact.status),
+                      fontWeight: 'bold'
+                    }}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Box display="flex" gap={1}>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleOpenViewDialog(contact)}
+                      sx={{ color: '#0025DD' }}
+                    >
+                      <Person />
+                    </IconButton>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleOpenEditDialog(contact)}
+                      sx={{ color: '#0025DD' }}
+                    >
+                      <Edit />
+                    </IconButton>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleDeleteContact(contact.id)}
+                      sx={{ color: '#EF4444' }}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Card>
+  );
+
+  return (
+    <Box sx={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#f8fafc'
+    }}>
+      {/* Header */}
+      <AppBar 
+        position="static" 
+        sx={{ 
+          backgroundColor: '#0025DD',
+          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
+          boxShadow: 'none'
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            edge="start"
+            sx={{ color: 'white', mr: 2 }}
+            onClick={() => navigate(-1)}
+          >
+            <ArrowBack />
+          </IconButton>
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            Contacts
+          </Typography>
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: '#FFEC01',
+              color: '#000',
+              fontWeight: 'bold',
+              '&:hover': {
+                backgroundColor: '#E6D401'
+              }
+            }}
+            startIcon={<Add />}
+            onClick={handleOpenAddDialog}
+          >
+            Add Contact
+          </Button>
+        </Toolbar>
+      </AppBar>
+
+      {/* Main Content */}
+      <Box sx={{ p: isMobile ? 2 : 3 }}>
+        {/* Search and Filter Bar */}
+        <Card sx={{ 
+          mb: 3,
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <CardContent>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} md={6}>
+                <TextField
+                  variant="outlined"
+                  placeholder="Search contacts..."
+                  size="small"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search />
+                      </InputAdornment>
+                    ),
+                  }}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Filter</InputLabel>
+                  <Select
+                    value={filter}
+                    label="Filter"
+                    onChange={(e) => setFilter(e.target.value)}
+                  >
+                    <MenuItem value="all">All Contacts</MenuItem>
+                    <MenuItem value="customer">Customers</MenuItem>
+                    <MenuItem value="supplier">Suppliers</MenuItem>
+                    <MenuItem value="employee">Employees</MenuItem>
+                    <MenuItem value="vip">VIP Customers</MenuItem>
+                    <MenuItem value="inactive">Inactive</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={2}>
+                <Box display="flex" justifyContent={isMobile ? 'flex-start' : 'flex-end'}>
+                  <IconButton 
+                    onClick={() => { setSearchTerm(''); setFilter('all'); }}
+                    sx={{ color: '#0025DD' }}
+                  >
+                    <Refresh />
+                  </IconButton>
+                </Box>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+
+        {/* Loading State */}
+        {isLoading ? (
+          <Box display="flex" justifyContent="center" p={4}>
+            <Typography>Loading contacts...</Typography>
+          </Box>
+        ) : filteredContacts.length === 0 ? (
+          <Card sx={{ 
+            textAlign: 'center', 
+            p: 4,
+            borderRadius: 3,
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            border: '1px solid #e2e8f0'
+          }}>
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              {contacts.length === 0 ? 'No contacts found' : 'No matching contacts found'}
+            </Typography>
+            <Button 
+              variant="contained"
+              sx={{
+                backgroundColor: '#0025DD',
+                mt: 2
+              }}
+              startIcon={<Add />}
+              onClick={handleOpenAddDialog}
+            >
+              Add Your First Contact
+            </Button>
+          </Card>
+        ) : (
+          /* Contacts List/Table */
+          isMobile ? <MobileContactList /> : <DesktopContactTable />
+        )}
+      </Box>
 
       {/* Contact Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
+      <Dialog 
+        open={openDialog} 
+        onClose={handleCloseDialog} 
+        maxWidth="sm" 
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            {editMode ? (currentContact?.id > contacts.length ? 'Add New Contact' : 'Edit Contact') : 'Contact Details'}
-            <IconButton onClick={handleCloseDialog}>
+            <Typography variant="h6" fontWeight="bold">
+              {editMode ? (currentContact?.id > contacts.length ? 'Add New Contact' : 'Edit Contact') : 'Contact Details'}
+            </Typography>
+            <IconButton onClick={handleCloseDialog} sx={{ color: 'white' }}>
               <Close />
             </IconButton>
           </Box>
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent dividers sx={{ p: 3 }}>
           {currentContact && (
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <Box display="flex" justifyContent="center" mb={2} position="relative">
                   <Avatar 
                     src={previewImage || currentContact.avatar} 
-                    sx={{ width: 100, height: 100 }}
+                    sx={{ 
+                      width: 100, 
+                      height: 100,
+                      backgroundColor: getTypeColor(currentContact.type)
+                    }}
                   >
                     {currentContact.name?.charAt(0)}
                   </Avatar>
@@ -460,17 +644,17 @@ const ContactsPage = () => {
                       />
                       <label htmlFor="avatar-upload">
                         <IconButton 
-                          color="primary"
-                          component="span"
                           sx={{
                             position: 'absolute',
                             bottom: 0,
                             right: 'calc(50% - 70px)',
-                            backgroundColor: theme.palette.background.paper,
+                            backgroundColor: '#0025DD',
+                            color: 'white',
                             '&:hover': {
-                              backgroundColor: theme.palette.action.hover
+                              backgroundColor: '#001FB8'
                             }
                           }}
+                          component="span"
                         >
                           <CameraAlt />
                         </IconButton>
@@ -479,6 +663,7 @@ const ContactsPage = () => {
                   )}
                 </Box>
               </Grid>
+              
               <Grid item xs={12} md={6}>
                 <TextField
                   label="Full Name"
@@ -488,6 +673,7 @@ const ContactsPage = () => {
                   disabled={!editMode}
                 />
               </Grid>
+              
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                   <InputLabel>Contact Type</InputLabel>
@@ -503,6 +689,7 @@ const ContactsPage = () => {
                   </Select>
                 </FormControl>
               </Grid>
+
               <Grid item xs={12} md={6}>
                 <TextField
                   label="Phone Number"
@@ -513,12 +700,13 @@ const ContactsPage = () => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Phone />
+                        <Phone sx={{ color: '#0025DD' }} />
                       </InputAdornment>
                     ),
                   }}
                 />
               </Grid>
+              
               <Grid item xs={12} md={6}>
                 <TextField
                   label="Email"
@@ -529,12 +717,13 @@ const ContactsPage = () => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Email />
+                        <Email sx={{ color: '#0025DD' }} />
                       </InputAdornment>
                     ),
                   }}
                 />
               </Grid>
+              
               <Grid item xs={12}>
                 <TextField
                   label="Location"
@@ -545,12 +734,13 @@ const ContactsPage = () => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <LocationOn />
+                        <LocationOn sx={{ color: '#0025DD' }} />
                       </InputAdornment>
                     ),
                   }}
                 />
               </Grid>
+              
               <Grid item xs={12}>
                 <TextField
                   label="Business Name"
@@ -561,12 +751,13 @@ const ContactsPage = () => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Business />
+                        <Business sx={{ color: '#0025DD' }} />
                       </InputAdornment>
                     ),
                   }}
                 />
               </Grid>
+              
               {currentContact.type === 'customer' && (
                 <>
                   <Grid item xs={12} md={6}>
@@ -580,12 +771,13 @@ const ContactsPage = () => {
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Loyalty />
+                            <Loyalty sx={{ color: '#0025DD' }} />
                           </InputAdornment>
                         ),
                       }}
                     />
                   </Grid>
+                  
                   <Grid item xs={12} md={6}>
                     <FormControl fullWidth>
                       <InputLabel>Status</InputLabel>
@@ -603,11 +795,12 @@ const ContactsPage = () => {
                   </Grid>
                 </>
               )}
+              
               {!editMode && currentContact.type === 'customer' && (
                 <Grid item xs={12}>
-                  <Card variant="outlined">
+                  <Card variant="outlined" sx={{ borderColor: '#0025DD20' }}>
                     <CardContent>
-                      <Typography variant="h6" gutterBottom>
+                      <Typography variant="h6" gutterBottom color="#0025DD">
                         Purchase History
                       </Typography>
                       <Box display="flex" justifyContent="space-between" mb={1}>
@@ -618,7 +811,7 @@ const ContactsPage = () => {
                       </Box>
                       <Box display="flex" justifyContent="space-between">
                         <Typography>Total Spent:</Typography>
-                        <Typography fontWeight="bold">
+                        <Typography fontWeight="bold" color="#10B981">
                           {formatCurrency(currentContact.totalSpent || 0)}
                         </Typography>
                       </Box>
@@ -629,12 +822,23 @@ const ContactsPage = () => {
             </Grid>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: 3 }}>
           {editMode && (
             <>
-              <Button onClick={handleCloseDialog}>Cancel</Button>
               <Button 
-                variant="contained" 
+                onClick={handleCloseDialog}
+                sx={{ color: '#0025DD' }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="contained"
+                sx={{
+                  backgroundColor: '#0025DD',
+                  '&:hover': {
+                    backgroundColor: '#001FB8'
+                  }
+                }}
                 onClick={handleSaveContact}
                 startIcon={<CheckCircle />}
               >

@@ -488,7 +488,7 @@ const SimplePaymentsPage = () => {
             Payments
           </Typography>
           <Chip 
-            label="Active Driver" 
+            label="Active Rider" 
             sx={{ 
               backgroundColor: '#FFEC01', 
               color: '#000',
