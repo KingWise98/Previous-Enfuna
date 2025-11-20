@@ -474,7 +474,7 @@ const POSDashboard = () => {
                   variant="contained" 
                   startIcon={<ShoppingCart />} 
                   sx={{ mb: 1 }}
-                  href="/pos/Add"
+                  href="/pos/add"
                 >
                   New Order
                 </Button>
