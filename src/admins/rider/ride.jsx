@@ -37,7 +37,10 @@ import {
   Tab,
   Stepper,
   Step,
-  StepLabel
+  StepLabel,
+  Switch,
+  FormGroup,
+  FormControlLabel as MuiFormControlLabel
 } from '@mui/material';
 import {
   DirectionsCar,
@@ -60,7 +63,10 @@ import {
   Add,
   SwapHoriz,
   Route,
-  Payment
+  Payment,
+  Report,
+  LocalGasStation,
+  AccountBalance
 } from '@mui/icons-material';
 
 const RidePage = () => {
@@ -73,15 +79,30 @@ const RidePage = () => {
   const [showEditTripDialog, setShowEditTripDialog] = useState(false);
   const [showCancelTripDialog, setShowCancelTripDialog] = useState(false);
   const [showAddDestinationDialog, setShowAddDestinationDialog] = useState(false);
+  const [showEndShiftDialog, setShowEndShiftDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [tripTime, setTripTime] = useState(0);
   const [earnings, setEarnings] = useState(0);
   const [editTab, setEditTab] = useState(0);
+  const [shiftActive, setShiftActive] = useState(true);
+  const [shiftDuration, setShiftDuration] = useState(2040); // 34 minutes in seconds
+
+  // Shift statistics
+  const [shiftStats, setShiftStats] = useState({
+    totalTrips: 8,
+    momoEarnings: 52000,
+    cashEarnings: 44000,
+    fuelExpenses: 15000,
+    totalEarnings: 96000,
+    netEarnings: 81000
+  });
 
   const [tripForm, setTripForm] = useState({
-    destination: '',
-    fare: '',
-    paymentMethod: 'cash'
+    pickup: 'Kollo',
+    destination: 'Ntinda',
+    paymentMethod: 'momo',
+    vehicle: 'UBB 472Z'
   });
 
   const [editForm, setEditForm] = useState({
@@ -95,9 +116,10 @@ const RidePage = () => {
   const [tripHistory, setTripHistory] = useState([
     {
       id: 1,
-      destination: 'Garden City Mall',
+      pickup: 'Kollo',
+      destination: 'Ntinda',
       fare: 15000,
-      paymentMethod: 'cash',
+      paymentMethod: 'momo',
       status: 'completed',
       duration: '25 min',
       distance: '8.2 km',
@@ -107,9 +129,10 @@ const RidePage = () => {
     },
     {
       id: 2,
-      destination: 'Makerere University',
+      pickup: 'Makerere',
+      destination: 'Garden City',
       fare: 12000,
-      paymentMethod: 'mobile',
+      paymentMethod: 'cash',
       status: 'completed',
       duration: '20 min',
       distance: '6.5 km',
@@ -119,9 +142,10 @@ const RidePage = () => {
     },
     {
       id: 3,
-      destination: 'Entebbe Airport',
+      pickup: 'Entebbe',
+      destination: 'Airport',
       fare: 45000,
-      paymentMethod: 'card',
+      paymentMethod: 'momo',
       status: 'completed',
       duration: '45 min',
       distance: '35 km',
@@ -133,26 +157,20 @@ const RidePage = () => {
 
   // Popular destinations in Uganda
   const popularDestinations = [
+    { name: 'Kollo', area: 'Kampala', emoji: '📍' },
+    { name: 'Ntinda', area: 'Kampala', emoji: '📍' },
     { name: 'Garden City Mall', area: 'Kampala', emoji: '🛍️' },
     { name: 'Acacia Mall', area: 'Kisementi', emoji: '🏬' },
     { name: 'Makerere University', area: 'Makerere', emoji: '🎓' },
     { name: 'Mulago Hospital', area: 'Mulago', emoji: '🏥' },
     { name: 'Entebbe Airport', area: 'Entebbe', emoji: '✈️' },
-    { name: 'Nakasero Market', area: 'Nakasero', emoji: '🥦' },
-    { name: 'Uganda Museum', area: 'Kamwokya', emoji: '🏛️' },
-    { name: 'Oasis Mall', area: 'Kampala', emoji: '🛒' },
-    { name: 'Kabaka\'s Palace', area: 'Mengo', emoji: '👑' },
-    { name: 'Jinja Town', area: 'Jinja', emoji: '🌊' }
+    { name: 'Nakasero Market', area: 'Nakasero', emoji: '🥦' }
   ];
 
-  const cancelReasons = [
-    'Passenger changed mind',
-    'Traffic conditions',
-    'Vehicle issue',
-    'Personal emergency',
-    'Route not feasible',
-    'Payment issue',
-    'Other'
+  const paymentMethods = [
+    { value: 'cash', label: 'Cash', icon: <AttachMoney /> },
+    { value: 'momo', label: 'MoMo', icon: <Smartphone /> },
+    { value: 'card', label: 'Card', icon: <CreditCard /> }
   ];
 
   // Real-time trip timer
@@ -168,6 +186,17 @@ const RidePage = () => {
     return () => clearInterval(interval);
   }, [activeTrip]);
 
+  // Shift timer
+  useEffect(() => {
+    let interval;
+    if (shiftActive) {
+      interval = setInterval(() => {
+        setShiftDuration(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [shiftActive]);
+
   // Calculate earnings based on trip time (simulated)
   useEffect(() => {
     if (activeTrip) {
@@ -176,19 +205,6 @@ const RidePage = () => {
       setEarnings(baseFare + timeBonus);
     }
   }, [tripTime, activeTrip]);
-
-  // Initialize edit form when opening edit dialog
-  useEffect(() => {
-    if (activeTrip && showEditTripDialog) {
-      setEditForm({
-        destination: activeTrip.destination,
-        fare: activeTrip.fare.toString(),
-        paymentMethod: activeTrip.paymentMethod,
-        additionalStop: '',
-        cancelReason: ''
-      });
-    }
-  }, [showEditTripDialog, activeTrip]);
 
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
@@ -214,9 +230,15 @@ const RidePage = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const formatShiftTime = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    return `${hours}h ${mins}m`;
+  };
+
   const handleStartTrip = () => {
-    if (!tripForm.destination || !tripForm.fare) {
-      showSnackbar('Please select destination and enter fare', 'error');
+    if (!tripForm.destination) {
+      showSnackbar('Please select destination', 'error');
       return;
     }
 
@@ -224,11 +246,13 @@ const RidePage = () => {
 
     const newTrip = {
       id: Date.now(),
+      pickup: tripForm.pickup,
       destination: tripForm.destination,
       area: selectedDestination?.area,
       emoji: selectedDestination?.emoji,
-      fare: parseInt(tripForm.fare),
+      fare: 15000, // Default fare
       paymentMethod: tripForm.paymentMethod,
+      vehicle: tripForm.vehicle,
       startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       startTimestamp: new Date(),
       status: 'active',
@@ -238,83 +262,7 @@ const RidePage = () => {
     setActiveTrip(newTrip);
     setShowNewTripDialog(false);
     setTripTime(0);
-    
-    // Reset form
-    setTripForm({
-      destination: '',
-      fare: '',
-      paymentMethod: 'cash'
-    });
-
     showSnackbar('Trip started! Ride safely.');
-  };
-
-  const handleUpdateTrip = () => {
-    if (!editForm.destination || !editForm.fare) {
-      showSnackbar('Please enter destination and fare', 'error');
-      return;
-    }
-
-    const selectedDestination = popularDestinations.find(dest => dest.name === editForm.destination);
-
-    const updatedTrip = {
-      ...activeTrip,
-      destination: editForm.destination,
-      area: selectedDestination?.area,
-      emoji: selectedDestination?.emoji,
-      fare: parseInt(editForm.fare),
-      paymentMethod: editForm.paymentMethod,
-      updatedAt: new Date()
-    };
-
-    setActiveTrip(updatedTrip);
-    setShowEditTripDialog(false);
-    showSnackbar('Trip updated successfully!');
-  };
-
-  const handleAddDestination = () => {
-    if (!editForm.additionalStop) {
-      showSnackbar('Please enter an additional stop', 'error');
-      return;
-    }
-
-    const newStop = {
-      id: Date.now(),
-      name: editForm.additionalStop,
-      addedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    const updatedTrip = {
-      ...activeTrip,
-      additionalStops: [...(activeTrip.additionalStops || []), newStop]
-    };
-
-    setActiveTrip(updatedTrip);
-    setShowAddDestinationDialog(false);
-    setEditForm(prev => ({ ...prev, additionalStop: '' }));
-    showSnackbar('Additional stop added!');
-  };
-
-  const handleCancelTrip = () => {
-    if (!editForm.cancelReason) {
-      showSnackbar('Please select a cancellation reason', 'error');
-      return;
-    }
-
-    const cancelledTrip = {
-      ...activeTrip,
-      status: 'cancelled',
-      endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      duration: formatTime(tripTime),
-      distance: `${calculateDistance().toFixed(1)} km`,
-      cancelReason: editForm.cancelReason,
-      date: 'Today'
-    };
-
-    setTripHistory(prev => [cancelledTrip, ...prev]);
-    setActiveTrip(null);
-    setShowCancelTripDialog(false);
-    showSnackbar(`Trip cancelled. Reason: ${editForm.cancelReason}`);
   };
 
   const handleEndTrip = () => {
@@ -334,22 +282,39 @@ const RidePage = () => {
       date: 'Today'
     };
 
+    // Update shift stats
+    const paymentKey = activeTrip.paymentMethod === 'momo' ? 'momoEarnings' : 
+                      activeTrip.paymentMethod === 'cash' ? 'cashEarnings' : 'momoEarnings';
+    
+    setShiftStats(prev => ({
+      ...prev,
+      totalTrips: prev.totalTrips + 1,
+      [paymentKey]: prev[paymentKey] + earnings,
+      totalEarnings: prev.totalEarnings + earnings,
+      netEarnings: prev.netEarnings + earnings
+    }));
+
     setTripHistory(prev => [completedTrip, ...prev]);
     setActiveTrip(null);
     setShowEndTripDialog(false);
     showSnackbar(`Trip completed! You earned UGX ${earnings.toLocaleString()}`);
   };
 
+  const handleEndShift = () => {
+    setShiftActive(false);
+    setShowEndShiftDialog(false);
+    showSnackbar('Shift ended successfully!');
+  };
+
   const calculateDistance = () => {
-    // Simulate distance calculation based on time
-    return (tripTime / 60) * 0.8; // Assume average speed of 48 km/h
+    return (tripTime / 60) * 0.8;
   };
 
   const getPaymentIcon = (method) => {
     switch (method) {
       case 'cash': return <AttachMoney />;
       case 'card': return <CreditCard />;
-      case 'mobile': return <Smartphone />;
+      case 'momo': return <Smartphone />;
       default: return <AttachMoney />;
     }
   };
@@ -358,681 +323,405 @@ const RidePage = () => {
     switch (method) {
       case 'cash': return 'Cash';
       case 'card': return 'Card';
-      case 'mobile': return 'Mobile Money';
+      case 'momo': return 'MoMo';
       default: return 'Cash';
     }
   };
 
-  // Active Trip Screen
-  if (activeTrip) {
-    return (
-      <Box sx={{ p: isMobile ? 2 : 3, minHeight: '100vh', backgroundColor: 'background.default' }}>
-        {/* Header */}
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <Typography variant="h4" fontWeight="bold" color="primary" gutterBottom>
-            🚗 Active Trip
-          </Typography>
-          <Chip 
-            icon={<DirectionsCar />} 
-            label="Trip in Progress" 
-            color="success" 
-            variant="filled"
-          />
-        </Box>
-
-        <Grid container spacing={3}>
-          {/* Trip Details */}
-          <Grid item xs={12} md={8}>
-            <Card elevation={3}>
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                  <Typography variant="h6" color="text.secondary">
-                    Trip Details
-                  </Typography>
-                  <Button
-                    startIcon={<Edit />}
-                    onClick={() => setShowEditTripDialog(true)}
-                    variant="outlined"
-                    size="small"
-                  >
-                    Edit Trip
-                  </Button>
-                </Box>
-                
-                <Box sx={{ mb: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-                      <LocationOn />
-                    </Avatar>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Destination
-                      </Typography>
-                      <Typography variant="h5" fontWeight="bold">
-                        {activeTrip.destination} {activeTrip.emoji}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {activeTrip.area}
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  {/* Additional Stops */}
-                  {activeTrip.additionalStops && activeTrip.additionalStops.length > 0 && (
-                    <Box sx={{ ml: 6, mb: 2 }}>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        Additional Stops:
-                      </Typography>
-                      {activeTrip.additionalStops.map((stop, index) => (
-                        <Chip
-                          key={stop.id}
-                          label={`${stop.name} (${stop.addedAt})`}
-                          size="small"
-                          color="secondary"
-                          sx={{ mr: 1, mb: 1 }}
-                        />
-                      ))}
-                    </Box>
-                  )}
-                </Box>
-
-                <Divider sx={{ my: 2 }} />
-
-                {/* Real-time Stats */}
-                <Grid container spacing={3} sx={{ mb: 2 }}>
-                  <Grid item xs={12} sm={4}>
-                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.50' }}>
-                      <AccessTime color="primary" sx={{ mb: 1 }} />
-                      <Typography variant="h6" fontWeight="bold">
-                        {formatTime(tripTime)}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Trip Time
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                  
-                  <Grid item xs={12} sm={4}>
-                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'secondary.50' }}>
-                      <Speed color="secondary" sx={{ mb: 1 }} />
-                      <Typography variant="h6" fontWeight="bold">
-                        {calculateDistance().toFixed(1)} km
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Distance
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                  
-                  <Grid item xs={12} sm={4}>
-                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.50' }}>
-                      <AccountBalanceWallet color="success" sx={{ mb: 1 }} />
-                      <Typography variant="h6" fontWeight="bold" color="success.main">
-                        UGX {earnings.toLocaleString()}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Current Earnings
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                </Grid>
-
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Base Fare
-                    </Typography>
-                    <Typography variant="body1" fontWeight="bold">
-                      UGX {activeTrip.fare.toLocaleString()}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Payment Method
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {getPaymentIcon(activeTrip.paymentMethod)}
-                      <Typography variant="body1" fontWeight="bold">
-                        {getPaymentLabel(activeTrip.paymentMethod)}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Started
-                    </Typography>
-                    <Typography variant="body2">
-                      {activeTrip.startTime}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Status
-                    </Typography>
-                    <Chip label="In Progress" size="small" color="warning" />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Actions & Live Updates */}
-          <Grid item xs={12} md={4}>
-            <Card elevation={3}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  Trip Actions
-                </Typography>
-                
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    size="large"
-                    startIcon={<CheckCircle />}
-                    onClick={() => setShowEndTripDialog(true)}
-                    fullWidth
-                  >
-                    End Trip
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    size="large"
-                    startIcon={<Map />}
-                    onClick={() => showSnackbar('Navigation started')}
-                    fullWidth
-                  >
-                    Start Navigation
-                  </Button>
-
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    size="large"
-                    startIcon={<Add />}
-                    onClick={() => setShowAddDestinationDialog(true)}
-                    fullWidth
-                  >
-                    Add Stop
-                  </Button>
-
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="large"
-                    startIcon={<Cancel />}
-                    onClick={() => setShowCancelTripDialog(true)}
-                    fullWidth
-                  >
-                    Cancel Trip
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-
-            {/* Live Updates */}
-            <Card sx={{ mt: 2 }} elevation={2}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  📊 Live Updates
-                </Typography>
-                <List dense>
-                  <ListItem>
-                    <ListItemText
-                      primary="Time Elapsed"
-                      secondary={formatTime(tripTime)}
-                    />
-                  </ListItem>
-                  <ListItem>
-                    <ListItemText
-                      primary="Distance Covered"
-                      secondary={`${calculateDistance().toFixed(1)} km`}
-                    />
-                  </ListItem>
-                  <ListItem>
-                    <ListItemText
-                      primary="Earnings"
-                      secondary={`UGX ${earnings.toLocaleString()}`}
-                    />
-                  </ListItem>
-                  <ListItem>
-                    <ListItemText
-                      primary="Avg. Speed"
-                      secondary="48 km/h"
-                    />
-                  </ListItem>
-                </List>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-
-        {/* Edit Trip Dialog */}
-        <Dialog 
-          open={showEditTripDialog} 
-          onClose={() => setShowEditTripDialog(false)} 
-          maxWidth="md" 
-          fullWidth
-        >
-          <DialogTitle>
-            <Typography variant="h6">Edit Trip Details</Typography>
-          </DialogTitle>
-          <DialogContent>
-            <Tabs value={editTab} onChange={(e, newValue) => setEditTab(newValue)} sx={{ mb: 3 }}>
-              <Tab label="Change Destination" />
-              <Tab label="Adjust Fare" />
-              <Tab label="Payment Method" />
-            </Tabs>
-
-            {editTab === 0 && (
-              <Box>
-                <Typography variant="body1" gutterBottom>
-                  Change your destination
-                </Typography>
-                <FormControl fullWidth sx={{ mt: 2 }}>
-                  <Select
-                    value={editForm.destination}
-                    onChange={handleEditInputChange('destination')}
-                    displayEmpty
-                    startAdornment={<LocationOn color="action" sx={{ mr: 1 }} />}
-                  >
-                    <MenuItem value="">
-                      <em>Choose a new destination...</em>
-                    </MenuItem>
-                    {popularDestinations.map((dest) => (
-                      <MenuItem key={dest.name} value={dest.name}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography>{dest.emoji}</Typography>
-                          <Box>
-                            <Typography variant="body1">{dest.name}</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {dest.area}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-            )}
-
-            {editTab === 1 && (
-              <Box>
-                <Typography variant="body1" gutterBottom>
-                  Adjust trip fare
-                </Typography>
-                <TextField
-                  fullWidth
-                  label="New Fare (UGX)"
-                  type="number"
-                  value={editForm.fare}
-                  onChange={handleEditInputChange('fare')}
-                  sx={{ mt: 2 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <AttachMoney color="action" />
-                      </InputAdornment>
-                    )
-                  }}
-                />
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                  Current fare: UGX {activeTrip?.fare?.toLocaleString()}
-                </Typography>
-              </Box>
-            )}
-
-            {editTab === 2 && (
-              <Box>
-                <Typography variant="body1" gutterBottom>
-                  Change payment method
-                </Typography>
-                <RadioGroup
-                  value={editForm.paymentMethod}
-                  onChange={handleEditInputChange('paymentMethod')}
-                  sx={{ mt: 2 }}
-                >
-                  <FormControlLabel 
-                    value="cash" 
-                    control={<Radio />} 
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <AttachMoney />
-                        <Typography>Cash</Typography>
-                      </Box>
-                    } 
-                  />
-                  <FormControlLabel 
-                    value="card" 
-                    control={<Radio />} 
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CreditCard />
-                        <Typography>Card</Typography>
-                      </Box>
-                    } 
-                  />
-                  <FormControlLabel 
-                    value="mobile" 
-                    control={<Radio />} 
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Smartphone />
-                        <Typography>Mobile Money</Typography>
-                      </Box>
-                    } 
-                  />
-                </RadioGroup>
-              </Box>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowEditTripDialog(false)}>Cancel</Button>
-            <Button 
-              variant="contained" 
-              onClick={handleUpdateTrip}
-              disabled={!editForm.destination || !editForm.fare}
-            >
-              Update Trip
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Add Destination Dialog */}
-        <Dialog 
-          open={showAddDestinationDialog} 
-          onClose={() => setShowAddDestinationDialog(false)} 
-          maxWidth="sm" 
-          fullWidth
-        >
-          <DialogTitle>
-            <Typography variant="h6">Add Additional Stop</Typography>
-          </DialogTitle>
-          <DialogContent>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Add an intermediate stop to your current trip
-            </Typography>
-            <TextField
-              fullWidth
-              label="Stop Location"
-              value={editForm.additionalStop}
-              onChange={handleEditInputChange('additionalStop')}
-              placeholder="Enter stop location..."
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LocationOn color="action" />
-                  </InputAdornment>
-                )
-              }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowAddDestinationDialog(false)}>Cancel</Button>
-            <Button 
-              variant="contained" 
-              onClick={handleAddDestination}
-              disabled={!editForm.additionalStop}
-            >
-              Add Stop
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Cancel Trip Dialog */}
-        <Dialog 
-          open={showCancelTripDialog} 
-          onClose={() => setShowCancelTripDialog(false)} 
-          maxWidth="sm" 
-          fullWidth
-        >
-          <DialogTitle>
-            <Typography variant="h6">Cancel Trip</Typography>
-          </DialogTitle>
-          <DialogContent>
-            <Typography variant="body1" gutterBottom color="error">
-              Are you sure you want to cancel this trip?
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              This action cannot be undone.
-            </Typography>
-            
-            <FormControl fullWidth>
-              <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                Reason for cancellation
-              </Typography>
-              <Select
-                value={editForm.cancelReason}
-                onChange={handleEditInputChange('cancelReason')}
-                displayEmpty
-              >
-                <MenuItem value="">
-                  <em>Select a reason...</em>
-                </MenuItem>
-                {cancelReasons.map((reason) => (
-                  <MenuItem key={reason} value={reason}>
-                    {reason}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <Paper sx={{ p: 2, mt: 2, bgcolor: 'error.50' }}>
-              <Typography variant="body2" color="error.main">
-                <strong>Note:</strong> Cancelling this trip will end it immediately and it will be recorded in your trip history as cancelled.
-              </Typography>
-            </Paper>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowCancelTripDialog(false)}>Continue Trip</Button>
-            <Button 
-              variant="contained" 
-              color="error"
-              onClick={handleCancelTrip}
-              disabled={!editForm.cancelReason}
-              startIcon={<Cancel />}
-            >
-              Confirm Cancel
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* End Trip Dialog */}
-        <Dialog 
-          open={showEndTripDialog} 
-          onClose={() => setShowEndTripDialog(false)} 
-          maxWidth="sm" 
-          fullWidth
-        >
-          <DialogTitle>
-            <Typography variant="h6">End Trip</Typography>
-          </DialogTitle>
-          <DialogContent>
-            <Box sx={{ textAlign: 'center', py: 2 }}>
-              <CheckCircle sx={{ fontSize: 60, color: 'success.main', mb: 2 }} />
-              <Typography variant="h6" gutterBottom>
-                Complete Trip to {activeTrip?.destination}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Trip Summary:
-              </Typography>
-              
-              <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    Duration
-                  </Typography>
-                  <Typography variant="h6" fontWeight="bold">
-                    {formatTime(tripTime)}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    Distance
-                  </Typography>
-                  <Typography variant="h6" fontWeight="bold">
-                    {calculateDistance().toFixed(1)} km
-                  </Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Divider sx={{ my: 1 }} />
-                  <Typography variant="body2" color="text.secondary">
-                    Total Earnings
-                  </Typography>
-                  <Typography variant="h4" fontWeight="bold" color="success.main">
-                    UGX {earnings.toLocaleString()}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowEndTripDialog(false)}>Continue Trip</Button>
-            <Button 
-              variant="contained" 
-              color="success"
-              onClick={handleEndTrip}
-              startIcon={<CheckCircle />}
-            >
-              Confirm End Trip
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    );
-  }
-
-  // Main Rider Page (unchanged from your original code)
+  // Main Dashboard
   return (
     <Box sx={{ 
       minHeight: '100vh', 
       backgroundColor: 'background.default',
       pb: 3
     }}>
-      {/* Mobile Header */}
-      {isMobile && (
-        <AppBar position="static" color="primary">
-          <Toolbar>
-            <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>
-              Ride 🏍️
-            </Typography>
-          </Toolbar>
-        </AppBar>
-      )}
+      {/* Header */}
+      <AppBar 
+        position="static" 
+        sx={{ 
+          backgroundColor: '#0025DD',
+          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)'
+        }}
+      >
+        <Toolbar>
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            ENFUNA
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Chip 
+              icon={<DirectionsCar />}
+              label={`UBB 472Z • Active ${formatShiftTime(shiftDuration)}`}
+              sx={{ 
+                backgroundColor: '#FFEC01', 
+                color: '#000',
+                fontWeight: 'bold'
+              }}
+            />
+            {!activeTrip && (
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: '#FFEC01',
+                  color: '#000',
+                  fontWeight: 'bold',
+                  '&:hover': {
+                    backgroundColor: '#E6D401'
+                  }
+                }}
+                onClick={() => setShowNewTripDialog(true)}
+              >
+                New Trip
+              </Button>
+            )}
+          </Box>
+        </Toolbar>
+      </AppBar>
 
       {/* Main Content */}
       <Box sx={{ p: isMobile ? 2 : 3 }}>
-        {/* Header */}
-        <Box sx={{ mb: 4, textAlign: isMobile ? 'center' : 'left' }}>
-          <Typography 
-            variant={isMobile ? "h5" : "h4"} 
-            fontWeight="bold" 
-            gutterBottom
-            color="primary"
-          >
-            Ride & Earn
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Start trips and track your earnings in real-time
-          </Typography>
-        </Box>
+        <Grid container spacing={3}>
+          {/* Left Column - Trip Management */}
+          <Grid item xs={12} md={8}>
+            {activeTrip ? (
+              // Active Trip View
+              <Card sx={{ mb: 3, border: `2px solid #0025DD` }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Typography variant="h5" fontWeight="bold" color="#0025DD">
+                      Active Trip
+                    </Typography>
+                    <Chip 
+                      label="In Progress" 
+                      sx={{ 
+                        backgroundColor: '#FFEC01', 
+                        color: '#000',
+                        fontWeight: 'bold'
+                      }}
+                    />
+                  </Box>
 
-        {/* Quick Start Card */}
-        <Card sx={{ mb: 4, backgroundColor: 'primary.50', border: '2px dashed', borderColor: 'primary.main' }}>
-          <CardContent sx={{ textAlign: 'center', py: 4 }}>
-            <DirectionsCar sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-            <Typography variant="h5" fontWeight="bold" gutterBottom>
-              Ready to Ride?
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-              Start a new trip and begin earning
-            </Typography>
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<PlayArrow />}
-              onClick={() => setShowNewTripDialog(true)}
-              sx={{ px: 4 }}
-            >
-              Start New Trip
-            </Button>
-          </CardContent>
-        </Card>
+                  {/* Trip Details */}
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ p: 2, border: `1px solid #0025DD20` }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Pickup
+                        </Typography>
+                        <Typography variant="h6" fontWeight="bold">
+                          {activeTrip.pickup}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ p: 2, border: `1px solid #0025DD20` }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Destination
+                        </Typography>
+                        <Typography variant="h6" fontWeight="bold">
+                          {activeTrip.destination}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ p: 2, border: `1px solid #0025DD20` }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Payment
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {getPaymentIcon(activeTrip.paymentMethod)}
+                          <Typography variant="h6" fontWeight="bold">
+                            {getPaymentLabel(activeTrip.paymentMethod)}
+                          </Typography>
+                        </Box>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ p: 2, border: `1px solid #0025DD20` }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Motorcycle
+                        </Typography>
+                        <Typography variant="h6" fontWeight="bold">
+                          {activeTrip.vehicle}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  </Grid>
 
-        {/* Trip History */}
-        <Card>
-          <CardContent>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Recent Trips
-            </Typography>
-            
-            {tripHistory.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <DirectionsCar sx={{ fontSize: 60, color: 'grey.400', mb: 2 }} />
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  No trips yet
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Start your first trip to see history here
-                </Typography>
-              </Box>
+                  {/* Real-time Stats */}
+                  <Grid container spacing={2} sx={{ mt: 1, mb: 3 }}>
+                    <Grid item xs={4}>
+                      <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#0025DD10' }}>
+                        <AccessTime sx={{ color: '#0025DD', mb: 1 }} />
+                        <Typography variant="h6" fontWeight="bold" color="#0025DD">
+                          {formatTime(tripTime)}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Trip Time
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#0025DD10' }}>
+                        <Speed sx={{ color: '#0025DD', mb: 1 }} />
+                        <Typography variant="h6" fontWeight="bold" color="#0025DD">
+                          {calculateDistance().toFixed(1)} km
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Distance
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#0025DD10' }}>
+                        <AccountBalanceWallet sx={{ color: '#0025DD', mb: 1 }} />
+                        <Typography variant="h6" fontWeight="bold" color="#0025DD">
+                          UGX {earnings.toLocaleString()}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Earnings
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  </Grid>
+
+                  {/* Action Buttons */}
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        backgroundColor: '#0025DD',
+                        flex: 1,
+                        minWidth: '120px'
+                      }}
+                      startIcon={<Map />}
+                    >
+                      Navigation
+                    </Button>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        backgroundColor: '#FFEC01',
+                        color: '#000',
+                        flex: 1,
+                        minWidth: '120px'
+                      }}
+                      startIcon={<CheckCircle />}
+                      onClick={() => setShowEndTripDialog(true)}
+                    >
+                      End Trip
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        borderColor: '#0025DD',
+                        color: '#0025DD',
+                        flex: 1,
+                        minWidth: '120px'
+                      }}
+                      startIcon={<Cancel />}
+                      onClick={() => setShowCancelTripDialog(true)}
+                    >
+                      Cancel
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
             ) : (
-              <List>
-                {tripHistory.map((trip, index) => (
-                  <ListItem 
-                    key={trip.id} 
-                    divider={index < tripHistory.length - 1}
-                    sx={{ px: isMobile ? 0 : 2 }}
+              // No Active Trip - Quick Start
+              <Card sx={{ mb: 3, border: `2px dashed #0025DD` }}>
+                <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                  <DirectionsCar sx={{ fontSize: 60, color: '#0025DD', mb: 2 }} />
+                  <Typography variant="h5" fontWeight="bold" gutterBottom color="#0025DD">
+                    Ready to Ride?
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                    Start a new trip and begin earning
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    sx={{
+                      backgroundColor: '#0025DD',
+                      px: 4,
+                      '&:hover': {
+                        backgroundColor: '#001FB8'
+                      }
+                    }}
+                    startIcon={<PlayArrow />}
+                    onClick={() => setShowNewTripDialog(true)}
                   >
-                    <ListItemIcon>
-                      <Avatar sx={{ bgcolor: trip.status === 'cancelled' ? 'error.100' : 'primary.100' }}>
-                        <DirectionsCar color={trip.status === 'cancelled' ? 'error' : 'primary'} />
-                      </Avatar>
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body1" fontWeight="500">
-                              {trip.destination} {trip.emoji}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {trip.distance} • {trip.duration} • {trip.startTime}
-                              {trip.cancelReason && ` • ${trip.cancelReason}`}
-                            </Typography>
-                          </Box>
-                          <Box sx={{ textAlign: 'right', ml: 2 }}>
-                            <Typography 
-                              variant="body1" 
-                              fontWeight="bold" 
-                              color={trip.status === 'cancelled' ? 'error.main' : 'success.main'}
-                            >
-                              {trip.status === 'cancelled' ? 'Cancelled' : `UGX ${trip.fare.toLocaleString()}`}
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                              <Chip 
-                                label={trip.status}
-                                size="small"
-                                color={
-                                  trip.status === 'completed' ? 'success' : 
-                                  trip.status === 'cancelled' ? 'error' : 'warning'
-                                }
-                              />
-                              {trip.status !== 'cancelled' && getPaymentIcon(trip.paymentMethod)}
+                    Start New Trip
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Trip History */}
+            <Card>
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
+                  Recent Trips
+                </Typography>
+                <List>
+                  {tripHistory.map((trip, index) => (
+                    <ListItem 
+                      key={trip.id} 
+                      divider={index < tripHistory.length - 1}
+                      sx={{ px: 0 }}
+                    >
+                      <ListItemIcon>
+                        <Avatar sx={{ bgcolor: '#0025DD20', color: '#0025DD' }}>
+                          <DirectionsCar />
+                        </Avatar>
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="body1" fontWeight="500">
+                                {trip.pickup} → {trip.destination}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {trip.distance} • {trip.duration} • {trip.startTime}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: 'right', ml: 2 }}>
+                              <Typography variant="body1" fontWeight="bold" color="#0025DD">
+                                UGX {trip.fare.toLocaleString()}
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                                <Chip 
+                                  label={trip.paymentMethod.toUpperCase()}
+                                  size="small"
+                                  sx={{ 
+                                    backgroundColor: trip.paymentMethod === 'momo' ? '#0025DD20' : '#FFEC01',
+                                    color: trip.paymentMethod === 'momo' ? '#0025DD' : '#000'
+                                  }}
+                                />
+                              </Box>
                             </Box>
                           </Box>
-                        </Box>
-                      }
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            )}
-          </CardContent>
-        </Card>
+                        }
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Right Column - Earnings & Shift Info */}
+          <Grid item xs={12} md={4}>
+            {/* Earnings Summary */}
+            <Card sx={{ mb: 3, border: `2px solid #0025DD` }}>
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
+                  Earnings Summary
+                </Typography>
+                
+                <Box sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Trips:</Typography>
+                    <Typography variant="body2" fontWeight="bold">{shiftStats.totalTrips}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">MoMo:</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      UGX {shiftStats.momoEarnings.toLocaleString()}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Cash:</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      UGX {shiftStats.cashEarnings.toLocaleString()}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Fuel Expenses:</Typography>
+                    <Typography variant="body2" fontWeight="bold" color="error.main">
+                      UGX {shiftStats.fuelExpenses.toLocaleString()}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Box sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                    <Typography variant="h6">Total Earnings:</Typography>
+                    <Typography variant="h6" fontWeight="bold" color="#0025DD">
+                      UGX {shiftStats.totalEarnings.toLocaleString()}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="h6">Net Earnings:</Typography>
+                    <Typography variant="h6" fontWeight="bold" color="#0025DD">
+                      UGX {shiftStats.netEarnings.toLocaleString()}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    sx={{
+                      borderColor: '#0025DD',
+                      color: '#0025DD'
+                    }}
+                    startIcon={<Report />}
+                    onClick={() => setShowReportDialog(true)}
+                  >
+                    Generate Report
+                  </Button>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    sx={{
+                      backgroundColor: '#0025DD'
+                    }}
+                    startIcon={<Stop />}
+                    onClick={() => setShowEndShiftDialog(true)}
+                  >
+                    End Shift
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+
+            {/* Vehicle Info */}
+            <Card sx={{ border: `1px solid #0025DD20` }}>
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
+                  Motorcycle Info
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <DirectionsCar sx={{ color: '#0025DD', fontSize: 40 }} />
+                  <Box>
+                    <Typography variant="h6" fontWeight="bold">
+                      UBB 472Z
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Toyota Noah • 2020
+                    </Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="body2">Status:</Typography>
+                  <Chip 
+                    label="Active" 
+                    size="small" 
+                    sx={{ 
+                      backgroundColor: '#FFEC01', 
+                      color: '#000',
+                      fontWeight: 'bold'
+                    }}
+                  />
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
       </Box>
 
       {/* New Trip Dialog */}
@@ -1043,63 +732,49 @@ const RidePage = () => {
         fullWidth
         fullScreen={isMobile}
       >
-        <DialogTitle>
-          <Typography variant="h6">New Trip</Typography>
+        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
+          <Typography variant="h6" fontWeight="bold">New Trip</Typography>
         </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            {/* Destination Selection */}
+        <DialogContent sx={{ p: 3 }}>
+          <Grid container spacing={2}>
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                  Select Destination
+                  Pickup Location
                 </Typography>
                 <Select
-                  value={tripForm.destination}
-                  onChange={handleInputChange('destination')}
-                  displayEmpty
-                  startAdornment={<LocationOn color="action" sx={{ mr: 1 }} />}
+                  value={tripForm.pickup}
+                  onChange={handleInputChange('pickup')}
+                  sx={{ mb: 2 }}
                 >
-                  <MenuItem value="">
-                    <em>Choose a destination...</em>
-                  </MenuItem>
                   {popularDestinations.map((dest) => (
                     <MenuItem key={dest.name} value={dest.name}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography>{dest.emoji}</Typography>
-                        <Box>
-                          <Typography variant="body1">{dest.name}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {dest.area}
-                          </Typography>
-                        </Box>
-                      </Box>
+                      {dest.name} {dest.emoji}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
 
-            {/* Fare Input */}
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Trip Fare (UGX)"
-                type="number"
-                value={tripForm.fare}
-                onChange={handleInputChange('fare')}
-                placeholder="0"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <AttachMoney color="action" />
-                    </InputAdornment>
-                  )
-                }}
-              />
+              <FormControl fullWidth>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                  Destination
+                </Typography>
+                <Select
+                  value={tripForm.destination}
+                  onChange={handleInputChange('destination')}
+                  sx={{ mb: 2 }}
+                >
+                  {popularDestinations.map((dest) => (
+                    <MenuItem key={dest.name} value={dest.name}>
+                      {dest.name} {dest.emoji}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
 
-            {/* Payment Method */}
             <Grid item xs={12}>
               <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
                 Payment Method
@@ -1108,63 +783,171 @@ const RidePage = () => {
                 value={tripForm.paymentMethod}
                 onChange={handleInputChange('paymentMethod')}
                 row
-                sx={{ justifyContent: 'space-around' }}
+                sx={{ justifyContent: 'space-between', mb: 2 }}
               >
-                <FormControlLabel 
-                  value="cash" 
-                  control={<Radio />} 
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <AttachMoney />
-                      <Typography>Cash</Typography>
-                    </Box>
-                  } 
-                />
-                <FormControlLabel 
-                  value="card" 
-                  control={<Radio />} 
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CreditCard />
-                      <Typography>Card</Typography>
-                    </Box>
-                  } 
-                />
-                <FormControlLabel 
-                  value="mobile" 
-                  control={<Radio />} 
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Smartphone />
-                      <Typography>Mobile</Typography>
-                    </Box>
-                  } 
-                />
+                {paymentMethods.map((method) => (
+                  <FormControlLabel 
+                    key={method.value}
+                    value={method.value} 
+                    control={<Radio sx={{ color: '#0025DD' }} />} 
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {method.icon}
+                        <Typography>{method.label}</Typography>
+                      </Box>
+                    } 
+                  />
+                ))}
               </RadioGroup>
             </Grid>
 
-            {/* Estimated Info */}
             <Grid item xs={12}>
-              <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Estimated trip: 15-25 min • ~6-8 km
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Typical fare: UGX 10,000 - 15,000
-                </Typography>
-              </Paper>
+              <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                Motorcycle
+              </Typography>
+              <TextField
+                fullWidth
+                value={tripForm.vehicle}
+                onChange={handleInputChange('vehicle')}
+                sx={{ mb: 2 }}
+              />
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowNewTripDialog(false)}>Cancel</Button>
+        <DialogActions sx={{ p: 3 }}>
           <Button 
-            variant="contained" 
-            onClick={handleStartTrip}
-            startIcon={<PlayArrow />}
-            disabled={!tripForm.destination || !tripForm.fare}
+            onClick={() => setShowNewTripDialog(false)}
+            sx={{ color: '#0025DD' }}
           >
-            Start Trip
+            Cancel
+          </Button>
+          <Button 
+            variant="contained"
+            sx={{
+              backgroundColor: '#0025DD',
+              '&:hover': {
+                backgroundColor: '#001FB8'
+              }
+            }}
+            onClick={handleStartTrip}
+            disabled={!tripForm.destination}
+          >
+            Save Trip
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* End Trip Dialog */}
+      <Dialog 
+        open={showEndTripDialog} 
+        onClose={() => setShowEndTripDialog(false)} 
+        maxWidth="sm" 
+        fullWidth
+      >
+        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
+          <Typography variant="h6" fontWeight="bold">End Trip</Typography>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Box sx={{ textAlign: 'center', py: 2 }}>
+            <CheckCircle sx={{ fontSize: 60, color: '#0025DD', mb: 2 }} />
+            <Typography variant="h6" gutterBottom>
+              Complete Trip to {activeTrip?.destination}
+            </Typography>
+            
+            <Grid container spacing={2} sx={{ mb: 3, mt: 1 }}>
+              <Grid item xs={6}>
+                <Typography variant="body2" color="text.secondary">
+                  Duration
+                </Typography>
+                <Typography variant="h6" fontWeight="bold" color="#0025DD">
+                  {formatTime(tripTime)}
+                </Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="body2" color="text.secondary">
+                  Distance
+                </Typography>
+                <Typography variant="h6" fontWeight="bold" color="#0025DD">
+                  {calculateDistance().toFixed(1)} km
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="body2" color="text.secondary">
+                  Total Earnings
+                </Typography>
+                <Typography variant="h4" fontWeight="bold" color="#0025DD">
+                  UGX {earnings.toLocaleString()}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button 
+            onClick={() => setShowEndTripDialog(false)}
+            sx={{ color: '#0025DD' }}
+          >
+            Continue Trip
+          </Button>
+          <Button 
+            variant="contained"
+            sx={{
+              backgroundColor: '#0025DD'
+            }}
+            onClick={handleEndTrip}
+          >
+            Confirm End Trip
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* End Shift Dialog */}
+      <Dialog 
+        open={showEndShiftDialog} 
+        onClose={() => setShowEndShiftDialog(false)} 
+        maxWidth="sm" 
+        fullWidth
+      >
+        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
+          <Typography variant="h6" fontWeight="bold">End Shift</Typography>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Box sx={{ textAlign: 'center', py: 2 }}>
+            <Stop sx={{ fontSize: 60, color: '#0025DD', mb: 2 }} />
+            <Typography variant="h6" gutterBottom>
+              End Current Shift?
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Shift Duration: {formatShiftTime(shiftDuration)}
+            </Typography>
+            
+            <Paper sx={{ p: 2, backgroundColor: '#0025DD10', mb: 2 }}>
+              <Typography variant="body1" fontWeight="bold" color="#0025DD">
+                Total Earnings: UGX {shiftStats.totalEarnings.toLocaleString()}
+              </Typography>
+            </Paper>
+            
+            <Typography variant="body2" color="text.secondary">
+              This will end your current shift and calculate your final earnings.
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button 
+            onClick={() => setShowEndShiftDialog(false)}
+            sx={{ color: '#0025DD' }}
+          >
+            Continue Shift
+          </Button>
+          <Button 
+            variant="contained"
+            sx={{
+              backgroundColor: '#0025DD'
+            }}
+            onClick={handleEndShift}
+          >
+            End Shift
           </Button>
         </DialogActions>
       </Dialog>
@@ -1179,6 +962,10 @@ const RidePage = () => {
         <Alert 
           severity={snackbar.severity} 
           onClose={() => setSnackbar({ ...snackbar, open: false })}
+          sx={{
+            backgroundColor: snackbar.severity === 'success' ? '#0025DD' : undefined,
+            color: 'white'
+          }}
         >
           {snackbar.message}
         </Alert>

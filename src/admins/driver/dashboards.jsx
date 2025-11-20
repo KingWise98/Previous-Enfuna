@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -11,352 +12,599 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Paper,
   Chip,
+  Paper,
   useTheme,
   useMediaQuery,
   AppBar,
   Toolbar,
-  IconButton
+  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  IconButton,
+  LinearProgress
 } from '@mui/material';
 import {
   DirectionsCar,
+  AccountBalanceWallet,
   Payment,
-  Money,
   Receipt,
   TrendingUp,
-  Security,
-  Person,
+  TrendingDown,
   Add,
+  Visibility,
+  Schedule,
+  CheckCircle,
   LocalGasStation,
-  Restaurant,
-  Build,
-  WifiCalling3,
-  Menu as MenuIcon
+  CarRepair,
+  Fastfood,
+  MoreVert,
+  ArrowUpward,
+  ArrowDownward
 } from '@mui/icons-material';
 
-const SimpleDriverApp = () => {
+const DashboardPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
   
-  const [driverData] = useState({
-    today: {
-      rides: 8,
-      earnings: 33000,
-      expenses: 12000
-    },
-    wallet: {
-      balance: 285000
-    }
+  const [stats, setStats] = useState({
+    totalEarnings: 254000,
+    todayEarnings: 45000,
+    totalTrips: 34,
+    todayTrips: 3,
+    netEarnings: 189000,
+    totalExpenses: 65000,
+    activeHours: '4h 30m'
   });
+
+  const [recentActivities, setRecentActivities] = useState([
+    {
+      id: 1,
+      type: 'earning',
+      amount: 15000,
+      description: 'Trip to Garden City',
+      time: '2:30 PM',
+      status: 'completed'
+    },
+    {
+      id: 2,
+      type: 'expense',
+      amount: 25000,
+      description: 'Fuel Refill',
+      time: '1:15 PM',
+      status: 'completed'
+    },
+    {
+      id: 3,
+      type: 'earning',
+      amount: 12000,
+      description: 'Trip to Makerere',
+      time: '11:45 AM',
+      status: 'completed'
+    },
+    {
+      id: 4,
+      type: 'earning',
+      amount: 18000,
+      description: 'Airport Transfer',
+      time: '9:30 AM',
+      status: 'completed'
+    }
+  ]);
+
+  const [expenseCategories, setExpenseCategories] = useState([
+    { name: 'Fuel', amount: 35000, percentage: 54, icon: <LocalGasStation />, color: '#FF6B6B' },
+    { name: 'Maintenance', amount: 15000, percentage: 23, icon: <CarRepair />, color: '#4ECDC4' },
+    { name: 'Food', amount: 8000, percentage: 12, icon: <Fastfood />, color: '#45B7D1' },
+    { name: 'Other', amount: 7000, percentage: 11, icon: <Receipt />, color: '#96CEB4' }
+  ]);
 
   const quickActions = [
     {
       title: 'Start Ride',
-      description: 'Begin a new trip',
-      icon: <DirectionsCar sx={{ fontSize: isMobile ? 30 : 40 }} />,
-      color: 'primary',
-      link: '/driver/drive'
+      subtitle: 'Begin a new trip',
+      icon: <DirectionsCar sx={{ fontSize: 30 }} />,
+      color: '#0025DD',
+      action: () => navigate('/driver/drive')
     },
     {
       title: 'Add Expense',
-      description: 'Record spending',
-      icon: <Money sx={{ fontSize: isMobile ? 30 : 40 }} />,
-      color: 'error',
-      link: '/driver/expense'
+      subtitle: 'Record spending',
+      icon: <Add sx={{ fontSize: 30 }} />,
+      color: '#FF6B6B',
+      action: () => navigate('/driver/expense')
     },
     {
       title: 'View Payments',
-      description: 'See your earnings',
-      icon: <Payment sx={{ fontSize: isMobile ? 30 : 40 }} />,
-      color: 'success',
-      link: '/driver/page'
+      subtitle: 'See your earnings',
+      icon: <Payment sx={{ fontSize: 30 }} />,
+      color: '#4ECDC4',
+      action: () => navigate('/driver/page')
     },
     {
       title: 'My Earnings',
-      description: 'Check balance',
-      icon: <Receipt sx={{ fontSize: isMobile ? 30 : 40 }} />,
-      color: 'warning',
-      link: '/driver/earning'
+      subtitle: 'Financial summary',
+      icon: <AccountBalanceWallet sx={{ fontSize: 30 }} />,
+      color: '#FFEC01',
+      textColor: '#000',
+      action: () => navigate('/driver/earning')
     }
   ];
 
-  const recentExpenses = [
-    { category: 'fuel', amount: 15000, description: 'Petrol refill', time: '08:00' },
-    { category: 'food', amount: 8000, description: 'Lunch', time: '13:15' },
-    { category: 'airtime', amount: 5000, description: 'Mobile data', time: '10:30' }
-  ];
-
-  const recentRides = [
-    { time: '08:30 AM', fare: 5000, route: 'City Center to Industrial Area' },
-    { time: '09:15 AM', fare: 3000, route: 'Market to Bus Park' },
-    { time: '10:45 AM', fare: 7000, route: 'Suburb to Downtown' }
-  ];
-
-  const handleQuickAction = (link) => {
-    window.location.href = link;
-  };
-
-  const handleSOS = () => {
-    alert('🚨 Help is on the way! Your location has been shared with emergency contacts.');
-  };
-
-  const getExpenseIcon = (category) => {
-    switch (category) {
-      case 'fuel': return <LocalGasStation />;
-      case 'food': return <Restaurant />;
-      case 'repair': return <Build />;
-      default: return <WifiCalling3 />;
-    }
-  };
-
-  const getExpenseColor = (category) => {
-    switch (category) {
-      case 'fuel': return 'warning';
-      case 'food': return 'success';
-      case 'repair': return 'error';
-      default: return 'info';
+  // Handle navigation for recent activities if needed
+  const handleActivityClick = (activity) => {
+    if (activity.type === 'earning') {
+      navigate('/driver/earning');
+    } else if (activity.type === 'expense') {
+      navigate('/driver/expense');
     }
   };
 
   return (
     <Box sx={{ 
       minHeight: '100vh', 
-      backgroundColor: 'background.default',
+      backgroundColor: '#f8fafc',
       pb: 3
     }}>
-      {/* Mobile Header */}
-      {isMobile && (
-        <AppBar position="static" color="primary">
-          <Toolbar>
-            <IconButton edge="start" color="inherit">
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>
-              My Driver App
-            </Typography>
-            <IconButton color="inherit" onClick={handleSOS}>
-              <Security />
-            </IconButton>
-          </Toolbar>
-        </AppBar>
-      )}
+      {/* Header */}
+      <AppBar 
+        position="static" 
+        sx={{ 
+          backgroundColor: '#0025DD',
+          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
+          boxShadow: 'none'
+        }}
+      >
+        <Toolbar>
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            ENFUNA Driver
+          </Typography>
+          <Chip 
+            icon={<Schedule />}
+            label={`Active ${stats.activeHours}`}
+            sx={{ 
+              backgroundColor: '#FFEC01', 
+              color: '#000',
+              fontWeight: 'bold'
+            }}
+          />
+        </Toolbar>
+      </AppBar>
 
       {/* Main Content */}
       <Box sx={{ p: isMobile ? 2 : 3 }}>
-        {/* Welcome Section */}
-        <Box sx={{ mb: 4, textAlign: isMobile ? 'center' : 'left' }}>
-          <Typography 
-            variant={isMobile ? "h5" : "h4"} 
-            fontWeight="bold" 
-            gutterBottom
-            color="primary"
-          >
-            Welcome Back! 👋
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Ready to start driving today?
-          </Typography>
-        </Box>
-
-        {/* Big Action Buttons */}
-        <Grid container spacing={2} sx={{ mb: 4 }}>
-          {quickActions.map((action, index) => (
-            <Grid item xs={6} key={index}>
-              <Card 
-                sx={{ 
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  p: 2,
-                  backgroundColor: 'background.paper',
-                  border: `2px solid ${theme.palette[action.color].light}`,
-                  '&:hover': {
-                    backgroundColor: `${action.color}.50`,
-                    transform: 'translateY(-2px)'
-                  },
-                  transition: 'all 0.2s ease'
-                }}
-                onClick={() => handleQuickAction(action.link)}
-              >
-                <Box sx={{ color: `${action.color}.main`, mb: 1 }}>
-                  {action.icon}
+        {/* Financial Summary Cards - TOP SECTION */}
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          {/* Total Earnings */}
+          <Grid item xs={12} sm={6} lg={3}>
+            <Card 
+              sx={{ 
+                background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
+                color: 'white',
+                borderRadius: 3,
+                boxShadow: '0 4px 12px rgba(0, 37, 221, 0.2)',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 20px rgba(0, 37, 221, 0.3)'
+                }
+              }}
+              onClick={() => navigate('/driver/earning')}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                  <AccountBalanceWallet sx={{ fontSize: 40, opacity: 0.8 }} />
+                  <TrendingUp sx={{ fontSize: 20 }} />
                 </Box>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  {action.title}
+                <Typography variant="h4" fontWeight="bold" sx={{ mb: 1 }}>
+                  UGX {stats.totalEarnings.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Total Earnings
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                  <ArrowUpward sx={{ fontSize: 16, mr: 0.5 }} />
+                  <Typography variant="caption">
+                    UGX {stats.todayEarnings.toLocaleString()} today
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Today's Earnings */}
+          <Grid item xs={12} sm={6} lg={3}>
+            <Card 
+              sx={{ 
+                backgroundColor: 'white',
+                borderRadius: 3,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #e2e8f0',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)'
+                }
+              }}
+              onClick={() => navigate('/driver/earning')}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                  <Receipt sx={{ fontSize: 40, color: '#0025DD' }} />
+                  <TrendingUp sx={{ fontSize: 20, color: '#10B981' }} />
+                </Box>
+                <Typography variant="h4" fontWeight="bold" color="#0025DD" sx={{ mb: 1 }}>
+                  UGX {stats.todayEarnings.toLocaleString()}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {action.description}
+                  Today's Earnings
                 </Typography>
-              </Card>
-            </Grid>
-          ))}
+                <Typography variant="caption" color="#10B981" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                  <ArrowUpward sx={{ fontSize: 16, mr: 0.5 }} />
+                  {stats.todayTrips} trips completed
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Net Earnings */}
+          <Grid item xs={12} sm={6} lg={3}>
+            <Card 
+              sx={{ 
+                backgroundColor: 'white',
+                borderRadius: 3,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #e2e8f0',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)'
+                }
+              }}
+              onClick={() => navigate('/driver/earning')}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                  <AccountBalanceWallet sx={{ fontSize: 40, color: '#10B981' }} />
+                  <TrendingUp sx={{ fontSize: 20, color: '#10B981' }} />
+                </Box>
+                <Typography variant="h4" fontWeight="bold" color="#10B981" sx={{ mb: 1 }}>
+                  UGX {stats.netEarnings.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Net Earnings
+                </Typography>
+                <Typography variant="caption" color="#10B981" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                  After expenses
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Total Expenses */}
+          <Grid item xs={12} sm={6} lg={3}>
+            <Card 
+              sx={{ 
+                backgroundColor: 'white',
+                borderRadius: 3,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #e2e8f0',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)'
+                }
+              }}
+              onClick={() => navigate('/driver/expense')}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                  <Receipt sx={{ fontSize: 40, color: '#FF6B6B' }} />
+                  <TrendingDown sx={{ fontSize: 20, color: '#EF4444' }} />
+                </Box>
+                <Typography variant="h4" fontWeight="bold" color="#FF6B6B" sx={{ mb: 1 }}>
+                  UGX {stats.totalExpenses.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Total Expenses
+                </Typography>
+                <Typography variant="caption" color="#EF4444" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                  <ArrowDownward sx={{ fontSize: 16, mr: 0.5 }} />
+                  This month
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
-
-        {/* Today's Summary */}
-        <Card sx={{ mb: 3, backgroundColor: 'primary.50' }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom fontWeight="bold">
-              Today's Summary
-            </Typography>
-            <Grid container spacing={3} textAlign="center">
-              <Grid item xs={4}>
-                <Typography variant="h4" color="primary" fontWeight="bold">
-                  {driverData.today.rides}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Rides
-                </Typography>
-              </Grid>
-              <Grid item xs={4}>
-                <Typography variant="h4" color="success.main" fontWeight="bold">
-                  UGX {driverData.today.earnings.toLocaleString()}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Earned
-                </Typography>
-              </Grid>
-              <Grid item xs={4}>
-                <Typography variant="h4" color="error.main" fontWeight="bold">
-                  UGX {driverData.today.expenses.toLocaleString()}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Spent
-                </Typography>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-
-        {/* Wallet Balance */}
-        <Card sx={{ mb: 3, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
-          <CardContent sx={{ textAlign: 'center', py: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Available Balance
-            </Typography>
-            <Typography variant="h3" fontWeight="bold">
-              UGX {driverData.wallet.balance.toLocaleString()}
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9, mt: 1 }}>
-              Ready for withdrawal
-            </Typography>
-          </CardContent>
-        </Card>
 
         <Grid container spacing={3}>
-          {/* Recent Rides */}
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom fontWeight="bold">
-                  Recent Rides
+          {/* Left Column - Quick Actions & Recent Activity */}
+          <Grid item xs={12} lg={8}>
+            {/* Quick Actions */}
+            <Card sx={{ 
+              mb: 3, 
+              borderRadius: 3,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e2e8f0'
+            }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" fontWeight="bold" color="#0025DD" gutterBottom>
+                  Quick Actions
                 </Typography>
+                <Grid container spacing={2}>
+                  {quickActions.map((action, index) => (
+                    <Grid item xs={6} sm={3} key={index}>
+                      <Paper 
+                        sx={{ 
+                          p: 2, 
+                          textAlign: 'center',
+                          borderRadius: 2,
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          backgroundColor: action.color,
+                          color: action.textColor || 'white',
+                          '&:hover': {
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)'
+                          }
+                        }}
+                        onClick={action.action}
+                      >
+                        <Box sx={{ 
+                          display: 'flex', 
+                          justifyContent: 'center', 
+                          mb: 1 
+                        }}>
+                          {action.icon}
+                        </Box>
+                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 0.5 }}>
+                          {action.title}
+                        </Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                          {action.subtitle}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </CardContent>
+            </Card>
+
+            {/* Recent Activity */}
+            <Card sx={{ 
+              borderRadius: 3,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e2e8f0'
+            }}>
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6" fontWeight="bold" color="#0025DD">
+                    Recent Activity
+                  </Typography>
+                  <IconButton size="small" onClick={() => navigate('/driver/earning')}>
+                    <Visibility />
+                  </IconButton>
+                </Box>
                 <List>
-                  {recentRides.map((ride, index) => (
-                    <ListItem key={index} divider={index < recentRides.length - 1}>
+                  {recentActivities.map((activity, index) => (
+                    <ListItem 
+                      key={activity.id} 
+                      divider={index < recentActivities.length - 1}
+                      sx={{ 
+                        px: 0,
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s ease',
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        }
+                      }}
+                      onClick={() => handleActivityClick(activity)}
+                    >
                       <ListItemIcon>
-                        <Avatar sx={{ bgcolor: 'primary.100' }}>
-                          <DirectionsCar color="primary" />
+                        <Avatar sx={{ 
+                          bgcolor: activity.type === 'earning' ? '#10B98120' : '#FF6B6B20',
+                          color: activity.type === 'earning' ? '#10B981' : '#FF6B6B'
+                        }}>
+                          {activity.type === 'earning' ? <TrendingUp /> : <TrendingDown />}
                         </Avatar>
                       </ListItemIcon>
                       <ListItemText
                         primary={
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="body1" fontWeight="500">
-                              {ride.route}
-                            </Typography>
-                            <Typography variant="body1" fontWeight="bold" color="success.main">
-                              UGX {ride.fare.toLocaleString()}
-                            </Typography>
-                          </Box>
+                          <Typography variant="body2" fontWeight="500">
+                            {activity.description}
+                          </Typography>
                         }
-                        secondary={ride.time}
+                        secondary={
+                          <Typography variant="caption" color="text.secondary">
+                            {activity.time}
+                          </Typography>
+                        }
                       />
+                      <Box sx={{ textAlign: 'right' }}>
+                        <Typography 
+                          variant="body2" 
+                          fontWeight="bold"
+                          color={activity.type === 'earning' ? '#10B981' : '#FF6B6B'}
+                        >
+                          {activity.type === 'earning' ? '+' : '-'}UGX {activity.amount.toLocaleString()}
+                        </Typography>
+                        <Chip 
+                          label={activity.status}
+                          size="small"
+                          sx={{ 
+                            backgroundColor: activity.status === 'completed' ? '#10B98120' : '#FFEC01',
+                            color: activity.status === 'completed' ? '#10B981' : '#000',
+                            fontSize: '0.7rem',
+                            height: 20
+                          }}
+                        />
+                      </Box>
                     </ListItem>
                   ))}
                 </List>
-                <Button 
-                  fullWidth 
-                  variant="outlined" 
-                  startIcon={<Add />}
-                  sx={{ mt: 2 }}
-                  onClick={() => handleQuickAction('/rider/ride')}
-                >
-                  Start New Ride
-                </Button>
+                <Box sx={{ textAlign: 'center', mt: 2 }}>
+                  <Button 
+                    variant="outlined" 
+                    size="small"
+                    sx={{
+                      borderColor: '#0025DD',
+                      color: '#0025DD',
+                      '&:hover': {
+                        borderColor: '#001FB8',
+                        backgroundColor: '#0025DD10'
+                      }
+                    }}
+                    onClick={() => navigate('/driver/earning')}
+                  >
+                    View All Activity
+                  </Button>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
 
-          {/* Recent Expenses */}
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom fontWeight="bold">
-                  Recent Expenses
-                </Typography>
-                <List>
-                  {recentExpenses.map((expense, index) => (
-                    <ListItem key={index} divider={index < recentExpenses.length - 1}>
-                      <ListItemIcon>
-                        <Avatar sx={{ bgcolor: `${getExpenseColor(expense.category)}.100` }}>
-                          {getExpenseIcon(expense.category)}
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="body1" fontWeight="500">
-                              {expense.description}
-                            </Typography>
-                            <Typography variant="body1" fontWeight="bold" color="error.main">
-                              UGX {expense.amount.toLocaleString()}
-                            </Typography>
+          {/* Right Column - Expense Breakdown & Performance */}
+          <Grid item xs={12} lg={4}>
+            {/* Expense Breakdown */}
+            <Card 
+              sx={{ 
+                mb: 3,
+                borderRadius: 3,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #e2e8f0',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)'
+                }
+              }}
+              onClick={() => navigate('/driver/expense')}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6" fontWeight="bold" color="#0025DD">
+                    Expense Breakdown
+                  </Typography>
+                  <IconButton size="small">
+                    <Visibility />
+                  </IconButton>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  {expenseCategories.map((category, index) => (
+                    <Box key={index} sx={{ mb: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box sx={{ color: category.color }}>
+                            {category.icon}
                           </Box>
-                        }
-                        secondary={expense.time}
+                          <Typography variant="body2" fontWeight="500">
+                            {category.name}
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" fontWeight="bold" color="#0025DD">
+                          UGX {category.amount.toLocaleString()}
+                        </Typography>
+                      </Box>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={category.percentage}
+                        sx={{ 
+                          height: 6,
+                          borderRadius: 3,
+                          backgroundColor: '#e2e8f0',
+                          '& .MuiLinearProgress-bar': {
+                            backgroundColor: category.color,
+                            borderRadius: 3
+                          }
+                        }}
                       />
-                    </ListItem>
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                        {category.percentage}% of total
+                      </Typography>
+                    </Box>
                   ))}
-                </List>
-                <Button 
-                  fullWidth 
-                  variant="outlined" 
-                  startIcon={<Add />}
-                  sx={{ mt: 2 }}
-                  onClick={() => handleQuickAction('/rider/expense')}
-                >
-                  Add New Expense
-                </Button>
+                </Box>
+              </CardContent>
+            </Card>
+
+            {/* Performance Stats */}
+            <Card sx={{ 
+              borderRadius: 3,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e2e8f0'
+            }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" fontWeight="bold" color="#0025DD" gutterBottom>
+                  Performance
+                </Typography>
+                <TableContainer>
+                  <Table size="small">
+                    <TableBody>
+                      <TableRow>
+                        <TableCell sx={{ border: 'none', fontWeight: 'bold' }}>Total Trips</TableCell>
+                        <TableCell sx={{ border: 'none', fontWeight: 'bold', color: '#0025DD', textAlign: 'right' }}>
+                          {stats.totalTrips}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ border: 'none', fontWeight: 'bold' }}>Today's Trips</TableCell>
+                        <TableCell sx={{ border: 'none', fontWeight: 'bold', color: '#0025DD', textAlign: 'right' }}>
+                          {stats.todayTrips}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ border: 'none', fontWeight: 'bold' }}>Active Hours</TableCell>
+                        <TableCell sx={{ border: 'none', fontWeight: 'bold', color: '#0025DD', textAlign: 'right' }}>
+                          {stats.activeHours}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ border: 'none', fontWeight: 'bold' }}>Success Rate</TableCell>
+                        <TableCell sx={{ border: 'none', fontWeight: 'bold', color: '#10B981', textAlign: 'right' }}>
+                          94%
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                
+                <Box sx={{ mt: 2, p: 2, backgroundColor: '#0025DD10', borderRadius: 2 }}>
+                  <Typography variant="body2" fontWeight="bold" color="#0025DD" gutterBottom>
+                    Weekly Goal
+                  </Typography>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={75}
+                    sx={{ 
+                      height: 8,
+                      borderRadius: 4,
+                      backgroundColor: '#e2e8f0',
+                      '& .MuiLinearProgress-bar': {
+                        backgroundColor: '#0025DD',
+                        borderRadius: 4
+                      }
+                    }}
+                  />
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                    75% completed • 3 days left
+                  </Typography>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
-
-        {/* Emergency Button - Always Visible */}
-        <Box sx={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<Security />}
-            onClick={handleSOS}
-            sx={{
-              borderRadius: '50%',
-              width: 60,
-              height: 60,
-              minWidth: 0,
-              boxShadow: 3,
-              '&:hover': {
-                transform: 'scale(1.1)',
-                boxShadow: 6
-              }
-            }}
-          >
-            SOS
-          </Button>
-        </Box>
       </Box>
     </Box>
   );
 };
 
-export default SimpleDriverApp;
+export default DashboardPage;

@@ -25,7 +25,15 @@ import {
   IconButton,
   Snackbar,
   Alert,
-  Divider
+  Divider,
+  Checkbox,
+  FormControlLabel,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  InputAdornment
 } from '@mui/material';
 import {
   DeliveryDining,
@@ -41,7 +49,10 @@ import {
   Close,
   Person,
   Phone,
-  Description
+  Description,
+  Add,
+  CloudUpload,
+  Draw
 } from '@mui/icons-material';
 
 const SimpleDeliveryPage = () => {
@@ -56,17 +67,25 @@ const SimpleDeliveryPage = () => {
   const [deliveryForm, setDeliveryForm] = useState({
     pickupLocation: '',
     dropoffLocation: '',
-    customerName: '',
-    customerPhone: '',
-    deliveryFee: '',
-    specialInstructions: ''
+    deliveryFee: ''
+  });
+
+  const [proofOptions, setProofOptions] = useState({
+    uploadPhoto: false,
+    uploadSignature: false
+  });
+
+  const [todayStats, setTodayStats] = useState({
+    deliveries: 0,
+    earnings: 0,
+    expenses: 0
   });
 
   const [deliveryHistory, setDeliveryHistory] = useState([
     {
       id: 1,
-      pickup: 'Garden City Mall',
-      dropoff: 'Makerere University',
+      pickup: 'Kollo',
+      dropoff: 'Ntinda',
       fee: 15000,
       customer: 'Sarah K.',
       status: 'completed',
@@ -84,19 +103,19 @@ const SimpleDeliveryPage = () => {
       time: '11:15 AM',
       date: 'Today',
       proof: true
-    },
-    {
-      id: 3,
-      pickup: 'Industrial Area',
-      dropoff: 'Bugolobi',
-      fee: 12000,
-      customer: 'Business Co.',
-      status: 'completed',
-      time: '9:45 AM',
-      date: 'Today',
-      proof: false
     }
   ]);
+
+  const popularLocations = [
+    'Kollo',
+    'Ntinda', 
+    'Garden City Mall',
+    'Makerere University',
+    'Nakasero Market',
+    'Kololo Heights',
+    'Industrial Area',
+    'Bugolobi'
+  ];
 
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
@@ -106,6 +125,13 @@ const SimpleDeliveryPage = () => {
     setDeliveryForm(prev => ({
       ...prev,
       [field]: event.target.value
+    }));
+  };
+
+  const handleProofOptionChange = (option) => (event) => {
+    setProofOptions(prev => ({
+      ...prev,
+      [option]: event.target.checked
     }));
   };
 
@@ -120,11 +146,10 @@ const SimpleDeliveryPage = () => {
       pickup: deliveryForm.pickupLocation,
       dropoff: deliveryForm.dropoffLocation,
       fee: parseInt(deliveryForm.deliveryFee),
-      customer: deliveryForm.customerName || 'Customer',
-      phone: deliveryForm.customerPhone,
-      instructions: deliveryForm.specialInstructions,
+      customer: 'Customer',
       startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      status: 'active'
+      status: 'active',
+      proofOptions: { ...proofOptions }
     };
 
     setActiveDelivery(newDelivery);
@@ -134,13 +159,15 @@ const SimpleDeliveryPage = () => {
     setDeliveryForm({
       pickupLocation: '',
       dropoffLocation: '',
-      customerName: '',
-      customerPhone: '',
-      deliveryFee: '',
-      specialInstructions: ''
+      deliveryFee: ''
     });
 
-    showSnackbar('Delivery started! Good luck with the delivery.');
+    setProofOptions({
+      uploadPhoto: false,
+      uploadSignature: false
+    });
+
+    showSnackbar('Delivery started!');
   };
 
   const handleCompleteDelivery = () => {
@@ -156,13 +183,21 @@ const SimpleDeliveryPage = () => {
     };
 
     setDeliveryHistory(prev => [completedDelivery, ...prev]);
+    
+    // Update today's stats
+    setTodayStats(prev => ({
+      deliveries: prev.deliveries + 1,
+      earnings: prev.earnings + activeDelivery.fee,
+      expenses: prev.expenses
+    }));
+
     setActiveDelivery(null);
     setShowProofDialog(true);
-    showSnackbar('Delivery completed! Please take proof photo.');
+    showSnackbar('Delivery completed!');
   };
 
   const handleTakeProofPhoto = () => {
-    showSnackbar('Proof photo captured successfully!');
+    showSnackbar('Proof captured successfully!');
     setShowProofDialog(false);
   };
 
@@ -171,190 +206,223 @@ const SimpleDeliveryPage = () => {
     showSnackbar('Delivery cancelled');
   };
 
-  const getStatusIcon = (status) => {
-    return status === 'completed' ? <CheckCircle color="success" /> : <Schedule color="warning" />;
-  };
-
-  const getStatusColor = (status) => {
-    return status === 'completed' ? 'success' : 'warning';
-  };
-
   // Active Delivery Screen
   if (activeDelivery) {
     return (
-      <Box sx={{ p: isMobile ? 2 : 3, minHeight: '100vh', backgroundColor: 'background.default' }}>
+      <Box sx={{ 
+        minHeight: '100vh', 
+        backgroundColor: 'background.default',
+        pb: 3
+      }}>
         {/* Header */}
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <Typography variant="h4" fontWeight="bold" color="primary" gutterBottom>
-            🚚 Active Delivery
-          </Typography>
-          <Chip 
-            icon={<DeliveryDining />} 
-            label="Delivery in Progress" 
-            color="success" 
-            variant="filled"
-          />
+        <AppBar 
+          position="static" 
+          sx={{ 
+            backgroundColor: '#0025DD',
+            background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)'
+          }}
+        >
+          <Toolbar>
+            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+              Deliveries
+            </Typography>
+            <Chip 
+              label="Active Delivery" 
+              sx={{ 
+                backgroundColor: '#FFEC01', 
+                color: '#000',
+                fontWeight: 'bold'
+              }}
+            />
+          </Toolbar>
+        </AppBar>
+
+        <Box sx={{ p: isMobile ? 2 : 3 }}>
+          <Grid container spacing={3}>
+            {/* Delivery Details */}
+            <Grid item xs={12} md={8}>
+              <Card sx={{ mb: 3, border: `2px solid #0025DD` }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
+                    Delivery Details
+                  </Typography>
+                  
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <LocationOn sx={{ color: '#0025DD', mr: 2 }} />
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Pickup Location
+                        </Typography>
+                        <Typography variant="h6" fontWeight="bold">
+                          {activeDelivery.pickup}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <LocationOff sx={{ color: '#0025DD', mr: 2 }} />
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Drop-off Location
+                        </Typography>
+                        <Typography variant="h6" fontWeight="bold">
+                          {activeDelivery.dropoff}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Typography variant="body2" color="text.secondary">
+                        Delivery Fee
+                      </Typography>
+                      <Typography variant="h5" color="#0025DD" fontWeight="bold">
+                        UGX {activeDelivery.fee.toLocaleString()}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="body2" color="text.secondary">
+                        Status
+                      </Typography>
+                      <Chip 
+                        label="In Progress" 
+                        size="small" 
+                        sx={{ 
+                          backgroundColor: '#FFEC01', 
+                          color: '#000',
+                          fontWeight: 'bold'
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+
+                  {/* Proof Requirements */}
+                  {(activeDelivery.proofOptions?.uploadPhoto || activeDelivery.proofOptions?.uploadSignature) && (
+                    <Paper sx={{ p: 2, mt: 2, backgroundColor: '#0025DD10' }}>
+                      <Typography variant="body2" fontWeight="bold" color="#0025DD" gutterBottom>
+                        Proof Required:
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                        {activeDelivery.proofOptions.uploadPhoto && (
+                          <Chip 
+                            icon={<CameraAlt />}
+                            label="Photo" 
+                            size="small"
+                            variant="outlined"
+                            sx={{ borderColor: '#0025DD', color: '#0025DD' }}
+                          />
+                        )}
+                        {activeDelivery.proofOptions.uploadSignature && (
+                          <Chip 
+                            icon={<Draw />}
+                            label="Signature" 
+                            size="small"
+                            variant="outlined"
+                            sx={{ borderColor: '#0025DD', color: '#0025DD' }}
+                          />
+                        )}
+                      </Box>
+                    </Paper>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Actions */}
+            <Grid item xs={12} md={4}>
+              <Card sx={{ border: `2px solid #0025DD` }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
+                    Delivery Actions
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        backgroundColor: '#0025DD',
+                        '&:hover': {
+                          backgroundColor: '#001FB8'
+                        }
+                      }}
+                      size="large"
+                      startIcon={<CheckCircle />}
+                      onClick={handleCompleteDelivery}
+                      fullWidth
+                    >
+                      Mark As Delivered
+                    </Button>
+                    
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        borderColor: '#0025DD',
+                        color: '#0025DD'
+                      }}
+                      size="large"
+                      startIcon={<CameraAlt />}
+                      onClick={() => setShowProofDialog(true)}
+                      fullWidth
+                    >
+                      Take Proof
+                    </Button>
+
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        borderColor: '#FF4444',
+                        color: '#FF4444'
+                      }}
+                      size="large"
+                      startIcon={<Close />}
+                      onClick={handleCancelDelivery}
+                      fullWidth
+                    >
+                      Cancel Delivery
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* Quick Stats */}
+              <Card sx={{ mt: 2, border: `1px solid #0025DD20` }}>
+                <CardContent>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
+                    Today's Summary
+                  </Typography>
+                  <TableContainer>
+                    <Table size="small">
+                      <TableBody>
+                        <TableRow>
+                          <TableCell sx={{ border: 'none', fontWeight: 'bold' }}>Deliveries</TableCell>
+                          <TableCell sx={{ border: 'none', fontWeight: 'bold', color: '#0025DD' }}>
+                            {todayStats.deliveries}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ border: 'none', fontWeight: 'bold' }}>Earnings</TableCell>
+                          <TableCell sx={{ border: 'none', fontWeight: 'bold', color: '#0025DD' }}>
+                            UGX {todayStats.earnings.toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ border: 'none', fontWeight: 'bold' }}>Expenses</TableCell>
+                          <TableCell sx={{ border: 'none', fontWeight: 'bold', color: '#FF4444' }}>
+                            UGX {todayStats.expenses.toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
         </Box>
-
-        <Grid container spacing={3}>
-          {/* Delivery Details */}
-          <Grid item xs={12} md={8}>
-            <Card elevation={3}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom color="text.secondary">
-                  Delivery Details
-                </Typography>
-                
-                <Box sx={{ mb: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <LocationOn color="primary" sx={{ mr: 2 }} />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Pickup From
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold">
-                        {activeDelivery.pickup}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <LocationOff color="error" sx={{ mr: 2 }} />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Deliver To
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold">
-                        {activeDelivery.dropoff}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Delivery Fee
-                    </Typography>
-                    <Typography variant="h5" color="primary" fontWeight="bold">
-                      UGX {activeDelivery.fee.toLocaleString()}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Customer
-                    </Typography>
-                    <Typography variant="body1" fontWeight="bold">
-                      {activeDelivery.customer}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Started
-                    </Typography>
-                    <Typography variant="body2">
-                      {activeDelivery.startTime}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Status
-                    </Typography>
-                    <Chip label="In Progress" size="small" color="warning" />
-                  </Grid>
-                </Grid>
-
-                {activeDelivery.instructions && (
-                  <Paper sx={{ p: 2, mt: 2, bgcolor: 'info.50' }}>
-                    <Typography variant="body2" fontWeight="bold">
-                      Special Instructions:
-                    </Typography>
-                    <Typography variant="body2">
-                      {activeDelivery.instructions}
-                    </Typography>
-                  </Paper>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Actions */}
-          <Grid item xs={12} md={4}>
-            <Card elevation={3}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  Delivery Actions
-                </Typography>
-                
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    size="large"
-                    startIcon={<CheckCircle />}
-                    onClick={handleCompleteDelivery}
-                    fullWidth
-                  >
-                    Complete Delivery
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    size="large"
-                    startIcon={<CameraAlt />}
-                    onClick={() => setShowProofDialog(true)}
-                    fullWidth
-                  >
-                    Take Proof Photo
-                  </Button>
-
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="large"
-                    startIcon={<Close />}
-                    onClick={handleCancelDelivery}
-                    fullWidth
-                  >
-                    Cancel Delivery
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-
-            {/* Quick Info */}
-            <Card sx={{ mt: 2 }} elevation={2}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Quick Info
-                </Typography>
-                <List dense>
-                  <ListItem>
-                    <ListItemText
-                      primary="Distance"
-                      secondary="8.2 km"
-                    />
-                  </ListItem>
-                  <ListItem>
-                    <ListItemText
-                      primary="ETA"
-                      secondary="25 minutes"
-                    />
-                  </ListItem>
-                  <ListItem>
-                    <ListItemText
-                      primary="Customer Phone"
-                      secondary={activeDelivery.phone || 'Not provided'}
-                    />
-                  </ListItem>
-                </List>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
       </Box>
     );
   }
@@ -366,122 +434,155 @@ const SimpleDeliveryPage = () => {
       backgroundColor: 'background.default',
       pb: 3
     }}>
-      {/* Mobile Header */}
-      {isMobile && (
-        <AppBar position="static" color="primary">
-          <Toolbar>
-            <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>
-              Deliveries 🚚
-            </Typography>
-          </Toolbar>
-        </AppBar>
-      )}
+      {/* Header */}
+      <AppBar 
+        position="static" 
+        sx={{ 
+          backgroundColor: '#0025DD',
+          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)'
+        }}
+      >
+        <Toolbar>
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            Deliveries
+          </Typography>
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: '#FFEC01',
+              color: '#000',
+              fontWeight: 'bold',
+              '&:hover': {
+                backgroundColor: '#E6D401'
+              }
+            }}
+            startIcon={<Add />}
+            onClick={() => setShowNewDeliveryDialog(true)}
+          >
+            New Delivery
+          </Button>
+        </Toolbar>
+      </AppBar>
 
       {/* Main Content */}
       <Box sx={{ p: isMobile ? 2 : 3 }}>
-        {/* Header */}
-        <Box sx={{ mb: 4, textAlign: isMobile ? 'center' : 'left' }}>
-          <Typography 
-            variant={isMobile ? "h5" : "h4"} 
-            fontWeight="bold" 
-            gutterBottom
-            color="primary"
-          >
-            Package Deliveries
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Manage your delivery requests and track packages
-          </Typography>
-        </Box>
-
-        {/* Big Start Button */}
-        <Card sx={{ mb: 4, backgroundColor: 'primary.50', border: '2px dashed', borderColor: 'primary.main' }}>
-          <CardContent sx={{ textAlign: 'center', py: 4 }}>
-            <DeliveryDining sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-            <Typography variant="h5" fontWeight="bold" gutterBottom>
-              Ready for a New Delivery?
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-              Start a new delivery and earn money
-            </Typography>
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<PlayArrow />}
-              onClick={() => setShowNewDeliveryDialog(true)}
-              sx={{ px: 4 }}
-            >
-              Start New Delivery
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Delivery History */}
-        <Card>
-          <CardContent>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Recent Deliveries
-            </Typography>
-            
-            {deliveryHistory.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <DeliveryDining sx={{ fontSize: 60, color: 'grey.400', mb: 2 }} />
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  No deliveries yet
+        <Grid container spacing={3}>
+          {/* Left Column - Today's Stats & Quick Start */}
+          <Grid item xs={12} md={8}>
+            {/* Today's Stats Card */}
+            <Card sx={{ mb: 3, border: `2px solid #0025DD` }}>
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
+                  TODAY
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Start your first delivery to see history here
+                <TableContainer>
+                  <Table>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell sx={{ border: 'none', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                          Deliveries
+                        </TableCell>
+                        <TableCell sx={{ border: 'none', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                          Earnings
+                        </TableCell>
+                        <TableCell sx={{ border: 'none', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                          Expenses
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ border: 'none', fontSize: '1.5rem', fontWeight: 'bold', color: '#0025DD' }}>
+                          {todayStats.deliveries}
+                        </TableCell>
+                        <TableCell sx={{ border: 'none', fontSize: '1.5rem', fontWeight: 'bold', color: '#0025DD' }}>
+                          UGX {todayStats.earnings.toLocaleString()}
+                        </TableCell>
+                        <TableCell sx={{ border: 'none', fontSize: '1.5rem', fontWeight: 'bold', color: '#FF4444' }}>
+                          UGX {todayStats.expenses.toLocaleString()}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+
+            {/* Quick Start Card */}
+            <Card sx={{ border: `2px dashed #0025DD`, backgroundColor: '#0025DD05' }}>
+              <CardContent sx={{ textAlign: 'center', py: 6 }}>
+                <DeliveryDining sx={{ fontSize: 60, color: '#0025DD', mb: 2 }} />
+                <Typography variant="h5" fontWeight="bold" gutterBottom color="#0025DD">
+                  Ready for a New Delivery?
                 </Typography>
-              </Box>
-            ) : (
-              <List>
-                {deliveryHistory.map((delivery, index) => (
-                  <ListItem 
-                    key={delivery.id} 
-                    divider={index < deliveryHistory.length - 1}
-                    sx={{ px: isMobile ? 0 : 2 }}
-                  >
-                    <ListItemIcon>
-                      <Avatar sx={{ bgcolor: 'primary.100' }}>
-                        <DeliveryDining color="primary" />
-                      </Avatar>
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body1" fontWeight="500">
-                              {delivery.pickup} → {delivery.dropoff}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {delivery.customer} • {delivery.time}
-                            </Typography>
-                          </Box>
-                          <Box sx={{ textAlign: 'right', ml: 2 }}>
-                            <Typography variant="body1" fontWeight="bold" color="success.main">
-                              UGX {delivery.fee.toLocaleString()}
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                              <Chip 
-                                icon={getStatusIcon(delivery.status)}
-                                label={delivery.status}
-                                size="small"
-                                color={getStatusColor(delivery.status)}
-                              />
-                              {delivery.proof && (
-                                <CameraAlt color="info" fontSize="small" />
-                              )}
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                  Start a new delivery and earn money
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    backgroundColor: '#0025DD',
+                    px: 4,
+                    '&:hover': {
+                      backgroundColor: '#001FB8'
+                    }
+                  }}
+                  startIcon={<PlayArrow />}
+                  onClick={() => setShowNewDeliveryDialog(true)}
+                >
+                  New Delivery
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Right Column - Recent Deliveries */}
+          <Grid item xs={12} md={4}>
+            <Card sx={{ border: `1px solid #0025DD20` }}>
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
+                  Recent Deliveries
+                </Typography>
+                
+                {deliveryHistory.length === 0 ? (
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <DeliveryDining sx={{ fontSize: 40, color: 'grey.400', mb: 2 }} />
+                    <Typography variant="body2" color="text.secondary">
+                      No deliveries yet
+                    </Typography>
+                  </Box>
+                ) : (
+                  <List>
+                    {deliveryHistory.map((delivery, index) => (
+                      <ListItem 
+                        key={delivery.id} 
+                        divider={index < deliveryHistory.length - 1}
+                        sx={{ px: 0 }}
+                      >
+                        <ListItemIcon>
+                          <Avatar sx={{ bgcolor: '#0025DD20', color: '#0025DD' }}>
+                            <DeliveryDining />
+                          </Avatar>
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={
+                            <Box>
+                              <Typography variant="body2" fontWeight="500">
+                                {delivery.pickup} → {delivery.dropoff}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {delivery.time} • UGX {delivery.fee.toLocaleString()}
+                              </Typography>
                             </Box>
-                          </Box>
-                        </Box>
-                      }
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            )}
-          </CardContent>
-        </Card>
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
       </Box>
 
       {/* New Delivery Dialog */}
@@ -492,100 +593,139 @@ const SimpleDeliveryPage = () => {
         fullWidth
         fullScreen={isMobile}
       >
-        <DialogTitle>
-          <Typography variant="h6">New Delivery Request</Typography>
+        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
+          <Typography variant="h6" fontWeight="bold">New Delivery</Typography>
         </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+        <DialogContent sx={{ p: 3 }}>
+          <Grid container spacing={3}>
             <Grid item xs={12}>
+              <Typography variant="body1" fontWeight="bold" gutterBottom color="#0025DD">
+                Pickup Location
+              </Typography>
               <TextField
                 fullWidth
-                label="Pickup Location"
+                placeholder="Enter pickup location"
                 value={deliveryForm.pickupLocation}
                 onChange={handleInputChange('pickupLocation')}
-                placeholder="Where to pick up the package?"
+                sx={{ mb: 2 }}
                 InputProps={{
-                  startAdornment: <LocationOn color="action" sx={{ mr: 1 }} />
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationOn sx={{ color: '#0025DD' }} />
+                    </InputAdornment>
+                  )
                 }}
               />
             </Grid>
             
             <Grid item xs={12}>
+              <Typography variant="body1" fontWeight="bold" gutterBottom color="#0025DD">
+                Drop-off Location
+              </Typography>
               <TextField
                 fullWidth
-                label="Drop-off Location"
+                placeholder="Enter drop-off location"
                 value={deliveryForm.dropoffLocation}
                 onChange={handleInputChange('dropoffLocation')}
-                placeholder="Where to deliver the package?"
+                sx={{ mb: 2 }}
                 InputProps={{
-                  startAdornment: <LocationOff color="action" sx={{ mr: 1 }} />
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Customer Name (Optional)"
-                value={deliveryForm.customerName}
-                onChange={handleInputChange('customerName')}
-                InputProps={{
-                  startAdornment: <Person color="action" sx={{ mr: 1 }} />
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Customer Phone (Optional)"
-                value={deliveryForm.customerPhone}
-                onChange={handleInputChange('customerPhone')}
-                placeholder="256712345678"
-                InputProps={{
-                  startAdornment: <Phone color="action" sx={{ mr: 1 }} />
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationOff sx={{ color: '#0025DD' }} />
+                    </InputAdornment>
+                  )
                 }}
               />
             </Grid>
 
             <Grid item xs={12}>
+              <Typography variant="body1" fontWeight="bold" gutterBottom color="#0025DD">
+                Delivery Fee
+              </Typography>
               <TextField
                 fullWidth
-                label="Delivery Fee (UGX)"
+                placeholder="Enter fee"
                 type="number"
                 value={deliveryForm.deliveryFee}
                 onChange={handleInputChange('deliveryFee')}
-                placeholder="0"
+                sx={{ mb: 2 }}
                 InputProps={{
-                  startAdornment: <AttachMoney color="action" sx={{ mr: 1 }} />
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <AttachMoney sx={{ color: '#0025DD' }} />
+                    </InputAdornment>
+                  )
                 }}
               />
             </Grid>
 
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Special Instructions (Optional)"
-                multiline
-                rows={3}
-                value={deliveryForm.specialInstructions}
-                onChange={handleInputChange('specialInstructions')}
-                placeholder="Any special delivery instructions..."
-                InputProps={{
-                  startAdornment: <Description color="action" sx={{ mr: 1, mt: -4 }} />
-                }}
+              <Typography variant="body1" fontWeight="bold" gutterBottom color="#0025DD">
+                Proof Requirements
+              </Typography>
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={proofOptions.uploadPhoto}
+                    onChange={handleProofOptionChange('uploadPhoto')}
+                    sx={{ color: '#0025DD' }}
+                  />
+                }
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CloudUpload />
+                    <Typography>Upload Photo</Typography>
+                  </Box>
+                }
               />
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={proofOptions.uploadSignature}
+                    onChange={handleProofOptionChange('uploadSignature')}
+                    sx={{ color: '#0025DD' }}
+                  />
+                }
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Draw />
+                    <Typography>Upload Signature</Typography>
+                  </Box>
+                }
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Paper sx={{ p: 2, backgroundColor: '#0025DD10', border: '1px solid #0025DD20' }}>
+                <Typography variant="body2" fontWeight="bold" color="#0025DD">
+                  Parcel Delivery
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Standard package delivery service
+                </Typography>
+              </Paper>
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowNewDeliveryDialog(false)}>Cancel</Button>
+        <DialogActions sx={{ p: 3 }}>
           <Button 
-            variant="contained" 
-            onClick={handleStartDelivery}
-            startIcon={<PlayArrow />}
+            onClick={() => setShowNewDeliveryDialog(false)}
+            sx={{ color: '#0025DD' }}
           >
-            Start Delivery
+            Cancel
+          </Button>
+          <Button 
+            variant="contained"
+            sx={{
+              backgroundColor: '#0025DD',
+              '&:hover': {
+                backgroundColor: '#001FB8'
+              }
+            }}
+            onClick={handleStartDelivery}
+            disabled={!deliveryForm.pickupLocation || !deliveryForm.dropoffLocation || !deliveryForm.deliveryFee}
+          >
+            Save Delivery
           </Button>
         </DialogActions>
       </Dialog>
@@ -597,16 +737,16 @@ const SimpleDeliveryPage = () => {
         maxWidth="sm" 
         fullWidth
       >
-        <DialogTitle>
-          <Typography variant="h6">Delivery Proof</Typography>
+        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
+          <Typography variant="h6" fontWeight="bold">Delivery Proof</Typography>
         </DialogTitle>
         <DialogContent sx={{ textAlign: 'center', py: 4 }}>
-          <CameraAlt sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+          <CameraAlt sx={{ fontSize: 60, color: '#0025DD', mb: 2 }} />
           <Typography variant="h6" gutterBottom>
             Take Proof Photo
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Take a photo of the delivered package as proof of delivery
+            Capture proof of delivery
           </Typography>
           
           <Box 
@@ -620,7 +760,7 @@ const SimpleDeliveryPage = () => {
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: 2,
-              border: '2px dashed grey'
+              border: '2px dashed #0025DD'
             }}
           >
             <Typography variant="body2" color="text.secondary">
@@ -630,12 +770,15 @@ const SimpleDeliveryPage = () => {
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
           <Button 
-            variant="contained" 
+            variant="contained"
+            sx={{
+              backgroundColor: '#0025DD'
+            }}
             startIcon={<CameraAlt />}
             onClick={handleTakeProofPhoto}
             size="large"
           >
-            Capture Photo
+            Capture Proof
           </Button>
         </DialogActions>
       </Dialog>
@@ -650,6 +793,10 @@ const SimpleDeliveryPage = () => {
         <Alert 
           severity={snackbar.severity} 
           onClose={() => setSnackbar({ ...snackbar, open: false })}
+          sx={{
+            backgroundColor: snackbar.severity === 'success' ? '#0025DD' : undefined,
+            color: 'white'
+          }}
         >
           {snackbar.message}
         </Alert>

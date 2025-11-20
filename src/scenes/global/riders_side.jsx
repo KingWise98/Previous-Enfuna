@@ -208,9 +208,9 @@ const Riders = () => {
             {/* Main Menu Items */}
             <SubMenu 
               title="Point Of Sale (POS)" 
-              icon={<ShoppingCartOutlinedIcon sx={{ color: '#FFEC01' }} />}
+              icon={<ShoppingCartOutlinedIcon sx={{ color: '#ffffff' }} />}
               style={{
-                color: '#FFEC01',
+                color: '#ffffff',
                 fontWeight: 'bold',
               }}
             >
