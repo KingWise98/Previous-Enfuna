@@ -267,7 +267,7 @@ const DriverProfilePage = () => {
 
   // Driver-specific options
   const driverTypes = [
-    { value: 'taxi', label: '🏍️ Boda Driver', description: 'Passenger transportation' },
+    { value: 'taxi', label: '🏍️ Boda Rider', description: 'Passenger transportation' },
     { value: 'truck', label: '🚚 Truck Driver', description: 'Goods and logistics' },
     { value: 'bus', label: '🚌 Bus Driver', description: 'Public transportation' },
     { value: 'private', label: '🚗 Private Driver', description: 'Executive and private services' },
@@ -919,7 +919,7 @@ const DriverProfilePage = () => {
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
                         <FormControl fullWidth disabled={!isEditing}>
-                          <InputLabel>Driver Type *</InputLabel>
+                          <InputLabel>Rider Type *</InputLabel>
                           <Select
                             value={getProfessionalInfo('driverType')}
                             onChange={(e) => handleInputChange('professionalInfo', 'driverType', e.target.value)}
