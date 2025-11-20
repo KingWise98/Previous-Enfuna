@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -46,7 +47,7 @@ import {
   TableHead,
   TableRow,
   InputAdornment,
-  Badge
+  LinearProgress
 } from '@mui/material';
 import {
   Add,
@@ -76,12 +77,14 @@ import {
   Refresh,
   WhatsApp,
   Email,
-  Print
+  Print,
+  ArrowBack
 } from '@mui/icons-material';
 
 const ExpensesPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
   
   const [activeStep, setActiveStep] = useState(0);
   const [showAddExpense, setShowAddExpense] = useState(false);
@@ -162,14 +165,14 @@ const ExpensesPage = () => {
   ]);
 
   const expenseTypes = [
-    { value: 'fuel', label: 'Fuel', icon: <LocalGasStation />, color: 'warning', emoji: '⛽' },
-    { value: 'parking', label: 'Parking', icon: <LocalParking />, color: 'info', emoji: '🅿️' },
-    { value: 'repairs', label: 'Repairs', icon: <Build />, color: 'error', emoji: '🔧' },
-    { value: 'meals', label: 'Meals', icon: <Restaurant />, color: 'success', emoji: '🍔' },
-    { value: 'airtime', label: 'Airtime', icon: <WifiCalling3 />, color: 'primary', emoji: '📞' },
-    { value: 'insurance', label: 'Insurance', icon: <Receipt />, color: 'secondary', emoji: '📄' },
-    { value: 'cleaning', label: 'Cleaning', icon: <MoreHoriz />, color: 'default', emoji: '🧹' },
-    { value: 'other', label: 'Other', icon: <MoreHoriz />, color: 'default', emoji: '📦' }
+    { value: 'fuel', label: 'Fuel', icon: <LocalGasStation />, color: '#FF6B6B', emoji: '⛽' },
+    { value: 'parking', label: 'Parking', icon: <LocalParking />, color: '#4ECDC4', emoji: '🅿️' },
+    { value: 'repairs', label: 'Repairs', icon: <Build />, color: '#45B7D1', emoji: '🔧' },
+    { value: 'meals', label: 'Meals', icon: <Restaurant />, color: '#96CEB4', emoji: '🍔' },
+    { value: 'airtime', label: 'Airtime', icon: <WifiCalling3 />, color: '#FFEC01', emoji: '📞' },
+    { value: 'insurance', label: 'Insurance', icon: <Receipt />, color: '#0025DD', emoji: '📄' },
+    { value: 'cleaning', label: 'Cleaning', icon: <MoreHoriz />, color: '#6B7280', emoji: '🧹' },
+    { value: 'other', label: 'Other', icon: <MoreHoriz />, color: '#9CA3AF', emoji: '📦' }
   ];
 
   const vehicles = [
@@ -201,7 +204,8 @@ const ExpensesPage = () => {
 
   const categoryTotals = expenseTypes.map(type => ({
     ...type,
-    total: expenses.filter(exp => exp.type === type.value).reduce((sum, exp) => sum + exp.amount, 0)
+    total: expenses.filter(exp => exp.type === type.value).reduce((sum, exp) => sum + exp.amount, 0),
+    percentage: Math.round((expenses.filter(exp => exp.type === type.value).reduce((sum, exp) => sum + exp.amount, 0) / totalMonthly) * 100)
   })).filter(cat => cat.total > 0);
 
   const handleNext = () => {
@@ -266,6 +270,117 @@ const ExpensesPage = () => {
     return matchesSearch && matchesCategory;
   });
 
+  // Financial Summary Cards for Top Section
+  const FinancialSummary = () => (
+    <Grid container spacing={2} sx={{ mb: 3 }}>
+      {/* Total Expenses */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
+          color: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 37, 221, 0.2)'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <Receipt sx={{ fontSize: 40, opacity: 0.8 }} />
+              <TrendingDown sx={{ fontSize: 20 }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" sx={{ mb: 1 }}>
+              UGX {totalMonthly.toLocaleString()}
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              Total Expenses
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              <Typography variant="caption">
+                This month
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Today's Expenses */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <CalendarToday sx={{ fontSize: 40, color: '#0025DD' }} />
+              <TrendingDown sx={{ fontSize: 20, color: '#EF4444' }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" color="#0025DD" sx={{ mb: 1 }}>
+              UGX {totalToday.toLocaleString()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Today's Expenses
+            </Typography>
+            <Typography variant="caption" color="#EF4444" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              {todayExpenses.length} transactions
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* This Week */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <TrendingDown sx={{ fontSize: 40, color: '#FF6B6B' }} />
+              <TrendingDown sx={{ fontSize: 20, color: '#EF4444' }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" color="#FF6B6B" sx={{ mb: 1 }}>
+              UGX {totalWeekly.toLocaleString()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              This Week
+            </Typography>
+            <Typography variant="caption" color="#EF4444" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              {weeklyExpenses.length} expenses
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Top Category */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <Category sx={{ fontSize: 40, color: '#0025DD' }} />
+              <LocalGasStation sx={{ fontSize: 20, color: '#FF6B6B' }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" color="#0025DD" sx={{ mb: 1 }}>
+              Fuel
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Top Category
+            </Typography>
+            <Typography variant="caption" color="#FF6B6B" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              UGX {categoryTotals[0]?.total.toLocaleString()}
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
+
   // Quick Add Expense Component
   const QuickAddExpense = () => (
     <Dialog 
@@ -278,15 +393,18 @@ const ExpensesPage = () => {
       fullWidth
       fullScreen={isMobile}
     >
-      <DialogTitle>
+      <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">
-            💰 Add New Expense
+          <Typography variant="h6" fontWeight="bold">
+            Add New Expense
           </Typography>
-          <IconButton onClick={() => {
-            setShowAddExpense(false);
-            setActiveStep(0);
-          }}>
+          <IconButton 
+            onClick={() => {
+              setShowAddExpense(false);
+              setActiveStep(0);
+            }}
+            sx={{ color: 'white' }}
+          >
             <Close />
           </IconButton>
         </Box>
@@ -304,13 +422,13 @@ const ExpensesPage = () => {
         {/* Step 1: Category & Amount */}
         {activeStep === 0 && (
           <Box>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom color="#0025DD">
               What did you spend on?
             </Typography>
             
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={12}>
-                <FormLabel component="legend" sx={{ mb: 2, display: 'block' }}>
+                <FormLabel component="legend" sx={{ mb: 2, display: 'block', color: '#0025DD', fontWeight: 'bold' }}>
                   Expense Category
                 </FormLabel>
                 <Grid container spacing={1}>
@@ -321,11 +439,11 @@ const ExpensesPage = () => {
                           p: 2,
                           textAlign: 'center',
                           cursor: 'pointer',
-                          border: expenseForm.type === type.value ? `2px solid ${theme.palette[type.color].main}` : '1px solid',
-                          borderColor: expenseForm.type === type.value ? `${type.color}.main` : 'divider',
-                          backgroundColor: expenseForm.type === type.value ? `${type.color}.50` : 'background.paper',
+                          border: expenseForm.type === type.value ? `2px solid ${type.color}` : '1px solid',
+                          borderColor: expenseForm.type === type.value ? type.color : '#e2e8f0',
+                          backgroundColor: expenseForm.type === type.value ? `${type.color}20` : 'background.paper',
                           '&:hover': {
-                            backgroundColor: `${type.color}.50`
+                            backgroundColor: `${type.color}20`
                           }
                         }}
                         onClick={() => setExpenseForm(prev => ({ ...prev, type: type.value }))}
@@ -353,6 +471,7 @@ const ExpensesPage = () => {
                     startAdornment: <InputAdornment position="start">UGX</InputAdornment>,
                   }}
                   placeholder="0"
+                  sx={{ mb: 2 }}
                 />
               </Grid>
 
@@ -384,7 +503,7 @@ const ExpensesPage = () => {
         {/* Step 2: Details & Receipt */}
         {activeStep === 1 && (
           <Box>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom color="#0025DD">
               Add Details
             </Typography>
             
@@ -436,10 +555,10 @@ const ExpensesPage = () => {
               </Grid>
 
               <Grid item xs={12}>
-                <Card variant="outlined">
+                <Card variant="outlined" sx={{ borderColor: '#0025DD20' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                      <Typography variant="h6">
+                      <Typography variant="h6" color="#0025DD">
                         Receipt Capture
                       </Typography>
                       <FormControlLabel
@@ -447,6 +566,14 @@ const ExpensesPage = () => {
                           <Switch
                             checked={expenseForm.hasReceipt}
                             onChange={handleInputChange('hasReceipt')}
+                            sx={{
+                              '& .MuiSwitch-switchBase.Mui-checked': {
+                                color: '#0025DD',
+                              },
+                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                backgroundColor: '#0025DD',
+                              },
+                            }}
                           />
                         }
                         label="I have a receipt"
@@ -462,13 +589,17 @@ const ExpensesPage = () => {
                               src="/api/placeholder/100/100"
                               variant="rounded"
                             />
-                            <Typography variant="body2" color="success.main">
+                            <Typography variant="body2" color="#10B981" fontWeight="bold">
                               ✓ Receipt captured
                             </Typography>
                           </Box>
                         ) : (
                           <Button
                             variant="outlined"
+                            sx={{
+                              borderColor: '#0025DD',
+                              color: '#0025DD'
+                            }}
                             startIcon={<CameraAlt />}
                             onClick={handleReceiptCapture}
                             size="large"
@@ -488,11 +619,11 @@ const ExpensesPage = () => {
         {/* Step 3: Review & Save */}
         {activeStep === 2 && (
           <Box>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom color="#0025DD">
               Review Expense
             </Typography>
             
-            <Card variant="outlined" sx={{ mb: 3 }}>
+            <Card variant="outlined" sx={{ mb: 3, borderColor: '#0025DD20' }}>
               <CardContent>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
@@ -513,7 +644,7 @@ const ExpensesPage = () => {
                     <Typography variant="body2" color="text.secondary">
                       Amount
                     </Typography>
-                    <Typography variant="h5" color="error" fontWeight="bold" sx={{ mt: 1 }}>
+                    <Typography variant="h5" color="#EF4444" fontWeight="bold" sx={{ mt: 1 }}>
                       UGX {parseInt(expenseForm.amount || 0).toLocaleString()}
                     </Typography>
                   </Grid>
@@ -550,7 +681,10 @@ const ExpensesPage = () => {
                       <Chip 
                         icon={<CheckCircle />} 
                         label="Receipt Attached" 
-                        color="success" 
+                        sx={{ 
+                          backgroundColor: '#10B98120',
+                          color: '#10B981'
+                        }}
                         variant="outlined"
                       />
                     </Grid>
@@ -559,8 +693,8 @@ const ExpensesPage = () => {
               </CardContent>
             </Card>
 
-            <Box sx={{ p: 2, bgcolor: 'success.50', borderRadius: 2 }}>
-              <Typography variant="body2" color="success.main">
+            <Box sx={{ p: 2, backgroundColor: '#10B98120', borderRadius: 2 }}>
+              <Typography variant="body2" color="#10B981" fontWeight="bold">
                 ✅ Ready to save this expense! It will be added to your daily totals.
               </Typography>
             </Box>
@@ -572,6 +706,7 @@ const ExpensesPage = () => {
         <Button
           onClick={handleBack}
           disabled={activeStep === 0}
+          sx={{ color: '#0025DD' }}
         >
           Back
         </Button>
@@ -579,6 +714,12 @@ const ExpensesPage = () => {
         {activeStep === steps.length - 1 ? (
           <Button
             variant="contained"
+            sx={{
+              backgroundColor: '#0025DD',
+              '&:hover': {
+                backgroundColor: '#001FB8'
+              }
+            }}
             onClick={handleSaveExpense}
             startIcon={<CheckCircle />}
             disabled={!expenseForm.amount}
@@ -588,6 +729,12 @@ const ExpensesPage = () => {
         ) : (
           <Button
             variant="contained"
+            sx={{
+              backgroundColor: '#0025DD',
+              '&:hover': {
+                backgroundColor: '#001FB8'
+              }
+            }}
             onClick={handleNext}
             disabled={activeStep === 0 && !expenseForm.amount}
           >
@@ -601,78 +748,62 @@ const ExpensesPage = () => {
   return (
     <Box sx={{ 
       minHeight: '100vh', 
-      backgroundColor: 'background.default',
+      backgroundColor: '#f8fafc',
       pb: 3
     }}>
       {/* Header */}
-      <Box sx={{ p: isMobile ? 2 : 3 }}>
-        <Box sx={{ mb: 4 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, flexWrap: 'wrap', gap: 2 }}>
-            <Box>
-              <Typography variant="h4" fontWeight="bold" gutterBottom>
-                Expenses 💰
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Track and manage your driving expenses
-              </Typography>
-            </Box>
-            
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => setShowAddExpense(true)}
-              size={isMobile ? "medium" : "large"}
-            >
-              Add Expense
-            </Button>
-          </Box>
+      <AppBar 
+        position="static" 
+        sx={{ 
+          backgroundColor: '#0025DD',
+          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
+          boxShadow: 'none'
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            edge="start"
+            sx={{ color: 'white', mr: 2 }}
+            onClick={() => navigate(-1)}
+          >
+            <ArrowBack />
+          </IconButton>
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            Expenses
+          </Typography>
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: '#FFEC01',
+              color: '#000',
+              fontWeight: 'bold',
+              '&:hover': {
+                backgroundColor: '#E6D401'
+              }
+            }}
+            startIcon={<Add />}
+            onClick={() => setShowAddExpense(true)}
+          >
+            Add Expense
+          </Button>
+        </Toolbar>
+      </AppBar>
 
-          {/* Quick Stats */}
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={4}>
-              <Card elevation={2}>
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <Typography variant="h4" color="error" fontWeight="bold">
-                    UGX {totalToday.toLocaleString()}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Today's Expenses
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Card elevation={2}>
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <Typography variant="h4" color="warning" fontWeight="bold">
-                    UGX {totalWeekly.toLocaleString()}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    This Week
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Card elevation={2}>
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <Typography variant="h4" color="info" fontWeight="bold">
-                    UGX {totalMonthly.toLocaleString()}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    This Month
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
+      {/* Main Content */}
+      <Box sx={{ p: isMobile ? 2 : 3 }}>
+        {/* Financial Summary Cards */}
+        <FinancialSummary />
 
         <Grid container spacing={3}>
           {/* Main Content */}
           <Grid item xs={12} lg={8}>
             {/* Search and Filter */}
-            <Card elevation={1} sx={{ mb: 2 }}>
+            <Card sx={{ 
+              mb: 2,
+              borderRadius: 3,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e2e8f0'
+            }}>
               <CardContent>
                 <Grid container spacing={2} alignItems="center">
                   <Grid item xs={12} sm={6} md={4}>
@@ -706,10 +837,26 @@ const ExpensesPage = () => {
                   </Grid>
                   <Grid item xs={12} md={4}>
                     <Box sx={{ display: 'flex', gap: 1, justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-                      <Button startIcon={<Refresh />} variant="outlined" size="small">
+                      <Button 
+                        startIcon={<Refresh />} 
+                        variant="outlined" 
+                        size="small"
+                        sx={{
+                          borderColor: '#0025DD',
+                          color: '#0025DD'
+                        }}
+                      >
                         Refresh
                       </Button>
-                      <Button startIcon={<Download />} variant="outlined" size="small">
+                      <Button 
+                        startIcon={<Download />} 
+                        variant="outlined" 
+                        size="small"
+                        sx={{
+                          borderColor: '#0025DD',
+                          color: '#0025DD'
+                        }}
+                      >
                         Export
                       </Button>
                     </Box>
@@ -719,7 +866,11 @@ const ExpensesPage = () => {
             </Card>
 
             {/* Expenses List */}
-            <Card elevation={1}>
+            <Card sx={{ 
+              borderRadius: 3,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e2e8f0'
+            }}>
               <CardContent sx={{ p: 0 }}>
                 {isMobile ? (
                   /* Mobile List View */
@@ -727,8 +878,10 @@ const ExpensesPage = () => {
                     {filteredExpenses.map((expense) => (
                       <ListItem key={expense.id} divider>
                         <ListItemIcon>
-                          <Avatar sx={{ bgcolor: `${expenseTypes.find(t => t.value === expense.type)?.color}.50` }}>
-                            {expenseTypes.find(t => t.value === expense.type)?.emoji}
+                          <Avatar sx={{ backgroundColor: `${expenseTypes.find(t => t.value === expense.type)?.color}20` }}>
+                            <Typography variant="h6">
+                              {expenseTypes.find(t => t.value === expense.type)?.emoji}
+                            </Typography>
                           </Avatar>
                         </ListItemIcon>
                         <ListItemText
@@ -737,7 +890,7 @@ const ExpensesPage = () => {
                               <Typography variant="subtitle1" fontWeight="medium">
                                 {expenseTypes.find(t => t.value === expense.type)?.label}
                               </Typography>
-                              <Typography variant="h6" color="error">
+                              <Typography variant="h6" color="#EF4444">
                                 UGX {expense.amount.toLocaleString()}
                               </Typography>
                             </Box>
@@ -755,7 +908,7 @@ const ExpensesPage = () => {
                         />
                         <ListItemSecondaryAction>
                           <IconButton edge="end" onClick={() => handleDeleteExpense(expense.id)}>
-                            <Delete color="error" />
+                            <Delete sx={{ color: '#EF4444' }} />
                           </IconButton>
                         </ListItemSecondaryAction>
                       </ListItem>
@@ -794,7 +947,7 @@ const ExpensesPage = () => {
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
-                              <Typography variant="body1" fontWeight="bold" color="error">
+                              <Typography variant="body1" fontWeight="bold" color="#EF4444">
                                 UGX {expense.amount.toLocaleString()}
                               </Typography>
                             </TableCell>
@@ -808,7 +961,15 @@ const ExpensesPage = () => {
                             </TableCell>
                             <TableCell>
                               {expense.hasReceipt ? (
-                                <Chip icon={<CheckCircle />} label="Yes" size="small" color="success" />
+                                <Chip 
+                                  icon={<CheckCircle />} 
+                                  label="Yes" 
+                                  size="small" 
+                                  sx={{ 
+                                    backgroundColor: '#10B98120',
+                                    color: '#10B981'
+                                  }} 
+                                />
                               ) : (
                                 <Chip label="No" size="small" variant="outlined" />
                               )}
@@ -816,10 +977,10 @@ const ExpensesPage = () => {
                             <TableCell>
                               <Box sx={{ display: 'flex', gap: 1 }}>
                                 <IconButton size="small">
-                                  <Edit />
+                                  <Edit sx={{ color: '#0025DD' }} />
                                 </IconButton>
                                 <IconButton size="small" onClick={() => handleDeleteExpense(expense.id)}>
-                                  <Delete color="error" />
+                                  <Delete sx={{ color: '#EF4444' }} />
                                 </IconButton>
                               </Box>
                             </TableCell>
@@ -847,17 +1008,24 @@ const ExpensesPage = () => {
           {/* Sidebar */}
           <Grid item xs={12} lg={4}>
             {/* Expense Categories Breakdown */}
-            <Card elevation={1} sx={{ mb: 2 }}>
+            <Card sx={{ 
+              mb: 2,
+              borderRadius: 3,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e2e8f0'
+            }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  📊 Expense Breakdown
+                <Typography variant="h6" gutterBottom color="#0025DD">
+                  Expense Breakdown
                 </Typography>
                 <List dense>
                   {categoryTotals.map((category) => (
                     <ListItem key={category.value} divider>
                       <ListItemIcon>
-                        <Avatar sx={{ bgcolor: `${category.color}.50`, width: 32, height: 32 }}>
-                          {category.emoji}
+                        <Avatar sx={{ backgroundColor: `${category.color}20`, width: 32, height: 32 }}>
+                          <Typography variant="body2" fontWeight="bold">
+                            {category.emoji}
+                          </Typography>
                         </Avatar>
                       </ListItemIcon>
                       <ListItemText
@@ -866,7 +1034,7 @@ const ExpensesPage = () => {
                       />
                       <ListItemSecondaryAction>
                         <Typography variant="body2" color="text.secondary">
-                          {Math.round((category.total / totalMonthly) * 100)}%
+                          {category.percentage}%
                         </Typography>
                       </ListItemSecondaryAction>
                     </ListItem>
@@ -876,14 +1044,22 @@ const ExpensesPage = () => {
             </Card>
 
             {/* Quick Actions */}
-            <Card elevation={1}>
+            <Card sx={{ 
+              borderRadius: 3,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e2e8f0'
+            }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  ⚡ Quick Actions
+                <Typography variant="h6" gutterBottom color="#0025DD">
+                  Quick Actions
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Button
                     variant="outlined"
+                    sx={{
+                      borderColor: '#0025DD',
+                      color: '#0025DD'
+                    }}
                     startIcon={<CameraAlt />}
                     onClick={() => setShowAddExpense(true)}
                     fullWidth
@@ -892,6 +1068,10 @@ const ExpensesPage = () => {
                   </Button>
                   <Button
                     variant="outlined"
+                    sx={{
+                      borderColor: '#0025DD',
+                      color: '#0025DD'
+                    }}
                     startIcon={<Receipt />}
                     fullWidth
                   >
@@ -899,17 +1079,14 @@ const ExpensesPage = () => {
                   </Button>
                   <Button
                     variant="outlined"
+                    sx={{
+                      borderColor: '#0025DD',
+                      color: '#0025DD'
+                    }}
                     startIcon={<Download />}
                     fullWidth
                   >
                     Export Report
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<WhatsApp />}
-                    fullWidth
-                  >
-                    Share via WhatsApp
                   </Button>
                 </Box>
               </CardContent>

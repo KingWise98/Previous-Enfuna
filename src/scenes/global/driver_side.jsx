@@ -248,13 +248,7 @@ const Driver = () => {
                 selected={selected} 
                 setSelected={setSelected} 
               />
-              <Item 
-                title="Groups" 
-                to="/driver/group" 
-                icon={<GroupAddIcon />} 
-                selected={selected} 
-                setSelected={setSelected} 
-              />
+             
               <Item 
                 title="Statements" 
                 to="/driver/statements" 
