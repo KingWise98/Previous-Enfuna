@@ -75,8 +75,8 @@ const Vendors = () => {
             {!isCollapsed && <Typography variant="h3">VENDOR</Typography>}
           </MenuItem>
 
-          <Item title="Profile" to="/vendor/profile" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
-           <Item title="Dashboard" to="/vendor/dashboard" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          
+          
 
           <SubMenu title="Point Of Sale (POS)" icon={<ShoppingCartOutlinedIcon />}>
          
@@ -86,8 +86,8 @@ const Vendors = () => {
           <Item title="Service Sales" to="/vendor/pos/service_sales" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
         
   <SubMenu title="Products" icon={<HomeOutlinedIcon />}>
-   <Item title="Manage Products" to="/vendor/pos/products" icon={<StorageIcon />} selected={selected} setSelected={setSelected} />
-  <Item title="Manage Services" to="/vendor/pos/services" icon={<AssessmentIcon />} selected={selected} setSelected={setSelected} />
+   <Item title="Product List" to="/vendor/pos/products" icon={<StorageIcon />} selected={selected} setSelected={setSelected} />
+  <Item title="Service List" to="/vendor/pos/services" icon={<AssessmentIcon />} selected={selected} setSelected={setSelected} />
   
       
       
@@ -199,6 +199,8 @@ const Vendors = () => {
             <Item title="Deals" to="/crm/deals" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Analytics" to="/crm/analytics" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
           </SubMenu>
+
+          <Item title="Profile" to="/vendor/profile" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
           
 

@@ -74,26 +74,33 @@ const Driver = () => {
           <MenuItem onClick={() => setIsCollapsed(!isCollapsed)} icon={<MenuOutlinedIcon />}> 
             {!isCollapsed && <Typography variant="h3">DRIVER</Typography>}
           </MenuItem>
-           <Item title="Profile" to="/driver/profile" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+           
 
-          <SubMenu title="Dashboard" icon={<ShoppingCartOutlinedIcon />}>
+          <SubMenu title="Point Of Sale (POS)" icon={<ShoppingCartOutlinedIcon />}>
          
          
           
      <Item title="Dashboard" to="/driver/dashboards" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+     <Item title="New Drive" to="/driver/drive" icon={<LocalOfferIcon />} selected={selected} setSelected={setSelected} />
+      <Item title="Deliveries" to="/driver/delivery" icon={<WorkOutlineIcon />} selected={selected} setSelected={setSelected} />
     
-          <Item title="Payments" to="/driver/page" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          <Item title="Payments" to="/driver/page" icon={<MonetizationOnOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          <Item title="Expenses" to="/driver/expense" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
+           <Item title="Groups" to="/driver/group" icon={<GroupAddIcon />} selected={selected} setSelected={setSelected} />
+           <Item title="Statements" to="/driver/statements" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
         
   
 
   
 
-             <Item title="Contacts" to="/driver/contacts" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
+             <Item title="Customers" to="/driver/contacts" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
             
             
 
   
 </SubMenu>
+
+<Item title="Profile" to="/driver/profile" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
           
 

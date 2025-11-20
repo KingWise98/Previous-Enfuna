@@ -127,7 +127,7 @@ const UserManagement = () => {
     const mockUsers = Array.from({ length: 25 }, (_, i) => ({
       id: i + 1,
       name: `User ${i + 1}`,
-      email: `user${i + 1}@funderspick.com`,
+      email: `user${i + 1}@enfuna.com`,
       role: DEFAULT_ROLES[i % DEFAULT_ROLES.length].name,
       roleId: DEFAULT_ROLES[i % DEFAULT_ROLES.length].id,
       status: i % 5 === 0 ? 'inactive' : 'active',

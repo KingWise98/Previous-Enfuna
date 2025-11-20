@@ -230,7 +230,7 @@ const DriverProfilePage = () => {
     bankingInfo: {
       bankName: 'Stanbic Bank',
       accountNumber: '9876543210',
-      accountName: 'James Mugisha',
+      accountName: 'Emma Vangamoi',
       branch: 'Kampala Main',
       mobileMoney: '+256712345678'
     },

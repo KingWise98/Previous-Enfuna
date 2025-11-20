@@ -8,6 +8,7 @@ import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import CakeIcon from "@mui/icons-material/Cake";
+import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
 import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import LocalCafeIcon from "@mui/icons-material/LocalCafe";
@@ -53,7 +54,7 @@ const POSSidebar = () => {
           
           <Item title="Admin" to="/super/admin" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
            <Item title="User Managment" to="/super/user" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
-           <Item title="Billing Management" to="/super/subs" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+           <Item title="Billing Management" to="/super/subs" icon={<MonetizationOnOutlinedIcon />} selected={selected} setSelected={setSelected} />
            
             <Item title="Track" to="/super/track" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
              

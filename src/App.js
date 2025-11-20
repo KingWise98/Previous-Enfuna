@@ -6,20 +6,29 @@ import Sidebar from "./scenes/global/Sidebar";
 
 
 //Driver
-import Driver from "./admins/driver/dashboard";
+import Drive from "./admins/driver/drive";
 import Driver_Profile from "./admins/driver/profile";
 import Drivers from "./admins/driver/dashboards";
 import Driver_Page from "./admins/driver/page";
 import Driver_Contacts from "./admins/driver/contacts";
+import Driver_Statements from "./admins/driver/statements";
+import Driver_Delivery from "./admins/driver/delivery";
+import Driver_Expenses from "./admins/driver/expense";
+import Driver_Group from "./admins/driver/group";
+
 
 //Rider
 import Rider from "./admins/rider/dashboard";
+import Ride from "./admins/rider/ride";
 import Rider_Profile from "./admins/rider/profile";
 import Riders from "./admins/rider/dashboards";
 import Rider_Page from "./admins/rider/page";
 import Rider_Payments from "./admins/rider/payments";
 import Rider_Group from "./admins/rider/group";
 import Rider_Contacts from "./admins/rider/contacts";
+import Rider_Statements from "./admins/rider/statements";
+import Rider_Delivery from "./admins/rider/delivery";
+import Rider_Expenses from "./admins/rider/expense";
 
 //Vendor
 import Vendor from "./admins/vendor/dashboard";
@@ -171,7 +180,7 @@ import Roles from "./scenes/pos/roles";
 import User_Sales from "./scenes/pos/sales";
 import User_Contact from "./scenes/pos/contacts";
 import Import_Contact from "./scenes/pos/import_contacts";
-import Add from "./scenes/pos/Add";
+import Add from "./scenes/pos/add";
 import List_p from "./scenes/pos/list";
 import Returns from "./scenes/pos/returns";
 
@@ -222,7 +231,7 @@ function App() {
     setUserRole(role);
     localStorage.setItem('userRole', role);
     if (role === "admin") {
-      navigate("/merchant/profile");
+      navigate("/pos/all");
        } else if (role === "super") {
       navigate("/super/admin");
 
@@ -230,13 +239,13 @@ function App() {
       navigate("/user/new_sales");
     }
      else if (role === "vendor") {
-      navigate("/vendor/profile");
+      navigate("/vendor/pos/all");
     }
      else if (role === "rider") {
-      navigate("/rider/profile");
+      navigate("/rider/dashboards");
     }
      else if (role === "driver") {
-      navigate("/driver/profile");
+      navigate("/driver/dashboards");
     }
   };
 
@@ -989,6 +998,16 @@ function App() {
                 </ProtectedRoute>
               } />
 
+              <Route path="/driver/drive" element={
+                <ProtectedRoute allowedRoles={["driver"]}>
+                  <Drive />
+                </ProtectedRoute>
+              } />
+              <Route path="/driver/expense" element={
+                <ProtectedRoute allowedRoles={["driver"]}>
+                  <Driver_Expenses />
+                </ProtectedRoute>
+              } />
            
               
 
@@ -1008,10 +1027,40 @@ function App() {
                 </ProtectedRoute>
               } />
 
+              <Route path="/driver/statements" element={
+                <ProtectedRoute allowedRoles={["driver"]}>
+                  <Driver_Statements />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/driver/delivery" element={
+                <ProtectedRoute allowedRoles={["driver"]}>
+                  <Driver_Delivery />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/driver/group" element={
+                <ProtectedRoute allowedRoles={["driver"]}>
+                  <Driver_Group />
+                </ProtectedRoute>
+              } />
+
                {/* RIDER */}
                 <Route path="/rider/profile" element={
                 <ProtectedRoute allowedRoles={["rider"]}>
                   <Rider_Profile />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/rider/ride" element={
+                <ProtectedRoute allowedRoles={["rider"]}>
+                  <Ride />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/rider/expense" element={
+                <ProtectedRoute allowedRoles={["rider"]}>
+                  <Rider_Expenses />
                 </ProtectedRoute>
               } />
 
@@ -1044,6 +1093,18 @@ function App() {
               <Route path="/rider/contacts" element={
                 <ProtectedRoute allowedRoles={["rider"]}>
                   <Rider_Contacts />
+                </ProtectedRoute>
+              } />
+
+               <Route path="/rider/statements" element={
+                <ProtectedRoute allowedRoles={["rider"]}>
+                  <Rider_Statements />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/rider/delivery" element={
+                <ProtectedRoute allowedRoles={["rider"]}>
+                  <Rider_Delivery />
                 </ProtectedRoute>
               } />
 

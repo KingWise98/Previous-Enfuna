@@ -13,18 +13,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   List,
   ListItem,
   ListItemText,
   ListItemIcon,
   Paper,
   LinearProgress,
-  Badge,
   Table,
   TableBody,
   TableCell,
@@ -33,11 +27,18 @@ import {
   TableRow,
   Tooltip,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  useTheme,
+  useMediaQuery,
+  AppBar,
+  Toolbar,
+  Drawer,
+  Menu,
+  MenuItem,
+  Divider
 } from '@mui/material';
 import {
   PlayArrow,
-  Stop,
   Dashboard,
   DirectionsCar,
   Payment,
@@ -52,22 +53,32 @@ import {
   Person,
   Sync,
   WifiOff,
-  History,
   Download,
-  Speed,
   EmojiEvents,
-  LocationOn
+  Add,
+  Money,
+  DeliveryDining,
+  Menu as MenuIcon,
+  Brightness4,
+  Brightness7,
+  Phone,
+  Email
 } from '@mui/icons-material';
 
 const SimpleDriverApp = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
+  
   const [isDriving, setIsDriving] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [activeView, setActiveView] = useState('drive');
   const [currentRide, setCurrentRide] = useState(null);
   const [isOnline, setIsOnline] = useState(true);
   const [syncStatus, setSyncStatus] = useState('All data synced');
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [profileMenuAnchor, setProfileMenuAnchor] = useState(null);
 
-  // Comprehensive dashboard data from previous code
+  // Comprehensive dashboard data
   const [dashboardData, setDashboardData] = useState({
     today: {
       rides: 8,
@@ -100,13 +111,6 @@ const SimpleDriverApp = () => {
       efficiency: 88,
       customerRating: 4.7
     }
-  });
-
-  const [newRide, setNewRide] = useState({
-    destination: '',
-    passengerCount: 1,
-    paymentMethod: 'cash',
-    estimatedFare: ''
   });
 
   const [settings, setSettings] = useState({
@@ -146,6 +150,42 @@ const SimpleDriverApp = () => {
     { value: 'food', label: '🍔 Food', color: 'success' }
   ];
 
+  // Quick Links Data
+  const quickLinks = [
+    {
+      title: 'New Ride',
+      description: 'Start a new ride',
+      icon: <Add sx={{ fontSize: isMobile ? 30 : 40 }} />,
+      color: 'primary',
+      link: '/rider/ride',
+      bgcolor: 'primary.50'
+    },
+    {
+      title: 'Expenses',
+      description: 'Manage your expenses',
+      icon: <Money sx={{ fontSize: isMobile ? 30 : 40 }} />,
+      color: 'error',
+      link: '/rider/expense',
+      bgcolor: 'error.50'
+    },
+    {
+      title: 'Payments',
+      description: 'View payment history',
+      icon: <Payment sx={{ fontSize: isMobile ? 30 : 40 }} />,
+      color: 'success',
+      link: '/rider/page',
+      bgcolor: 'success.50'
+    },
+    {
+      title: 'Deliveries',
+      description: 'Track deliveries',
+      icon: <DeliveryDining sx={{ fontSize: isMobile ? 30 : 40 }} />,
+      color: 'warning',
+      link: '/rider/delivery',
+      bgcolor: 'warning.50'
+    }
+  ];
+
   // Simulate real-time data updates
   useEffect(() => {
     const dataSyncInterval = setInterval(() => {
@@ -160,15 +200,8 @@ const SimpleDriverApp = () => {
   }, []);
 
   const handleStartRide = () => {
-    const ride = {
-      id: Date.now(),
-      startTime: new Date(),
-      destination: newRide.destination,
-      passengerCount: newRide.passengerCount,
-      estimatedFare: newRide.estimatedFare
-    };
-    setCurrentRide(ride);
-    setIsDriving(true);
+    // Navigate to new ride page
+    window.location.href = '/rider/ride';
   };
 
   const handleEndRide = () => {
@@ -179,9 +212,8 @@ const SimpleDriverApp = () => {
   };
 
   const handlePayment = (method) => {
-    const rideFare = 6000; // Example fare amount
+    const rideFare = 6000;
     
-    // Update dashboard data with new ride
     setDashboardData(prev => ({
       ...prev,
       today: {
@@ -194,10 +226,8 @@ const SimpleDriverApp = () => {
       pendingSync: prev.pendingSync + 1
     }));
 
-    // Reset and close
     setCurrentRide(null);
     setShowPaymentDialog(false);
-    setNewRide({ destination: '', passengerCount: 1, paymentMethod: 'cash', estimatedFare: '' });
   };
 
   const handleSOS = () => {
@@ -211,194 +241,253 @@ const SimpleDriverApp = () => {
     }));
   };
 
+  const handleQuickLinkClick = (link) => {
+    window.location.href = link;
+  };
+
+  const handleProfileMenuOpen = (event) => {
+    setProfileMenuAnchor(event.currentTarget);
+  };
+
+  const handleProfileMenuClose = () => {
+    setProfileMenuAnchor(null);
+  };
+
+  // Responsive layout values
+  const getGridLayout = () => {
+    if (isMobile) {
+      return { main: 12, sidebar: 12 };
+    } else if (isTablet) {
+      return { main: 8, sidebar: 4 };
+    } else {
+      return { main: 6, sidebar: 3 };
+    }
+  };
+
+  const gridLayout = getGridLayout();
+
   return (
-    <Box sx={{ p: 3, minHeight: '100vh', backgroundColor: 'grey.50' }}>
-      
-      {/* Header with View Toggle */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Driver Dashboard 🚕
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Chip 
-              icon={isOnline ? <Sync /> : <WifiOff />}
-              label={isOnline ? "Online" : "Offline"} 
-              color={isOnline ? "success" : "default"}
-              variant={isOnline ? "filled" : "outlined"}
-            />
-            <Typography variant="body2" color="textSecondary">
-              {syncStatus} • {dashboardData.pendingSync} pending sync
-            </Typography>
-          </Box>
-        </Box>
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Tooltip title="SOS Emergency">
-            <Button
-              variant="contained"
-              color="error"
-              startIcon={<Security />}
-              onClick={handleSOS}
+    <Box sx={{ 
+      minHeight: '100vh', 
+      backgroundColor: 'background.default',
+      pb: 3
+    }}>
+      {/* Mobile App Bar */}
+      {isMobile && (
+        <AppBar position="static" color="primary" elevation={1}>
+          <Toolbar>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={() => setMobileDrawerOpen(true)}
             >
-              SOS
-            </Button>
-          </Tooltip>
-          
-          <Button
-            variant="contained"
-            startIcon={<Dashboard />}
-            onClick={() => setActiveView(activeView === 'drive' ? 'dashboard' : 'drive')}
-          >
-            {activeView === 'drive' ? 'View Dashboard' : 'Start Drive'}
-          </Button>
-        </Box>
-      </Box>
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ flexGrow: 1, ml: 2 }}>
+              Driver Dashboard
+            </Typography>
+            <IconButton color="inherit" onClick={handleSOS}>
+              <Security />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
+      )}
 
       {/* Main Content */}
-      {activeView === 'drive' ? (
-        /* Simple Drive View */
-        <Grid container justifyContent="center">
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent sx={{ textAlign: 'center', p: 4 }}>
-                <Box sx={{ mb: 3 }}>
-                  <Avatar sx={{ 
-                    width: 80, 
-                    height: 80, 
-                    bgcolor: isDriving ? 'error.main' : 'success.main',
-                    mx: 'auto',
-                    mb: 2
+      <Box sx={{ p: isMobile ? 2 : 3 }}>
+        {/* Header for Desktop */}
+        {!isMobile && (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            mb: 4,
+            flexWrap: 'wrap',
+            gap: 2
+          }}>
+            <Box sx={{ minWidth: isTablet ? '100%' : 'auto' }}>
+              <Typography 
+                variant={isTablet ? "h5" : "h4"} 
+                fontWeight="bold" 
+                gutterBottom
+                sx={{ color: 'text.primary' }}
+              >
+                Driver Dashboard 🚕
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                <Chip 
+                  icon={isOnline ? <Sync /> : <WifiOff />}
+                  label={isOnline ? "Online" : "Offline"} 
+                  color={isOnline ? "success" : "default"}
+                  variant={isOnline ? "filled" : "outlined"}
+                  size={isTablet ? "small" : "medium"}
+                />
+                <Typography variant="body2" color="textSecondary">
+                  {syncStatus} • {dashboardData.pendingSync} pending sync
+                </Typography>
+              </Box>
+            </Box>
+            
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              flexWrap: 'wrap'
+            }}>
+              <Tooltip title="SOS Emergency">
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<Security />}
+                  onClick={handleSOS}
+                  size={isTablet ? "small" : "medium"}
+                >
+                  {isTablet ? 'SOS' : 'Emergency SOS'}
+                </Button>
+              </Tooltip>
+              
+              <Button
+                variant="contained"
+                startIcon={<DirectionsCar />}
+                onClick={handleStartRide}
+                size={isTablet ? "small" : "medium"}
+              >
+                {isTablet ? 'New Ride' : 'Start New Ride'}
+              </Button>
+            </Box>
+          </Box>
+        )}
+
+        {/* Quick Links Section */}
+        <Grid container spacing={2} sx={{ mb: 4 }}>
+          {quickLinks.map((link, index) => (
+            <Grid item xs={6} sm={6} md={3} key={index}>
+              <Card 
+                sx={{ 
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: 4,
+                    backgroundColor: 'action.hover'
+                  },
+                  height: '100%',
+                  minHeight: isMobile ? 100 : 120
+                }}
+                onClick={() => handleQuickLinkClick(link.link)}
+              >
+                <CardContent sx={{ 
+                  textAlign: 'center', 
+                  p: isMobile ? 1.5 : 2,
+                  '&:last-child': { pb: isMobile ? 1.5 : 2 }
+                }}>
+                  <Box sx={{ 
+                    display: 'inline-flex', 
+                    p: 1, 
+                    borderRadius: 2, 
+                    bgcolor: link.bgcolor,
+                    mb: 1
                   }}>
-                    {isDriving ? <Stop /> : <DirectionsCar />}
-                  </Avatar>
-                  
-                  <Typography variant="h5" gutterBottom color={isDriving ? 'error.main' : 'success.main'}>
-                    {isDriving ? 'Drive in Progress' : 'Ready to Drive'}
-                  </Typography>
-                  
-                  <Typography variant="body2" color="textSecondary">
-                    {isDriving ? 'Tap below to end your drive' : 'Start a new drive to begin earning'}
-                  </Typography>
-                </Box>
-
-                {!isDriving ? (
-                  /* Drive Start Form */
-                  <Box sx={{ mt: 3 }}>
-                    <TextField
-                      fullWidth
-                      label="Passenger Destination"
-                      value={newRide.destination}
-                      onChange={(e) => setNewRide(prev => ({ ...prev, destination: e.target.value }))}
-                      sx={{ mb: 2 }}
-                    />
-                    
-                    <FormControl fullWidth sx={{ mb: 2 }}>
-                      <InputLabel>Passengers</InputLabel>
-                      <Select
-                        value={newRide.passengerCount}
-                        onChange={(e) => setNewRide(prev => ({ ...prev, passengerCount: e.target.value }))}
-                        label="Passengers"
-                      >
-                        <MenuItem value={1}>1 Passenger</MenuItem>
-                        <MenuItem value={2}>2 Passengers</MenuItem>
-                        <MenuItem value={3}>3 Passengers</MenuItem>
-                        <MenuItem value={4}>4 Passengers</MenuItem>
-                      </Select>
-                    </FormControl>
-
-                    <TextField
-                      fullWidth
-                      label="Estimated Fare (UGX)"
-                      type="number"
-                      value={newRide.estimatedFare}
-                      onChange={(e) => setNewRide(prev => ({ ...prev, estimatedFare: e.target.value }))}
-                      sx={{ mb: 3 }}
-                    />
-
-                    <Button
-                      variant="contained"
-                      size="large"
-                      startIcon={<PlayArrow />}
-                      onClick={handleStartRide}
-                      disabled={!newRide.destination}
-                      fullWidth
-                    >
-                      Start Drive
-                    </Button>
+                    <Box sx={{ color: `${link.color}.main` }}>
+                      {link.icon}
+                    </Box>
                   </Box>
-                ) : (
-                  /* Drive in Progress */
-                  <Box sx={{ mt: 3 }}>
-                    <Paper sx={{ p: 2, bgcolor: 'info.50', mb: 3 }}>
-                      <Typography variant="body1" gutterBottom>
-                        📍 To: {currentRide?.destination}
-                      </Typography>
-                      <Typography variant="body2">
-                        👥 Passengers: {currentRide?.passengerCount}
-                      </Typography>
-                      <Typography variant="body2">
-                        💰 Estimated: UGX {currentRide?.estimatedFare}
-                      </Typography>
-                    </Paper>
-
-                    <Button
-                      variant="contained"
-                      color="error"
-                      size="large"
-                      startIcon={<Stop />}
-                      onClick={handleEndRide}
-                      fullWidth
-                    >
-                      End Drive
-                    </Button>
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
+                  <Typography 
+                    variant={isMobile ? "subtitle2" : "h6"} 
+                    fontWeight="bold" 
+                    gutterBottom
+                    sx={{ color: 'text.primary' }}
+                  >
+                    {link.title}
+                  </Typography>
+                  <Typography 
+                    variant="caption" 
+                    color="textSecondary"
+                    sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }}
+                  >
+                    {link.description}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
         </Grid>
-      ) : (
-        /* Detailed Dashboard View */
-        <Grid container spacing={3}>
+
+        {/* Main Dashboard Content */}
+        <Grid container spacing={2}>
           {/* Left Sidebar - Profile & Quick Stats */}
-          <Grid item xs={3}>
+          <Grid item xs={12} md={3}>
             {/* Driver Profile Card */}
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
+            <Card sx={{ mb: 2 }} elevation={1}>
+              <CardContent sx={{ p: isMobile ? 2 : 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <Avatar sx={{ width: 60, height: 60, bgcolor: 'primary.main' }}>
+                  <Avatar sx={{ 
+                    width: isMobile ? 50 : 60, 
+                    height: isMobile ? 50 : 60, 
+                    bgcolor: 'primary.main' 
+                  }}>
                     <Person />
                   </Avatar>
-                  <Box>
-                    <Typography variant="h6" fontWeight="bold">
+                  <Box sx={{ flex: 1 }}>
+                    <Typography 
+                      variant={isMobile ? "subtitle1" : "h6"} 
+                      fontWeight="bold"
+                      sx={{ color: 'text.primary' }}
+                    >
                       Emma Vangamoi
                     </Typography>
                     <Typography variant="body2" color="textSecondary">
                       Driver ID: DRV001
                     </Typography>
-                    <Chip label="Gold Tier" size="small" color="warning" />
+                    <Chip 
+                      label="Gold Tier" 
+                      size="small" 
+                      color="warning" 
+                      sx={{ mt: 0.5 }}
+                    />
                   </Box>
                 </Box>
                 
                 {/* Quick Stats */}
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom>Today's Performance</Typography>
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="subtitle2" gutterBottom sx={{ color: 'text.primary' }}>
+                    Today's Performance
+                  </Typography>
                   <Grid container spacing={1}>
                     <Grid item xs={6}>
-                      <Paper sx={{ p: 1, textAlign: 'center' }}>
+                      <Paper 
+                        sx={{ 
+                          p: 1, 
+                          textAlign: 'center',
+                          backgroundColor: 'background.paper'
+                        }}
+                        elevation={0}
+                        variant="outlined"
+                      >
                         <Typography variant="h6" color="primary.main">
                           {dashboardData.today.rides}
                         </Typography>
-                        <Typography variant="caption">Drives</Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          Drives
+                        </Typography>
                       </Paper>
                     </Grid>
                     <Grid item xs={6}>
-                      <Paper sx={{ p: 1, textAlign: 'center' }}>
+                      <Paper 
+                        sx={{ 
+                          p: 1, 
+                          textAlign: 'center',
+                          backgroundColor: 'background.paper'
+                        }}
+                        elevation={0}
+                        variant="outlined"
+                      >
                         <Typography variant="h6" color="success.main">
                           UGX {dashboardData.today.netEarnings.toLocaleString()}
                         </Typography>
-                        <Typography variant="caption">Net</Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          Net
+                        </Typography>
                       </Paper>
                     </Grid>
                   </Grid>
@@ -407,40 +496,55 @@ const SimpleDriverApp = () => {
             </Card>
 
             {/* Performance Metrics */}
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Performance Metrics</Typography>
+            <Card elevation={1}>
+              <CardContent sx={{ p: isMobile ? 2 : 3 }}>
+                <Typography 
+                  variant={isMobile ? "subtitle1" : "h6"} 
+                  gutterBottom
+                  sx={{ color: 'text.primary' }}
+                >
+                  Performance Metrics
+                </Typography>
                 <Box sx={{ mb: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">Consistency</Typography>
-                    <Typography variant="body2" fontWeight="bold">{dashboardData.performance.consistency}%</Typography>
+                    <Typography variant="body2" color="textSecondary">Consistency</Typography>
+                    <Typography variant="body2" fontWeight="bold" color="text.primary">
+                      {dashboardData.performance.consistency}%
+                    </Typography>
                   </Box>
                   <LinearProgress 
                     variant="determinate" 
                     value={dashboardData.performance.consistency} 
                     color="success"
+                    sx={{ height: 6, borderRadius: 3 }}
                   />
                 </Box>
                 <Box sx={{ mb: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">Efficiency</Typography>
-                    <Typography variant="body2" fontWeight="bold">{dashboardData.performance.efficiency}%</Typography>
+                    <Typography variant="body2" color="textSecondary">Efficiency</Typography>
+                    <Typography variant="body2" fontWeight="bold" color="text.primary">
+                      {dashboardData.performance.efficiency}%
+                    </Typography>
                   </Box>
                   <LinearProgress 
                     variant="determinate" 
                     value={dashboardData.performance.efficiency} 
                     color="primary"
+                    sx={{ height: 6, borderRadius: 3 }}
                   />
                 </Box>
                 <Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">Customer Rating</Typography>
-                    <Typography variant="body2" fontWeight="bold">{dashboardData.performance.customerRating}/5</Typography>
+                    <Typography variant="body2" color="textSecondary">Customer Rating</Typography>
+                    <Typography variant="body2" fontWeight="bold" color="text.primary">
+                      {dashboardData.performance.customerRating}/5
+                    </Typography>
                   </Box>
                   <LinearProgress 
                     variant="determinate" 
                     value={dashboardData.performance.customerRating * 20} 
                     color="warning"
+                    sx={{ height: 6, borderRadius: 3 }}
                   />
                 </Box>
               </CardContent>
@@ -448,132 +552,215 @@ const SimpleDriverApp = () => {
           </Grid>
 
           {/* Main Dashboard Content */}
-          <Grid item xs={6}>
+          <Grid item xs={12} md={6}>
             {/* Earnings Overview */}
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
-                <Typography variant="h5" fontWeight="bold" gutterBottom>Earnings Overview</Typography>
+            <Card sx={{ mb: 2 }} elevation={1}>
+              <CardContent sx={{ p: isMobile ? 2 : 3 }}>
+                <Typography 
+                  variant={isMobile ? "h6" : "h5"} 
+                  fontWeight="bold" 
+                  gutterBottom
+                  sx={{ color: 'text.primary' }}
+                >
+                  Earnings Overview
+                </Typography>
 
-                <Grid container spacing={3}>
-                  <Grid item xs={4}>
-                    <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'primary.50' }}>
-                      <LocalAtm color="primary" sx={{ fontSize: 40, mb: 1 }} />
-                      <Typography variant="h4" color="primary" fontWeight="bold">
+                <Grid container spacing={isMobile ? 1 : 2}>
+                  <Grid item xs={12} sm={4}>
+                    <Paper sx={{ 
+                      p: isMobile ? 1.5 : 2, 
+                      textAlign: 'center', 
+                      bgcolor: 'primary.50',
+                      height: '100%'
+                    }}>
+                      <LocalAtm color="primary" sx={{ fontSize: isMobile ? 30 : 40, mb: 1 }} />
+                      <Typography 
+                        variant={isMobile ? "h6" : "h5"} 
+                        color="primary" 
+                        fontWeight="bold"
+                        sx={{ wordBreak: 'break-word' }}
+                      >
                         UGX {dashboardData.today.income.toLocaleString()}
                       </Typography>
-                      <Typography variant="body2">Total Income</Typography>
-                      <Chip label="+12% today" size="small" color="success" sx={{ mt: 1 }} />
+                      <Typography variant="body2" color="textSecondary">Total Income</Typography>
+                      <Chip 
+                        label="+12% today" 
+                        size="small" 
+                        color="success" 
+                        sx={{ mt: 0.5 }} 
+                      />
                     </Paper>
                   </Grid>
-                  <Grid item xs={4}>
-                    <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'error.50' }}>
-                      <Receipt color="error" sx={{ fontSize: 40, mb: 1 }} />
-                      <Typography variant="h4" color="error.main" fontWeight="bold">
+                  <Grid item xs={12} sm={4}>
+                    <Paper sx={{ 
+                      p: isMobile ? 1.5 : 2, 
+                      textAlign: 'center', 
+                      bgcolor: 'error.50',
+                      height: '100%'
+                    }}>
+                      <Receipt color="error" sx={{ fontSize: isMobile ? 30 : 40, mb: 1 }} />
+                      <Typography 
+                        variant={isMobile ? "h6" : "h5"} 
+                        color="error.main" 
+                        fontWeight="bold"
+                      >
                         UGX {dashboardData.today.expenses.toLocaleString()}
                       </Typography>
-                      <Typography variant="body2">Total Expenses</Typography>
+                      <Typography variant="body2" color="textSecondary">Total Expenses</Typography>
                     </Paper>
                   </Grid>
-                  <Grid item xs={4}>
-                    <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'success.50' }}>
-                      <TrendingUp color="success" sx={{ fontSize: 40, mb: 1 }} />
-                      <Typography variant="h4" color="success.main" fontWeight="bold">
+                  <Grid item xs={12} sm={4}>
+                    <Paper sx={{ 
+                      p: isMobile ? 1.5 : 2, 
+                      textAlign: 'center', 
+                      bgcolor: 'success.50',
+                      height: '100%'
+                    }}>
+                      <TrendingUp color="success" sx={{ fontSize: isMobile ? 30 : 40, mb: 1 }} />
+                      <Typography 
+                        variant={isMobile ? "h6" : "h5"} 
+                        color="success.main" 
+                        fontWeight="bold"
+                      >
                         UGX {dashboardData.today.netEarnings.toLocaleString()}
                       </Typography>
-                      <Typography variant="body2">Net Earnings</Typography>
+                      <Typography variant="body2" color="textSecondary">Net Earnings</Typography>
                     </Paper>
                   </Grid>
                 </Grid>
 
                 {/* Additional Metrics */}
-                <Grid container spacing={2} sx={{ mt: 1 }}>
-                  <Grid item xs={3}>
-                    <Box textAlign="center">
-                      <Typography variant="h6" color="textPrimary">
-                        {dashboardData.today.rides}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">Drives</Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={3}>
-                    <Box textAlign="center">
-                      <Typography variant="h6" color="textPrimary">
-                        {dashboardData.today.distance}km
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">Distance</Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={3}>
-                    <Box textAlign="center">
-                      <Typography variant="h6" color="textPrimary">
-                        {dashboardData.today.activeHours}h
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">Active</Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={3}>
-                    <Box textAlign="center">
-                      <Typography variant="h6" color="textPrimary">
-                        UGX {dashboardData.today.avgFare}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">Avg Fare</Typography>
-                    </Box>
-                  </Grid>
+                <Grid container spacing={1} sx={{ mt: 1 }}>
+                  {[
+                    { value: dashboardData.today.rides, label: 'Drives' },
+                    { value: `${dashboardData.today.distance}km`, label: 'Distance' },
+                    { value: `${dashboardData.today.activeHours}h`, label: 'Active' },
+                    { value: `UGX ${dashboardData.today.avgFare}`, label: 'Avg Fare' }
+                  ].map((metric, index) => (
+                    <Grid item xs={6} sm={3} key={index}>
+                      <Box textAlign="center">
+                        <Typography 
+                          variant={isMobile ? "body1" : "h6"} 
+                          fontWeight="bold"
+                          color="text.primary"
+                        >
+                          {metric.value}
+                        </Typography>
+                        <Typography 
+                          variant="caption" 
+                          color="textSecondary"
+                          sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }}
+                        >
+                          {metric.label}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  ))}
                 </Grid>
               </CardContent>
             </Card>
 
             {/* Recent Drives Table */}
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                  <Typography variant="h5" fontWeight="bold">Recent Drives</Typography>
-                  <Button startIcon={<Download />} variant="outlined" size="small">
+            <Card elevation={1}>
+              <CardContent sx={{ p: isMobile ? 2 : 3 }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center', 
+                  mb: 2,
+                  flexWrap: 'wrap',
+                  gap: 1
+                }}>
+                  <Typography 
+                    variant={isMobile ? "h6" : "h5"} 
+                    fontWeight="bold"
+                    sx={{ color: 'text.primary' }}
+                  >
+                    Recent Drives
+                  </Typography>
+                  <Button 
+                    startIcon={<Download />} 
+                    variant="outlined" 
+                    size="small"
+                  >
                     Export
                   </Button>
                 </Box>
                 
-                <TableContainer>
-                  <Table>
+                <TableContainer 
+                  sx={{ 
+                    maxHeight: isMobile ? 300 : 400,
+                    '& .MuiTableRow-root:hover': {
+                      backgroundColor: 'action.hover'
+                    }
+                  }}
+                >
+                  <Table size={isMobile ? "small" : "medium"} stickyHeader>
                     <TableHead>
                       <TableRow>
-                        <TableCell>Time</TableCell>
-                        <TableCell>Route</TableCell>
-                        <TableCell align="right">Fare</TableCell>
-                        <TableCell>Distance</TableCell>
-                        <TableCell>Duration</TableCell>
-                        <TableCell>Payment</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: 'background.paper' }}>
+                          Time
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: 'background.paper' }}>
+                          Route
+                        </TableCell>
+                        <TableCell 
+                          align="right" 
+                          sx={{ fontWeight: 'bold', backgroundColor: 'background.paper' }}
+                        >
+                          Fare
+                        </TableCell>
+                        {!isMobile && (
+                          <>
+                            <TableCell sx={{ fontWeight: 'bold', backgroundColor: 'background.paper' }}>
+                              Distance
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', backgroundColor: 'background.paper' }}>
+                              Payment
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {recentRides.map((ride) => (
                         <TableRow key={ride.id} hover>
                           <TableCell>
-                            <Typography variant="body2" fontWeight="500">
+                            <Typography variant="body2" fontWeight="500" color="text.primary">
                               {ride.time}
                             </Typography>
                           </TableCell>
                           <TableCell>
                             <Tooltip title={ride.route}>
-                              <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
+                              <Typography 
+                                variant="body2" 
+                                noWrap 
+                                sx={{ 
+                                  maxWidth: isMobile ? 120 : 200,
+                                  color: 'text.primary'
+                                }}
+                              >
                                 {ride.route}
                               </Typography>
                             </Tooltip>
                           </TableCell>
                           <TableCell align="right">
-                            <Typography variant="body2" fontWeight="bold">
+                            <Typography variant="body2" fontWeight="bold" color="text.primary">
                               UGX {ride.fare.toLocaleString()}
                             </Typography>
                           </TableCell>
-                          <TableCell>{ride.distance}</TableCell>
-                          <TableCell>{ride.duration}</TableCell>
-                          <TableCell>
-                            <Chip 
-                              label={ride.payment} 
-                              size="small" 
-                              color={ride.payment === 'cash' ? 'primary' : 'secondary'}
-                            />
-                          </TableCell>
+                          {!isMobile && (
+                            <>
+                              <TableCell color="text.primary">{ride.distance}</TableCell>
+                              <TableCell>
+                                <Chip 
+                                  label={ride.payment} 
+                                  size="small" 
+                                  color={ride.payment === 'cash' ? 'primary' : 'secondary'}
+                                />
+                              </TableCell>
+                            </>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>
@@ -584,32 +771,48 @@ const SimpleDriverApp = () => {
           </Grid>
 
           {/* Right Sidebar */}
-          <Grid item xs={3}>
+          <Grid item xs={12} md={3}>
             {/* Notifications Panel */}
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Notifications</Typography>
+            <Card sx={{ mb: 2 }} elevation={1}>
+              <CardContent sx={{ p: isMobile ? 2 : 3 }}>
+                <Typography 
+                  variant={isMobile ? "subtitle1" : "h6"} 
+                  gutterBottom
+                  sx={{ color: 'text.primary' }}
+                >
+                  Notifications
+                </Typography>
                 <List dense>
-                  <ListItem>
-                    <ListItemIcon>
+                  <ListItem sx={{ px: 0 }}>
+                    <ListItemIcon sx={{ minWidth: 40 }}>
                       <Avatar sx={{ bgcolor: 'success.100', width: 32, height: 32 }}>
                         <EmojiEvents color="success" fontSize="small" />
                       </Avatar>
                     </ListItemIcon>
                     <ListItemText
-                      primary="Weekly Target Achieved!"
+                      primary={
+                        <Typography variant="body2" color="text.primary">
+                          Weekly Target Achieved!
+                        </Typography>
+                      }
                       secondary="You've completed 52 drives this week"
+                      primaryTypographyProps={{ fontWeight: 'medium' }}
                     />
                   </ListItem>
-                  <ListItem>
-                    <ListItemIcon>
+                  <ListItem sx={{ px: 0 }}>
+                    <ListItemIcon sx={{ minWidth: 40 }}>
                       <Avatar sx={{ bgcolor: 'info.100', width: 32, height: 32 }}>
                         <LocalAtm color="info" fontSize="small" />
                       </Avatar>
                     </ListItemIcon>
                     <ListItemText
-                      primary="New Loan Offer"
+                      primary={
+                        <Typography variant="body2" color="text.primary">
+                          New Loan Offer
+                        </Typography>
+                      }
                       secondary="You're eligible for UGX 500,000"
+                      primaryTypographyProps={{ fontWeight: 'medium' }}
                     />
                   </ListItem>
                 </List>
@@ -617,14 +820,36 @@ const SimpleDriverApp = () => {
             </Card>
 
             {/* Expense Summary */}
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Today's Expenses</Typography>
+            <Card sx={{ mb: 2 }} elevation={1}>
+              <CardContent sx={{ p: isMobile ? 2 : 3 }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center', 
+                  mb: 2 
+                }}>
+                  <Typography 
+                    variant={isMobile ? "subtitle1" : "h6"}
+                    sx={{ color: 'text.primary' }}
+                  >
+                    Today's Expenses
+                  </Typography>
+                  <Button 
+                    size="small" 
+                    onClick={() => handleQuickLinkClick('/rider/expense')}
+                  >
+                    View All
+                  </Button>
+                </Box>
                 <List dense>
                   {expenseHistory.filter(exp => exp.date === '2024-01-15').map((expense) => (
-                    <ListItem key={expense.id}>
+                    <ListItem key={expense.id} sx={{ px: 0 }}>
                       <ListItemText
-                        primary={`UGX ${expense.amount.toLocaleString()}`}
+                        primary={
+                          <Typography variant="body2" fontWeight="medium" color="text.primary">
+                            UGX {expense.amount.toLocaleString()}
+                          </Typography>
+                        }
                         secondary={
                           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span>{expenseCategories.find(cat => cat.value === expense.category)?.label}</span>
@@ -639,55 +864,111 @@ const SimpleDriverApp = () => {
             </Card>
 
             {/* Quick Settings */}
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Drive Settings</Typography>
+            <Card elevation={1}>
+              <CardContent sx={{ p: isMobile ? 2 : 3 }}>
+                <Typography 
+                  variant={isMobile ? "subtitle1" : "h6"} 
+                  gutterBottom
+                  sx={{ color: 'text.primary' }}
+                >
+                  Drive Settings
+                </Typography>
                 <FormControlLabel
                   control={
                     <Switch
                       checked={settings.autoStartRide}
                       onChange={handleSettingChange('autoStartRide')}
+                      size="small"
                     />
                   }
-                  label="Auto-start drive detection"
+                  label="Auto-start drive"
+                  sx={{ mb: 1 }}
                 />
                 <FormControlLabel
                   control={
                     <Switch
                       checked={settings.motionDetection}
                       onChange={handleSettingChange('motionDetection')}
+                      size="small"
                     />
                   }
-                  label="Motion detection alerts"
+                  label="Motion alerts"
+                  sx={{ mb: 1 }}
                 />
                 <FormControlLabel
                   control={
                     <Switch
                       checked={settings.sosEnabled}
                       onChange={handleSettingChange('sosEnabled')}
+                      size="small"
                     />
                   }
-                  label="SOS emergency feature"
+                  label="SOS feature"
                 />
               </CardContent>
             </Card>
           </Grid>
         </Grid>
-      )}
+      </Box>
+
+      {/* Mobile Navigation Drawer */}
+      <Drawer
+        anchor="left"
+        open={mobileDrawerOpen}
+        onClose={() => setMobileDrawerOpen(false)}
+      >
+        <Box sx={{ width: 280, p: 2 }}>
+          <Typography variant="h6" gutterBottom sx={{ p: 2 }}>
+            Navigation
+          </Typography>
+          <Divider />
+          <List>
+            {quickLinks.map((link, index) => (
+              <ListItem 
+                key={index}
+                button 
+                onClick={() => {
+                  handleQuickLinkClick(link.link);
+                  setMobileDrawerOpen(false);
+                }}
+              >
+                <ListItemIcon sx={{ color: `${link.color}.main` }}>
+                  {link.icon}
+                </ListItemIcon>
+                <ListItemText primary={link.title} />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Drawer>
 
       {/* Payment Dialog */}
-      <Dialog open={showPaymentDialog} onClose={() => setShowPaymentDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
+      <Dialog 
+        open={showPaymentDialog} 
+        onClose={() => setShowPaymentDialog(false)} 
+        maxWidth="sm" 
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogTitle sx={{ 
+          backgroundColor: 'background.paper',
+          borderBottom: `1px solid ${theme.palette.divider}`
+        }}>
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h5">Complete Payment</Typography>
-            <IconButton onClick={() => setShowPaymentDialog(false)}>
+            <Typography variant="h6" color="text.primary">
+              Complete Payment
+            </Typography>
+            <IconButton 
+              onClick={() => setShowPaymentDialog(false)}
+              size={isMobile ? "large" : "medium"}
+            >
               <Close />
             </IconButton>
           </Box>
         </DialogTitle>
         
-        <DialogContent>
-          <Typography variant="body1" gutterBottom sx={{ mb: 3 }}>
+        <DialogContent sx={{ backgroundColor: 'background.default' }}>
+          <Typography variant="body1" gutterBottom sx={{ mb: 3, color: 'text.primary' }}>
             Drive completed! Please select your payment method:
           </Typography>
           
@@ -701,7 +982,8 @@ const SimpleDriverApp = () => {
                   mb: 1, 
                   borderRadius: 1,
                   border: '1px solid',
-                  borderColor: 'grey.300',
+                  borderColor: 'divider',
+                  backgroundColor: 'background.paper',
                   '&:hover': {
                     backgroundColor: 'action.hover',
                   }
@@ -712,7 +994,7 @@ const SimpleDriverApp = () => {
                 </ListItemIcon>
                 <ListItemText 
                   primary={method.label} 
-                  primaryTypographyProps={{ fontWeight: 'medium' }}
+                  primaryTypographyProps={{ fontWeight: 'medium', color: 'text.primary' }}
                 />
                 <Payment color="action" />
               </ListItem>
@@ -720,8 +1002,15 @@ const SimpleDriverApp = () => {
           </List>
         </DialogContent>
         
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setShowPaymentDialog(false)}>
+        <DialogActions sx={{ 
+          p: 2, 
+          backgroundColor: 'background.paper',
+          borderTop: `1px solid ${theme.palette.divider}`
+        }}>
+          <Button 
+            onClick={() => setShowPaymentDialog(false)}
+            color="inherit"
+          >
             Cancel
           </Button>
         </DialogActions>

@@ -74,22 +74,27 @@ const Riders = () => {
           <MenuItem onClick={() => setIsCollapsed(!isCollapsed)} icon={<MenuOutlinedIcon />}> 
             {!isCollapsed && <Typography variant="h3">RIDER</Typography>}
           </MenuItem>
-           <Item title="Profile" to="/rider/profile" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
-
+           
           <SubMenu title="Point Of Sale (POS)" icon={<ShoppingCartOutlinedIcon />}>
           
          
           <Item title="Dashboard" to="/rider/dashboards" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          <Item title="New Ride" to="/rider/ride" icon={<LocalOfferIcon />} selected={selected} setSelected={setSelected} />
+          <Item title="Deliveries" to="/rider/delivery" icon={<WorkOutlineIcon />} selected={selected} setSelected={setSelected} />
     
           <Item title="Rewards" to="/rider/page" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
-          <Item title="Payments" to="/rider/payments" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
-          <Item title="Groups" to="/rider/group" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          <Item title="Payments" to="/rider/payments" icon={<MonetizationOnOutlinedIcon />} selected={selected} setSelected={setSelected} />
+           <Item title="Expenses" to="/rider/expense" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
+          <Item title="Groups" to="/rider/group" icon={<GroupAddIcon />} selected={selected} setSelected={setSelected} />
+
+          <Item title="Statements" to="/rider/statements" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
          
   
 
   
 
-             <Item title="Contacts" to="/rider/contacts" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
+             <Item title="Customers" to="/rider/contacts" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
+             
             
             
 
@@ -97,6 +102,7 @@ const Riders = () => {
   
  
 </SubMenu>
+<Item title="Profile" to="/rider/profile" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
           
 

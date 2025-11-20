@@ -45,7 +45,7 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 
-const FundersPickSuperAdminDashboard = () => {
+const EnfunaSuperAdminDashboard = () => {
   // State management
   const [tabValue, setTabValue] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
@@ -100,7 +100,7 @@ const FundersPickSuperAdminDashboard = () => {
   });
   
   const [users, setUsers] = useState([
-    { id: 1, name: 'John Smith', email: 'john@funderspick.com', role: 'Admin', lastLogin: '2023-05-15 09:45', status: 'active' },
+    { id: 1, name: 'John Smith', email: 'john@enfuna.com', role: 'Admin', lastLogin: '2023-05-15 09:45', status: 'active' },
     { id: 2, name: 'Sarah Johnson', email: 'sarah@clientco.com', role: 'Client Admin', lastLogin: '2023-05-15 11:20', status: 'active' },
     { id: 3, name: 'Mike Brown', email: 'mike@vendorcorp.com', role: 'Vendor', lastLogin: '2023-05-14 14:30', status: 'active' },
     { id: 4, name: 'Lisa Wong', email: 'lisa@partner.net', role: 'Partner', lastLogin: '2023-05-13 16:15', status: 'inactive' },
@@ -1181,7 +1181,7 @@ const FundersPickSuperAdminDashboard = () => {
               <ListItem>
                 <ListItemText
                   primary="System Version"
-                  secondary="FundersPick ERP v2.4.1"
+                  secondary="Enfuna ERP v2.4.1"
                 />
                 <Button size="small">Check for Updates</Button>
               </ListItem>
@@ -1509,7 +1509,7 @@ const FundersPickSuperAdminDashboard = () => {
         <Box display="flex" alignItems="center">
           <BusinessIcon sx={{ fontSize: 40, mr: 1, color: 'primary.main' }} />
           <Typography variant="h4" component="h1">
-            FundersPick <Typography variant="caption">Super Admin</Typography>
+            Enfuna <Typography variant="caption">Super Admin</Typography>
           </Typography>
         </Box>
         <Box display="flex" alignItems="center" gap={2}>
@@ -1655,4 +1655,4 @@ const FundersPickSuperAdminDashboard = () => {
   );
 };
 
-export default FundersPickSuperAdminDashboard;
+export default EnfunaSuperAdminDashboard;
