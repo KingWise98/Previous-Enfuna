@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -23,7 +24,9 @@ import {
   useMediaQuery,
   AppBar,
   Toolbar,
-  IconButton
+  IconButton,
+  Divider,
+  LinearProgress
 } from '@mui/material';
 import {
   AccountBalanceWallet,
@@ -39,12 +42,14 @@ import {
   Schedule,
   Close,
   Phone,
-  AttachMoney
+  AttachMoney,
+  ArrowBack
 } from '@mui/icons-material';
 
 const SimplePaymentsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
   
   const [paymentData, setPaymentData] = useState({
     wallet: {
@@ -111,28 +116,29 @@ const SimplePaymentsPage = () => {
       title: 'Show QR Code',
       description: 'Customer scans to pay',
       icon: <QrCode sx={{ fontSize: isMobile ? 30 : 40 }} />,
-      color: 'primary',
+      color: '#0025DD',
       action: () => setShowQRDialog(true)
     },
     {
       title: 'Mobile Money',
       description: 'Send payment request',
       icon: <Smartphone sx={{ fontSize: isMobile ? 30 : 40 }} />,
-      color: 'success',
+      color: '#FFEC01',
+      textColor: '#000',
       action: () => setShowMobileDialog(true)
     },
     {
       title: 'Cash Payment',
       description: 'Record cash received',
       icon: <LocalAtm sx={{ fontSize: isMobile ? 30 : 40 }} />,
-      color: 'warning',
+      color: '#10B981',
       action: () => setShowCashDialog(true)
     },
     {
       title: 'Request Payment',
       description: 'Any payment method',
       icon: <Payment sx={{ fontSize: isMobile ? 30 : 40 }} />,
-      color: 'info',
+      color: '#4ECDC4',
       action: () => setShowPaymentDialog(true)
     }
   ];
@@ -333,163 +339,240 @@ const SimplePaymentsPage = () => {
 
   const getMethodColor = (method) => {
     switch (method) {
-      case 'cash': return 'warning';
-      case 'mobile': return 'success';
-      case 'qr': return 'primary';
-      default: return 'info';
+      case 'cash': return '#FFEC01';
+      case 'mobile': return '#0025DD';
+      case 'qr': return '#10B981';
+      default: return '#4ECDC4';
     }
   };
 
   const getStatusIcon = (status) => {
-    return status === 'completed' ? <CheckCircle color="success" /> : <Schedule color="warning" />;
+    return status === 'completed' ? <CheckCircle sx={{ color: '#10B981' }} /> : <Schedule sx={{ color: '#FFEC01' }} />;
   };
+
+  // Financial Summary Cards for Top Section
+  const FinancialSummary = () => (
+    <Grid container spacing={2} sx={{ mb: 3 }}>
+      {/* Total Balance */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
+          color: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 37, 221, 0.2)'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <AccountBalanceWallet sx={{ fontSize: 40, opacity: 0.8 }} />
+              <TrendingUp sx={{ fontSize: 20 }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" sx={{ mb: 1 }}>
+              UGX {paymentData.wallet.balance.toLocaleString()}
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              Total Balance
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              <Typography variant="caption">
+                Available: UGX {paymentData.wallet.available.toLocaleString()}
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Today's Earnings */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <Receipt sx={{ fontSize: 40, color: '#0025DD' }} />
+              <TrendingUp sx={{ fontSize: 20, color: '#10B981' }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" color="#0025DD" sx={{ mb: 1 }}>
+              UGX {paymentData.earnings.today.toLocaleString()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Today's Earnings
+            </Typography>
+            <Typography variant="caption" color="#10B981" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              {paymentData.recentPayments.filter(p => p.status === 'completed').length} payments
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* This Week */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <TrendingUp sx={{ fontSize: 40, color: '#10B981' }} />
+              <TrendingUp sx={{ fontSize: 20, color: '#10B981' }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" color="#10B981" sx={{ mb: 1 }}>
+              UGX {paymentData.earnings.week.toLocaleString()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              This Week
+            </Typography>
+            <Typography variant="caption" color="#10B981" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              +12.5% from last week
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Pending */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <Schedule sx={{ fontSize: 40, color: '#FFEC01' }} />
+              <TrendingUp sx={{ fontSize: 20, color: '#FFEC01' }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" color="#FFEC01" sx={{ mb: 1 }}>
+              UGX {paymentData.wallet.pending.toLocaleString()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Pending
+            </Typography>
+            <Typography variant="caption" color="#FFEC01" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              {paymentData.recentPayments.filter(p => p.status === 'pending').length} payments
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
 
   return (
     <Box sx={{ 
       minHeight: '100vh', 
-      backgroundColor: 'background.default',
+      backgroundColor: '#f8fafc',
       pb: 3
     }}>
-      {/* Mobile Header */}
-      {isMobile && (
-        <AppBar position="static" color="primary">
-          <Toolbar>
-            <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>
-              My Money 💰
-            </Typography>
-          </Toolbar>
-        </AppBar>
-      )}
+      {/* Header */}
+      <AppBar 
+        position="static" 
+        sx={{ 
+          backgroundColor: '#0025DD',
+          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
+          boxShadow: 'none'
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            edge="start"
+            sx={{ color: 'white', mr: 2 }}
+            onClick={() => navigate(-1)}
+          >
+            <ArrowBack />
+          </IconButton>
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            Payments
+          </Typography>
+          <Chip 
+            label="Active Driver" 
+            sx={{ 
+              backgroundColor: '#FFEC01', 
+              color: '#000',
+              fontWeight: 'bold'
+            }}
+          />
+        </Toolbar>
+      </AppBar>
 
       {/* Main Content */}
       <Box sx={{ p: isMobile ? 2 : 3 }}>
-        {/* Welcome Section */}
-        <Box sx={{ mb: 4, textAlign: isMobile ? 'center' : 'left' }}>
-          <Typography 
-            variant={isMobile ? "h5" : "h4"} 
-            fontWeight="bold" 
-            gutterBottom
-            color="primary"
-          >
-            Payments
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Manage your money and track earnings
-          </Typography>
-        </Box>
-
-        {/* Wallet Balance - Big and Clear */}
-        <Card sx={{ mb: 3, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
-          <CardContent sx={{ textAlign: 'center', py: 4 }}>
-            <AccountBalanceWallet sx={{ fontSize: 50, mb: 2, opacity: 0.9 }} />
-            <Typography variant="h6" gutterBottom>
-              Available Balance
-            </Typography>
-            <Typography variant="h3" fontWeight="bold" gutterBottom>
-              UGX {paymentData.wallet.balance.toLocaleString()}
-            </Typography>
-            <Typography variant="body1" sx={{ opacity: 0.9, mb: 2 }}>
-              Ready to withdraw: UGX {paymentData.wallet.available.toLocaleString()}
-            </Typography>
-            <Button 
-              variant="contained" 
-              sx={{ 
-                mt: 1, 
-                bgcolor: 'white', 
-                color: 'primary.main',
-                '&:hover': { bgcolor: 'grey.100' }
-              }}
-              onClick={handleWithdraw}
-              disabled={paymentData.wallet.available <= 0}
-            >
-              Withdraw Money
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Financial Summary Cards */}
+        <FinancialSummary />
 
         {/* Quick Payment Actions */}
-        <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ mb: 2 }}>
-          Receive Payments
-        </Typography>
-        <Grid container spacing={2} sx={{ mb: 4 }}>
-          {paymentMethods.map((method, index) => (
-            <Grid item xs={6} key={index}>
-              <Card 
-                sx={{ 
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  p: 2,
-                  backgroundColor: 'background.paper',
-                  border: `2px solid ${theme.palette[method.color].light}`,
-                  '&:hover': {
-                    backgroundColor: `${method.color}.50`,
-                    transform: 'translateY(-2px)'
-                  },
-                  transition: 'all 0.2s ease'
-                }}
-                onClick={method.action}
-              >
-                <Box sx={{ color: `${method.color}.main`, mb: 1 }}>
-                  {method.icon}
-                </Box>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  {method.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {method.description}
-                </Typography>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-
-        {/* Earnings Summary */}
-        <Card sx={{ mb: 3, backgroundColor: 'success.50' }}>
+        <Card sx={{ 
+          mb: 3,
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom fontWeight="bold">
-              Your Earnings
+            <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
+              Receive Payments
             </Typography>
-            <Grid container spacing={3} textAlign="center">
-              <Grid item xs={4}>
-                <Typography variant="h4" color="primary" fontWeight="bold">
-                  UGX {paymentData.earnings.today.toLocaleString()}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Today
-                </Typography>
-              </Grid>
-              <Grid item xs={4}>
-                <Typography variant="h4" color="success.main" fontWeight="bold">
-                  UGX {paymentData.earnings.week.toLocaleString()}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  This Week
-                </Typography>
-              </Grid>
-              <Grid item xs={4}>
-                <Typography variant="h4" color="info.main" fontWeight="bold">
-                  UGX {paymentData.earnings.month.toLocaleString()}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  This Month
-                </Typography>
-              </Grid>
+            <Grid container spacing={2}>
+              {paymentMethods.map((method, index) => (
+                <Grid item xs={6} sm={3} key={index}>
+                  <Card 
+                    sx={{ 
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                      p: 2,
+                      backgroundColor: method.color,
+                      color: method.textColor || 'white',
+                      borderRadius: 2,
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)'
+                      },
+                      transition: 'all 0.3s ease'
+                    }}
+                    onClick={method.action}
+                  >
+                    <Box sx={{ mb: 1 }}>
+                      {method.icon}
+                    </Box>
+                    <Typography variant="body2" fontWeight="bold" gutterBottom>
+                      {method.title}
+                    </Typography>
+                    <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                      {method.description}
+                    </Typography>
+                  </Card>
+                </Grid>
+              ))}
             </Grid>
           </CardContent>
         </Card>
 
         {/* Recent Payments */}
-        <Card>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6" fontWeight="bold">
+              <Typography variant="h6" fontWeight="bold" color="#0025DD">
                 Recent Payments
               </Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
-                <IconButton size="small" onClick={handleExport}>
+                <IconButton 
+                  size="small" 
+                  onClick={handleExport}
+                  sx={{ color: '#0025DD' }}
+                >
                   <Download />
                 </IconButton>
-                <IconButton size="small" onClick={handleShare}>
+                <IconButton 
+                  size="small" 
+                  onClick={handleShare}
+                  sx={{ color: '#0025DD' }}
+                >
                   <Share />
                 </IconButton>
               </Box>
@@ -500,10 +583,10 @@ const SimplePaymentsPage = () => {
                 <ListItem 
                   key={payment.id} 
                   divider={index < paymentData.recentPayments.length - 1}
-                  sx={{ px: isMobile ? 0 : 2 }}
+                  sx={{ px: 0 }}
                 >
                   <ListItemIcon>
-                    <Avatar sx={{ bgcolor: `${getMethodColor(payment.method)}.100` }}>
+                    <Avatar sx={{ backgroundColor: `${getMethodColor(payment.method)}20` }}>
                       {getMethodIcon(payment.method)}
                     </Avatar>
                   </ListItemIcon>
@@ -519,16 +602,19 @@ const SimplePaymentsPage = () => {
                           </Typography>
                         </Box>
                         <Box sx={{ textAlign: 'right' }}>
-                          <Typography variant="body1" fontWeight="bold" color="success.main">
+                          <Typography variant="body1" fontWeight="bold" color="#10B981">
                             UGX {payment.amount.toLocaleString()}
                           </Typography>
                           <Chip 
                             icon={getStatusIcon(payment.status)}
                             label={payment.status}
                             size="small"
-                            color={payment.status === 'completed' ? 'success' : 'warning'}
+                            sx={{ 
+                              backgroundColor: payment.status === 'completed' ? '#10B98120' : '#FFEC01',
+                              color: payment.status === 'completed' ? '#10B981' : '#000',
+                              mt: 0.5
+                            }}
                             variant="outlined"
-                            sx={{ mt: 0.5 }}
                           />
                         </Box>
                       </Box>
@@ -539,21 +625,29 @@ const SimplePaymentsPage = () => {
             </List>
 
             {/* Quick Summary */}
-            <Box sx={{ mt: 3, p: 2, backgroundColor: 'grey.50', borderRadius: 2 }}>
+            <Box sx={{ mt: 3, p: 2, backgroundColor: '#0025DD10', borderRadius: 2 }}>
               <Grid container spacing={2} textAlign="center">
-                <Grid item xs={6}>
+                <Grid item xs={4}>
+                  <Typography variant="body2" color="text.secondary">
+                    Total
+                  </Typography>
+                  <Typography variant="h6" color="#0025DD" fontWeight="bold">
+                    {paymentData.recentPayments.length}
+                  </Typography>
+                </Grid>
+                <Grid item xs={4}>
                   <Typography variant="body2" color="text.secondary">
                     Completed
                   </Typography>
-                  <Typography variant="h6" color="success.main" fontWeight="bold">
+                  <Typography variant="h6" color="#10B981" fontWeight="bold">
                     {paymentData.recentPayments.filter(p => p.status === 'completed').length}
                   </Typography>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={4}>
                   <Typography variant="body2" color="text.secondary">
                     Pending
                   </Typography>
-                  <Typography variant="h6" color="warning.main" fontWeight="bold">
+                  <Typography variant="h6" color="#FFEC01" fontWeight="bold">
                     {paymentData.recentPayments.filter(p => p.status === 'pending').length}
                   </Typography>
                 </Grid>
@@ -568,6 +662,12 @@ const SimplePaymentsPage = () => {
             <Button
               variant="contained"
               fullWidth
+              sx={{
+                backgroundColor: '#0025DD',
+                '&:hover': {
+                  backgroundColor: '#001FB8'
+                }
+              }}
               startIcon={<QrCode />}
               onClick={() => setShowQRDialog(true)}
               size="large"
@@ -579,6 +679,10 @@ const SimplePaymentsPage = () => {
             <Button
               variant="outlined"
               fullWidth
+              sx={{
+                borderColor: '#0025DD',
+                color: '#0025DD'
+              }}
               startIcon={<Smartphone />}
               onClick={() => setShowMobileDialog(true)}
               size="large"
@@ -591,10 +695,10 @@ const SimplePaymentsPage = () => {
 
       {/* QR Code Dialog */}
       <Dialog open={showQRDialog} onClose={() => setShowQRDialog(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>
+        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">Your Payment QR Code</Typography>
-            <IconButton onClick={() => setShowQRDialog(false)}>
+            <Typography variant="h6" fontWeight="bold">Your Payment QR Code</Typography>
+            <IconButton onClick={() => setShowQRDialog(false)} sx={{ color: 'white' }}>
               <Close />
             </IconButton>
           </Box>
@@ -604,18 +708,19 @@ const SimplePaymentsPage = () => {
             sx={{ 
               width: 200, 
               height: 200, 
-              bgcolor: 'grey.200', 
+              bgcolor: '#0025DD10', 
               mx: 'auto',
               mb: 3,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: 2
+              borderRadius: 2,
+              border: '2px dashed #0025DD'
             }}
           >
-            <QrCode sx={{ fontSize: 100, color: 'grey.600' }} />
+            <QrCode sx={{ fontSize: 100, color: '#0025DD' }} />
           </Box>
-          <Typography variant="body1" gutterBottom>
+          <Typography variant="body1" gutterBottom fontWeight="bold">
             Show this QR code to your customer
           </Typography>
           <Typography variant="body2" color="text.secondary">
@@ -623,7 +728,14 @@ const SimplePaymentsPage = () => {
           </Typography>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
-          <Button variant="outlined" onClick={() => setShowQRDialog(false)}>
+          <Button 
+            variant="outlined"
+            sx={{
+              borderColor: '#0025DD',
+              color: '#0025DD'
+            }}
+            onClick={() => setShowQRDialog(false)}
+          >
             Close
           </Button>
         </DialogActions>
@@ -631,8 +743,8 @@ const SimplePaymentsPage = () => {
 
       {/* General Payment Dialog */}
       <Dialog open={showPaymentDialog} onClose={() => setShowPaymentDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          <Typography variant="h6">Request Payment</Typography>
+        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
+          <Typography variant="h6" fontWeight="bold">Request Payment</Typography>
         </DialogTitle>
         <DialogContent>
           <TextField
@@ -658,8 +770,22 @@ const SimplePaymentsPage = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowPaymentDialog(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleRequestPayment}>
+          <Button 
+            onClick={() => setShowPaymentDialog(false)}
+            sx={{ color: '#0025DD' }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="contained"
+            sx={{
+              backgroundColor: '#0025DD',
+              '&:hover': {
+                backgroundColor: '#001FB8'
+              }
+            }}
+            onClick={handleRequestPayment}
+          >
             Request Payment
           </Button>
         </DialogActions>
@@ -667,8 +793,8 @@ const SimplePaymentsPage = () => {
 
       {/* Mobile Money Dialog */}
       <Dialog open={showMobileDialog} onClose={() => setShowMobileDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          <Typography variant="h6">Mobile Money Payment</Typography>
+        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
+          <Typography variant="h6" fontWeight="bold">Mobile Money Payment</Typography>
         </DialogTitle>
         <DialogContent>
           <TextField
@@ -689,8 +815,22 @@ const SimplePaymentsPage = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowMobileDialog(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleMobilePayment}>
+          <Button 
+            onClick={() => setShowMobileDialog(false)}
+            sx={{ color: '#0025DD' }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="contained"
+            sx={{
+              backgroundColor: '#0025DD',
+              '&:hover': {
+                backgroundColor: '#001FB8'
+              }
+            }}
+            onClick={handleMobilePayment}
+          >
             Send Request
           </Button>
         </DialogActions>
@@ -698,8 +838,8 @@ const SimplePaymentsPage = () => {
 
       {/* Cash Payment Dialog */}
       <Dialog open={showCashDialog} onClose={() => setShowCashDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          <Typography variant="h6">Record Cash Payment</Typography>
+        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
+          <Typography variant="h6" fontWeight="bold">Record Cash Payment</Typography>
         </DialogTitle>
         <DialogContent>
           <TextField
@@ -712,8 +852,22 @@ const SimplePaymentsPage = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowCashDialog(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleCashPayment}>
+          <Button 
+            onClick={() => setShowCashDialog(false)}
+            sx={{ color: '#0025DD' }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="contained"
+            sx={{
+              backgroundColor: '#0025DD',
+              '&:hover': {
+                backgroundColor: '#001FB8'
+              }
+            }}
+            onClick={handleCashPayment}
+          >
             Record Payment
           </Button>
         </DialogActions>
@@ -729,6 +883,10 @@ const SimplePaymentsPage = () => {
         <Alert 
           severity={snackbar.severity} 
           onClose={() => setSnackbar({ ...snackbar, open: false })}
+          sx={{
+            backgroundColor: snackbar.severity === 'success' ? '#0025DD' : undefined,
+            color: 'white'
+          }}
         >
           {snackbar.message}
         </Alert>

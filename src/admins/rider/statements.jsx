@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -64,12 +65,14 @@ import {
   CalendarMonth,
   BarChart,
   PieChart,
-  Summarize
+  Summarize,
+  ArrowBack
 } from '@mui/icons-material';
 
 const StatementsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -242,29 +245,29 @@ const StatementsPage = () => {
 
   const getTransactionIcon = (type, paymentMethod) => {
     if (type === 'deduction') {
-      return <MoneyOff color="error" />;
+      return <MoneyOff sx={{ color: '#EF4444' }} />;
     }
     
     switch (paymentMethod) {
-      case 'cash': return <LocalAtm color="success" />;
-      case 'card': return <CreditCard color="info" />;
-      case 'mobile': return <Smartphone color="secondary" />;
-      default: return <AttachMoney color="success" />;
+      case 'cash': return <LocalAtm sx={{ color: '#10B981' }} />;
+      case 'card': return <CreditCard sx={{ color: '#0025DD' }} />;
+      case 'mobile': return <Smartphone sx={{ color: '#FFEC01' }} />;
+      default: return <AttachMoney sx={{ color: '#10B981' }} />;
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'success';
-      case 'processed': return 'info';
-      case 'pending': return 'warning';
-      case 'failed': return 'error';
-      default: return 'default';
+      case 'completed': return '#10B981';
+      case 'processed': return '#0025DD';
+      case 'pending': return '#FFEC01';
+      case 'failed': return '#EF4444';
+      default: return '#6B7280';
     }
   };
 
   const getTypeColor = (type) => {
-    return type === 'earning' ? 'success' : 'error';
+    return type === 'earning' ? '#10B981' : '#EF4444';
   };
 
   const filteredTransactions = transactions.filter(transaction => {
@@ -287,56 +290,111 @@ const StatementsPage = () => {
     setPage(0);
   };
 
-  const SummaryCards = () => (
-    <Grid container spacing={3} sx={{ mb: 3 }}>
-      <Grid item xs={12} sm={6} md={3}>
-        <Card elevation={2}>
-          <CardContent sx={{ textAlign: 'center' }}>
-            <AccountBalanceWallet color="primary" sx={{ mb: 1 }} />
-            <Typography variant="h5" fontWeight="bold" color="primary">
+  // Financial Summary Cards for Top Section
+  const FinancialSummary = () => (
+    <Grid container spacing={2} sx={{ mb: 3 }}>
+      {/* Total Earnings */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
+          color: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 37, 221, 0.2)'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <AccountBalanceWallet sx={{ fontSize: 40, opacity: 0.8 }} />
+              <TrendingUp sx={{ fontSize: 20 }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" sx={{ mb: 1 }}>
               {formatCurrency(785000)}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
               This Week's Earnings
             </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              <TrendingUp sx={{ fontSize: 16, mr: 0.5 }} />
+              <Typography variant="caption">
+                +12.5% from last week
+              </Typography>
+            </Box>
           </CardContent>
         </Card>
       </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <Card elevation={2}>
-          <CardContent sx={{ textAlign: 'center' }}>
-            <TrendingUp color="success" sx={{ mb: 1 }} />
-            <Typography variant="h5" fontWeight="bold" color="success.main">
-              +12.5%
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Growth vs Last Week
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <Card elevation={2}>
-          <CardContent sx={{ textAlign: 'center' }}>
-            <ReceiptLong color="secondary" sx={{ mb: 1 }} />
-            <Typography variant="h5" fontWeight="bold">
+
+      {/* Total Trips */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <ReceiptLong sx={{ fontSize: 40, color: '#0025DD' }} />
+              <TrendingUp sx={{ fontSize: 20, color: '#10B981' }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" color="#0025DD" sx={{ mb: 1 }}>
               112
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Completed Trips
             </Typography>
+            <Typography variant="caption" color="#10B981" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              98% success rate
+            </Typography>
           </CardContent>
         </Card>
       </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <Card elevation={2}>
-          <CardContent sx={{ textAlign: 'center' }}>
-            <MoneyOff color="error" sx={{ mb: 1 }} />
-            <Typography variant="h5" fontWeight="bold" color="error.main">
+
+      {/* Total Fees */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <MoneyOff sx={{ fontSize: 40, color: '#FF6B6B' }} />
+              <TrendingDown sx={{ fontSize: 20, color: '#EF4444' }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" color="#FF6B6B" sx={{ mb: 1 }}>
               {formatCurrency(78500)}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Total Fees
+            </Typography>
+            <Typography variant="caption" color="#EF4444" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              10% of earnings
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Net Earnings */}
+      <Grid item xs={12} sm={6} lg={3}>
+        <Card sx={{ 
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <Savings sx={{ fontSize: 40, color: '#10B981' }} />
+              <TrendingUp sx={{ fontSize: 20, color: '#10B981' }} />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" color="#10B981" sx={{ mb: 1 }}>
+              {formatCurrency(731500)}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Net Earnings
+            </Typography>
+            <Typography variant="caption" color="#10B981" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              After fees & deductions
             </Typography>
           </CardContent>
         </Card>
@@ -345,10 +403,14 @@ const StatementsPage = () => {
   );
 
   const TransactionTable = () => (
-    <Card elevation={3}>
+    <Card sx={{ 
+      borderRadius: 3,
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+      border: '1px solid #e2e8f0'
+    }}>
       <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h6">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+          <Typography variant="h6" fontWeight="bold" color="#0025DD">
             Transaction History
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -364,6 +426,7 @@ const StatementsPage = () => {
                   </InputAdornment>
                 ),
               }}
+              sx={{ minWidth: 200 }}
             />
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <Select
@@ -376,7 +439,14 @@ const StatementsPage = () => {
                 <MenuItem value="month">This Month</MenuItem>
               </Select>
             </FormControl>
-            <Button startIcon={<Download />} variant="outlined">
+            <Button 
+              startIcon={<Download />} 
+              variant="outlined"
+              sx={{
+                borderColor: '#0025DD',
+                color: '#0025DD'
+              }}
+            >
               Export
             </Button>
           </Box>
@@ -429,13 +499,17 @@ const StatementsPage = () => {
                       label={transaction.paymentMethod} 
                       size="small"
                       variant="outlined"
+                      sx={{
+                        borderColor: '#0025DD',
+                        color: '#0025DD'
+                      }}
                     />
                   </TableCell>
                   <TableCell align="right">
                     <Typography 
                       variant="body2" 
                       fontWeight="bold"
-                      color={transaction.type === 'earning' ? 'success.main' : 'error.main'}
+                      color={transaction.type === 'earning' ? '#10B981' : '#EF4444'}
                     >
                       {transaction.type === 'earning' ? '+' : '-'}{formatCurrency(transaction.amount)}
                     </Typography>
@@ -449,7 +523,7 @@ const StatementsPage = () => {
                     <Typography 
                       variant="body2" 
                       fontWeight="bold"
-                      color={transaction.netAmount >= 0 ? 'success.main' : 'error.main'}
+                      color={transaction.netAmount >= 0 ? '#10B981' : '#EF4444'}
                     >
                       {transaction.netAmount >= 0 ? '+' : ''}{formatCurrency(transaction.netAmount)}
                     </Typography>
@@ -457,7 +531,11 @@ const StatementsPage = () => {
                   <TableCell>
                     <Chip 
                       label={transaction.status}
-                      color={getStatusColor(transaction.status)}
+                      sx={{
+                        backgroundColor: `${getStatusColor(transaction.status)}20`,
+                        color: getStatusColor(transaction.status),
+                        fontWeight: 'bold'
+                      }}
                       size="small"
                     />
                   </TableCell>
@@ -468,6 +546,7 @@ const StatementsPage = () => {
                         setSelectedTransaction(transaction);
                         setShowTransactionDialog(true);
                       }}
+                      sx={{ color: '#0025DD' }}
                     >
                       <Visibility />
                     </IconButton>
@@ -495,9 +574,13 @@ const StatementsPage = () => {
     <Grid container spacing={3}>
       {/* Weekly Statements */}
       <Grid item xs={12} md={6}>
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="h6" gutterBottom color="#0025DD" sx={{ display: 'flex', alignItems: 'center' }}>
               <DateRange sx={{ mr: 1 }} />
               Weekly Statements
             </Typography>
@@ -505,8 +588,8 @@ const StatementsPage = () => {
               {statements.weekly.map((statement) => (
                 <ListItem key={statement.id} divider>
                   <ListItemIcon>
-                    <Avatar sx={{ bgcolor: 'primary.main' }}>
-                      <Summarize />
+                    <Avatar sx={{ bgcolor: '#0025DD' }}>
+                      <Summarize sx={{ color: 'white' }} />
                     </Avatar>
                   </ListItemIcon>
                   <ListItemText
@@ -514,12 +597,20 @@ const StatementsPage = () => {
                     secondary={`${statement.trips} trips • Net: ${formatCurrency(statement.netEarnings)}`}
                   />
                   <Box sx={{ textAlign: 'right' }}>
-                    <Chip label={statement.status} color="success" size="small" />
+                    <Chip 
+                      label={statement.status} 
+                      sx={{
+                        backgroundColor: '#10B98120',
+                        color: '#10B981',
+                        fontWeight: 'bold'
+                      }}
+                      size="small" 
+                    />
                     <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
-                      <IconButton size="small">
+                      <IconButton size="small" sx={{ color: '#0025DD' }}>
                         <PictureAsPdf />
                       </IconButton>
-                      <IconButton size="small">
+                      <IconButton size="small" sx={{ color: '#0025DD' }}>
                         <Download />
                       </IconButton>
                     </Box>
@@ -533,9 +624,13 @@ const StatementsPage = () => {
 
       {/* Monthly Statements */}
       <Grid item xs={12} md={6}>
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="h6" gutterBottom color="#0025DD" sx={{ display: 'flex', alignItems: 'center' }}>
               <CalendarMonth sx={{ mr: 1 }} />
               Monthly Statements
             </Typography>
@@ -543,8 +638,8 @@ const StatementsPage = () => {
               {statements.monthly.map((statement) => (
                 <ListItem key={statement.id} divider>
                   <ListItemIcon>
-                    <Avatar sx={{ bgcolor: 'secondary.main' }}>
-                      <BarChart />
+                    <Avatar sx={{ bgcolor: '#FFEC01' }}>
+                      <BarChart sx={{ color: '#000' }} />
                     </Avatar>
                   </ListItemIcon>
                   <ListItemText
@@ -552,12 +647,20 @@ const StatementsPage = () => {
                     secondary={`${statement.trips} trips • Net: ${formatCurrency(statement.netEarnings)}`}
                   />
                   <Box sx={{ textAlign: 'right' }}>
-                    <Chip label={statement.status} color="success" size="small" />
+                    <Chip 
+                      label={statement.status} 
+                      sx={{
+                        backgroundColor: '#10B98120',
+                        color: '#10B981',
+                        fontWeight: 'bold'
+                      }}
+                      size="small" 
+                    />
                     <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
-                      <IconButton size="small">
+                      <IconButton size="small" sx={{ color: '#0025DD' }}>
                         <PictureAsPdf />
                       </IconButton>
-                      <IconButton size="small">
+                      <IconButton size="small" sx={{ color: '#0025DD' }}>
                         <Download />
                       </IconButton>
                     </Box>
@@ -574,9 +677,13 @@ const StatementsPage = () => {
   const AnalyticsView = () => (
     <Grid container spacing={3}>
       <Grid item xs={12} md={8}>
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom color="#0025DD">
               Earnings Distribution
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 3 }}>
@@ -585,21 +692,57 @@ const StatementsPage = () => {
                   <Typography variant="body2">Cash Payments</Typography>
                   <Typography variant="body2" fontWeight="bold">65%</Typography>
                 </Box>
-                <LinearProgress variant="determinate" value={65} color="success" sx={{ height: 8 }} />
+                <LinearProgress 
+                  variant="determinate" 
+                  value={65} 
+                  sx={{ 
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: '#e2e8f0',
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: '#0025DD',
+                      borderRadius: 4
+                    }
+                  }} 
+                />
               </Box>
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2">Mobile Money</Typography>
                   <Typography variant="body2" fontWeight="bold">25%</Typography>
                 </Box>
-                <LinearProgress variant="determinate" value={25} color="info" sx={{ height: 8 }} />
+                <LinearProgress 
+                  variant="determinate" 
+                  value={25} 
+                  sx={{ 
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: '#e2e8f0',
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: '#FFEC01',
+                      borderRadius: 4
+                    }
+                  }} 
+                />
               </Box>
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2">Card Payments</Typography>
                   <Typography variant="body2" fontWeight="bold">10%</Typography>
                 </Box>
-                <LinearProgress variant="determinate" value={10} color="secondary" sx={{ height: 8 }} />
+                <LinearProgress 
+                  variant="determinate" 
+                  value={10} 
+                  sx={{ 
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: '#e2e8f0',
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: '#10B981',
+                      borderRadius: 4
+                    }
+                  }} 
+                />
               </Box>
             </Box>
           </CardContent>
@@ -607,9 +750,13 @@ const StatementsPage = () => {
       </Grid>
 
       <Grid item xs={12} md={4}>
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom color="#0025DD">
               Quick Stats
             </Typography>
             <List dense>
@@ -653,42 +800,51 @@ const StatementsPage = () => {
   return (
     <Box sx={{ 
       minHeight: '100vh', 
-      backgroundColor: 'background.default',
+      backgroundColor: '#f8fafc',
       pb: 3
     }}>
-      {/* Mobile Header */}
-      {isMobile && (
-        <AppBar position="static" color="primary">
-          <Toolbar>
-            <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>
-              Statements & Reports 📊
-            </Typography>
-          </Toolbar>
-        </AppBar>
-      )}
+      {/* Header */}
+      <AppBar 
+        position="static" 
+        sx={{ 
+          backgroundColor: '#0025DD',
+          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
+          boxShadow: 'none'
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            edge="start"
+            sx={{ color: 'white', mr: 2 }}
+            onClick={() => navigate(-1)}
+          >
+            <ArrowBack />
+          </IconButton>
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            Financial Statements
+          </Typography>
+          <Chip 
+            label="Active Rider" 
+            sx={{ 
+              backgroundColor: '#FFEC01', 
+              color: '#000',
+              fontWeight: 'bold'
+            }}
+          />
+        </Toolbar>
+      </AppBar>
 
       {/* Main Content */}
       <Box sx={{ p: isMobile ? 2 : 3 }}>
-        {/* Header */}
-        <Box sx={{ mb: 4, textAlign: isMobile ? 'center' : 'left' }}>
-          <Typography 
-            variant={isMobile ? "h5" : "h4"} 
-            fontWeight="bold" 
-            gutterBottom
-            color="primary"
-          >
-            Financial Statements
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Track your earnings, view transaction history, and download statements
-          </Typography>
-        </Box>
-
-        {/* Summary Cards */}
-        <SummaryCards />
+        {/* Financial Summary Cards */}
+        <FinancialSummary />
 
         {/* Tabs */}
-        <Card elevation={3}>
+        <Card sx={{ 
+          borderRadius: 3,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
           <CardContent sx={{ p: 0 }}>
             <Tabs
               value={activeTab}
@@ -698,7 +854,16 @@ const StatementsPage = () => {
               sx={{ 
                 borderBottom: 1, 
                 borderColor: 'divider',
-                '& .MuiTab-root': { minHeight: 64 }
+                '& .MuiTab-root': { 
+                  minHeight: 64,
+                  color: '#6B7280',
+                  '&.Mui-selected': {
+                    color: '#0025DD'
+                  }
+                },
+                '& .MuiTabs-indicator': {
+                  backgroundColor: '#0025DD'
+                }
               }}
             >
               {tabContent.map((tab, index) => (
@@ -730,14 +895,19 @@ const StatementsPage = () => {
       >
         {selectedTransaction && (
           <>
-            <DialogTitle>
-              Transaction Details
+            <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
+              <Typography variant="h6" fontWeight="bold">
+                Transaction Details
+              </Typography>
             </DialogTitle>
             <DialogContent>
               <Grid container spacing={3} sx={{ mt: 1 }}>
                 <Grid item xs={12}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Avatar sx={{ bgcolor: selectedTransaction.type === 'earning' ? 'success.main' : 'error.main' }}>
+                    <Avatar sx={{ 
+                      bgcolor: selectedTransaction.type === 'earning' ? '#10B981' : '#EF4444',
+                      color: 'white'
+                    }}>
                       {getTransactionIcon(selectedTransaction.type, selectedTransaction.paymentMethod)}
                     </Avatar>
                     <Box>
@@ -766,7 +936,11 @@ const StatementsPage = () => {
                   </Typography>
                   <Chip 
                     label={selectedTransaction.status} 
-                    color={getStatusColor(selectedTransaction.status)}
+                    sx={{
+                      backgroundColor: `${getStatusColor(selectedTransaction.status)}20`,
+                      color: getStatusColor(selectedTransaction.status),
+                      fontWeight: 'bold'
+                    }}
                     size="small"
                   />
                 </Grid>
@@ -786,7 +960,11 @@ const StatementsPage = () => {
                   </Typography>
                   <Chip 
                     label={selectedTransaction.type} 
-                    color={getTypeColor(selectedTransaction.type)}
+                    sx={{
+                      backgroundColor: selectedTransaction.type === 'earning' ? '#10B98120' : '#EF444420',
+                      color: selectedTransaction.type === 'earning' ? '#10B981' : '#EF4444',
+                      fontWeight: 'bold'
+                    }}
                     size="small"
                   />
                 </Grid>
@@ -802,7 +980,7 @@ const StatementsPage = () => {
                   <Typography 
                     variant="h6" 
                     fontWeight="bold"
-                    color={selectedTransaction.type === 'earning' ? 'success.main' : 'error.main'}
+                    color={selectedTransaction.type === 'earning' ? '#10B981' : '#EF4444'}
                   >
                     {selectedTransaction.type === 'earning' ? '+' : '-'}{formatCurrency(selectedTransaction.amount)}
                   </Typography>
@@ -824,16 +1002,30 @@ const StatementsPage = () => {
                   <Typography 
                     variant="h6" 
                     fontWeight="bold"
-                    color={selectedTransaction.netAmount >= 0 ? 'success.main' : 'error.main'}
+                    color={selectedTransaction.netAmount >= 0 ? '#10B981' : '#EF4444'}
                   >
                     {selectedTransaction.netAmount >= 0 ? '+' : ''}{formatCurrency(selectedTransaction.netAmount)}
                   </Typography>
                 </Grid>
               </Grid>
             </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setShowTransactionDialog(false)}>Close</Button>
-              <Button variant="contained" startIcon={<Download />}>
+            <DialogActions sx={{ p: 3 }}>
+              <Button 
+                onClick={() => setShowTransactionDialog(false)}
+                sx={{ color: '#0025DD' }}
+              >
+                Close
+              </Button>
+              <Button 
+                variant="contained"
+                sx={{
+                  backgroundColor: '#0025DD',
+                  '&:hover': {
+                    backgroundColor: '#001FB8'
+                  }
+                }}
+                startIcon={<Download />}
+              >
                 Download Receipt
               </Button>
             </DialogActions>
