@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -7,7 +7,6 @@ import {
   Grid,
   Avatar,
   Button,
-  TextField,
   Chip,
   List,
   ListItem,
@@ -16,18 +15,15 @@ import {
   Divider,
   Paper,
   useTheme,
+  useMediaQuery,
+  Tabs,
+  Tab,
   IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Tabs,
-  Tab,
-  LinearProgress,
-  Tooltip,
-  Badge,
-  Switch,
-  FormControlLabel
+  TextField
 } from '@mui/material';
 import {
   AccountBalanceWallet,
@@ -35,37 +31,29 @@ import {
   QrCode,
   Smartphone,
   CreditCard,
-  Link,
   Receipt,
   Download,
-  Share,
   TrendingUp,
   History,
   Add,
   CheckCircle,
-  Schedule,
-  Cancel,
   LocalAtm,
   PhoneIphone,
-  Speed,
   Star,
-  Group
+  Share,
+  FilterList,
+  Search
 } from '@mui/icons-material';
 
-const DriverPaymentsPage = () => {
+const SimplePaymentsPage = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [activeTab, setActiveTab] = useState(0);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showQRDialog, setShowQRDialog] = useState(false);
-  const [selectedService, setSelectedService] = useState(null);
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
-  // Driver data
+  // Simplified driver data
   const [driverData, setDriverData] = useState({
-    driverId: 'DRV-ENF0125',
-    walletId: 'WALLET-DRV0125',
-    fleetId: 'FLEET-TAXI001',
     wallet: {
       balance: 285000,
       available: 275000,
@@ -73,40 +61,6 @@ const DriverPaymentsPage = () => {
       todayEarnings: 45000,
       weeklyEarnings: 285000
     },
-    services: [
-      {
-        id: 'S1',
-        name: 'City Trip',
-        description: 'Within Kampala city limits',
-        defaultAmount: 10000,
-        shortcut: 'S1',
-        color: 'primary'
-      },
-      {
-        id: 'S2',
-        name: 'Airport Drop',
-        description: 'To Entebbe International Airport',
-        defaultAmount: 60000,
-        shortcut: 'S2',
-        color: 'secondary'
-      },
-      {
-        id: 'S3',
-        name: 'Delivery',
-        description: 'Goods and package delivery',
-        defaultAmount: 15000,
-        shortcut: 'S3',
-        color: 'success'
-      },
-      {
-        id: 'S4',
-        name: 'Custom Fare',
-        description: 'Enter specific amount',
-        defaultAmount: 0,
-        shortcut: 'S4',
-        color: 'warning'
-      }
-    ],
     recentTransactions: [
       {
         id: 'TXN001',
@@ -114,10 +68,9 @@ const DriverPaymentsPage = () => {
         type: 'credit',
         method: 'qr',
         status: 'completed',
-        timestamp: '2024-01-15 14:30:45',
+        timestamp: '2024-01-15 14:30',
         customer: 'Walk-in Customer',
-        service: 'City Trip',
-        tripId: 'TRIP-45671'
+        service: 'City Trip'
       },
       {
         id: 'TXN002',
@@ -125,10 +78,9 @@ const DriverPaymentsPage = () => {
         type: 'credit',
         method: 'mobile',
         status: 'completed',
-        timestamp: '2024-01-15 12:15:20',
+        timestamp: '2024-01-15 12:15',
         customer: 'Customer #7890',
-        service: 'Airport Drop',
-        tripId: 'TRIP-45670'
+        service: 'Airport Drop'
       },
       {
         id: 'TXN003',
@@ -136,520 +88,413 @@ const DriverPaymentsPage = () => {
         type: 'credit',
         method: 'card',
         status: 'completed',
-        timestamp: '2024-01-15 10:45:30',
+        timestamp: '2024-01-15 10:45',
         customer: 'Customer #7891',
-        service: 'Delivery',
-        tripId: 'TRIP-45669'
+        service: 'Delivery'
       },
       {
         id: 'TXN004',
         amount: 10000,
         type: 'credit',
-        method: 'link',
+        method: 'cash',
         status: 'pending',
-        timestamp: '2024-01-15 09:30:15',
+        timestamp: '2024-01-15 09:30',
         customer: 'Customer #7892',
-        service: 'City Trip',
-        tripId: 'TRIP-45668'
+        service: 'City Trip'
       }
     ],
-    performance: {
-      totalRides: 1247,
-      completedRides: 1230,
-      cancellationRate: 1.4,
-      averageRating: 4.7,
-      weeklyTrend: '+12%'
+    earnings: {
+      today: 45000,
+      week: 285000,
+      month: 1150000,
+      lastWeek: 254000
     }
   });
 
   const paymentMethods = [
-    {
-      id: 'qr',
-      name: 'QR Code',
-      icon: <QrCode />,
-      color: 'primary',
-      description: 'Customer scans your QR code'
-    },
-    {
-      id: 'mobile',
-      name: 'Mobile Money',
-      icon: <Smartphone />,
-      color: 'success',
-      description: 'Send payment request to customer'
-    },
-    {
-      id: 'card',
-      name: 'Card Payment',
-      icon: <CreditCard />,
-      color: 'secondary',
-      description: 'Accept card payments'
-    },
-    {
-      id: 'link',
-      name: 'Payment Link',
-      icon: <Link />,
-      color: 'info',
-      description: 'Share link via SMS/WhatsApp'
-    }
+    { id: 'cash', name: 'Cash', icon: <LocalAtm />, color: 'success' },
+    { id: 'qr', name: 'QR Code', icon: <QrCode />, color: 'primary' },
+    { id: 'mobile', name: 'Mobile Money', icon: <Smartphone />, color: 'warning' },
+    { id: 'card', name: 'Card', icon: <CreditCard />, color: 'secondary' }
   ];
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
 
-  const handleServiceSelect = (service) => {
-    setSelectedService(service);
-    setPaymentAmount(service.defaultAmount > 0 ? service.defaultAmount.toString() : '');
-    setShowPaymentDialog(true);
-  };
-
-  const handleRequestPayment = () => {
-    if (!paymentAmount || paymentAmount <= 0) {
-      alert('Please enter a valid amount');
-      return;
-    }
-
-    // Create new transaction
-    const newTransaction = {
-      id: `TXN${Date.now()}`,
-      amount: parseInt(paymentAmount),
-      type: 'credit',
-      method: 'mobile', // Default method
-      status: 'pending',
-      timestamp: new Date().toLocaleString(),
-      customer: customerPhone ? `Customer (${customerPhone})` : 'Walk-in Customer',
-      service: selectedService?.name || 'Custom Fare',
-      tripId: `TRIP-${Date.now()}`
-    };
-
-    // Update transactions
-    setDriverData(prev => ({
-      ...prev,
-      recentTransactions: [newTransaction, ...prev.recentTransactions],
-      wallet: {
-        ...prev.wallet,
-        pending: prev.wallet.pending + parseInt(paymentAmount)
-      }
-    }));
-
-    setShowPaymentDialog(false);
-    setPaymentAmount('');
-    setCustomerPhone('');
-    setSelectedService(null);
-
-    // Simulate payment confirmation
-    setTimeout(() => {
-      setDriverData(prev => ({
-        ...prev,
-        recentTransactions: prev.recentTransactions.map(txn =>
-          txn.id === newTransaction.id
-            ? { ...txn, status: 'completed' }
-            : txn
-        ),
-        wallet: {
-          ...prev.wallet,
-          balance: prev.wallet.balance + parseInt(paymentAmount),
-          available: prev.wallet.available + parseInt(paymentAmount),
-          pending: prev.wallet.pending - parseInt(paymentAmount),
-          todayEarnings: prev.wallet.todayEarnings + parseInt(paymentAmount)
-        }
-      }));
-
-      // Show success notification
-      alert(`✅ Payment received! UGX ${parseInt(paymentAmount).toLocaleString()} has been added to your wallet.`);
-    }, 3000);
-  };
-
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'completed': return 'success';
-      case 'pending': return 'warning';
-      case 'failed': return 'error';
-      default: return 'default';
-    }
+    return status === 'completed' ? 'success' : 'warning';
+  };
+
+  const getMethodIcon = (method) => {
+    return paymentMethods.find(m => m.id === method)?.icon || <Payment />;
   };
 
   const getMethodColor = (method) => {
-    switch (method) {
-      case 'qr': return 'primary';
-      case 'mobile': return 'success';
-      case 'card': return 'secondary';
-      case 'link': return 'info';
-      default: return 'default';
-    }
+    return paymentMethods.find(m => m.id === method)?.color || 'default';
   };
 
-  const handleWithdrawal = () => {
-    const amount = driverData.wallet.available;
-    if (amount <= 0) {
-      alert('No available balance for withdrawal');
-      return;
-    }
+  const QuickStats = () => (
+    <Grid container spacing={2} sx={{ mb: 3 }}>
+      <Grid item xs={6} sm={3}>
+        <Card elevation={1}>
+          <CardContent sx={{ textAlign: 'center', p: 2 }}>
+            <Typography variant="h6" color="primary" fontWeight="bold">
+              UGX {driverData.earnings.today.toLocaleString()}
+            </Typography>
+            <Typography variant="caption" color="textSecondary">
+              Today
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+      <Grid item xs={6} sm={3}>
+        <Card elevation={1}>
+          <CardContent sx={{ textAlign: 'center', p: 2 }}>
+            <Typography variant="h6" color="success.main" fontWeight="bold">
+              UGX {driverData.earnings.week.toLocaleString()}
+            </Typography>
+            <Typography variant="caption" color="textSecondary">
+              This Week
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+      <Grid item xs={6} sm={3}>
+        <Card elevation={1}>
+          <CardContent sx={{ textAlign: 'center', p: 2 }}>
+            <Typography variant="h6" color="info.main" fontWeight="bold">
+              UGX {driverData.earnings.month.toLocaleString()}
+            </Typography>
+            <Typography variant="caption" color="textSecondary">
+              This Month
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+      <Grid item xs={6} sm={3}>
+        <Card elevation={1}>
+          <CardContent sx={{ textAlign: 'center', p: 2 }}>
+            <Typography 
+              variant="h6" 
+              color={driverData.earnings.week > driverData.earnings.lastWeek ? "success.main" : "error.main"} 
+              fontWeight="bold"
+            >
+              {((driverData.earnings.week - driverData.earnings.lastWeek) / driverData.earnings.lastWeek * 100).toFixed(1)}%
+            </Typography>
+            <Typography variant="caption" color="textSecondary">
+              vs Last Week
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
 
-    alert(`Withdrawal request for UGX ${amount.toLocaleString()} submitted! Funds will be processed within 24 hours.`);
-    
-    setDriverData(prev => ({
-      ...prev,
-      wallet: {
-        ...prev.wallet,
-        available: 0,
-        balance: prev.wallet.balance - amount
-      }
-    }));
-  };
-
-  return (
-    <Box sx={{ p: 3, minHeight: '100vh', backgroundColor: 'grey.50' }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Driver Payments 💰
-          </Typography>
-          <Typography variant="h6" color="textSecondary">
-            Accept payments, track earnings, and manage your wallet
-          </Typography>
+  const WalletCard = () => (
+    <Card 
+      elevation={2} 
+      sx={{ 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+        color: 'white',
+        mb: 2
+      }}
+    >
+      <CardContent sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+          <Box>
+            <Typography variant="h6" gutterBottom sx={{ opacity: 0.9 }}>
+              Available Balance
+            </Typography>
+            <Typography variant="h3" fontWeight="bold">
+              UGX {driverData.wallet.available.toLocaleString()}
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.8, mt: 1 }}>
+              Total: UGX {driverData.wallet.balance.toLocaleString()}
+            </Typography>
+          </Box>
+          <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 50, height: 50 }}>
+            <AccountBalanceWallet />
+          </Avatar>
         </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button startIcon={<Download />} variant="outlined">
-            Export
+        
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button 
+            variant="contained" 
+            fullWidth
+            sx={{ 
+              bgcolor: 'white', 
+              color: 'primary.main',
+              '&:hover': { bgcolor: 'grey.100' }
+            }}
+            onClick={() => setShowQRDialog(true)}
+          >
+            Show QR
           </Button>
           <Button 
-            startIcon={<Payment />} 
-            variant="contained"
+            variant="outlined" 
+            fullWidth
+            sx={{ 
+              borderColor: 'white', 
+              color: 'white',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
+            }}
             onClick={() => setShowPaymentDialog(true)}
           >
-            Request Payment
+            Request Pay
           </Button>
         </Box>
+      </CardContent>
+    </Card>
+  );
+
+  const TransactionItem = ({ transaction, showDivider = true }) => (
+    <>
+      <ListItem sx={{ px: isMobile ? 1 : 2 }}>
+        <ListItemIcon>
+          <Avatar sx={{ bgcolor: `${getMethodColor(transaction.method)}.50`, width: 40, height: 40 }}>
+            {getMethodIcon(transaction.method)}
+          </Avatar>
+        </ListItemIcon>
+        <ListItemText
+          primary={
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Box>
+                <Typography variant="body1" fontWeight="500">
+                  {transaction.service}
+                </Typography>
+                <Typography variant="caption" color="textSecondary">
+                  {transaction.customer} • {transaction.timestamp}
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: 'right' }}>
+                <Typography variant="body1" fontWeight="bold" color="success.main">
+                  UGX {transaction.amount.toLocaleString()}
+                </Typography>
+                <Chip 
+                  label={transaction.status} 
+                  size="small"
+                  color={getStatusColor(transaction.status)}
+                  sx={{ mt: 0.5 }}
+                />
+              </Box>
+            </Box>
+          }
+        />
+      </ListItem>
+      {showDivider && <Divider />}
+    </>
+  );
+
+  return (
+    <Box sx={{ 
+      p: isMobile ? 2 : 3, 
+      minHeight: '100vh', 
+      backgroundColor: 'background.default'
+    }}>
+      {/* Header */}
+      <Box sx={{ mb: 4 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'flex-start', 
+          mb: 2,
+          flexWrap: 'wrap',
+          gap: 2
+        }}>
+          <Box>
+            <Typography variant="h4" fontWeight="bold" gutterBottom>
+              Payments & Earnings 💰
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Track your payments and earnings
+            </Typography>
+          </Box>
+          
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <Button 
+              startIcon={<Download />} 
+              variant="outlined" 
+              size={isMobile ? "small" : "medium"}
+            >
+              Export
+            </Button>
+            <Button 
+              startIcon={<Share />} 
+              variant="outlined" 
+              size={isMobile ? "small" : "medium"}
+            >
+              Share
+            </Button>
+          </Box>
+        </Box>
+
+        <QuickStats />
       </Box>
 
       <Grid container spacing={3}>
         {/* Left Sidebar - Wallet & Quick Actions */}
-        <Grid item xs={4}>
-          {/* Wallet Balance Card */}
-          <Card sx={{ mb: 3, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                <Box>
-                  <Typography variant="h6" gutterBottom>
-                    ENFUNA Wallet
-                  </Typography>
-                  <Typography variant="h3" fontWeight="bold">
-                    UGX {driverData.wallet.balance.toLocaleString()}
-                  </Typography>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                    Available: UGX {driverData.wallet.available.toLocaleString()}
-                  </Typography>
-                </Box>
-                <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 60, height: 60 }}>
-                  <AccountBalanceWallet />
-                </Avatar>
-              </Box>
-              
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2">Pending Clearance</Typography>
-                  <Typography variant="body2" fontWeight="bold">
-                    UGX {driverData.wallet.pending.toLocaleString()}
-                  </Typography>
-                </Box>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={(driverData.wallet.pending / driverData.wallet.balance) * 100} 
-                  sx={{ 
-                    height: 6, 
-                    borderRadius: 3, 
-                    bgcolor: 'rgba(255,255,255,0.3)',
-                    '& .MuiLinearProgress-bar': {
-                      bgcolor: 'white'
-                    }
-                  }}
-                />
-              </Box>
+        <Grid item xs={12} md={4}>
+          <WalletCard />
 
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button 
-                  variant="contained" 
-                  fullWidth
-                  sx={{ 
-                    bgcolor: 'white', 
-                    color: 'primary.main',
-                    '&:hover': { bgcolor: 'grey.100' }
-                  }}
-                  onClick={handleWithdrawal}
-                  disabled={driverData.wallet.available <= 0}
-                >
-                  Withdraw
-                </Button>
-                <Button 
-                  variant="outlined" 
-                  fullWidth
-                  sx={{ 
-                    borderColor: 'white', 
-                    color: 'white',
-                    '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
-                  }}
-                  onClick={() => setShowQRDialog(true)}
-                >
-                  Show QR
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
-
-          {/* Quick Services */}
-          <Card sx={{ mb: 3 }}>
+          {/* Payment Methods */}
+          <Card elevation={1} sx={{ mb: 2 }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>Quick Services</Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                Tap to request payment for common services
+              <Typography variant="h6" gutterBottom>
+                Payment Methods
               </Typography>
-              <Grid container spacing={1}>
-                {driverData.services.map((service) => (
-                  <Grid item xs={6} key={service.id}>
-                    <Card 
-                      variant="outlined"
-                      sx={{ 
-                        cursor: 'pointer',
-                        '&:hover': { borderColor: 'primary.main', bgcolor: 'primary.50' }
-                      }}
-                      onClick={() => handleServiceSelect(service)}
-                    >
-                      <CardContent sx={{ textAlign: 'center', p: 2 }}>
-                        <Avatar sx={{ bgcolor: `${service.color}.100`, color: `${service.color}.main`, width: 40, height: 40, mx: 'auto', mb: 1 }}>
-                          {service.shortcut}
-                        </Avatar>
-                        <Typography variant="body2" fontWeight="bold">
-                          {service.name}
-                        </Typography>
-                        <Typography variant="caption" color="textSecondary">
-                          UGX {service.defaultAmount > 0 ? service.defaultAmount.toLocaleString() : 'Custom'}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {paymentMethods.map((method) => (
+                  <Paper
+                    key={method.id}
+                    sx={{
+                      p: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      cursor: 'pointer',
+                      '&:hover': {
+                        backgroundColor: 'action.hover'
+                      }
+                    }}
+                    onClick={() => setShowPaymentDialog(true)}
+                  >
+                    <Avatar sx={{ bgcolor: `${method.color}.50`, color: `${method.color}.main` }}>
+                      {method.icon}
+                    </Avatar>
+                    <Typography variant="body1" fontWeight="500">
+                      {method.name}
+                    </Typography>
+                  </Paper>
                 ))}
-              </Grid>
+              </Box>
             </CardContent>
           </Card>
 
-          {/* Driver Performance */}
-          <Card>
+          {/* Quick Summary */}
+          <Card elevation={1}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>Your Performance</Typography>
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2">Total Rides</Typography>
-                  <Typography variant="body2" fontWeight="bold">{driverData.performance.totalRides}</Typography>
-                </Box>
-                <LinearProgress variant="determinate" value={100} sx={{ mt: 0.5 }} />
-              </Box>
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2">Completed Rides</Typography>
-                  <Typography variant="body2" fontWeight="bold" color="success.main">
-                    {driverData.performance.completedRides}
-                  </Typography>
-                </Box>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={(driverData.performance.completedRides / driverData.performance.totalRides) * 100} 
-                  color="success"
-                  sx={{ mt: 0.5 }}
-                />
-              </Box>
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2">Average Rating</Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Star sx={{ color: 'gold', fontSize: 16 }} />
-                    <Typography variant="body2" fontWeight="bold">
-                      {driverData.performance.averageRating}
-                    </Typography>
-                  </Box>
-                </Box>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={(driverData.performance.averageRating / 5) * 100} 
-                  color="warning"
-                  sx={{ mt: 0.5 }}
-                />
-              </Box>
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2">Weekly Trend</Typography>
-                  <Typography variant="body2" fontWeight="bold" color="success.main">
-                    {driverData.performance.weeklyTrend}
-                  </Typography>
-                </Box>
-              </Box>
+              <Typography variant="h6" gutterBottom>
+                This Week
+              </Typography>
+              <List dense>
+                <ListItem>
+                  <ListItemText 
+                    primary="Total Earnings" 
+                    secondary={`UGX ${driverData.earnings.week.toLocaleString()}`}
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemText 
+                    primary="Completed Rides" 
+                    secondary={driverData.recentTransactions.filter(t => t.status === 'completed').length}
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemText 
+                    primary="Pending Payments" 
+                    secondary={driverData.recentTransactions.filter(t => t.status === 'pending').length}
+                  />
+                </ListItem>
+              </List>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Main Content Area */}
-        <Grid item xs={8}>
-          <Card>
+        {/* Main Content */}
+        <Grid item xs={12} md={8}>
+          <Card elevation={1}>
             <Tabs 
               value={activeTab} 
               onChange={handleTabChange}
-              variant="fullWidth"
-              sx={{ borderBottom: 1, borderColor: 'divider' }}
+              variant={isMobile ? "scrollable" : "standard"}
+              scrollButtons="auto"
             >
-              <Tab label="Today's Earnings" icon={<TrendingUp />} />
-              <Tab label="Transaction History" icon={<History />} />
-              <Tab label="Payment Methods" icon={<Payment />} />
+              <Tab label="Recent Payments" />
+              <Tab label="Earnings History" />
+              <Tab label="Payment Methods" />
             </Tabs>
 
-            <CardContent sx={{ minHeight: 500 }}>
-              {/* Today's Earnings */}
+            <CardContent sx={{ p: isMobile ? 1 : 2 }}>
+              {/* Recent Payments */}
               {activeTab === 0 && (
                 <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h5">Today's Summary</Typography>
-                    <Chip 
-                      label={`UGX ${driverData.wallet.todayEarnings.toLocaleString()}`} 
-                      color="success" 
-                      variant="filled"
-                    />
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    mb: 2,
+                    flexWrap: 'wrap',
+                    gap: 1
+                  }}>
+                    <Typography variant="h6">
+                      Recent Payments
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button size="small" startIcon={<FilterList />}>
+                        Filter
+                      </Button>
+                      <Button size="small" startIcon={<Search />}>
+                        Search
+                      </Button>
+                    </Box>
                   </Box>
 
-                  <Grid container spacing={3} sx={{ mb: 4 }}>
-                    <Grid item xs={3}>
-                      <Paper sx={{ p: 3, textAlign: 'center' }}>
-                        <Typography variant="h4" color="primary" fontWeight="bold">
-                          {driverData.recentTransactions.filter(t => t.status === 'completed').length}
-                        </Typography>
-                        <Typography variant="body2">Completed Payments</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={3}>
-                      <Paper sx={{ p: 3, textAlign: 'center' }}>
-                        <Typography variant="h4" color="success.main" fontWeight="bold">
-                          UGX {driverData.wallet.todayEarnings.toLocaleString()}
-                        </Typography>
-                        <Typography variant="body2">Total Earnings</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={3}>
-                      <Paper sx={{ p: 3, textAlign: 'center' }}>
-                        <Typography variant="h4" color="warning.main" fontWeight="bold">
-                          {driverData.recentTransactions.filter(t => t.status === 'pending').length}
-                        </Typography>
-                        <Typography variant="body2">Pending</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={3}>
-                      <Paper sx={{ p: 3, textAlign: 'center' }}>
-                        <Typography variant="h4" color="info.main" fontWeight="bold">
-                          {driverData.services.length}
-                        </Typography>
-                        <Typography variant="body2">Active Services</Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-
-                  <Typography variant="h6" gutterBottom>Recent Activity</Typography>
-                  <List>
-                    {driverData.recentTransactions.slice(0, 5).map((transaction, index) => (
-                      <React.Fragment key={transaction.id}>
-                        <ListItem>
-                          <ListItemIcon>
-                            <Avatar sx={{ bgcolor: `${getMethodColor(transaction.method)}.100` }}>
-                              {paymentMethods.find(m => m.id === transaction.method)?.icon}
-                            </Avatar>
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Typography variant="body1" fontWeight="500">
-                                  {transaction.service}
-                                </Typography>
-                                <Typography variant="body1" fontWeight="bold" color="success.main">
-                                  UGX {transaction.amount.toLocaleString()}
-                                </Typography>
-                              </Box>
-                            }
-                            secondary={
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
-                                <Typography variant="caption">
-                                  {transaction.customer} • {new Date(transaction.timestamp).toLocaleTimeString()}
-                                </Typography>
-                                <Chip 
-                                  label={transaction.status} 
-                                  size="small"
-                                  color={getStatusColor(transaction.status)}
-                                />
-                              </Box>
-                            }
-                          />
-                        </ListItem>
-                        {index < 4 && <Divider />}
-                      </React.Fragment>
+                  <List sx={{ maxHeight: 400, overflow: 'auto' }}>
+                    {driverData.recentTransactions.map((transaction, index) => (
+                      <TransactionItem 
+                        key={transaction.id}
+                        transaction={transaction}
+                        showDivider={index < driverData.recentTransactions.length - 1}
+                      />
                     ))}
                   </List>
                 </Box>
               )}
 
-              {/* Transaction History */}
+              {/* Earnings History */}
               {activeTab === 1 && (
                 <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h5">Transaction History</Typography>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button size="small" variant="outlined">
-                        All
-                      </Button>
-                      <Button size="small" variant="outlined">
-                        This Week
-                      </Button>
-                      <Button size="small" variant="outlined">
-                        This Month
-                      </Button>
-                    </Box>
-                  </Box>
+                  <Typography variant="h6" gutterBottom>
+                    Earnings Overview
+                  </Typography>
+                  
+                  <Grid container spacing={2} sx={{ mb: 3 }}>
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ p: 2, textAlign: 'center' }}>
+                        <TrendingUp color="success" sx={{ fontSize: 40, mb: 1 }} />
+                        <Typography variant="h5" color="success.main" fontWeight="bold">
+                          UGX {driverData.earnings.week.toLocaleString()}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          This Week
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ p: 2, textAlign: 'center' }}>
+                        <Star color="warning" sx={{ fontSize: 40, mb: 1 }} />
+                        <Typography variant="h5" color="warning.main" fontWeight="bold">
+                          UGX {driverData.earnings.month.toLocaleString()}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          This Month
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  </Grid>
 
+                  <Typography variant="h6" gutterBottom>
+                    Daily Breakdown (This Week)
+                  </Typography>
                   <List>
-                    {driverData.recentTransactions.map((transaction, index) => (
-                      <React.Fragment key={transaction.id}>
-                        <ListItem sx={{ px: 0 }}>
-                          <ListItemIcon>
-                            <Avatar sx={{ bgcolor: `${getMethodColor(transaction.method)}.100` }}>
-                              {paymentMethods.find(m => m.id === transaction.method)?.icon}
-                            </Avatar>
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Box>
-                                  <Typography variant="body1" fontWeight="500">
-                                    {transaction.service}
-                                  </Typography>
-                                  <Typography variant="caption" color="textSecondary">
-                                    {transaction.customer} • {transaction.tripId}
-                                  </Typography>
-                                </Box>
-                                <Box sx={{ textAlign: 'right' }}>
-                                  <Typography variant="body1" fontWeight="bold" color="success.main">
-                                    UGX {transaction.amount.toLocaleString()}
-                                  </Typography>
-                                  <Typography variant="caption">
-                                    {new Date(transaction.timestamp).toLocaleDateString()}
-                                  </Typography>
-                                </Box>
-                              </Box>
-                            }
-                          />
-                          <Chip 
-                            label={transaction.status} 
-                            size="small"
-                            color={getStatusColor(transaction.status)}
-                            sx={{ ml: 2 }}
-                          />
-                        </ListItem>
-                        {index < driverData.recentTransactions.length - 1 && <Divider />}
-                      </React.Fragment>
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
+                      <ListItem key={day} divider>
+                        <ListItemText primary={day} />
+                        <Typography variant="body1" fontWeight="bold">
+                          UGX {(Math.random() * 50000 + 20000).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </Typography>
+                      </ListItem>
                     ))}
                   </List>
                 </Box>
@@ -658,34 +503,40 @@ const DriverPaymentsPage = () => {
               {/* Payment Methods */}
               {activeTab === 2 && (
                 <Box>
-                  <Typography variant="h5" gutterBottom>Payment Methods</Typography>
-                  <Typography variant="body1" color="textSecondary" paragraph>
-                    Choose how you want to accept payments from customers
+                  <Typography variant="h6" gutterBottom>
+                    Available Payment Methods
                   </Typography>
-
-                  <Grid container spacing={3}>
+                  
+                  <Grid container spacing={2}>
                     {paymentMethods.map((method) => (
-                      <Grid item xs={6} key={method.id}>
+                      <Grid item xs={12} sm={6} key={method.id}>
                         <Card variant="outlined">
-                          <CardContent>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                              <Avatar sx={{ bgcolor: `${method.color}.100`, color: `${method.color}.main` }}>
-                                {method.icon}
-                              </Avatar>
-                              <Box>
-                                <Typography variant="h6">{method.name}</Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                  {method.description}
-                                </Typography>
-                              </Box>
-                            </Box>
-                            <Button 
-                              variant="contained" 
-                              fullWidth
-                              onClick={() => {
-                                setSelectedService(driverData.services[3]); // Custom fare
-                                setShowPaymentDialog(true);
+                          <CardContent sx={{ textAlign: 'center', p: 3 }}>
+                            <Avatar 
+                              sx={{ 
+                                bgcolor: `${method.color}.50`, 
+                                color: `${method.color}.main`,
+                                width: 60, 
+                                height: 60,
+                                mx: 'auto',
+                                mb: 2
                               }}
+                            >
+                              {method.icon}
+                            </Avatar>
+                            <Typography variant="h6" gutterBottom>
+                              {method.name}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                              {method.id === 'cash' && 'Accept cash payments directly'}
+                              {method.id === 'qr' && 'Customer scans QR code to pay'}
+                              {method.id === 'mobile' && 'Send payment request via mobile'}
+                              {method.id === 'card' && 'Accept card payments'}
+                            </Typography>
+                            <Button 
+                              variant="outlined" 
+                              fullWidth
+                              onClick={() => setShowPaymentDialog(true)}
                             >
                               Use {method.name}
                             </Button>
@@ -694,124 +545,12 @@ const DriverPaymentsPage = () => {
                       </Grid>
                     ))}
                   </Grid>
-
-                  {/* Fleet Information */}
-                  <Card sx={{ mt: 3, bgcolor: 'primary.50' }}>
-                    <CardContent>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Avatar sx={{ bgcolor: 'primary.main' }}>
-                          <Group />
-                        </Avatar>
-                        <Box>
-                          <Typography variant="h6">Fleet: {driverData.fleetId}</Typography>
-                          <Typography variant="body2" color="textSecondary">
-                            You are part of a fleet. Commission and reporting are managed by your fleet operator.
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </CardContent>
-                  </Card>
                 </Box>
               )}
             </CardContent>
           </Card>
         </Grid>
       </Grid>
-
-      {/* Payment Request Dialog */}
-      <Dialog 
-        open={showPaymentDialog} 
-        onClose={() => setShowPaymentDialog(false)} 
-        maxWidth="sm" 
-        fullWidth
-      >
-        <DialogTitle>
-          <Typography variant="h5">Request Payment</Typography>
-        </DialogTitle>
-        <DialogContent dividers>
-          <Grid container spacing={2}>
-            {selectedService && selectedService.id !== 'S4' && (
-              <Grid item xs={12}>
-                <Paper sx={{ p: 2, bgcolor: 'primary.50', textAlign: 'center' }}>
-                  <Typography variant="h6" color="primary.main">
-                    {selectedService.name}
-                  </Typography>
-                  <Typography variant="body2">
-                    {selectedService.description}
-                  </Typography>
-                  <Typography variant="h5" fontWeight="bold" sx={{ mt: 1 }}>
-                    UGX {selectedService.defaultAmount.toLocaleString()}
-                  </Typography>
-                </Paper>
-              </Grid>
-            )}
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Amount (UGX)"
-                type="number"
-                value={paymentAmount}
-                onChange={(e) => setPaymentAmount(e.target.value)}
-                InputProps={{
-                  startAdornment: <Typography sx={{ mr: 1 }}>UGX</Typography>
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Customer Phone (Optional)"
-                value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
-                placeholder="256712345678"
-                helperText="For Mobile Money payments"
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                Payment Method
-              </Typography>
-              <Grid container spacing={1}>
-                {paymentMethods.map((method) => (
-                  <Grid item xs={6} key={method.id}>
-                    <Card 
-                      variant="outlined"
-                      sx={{ 
-                        cursor: 'pointer',
-                        borderColor: 'grey.300',
-                        '&:hover': { borderColor: 'primary.main' }
-                      }}
-                    >
-                      <CardContent sx={{ textAlign: 'center', p: 2 }}>
-                        <Box sx={{ fontSize: 32, color: `${method.color}.main`, mb: 1 }}>
-                          {method.icon}
-                        </Box>
-                        <Typography variant="body2" fontWeight="500">
-                          {method.name}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setShowPaymentDialog(false)}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            onClick={handleRequestPayment}
-            disabled={!paymentAmount}
-            startIcon={<Payment />}
-          >
-            Request Payment
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       {/* QR Code Dialog */}
       <Dialog 
@@ -822,16 +561,16 @@ const DriverPaymentsPage = () => {
       >
         <DialogContent sx={{ textAlign: 'center', py: 4 }}>
           <Typography variant="h5" gutterBottom>
-            Your Payment QR Code
+            Your Payment QR
           </Typography>
-          <Typography variant="body2" color="textSecondary" paragraph>
-            Customers can scan this code to pay any amount
+          <Typography variant="body2" color="text.secondary" paragraph>
+            Customers scan to pay any amount
           </Typography>
           
           <Box 
             sx={{ 
-              width: 250, 
-              height: 250, 
+              width: 200, 
+              height: 200, 
               bgcolor: 'grey.200', 
               mx: 'auto',
               mb: 3,
@@ -841,14 +580,11 @@ const DriverPaymentsPage = () => {
               borderRadius: 2
             }}
           >
-            <QrCode sx={{ fontSize: 120, color: 'grey.600' }} />
+            <QrCode sx={{ fontSize: 100, color: 'grey.600' }} />
           </Box>
           
           <Typography variant="body1" fontWeight="bold" gutterBottom>
-            Driver ID: {driverData.driverId}
-          </Typography>
-          <Typography variant="body2" color="textSecondary">
-            pay.enfuna.com/{driverData.driverId.toLowerCase()}
+            Driver ID: DRV-ENF0125
           </Typography>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
@@ -856,7 +592,39 @@ const DriverPaymentsPage = () => {
             Close
           </Button>
           <Button variant="contained" startIcon={<Share />}>
-            Share QR
+            Share
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Payment Request Dialog */}
+      <Dialog 
+        open={showPaymentDialog} 
+        onClose={() => setShowPaymentDialog(false)} 
+        maxWidth="sm" 
+        fullWidth
+      >
+        <DialogTitle>
+          <Typography variant="h6">Request Payment</Typography>
+        </DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            fullWidth
+            label="Amount (UGX)"
+            type="number"
+            placeholder="0"
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Customer Phone (Optional)"
+            placeholder="256712345678"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowPaymentDialog(false)}>Cancel</Button>
+          <Button variant="contained" startIcon={<Payment />}>
+            Request Payment
           </Button>
         </DialogActions>
       </Dialog>
@@ -864,4 +632,4 @@ const DriverPaymentsPage = () => {
   );
 };
 
-export default DriverPaymentsPage;
+export default SimplePaymentsPage;
