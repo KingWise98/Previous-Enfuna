@@ -20,7 +20,7 @@ const SplashScreen = ({ onGetStarted }) => {
         left: 0,
         width: "100vw",
         height: "100vh",
-        backgroundColor: "#FFFEFE", // Specific background color
+        backgroundColor: "#FFFEFE",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -33,8 +33,8 @@ const SplashScreen = ({ onGetStarted }) => {
       <Typography 
         variant="h6" 
         sx={{ 
-          color: "#4A6FDC", // Light dark blue color
-          mb: 4,
+          color: "#4A6FDC",
+          mb: 1, // Further reduced margin
           textAlign: "center",
           fontWeight: "normal",
           fontSize: "1.25rem",
@@ -46,16 +46,15 @@ const SplashScreen = ({ onGetStarted }) => {
       {/* Logo image */}
       <Box
         component="img"
-        src="/start.png" // Path to your logo in public folder
+        src="/start.png"
         alt="Enfuna Logo"
         sx={{
           width: 500,
           height: 350,
-          mb: 3,
+          mb: 0.5, // Minimal margin to bring elements very close
           objectFit: "contain",
         }}
         onError={(e) => {
-          // Fallback if logo doesn't exist - show placeholder
           e.target.style.display = 'none';
           const fallback = document.getElementById('logo-fallback');
           if (fallback) fallback.style.display = 'flex';
@@ -69,14 +68,14 @@ const SplashScreen = ({ onGetStarted }) => {
           width: 120,
           height: 120,
           backgroundColor: theme.palette.primary.main,
-          color: "#FFFEFE", // Match background color for text
+          color: "#FFFEFE",
           borderRadius: "50%",
-          display: "none", // Hidden by default, shown only if logo fails to load
+          display: "none",
           justifyContent: "center",
           alignItems: "center",
           fontSize: "3rem",
           fontWeight: "bold",
-          mb: 3,
+          mb: 0.5,
         }}
       >
         E
@@ -88,17 +87,20 @@ const SplashScreen = ({ onGetStarted }) => {
         size="large"
         onClick={handleGetStarted}
         sx={{
-          backgroundColor: "#001B98", // Specific blue color for button
+          backgroundColor: "#001B98",
           color: "#FFFFFF",
-          paddingX: 4,
+          paddingX: 6,
           paddingY: 1.5,
-          fontSize: "1.1rem",
+          fontSize: "1rem",
           fontWeight: "bold",
-          borderRadius: 2,
+          borderRadius: 25, // Much larger border radius for curved edges
           minWidth: 200,
-          mt: 4,
+          textTransform: 'none',
+          boxShadow: '0 2px 8px rgba(0, 27, 152, 0.3)',
+          marginTop: 0.5, // Minimal top margin
           '&:hover': {
-            backgroundColor: "#00157A", // Darker shade for hover
+            backgroundColor: "#00157A",
+            boxShadow: '0 4px 12px rgba(0, 27, 152, 0.4)',
           },
         }}
       >
