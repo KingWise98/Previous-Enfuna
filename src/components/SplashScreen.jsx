@@ -34,7 +34,7 @@ const SplashScreen = ({ onGetStarted }) => {
         variant="h6" 
         sx={{ 
           color: "#4A6FDC",
-          mb: 1, // Further reduced margin
+          mb: -1, // Negative margin to pull logo closer
           textAlign: "center",
           fontWeight: "normal",
           fontSize: "1.25rem",
@@ -51,7 +51,7 @@ const SplashScreen = ({ onGetStarted }) => {
         sx={{
           width: 500,
           height: 350,
-          mb: 0.5, // Minimal margin to bring elements very close
+          mb: 0, // No margin
           objectFit: "contain",
         }}
         onError={(e) => {
@@ -75,7 +75,7 @@ const SplashScreen = ({ onGetStarted }) => {
           alignItems: "center",
           fontSize: "3rem",
           fontWeight: "bold",
-          mb: 0.5,
+          mb: 0,
         }}
       >
         E
@@ -93,11 +93,11 @@ const SplashScreen = ({ onGetStarted }) => {
           paddingY: 1.5,
           fontSize: "1rem",
           fontWeight: "bold",
-          borderRadius: 25, // Much larger border radius for curved edges
+          borderRadius: 25,
           minWidth: 200,
           textTransform: 'none',
           boxShadow: '0 2px 8px rgba(0, 27, 152, 0.3)',
-          marginTop: 0.5, // Minimal top margin
+          marginTop: -0.5, // Negative margin to pull button closer to logo
           '&:hover': {
             backgroundColor: "#00157A",
             boxShadow: '0 4px 12px rgba(0, 27, 152, 0.4)',
