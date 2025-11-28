@@ -1,41 +1,24 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Auth.module.css";
-import companyLogo from "./enfuna.png";
-import authImage from "./rides.jpg"; // You'll need to add this image
 
 function Auth({ onLogin }) {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true);
+  const [currentStep, setCurrentStep] = useState(1); // 1: Account Type, 2: Create Account, 3: OTP, 4: Password, 5: Welcome
   const [isLoading, setIsLoading] = useState(false);
-  const [showUserType, setShowUserType] = useState(false);
-  const [userType, setUserType] = useState("");
+  const [selectedAccountType, setSelectedAccountType] = useState("");
   
-  // Combined form values
-  const initialFormValues = {
+  // Form values
+  const [formValues, setFormValues] = useState({
     fullName: "",
-    usernameOrEmail: "",
+    phoneNumber: "",
     password: "",
     confirmPassword: "",
-    userType: "",
-    // Simple business fields (only show for business users)
-    phoneNumber: "",
-    address: "",
-    // Minimal additional fields per user type
-    businessName: "", // for merchant/vendor
-    vehicleType: "", // for rider/driver
-  };
+    otp: "",
+    accountType: ""
+  });
 
-  const [formValues, setFormValues] = useState(initialFormValues);
   const [formErrors, setFormErrors] = useState({});
-  const [isSubmit, setIsSubmit] = useState(false);
-
-  // Super admin credentials
-  const SUPER_ADMIN_CREDENTIALS = {
-    username: "super",
-    email: "admin@efuna.com",
-    password: "enfuna"
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,275 +30,202 @@ function Auth({ onLogin }) {
     }
   };
 
-  const handleUserTypeSelect = (selectedType) => {
-    setUserType(selectedType);
-    setFormValues({ ...formValues, userType: selectedType });
-    setFormErrors({ ...formErrors, userType: "" });
+  const handleAccountTypeSelect = (type) => {
+    setSelectedAccountType(type);
+    setFormValues({ ...formValues, accountType: type });
   };
 
-  const handleBasicInfoSubmit = (e) => {
+  const handleSendCode = (e) => {
     e.preventDefault();
-    const errors = validateBasicInfo(formValues);
-    setFormErrors(errors);
-    
-    if (Object.keys(errors).length === 0) {
-      setShowUserType(true);
-    }
-  };
-
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    const errors = validateLogin(formValues);
-    setFormErrors(errors);
-    setIsSubmit(true);
-    
-    if (Object.keys(errors).length === 0) {
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-        
-        const { usernameOrEmail, password } = formValues;
-        
-        // Check for super admin login
-        if ((usernameOrEmail.toLowerCase() === SUPER_ADMIN_CREDENTIALS.username.toLowerCase() || 
-             usernameOrEmail.toLowerCase() === SUPER_ADMIN_CREDENTIALS.email.toLowerCase()) && 
-             password === SUPER_ADMIN_CREDENTIALS.password) {
-          onLogin("super");
-          return;
-        }
-        
-        // Regular admin login
-        if (usernameOrEmail.toLowerCase() === "admin" && password === "enfuna") {
-          onLogin("admin");
-          return;
-        }
-
-        // Vendor 
-        if (usernameOrEmail.toLowerCase() === "vendor" && password === "vendor") {
-          onLogin("vendor");
-          return;
-        }
-
-        // Driver 
-        if (usernameOrEmail.toLowerCase() === "driver" && password === "driver") {
-          onLogin("driver");
-          return;
-        }
-
-        // Rider 
-        if (usernameOrEmail.toLowerCase() === "rider" && password === "rider") {
-          onLogin("rider");
-          return;
-        }
-        
-        // Normal user login
-        if (usernameOrEmail.toLowerCase() === "normal" && password === "normal") {
-          onLogin("normal");
-          return;
-        }
-
-        // If none matched for login
-        setFormErrors({ auth: "Invalid username or password!" });
-        
-      } catch (error) {
-        setFormErrors({ auth: "An error occurred. Please try again." });
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSignupSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    const errors = validateSignup(formValues);
-    setFormErrors(errors);
-    setIsSubmit(true);
-    
-    if (Object.keys(errors).length === 0) {
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-        
-        // Redirect users based on their selected user type
-        const { userType } = formValues;
-        
-        switch (userType) {
-          case "rider":
-            onLogin("rider");
-            break;
-          case "driver":
-            onLogin("driver");
-            break;
-          case "vendor":
-            onLogin("vendor");
-            break;
-          case "merchant":
-            onLogin("admin"); 
-            break;
-          default:
-            onLogin("normal"); // Fallback for any unexpected user type
-        }
-        
-      } catch (error) {
-        setFormErrors({ auth: "An error occurred. Please try again." });
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      setIsLoading(false);
-    }
-  };
-
-  const validateLogin = (values) => {
     const errors = {};
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
-    const usernameRegex = /^[a-zA-Z0-9_]+$/;
-
-    if (!values.usernameOrEmail) {
-      errors.usernameOrEmail = "Email or Username is required!";
-    } else if (!emailRegex.test(values.usernameOrEmail) && !usernameRegex.test(values.usernameOrEmail)) {
-      errors.usernameOrEmail = "Enter a valid email or username!";
-    }
-
-    if (!values.password) {
-      errors.password = "Password is required";
-    }
-
-    return errors;
-  };
-
-  const validateBasicInfo = (values) => {
-    const errors = {};
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
-    const usernameRegex = /^[a-zA-Z0-9_]+$/;
-
-    if (!values.fullName) {
+    
+    if (!formValues.fullName) {
       errors.fullName = "Full name is required";
     }
-
-    if (!values.usernameOrEmail) {
-      errors.usernameOrEmail = "Email or Username is required!";
-    } else if (!emailRegex.test(values.usernameOrEmail) && !usernameRegex.test(values.usernameOrEmail)) {
-      errors.usernameOrEmail = "Enter a valid email or username!";
+    if (!formValues.phoneNumber) {
+      errors.phoneNumber = "Phone number is required";
     }
+    
+    if (Object.keys(errors).length === 0) {
+      setCurrentStep(3); // Move to OTP step
+    } else {
+      setFormErrors(errors);
+    }
+  };
 
-    if (!values.password) {
+  const handleVerifyCode = (e) => {
+    e.preventDefault();
+    const errors = {};
+    
+    if (!formValues.otp) {
+      errors.otp = "OTP code is required";
+    } else if (formValues.otp.length !== 6) {
+      errors.otp = "OTP must be 6 digits";
+    }
+    
+    if (Object.keys(errors).length === 0) {
+      setCurrentStep(4); // Move to password step
+    } else {
+      setFormErrors(errors);
+    }
+  };
+
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    const errors = {};
+    
+    if (!formValues.password) {
       errors.password = "Password is required";
-    } else if (values.password.length < 5) {
-      errors.password = "Password must be at least 5 characters";
-    } else if (values.password.length > 20) {
-      errors.password = "Password cannot exceed 20 characters";
+    } else if (formValues.password.length < 6) {
+      errors.password = "Password must be at least 6 characters";
     }
-
-    if (!values.confirmPassword) {
+    
+    if (!formValues.confirmPassword) {
       errors.confirmPassword = "Please confirm your password";
-    } else if (values.confirmPassword !== values.password) {
+    } else if (formValues.confirmPassword !== formValues.password) {
       errors.confirmPassword = "Passwords do not match";
     }
-
-    return errors;
+    
+    if (Object.keys(errors).length === 0) {
+      setIsLoading(true);
+      // Simulate API call
+      setTimeout(() => {
+        setIsLoading(false);
+        setCurrentStep(5); // Move to welcome step
+      }, 1000);
+    } else {
+      setFormErrors(errors);
+    }
   };
 
-  const validateSignup = (values) => {
-    const errors = {};
-
-    if (!values.userType) {
-      errors.userType = "Please select your account type";
+  const handleProceedToDashboard = () => {
+    // Determine user role based on account type
+    let userRole = "normal";
+    switch (selectedAccountType) {
+      case "rider":
+        userRole = "rider";
+        break;
+      case "driver":
+        userRole = "driver";
+        break;
+      case "vendor":
+        userRole = "vendor";
+        break;
+      case "business":
+        userRole = "admin";
+        break;
+      default:
+        userRole = "normal";
     }
-
-    // Required fields for all business types
-    if (values.userType) {
-      if (!values.phoneNumber) {
-        errors.phoneNumber = "Phone number is required";
-      }
-      
-      if (!values.address) {
-        errors.address = "Address is required";
-      }
-
-      // User type specific validations
-      if ((values.userType === "merchant" || values.userType === "vendor") && !values.businessName) {
-        errors.businessName = "Business name is required";
-      }
-
-      if ((values.userType === "rider" || values.userType === "driver") && !values.vehicleType) {
-        errors.vehicleType = "Vehicle type is required";
-      }
-    }
-
-    return errors;
+    
+    onLogin(userRole);
   };
 
-  const renderUserTypeSelection = () => (
-    <div className={styles.userTypeSection}>
-      <h3 className={styles.sectionTitle}>Select Account Type</h3>
-      <p className={styles.sectionSubtitle}>Choose how you want to use our platform</p>
-      <div className={styles.userTypeGrid}>
+  // Step 1: Choose Account Type
+  const renderAccountTypeSelection = () => (
+    <div className={styles.authCard}>
+      <div className={styles.logoSection}>
+        <img src="/start.png" alt="Enfuna" className={styles.brandLogo} />
+        <p className={styles.tagline}>Get Digitized.Get Funded.</p>
+      </div>
+
+      <h1 className={styles.authTitle}>Choose Account Type</h1>
+      <p className={styles.sectionSubtitle}>Select an Account to Proceed</p>
+
+      <div className={styles.accountTypeGrid}>
         <button
           type="button"
-          className={`${styles.userTypeButton} ${userType === "merchant" ? styles.selected : ""}`}
-          onClick={() => handleUserTypeSelect("merchant")}
+          className={`${styles.accountTypeButton} ${selectedAccountType === "rider" ? styles.selected : ""}`}
+          onClick={() => handleAccountTypeSelect("rider")}
         >
-          <div className={styles.userTypeIcon}>🏪</div>
-          <span className={styles.userTypeLabel}>Business</span>
-          <span className={styles.userTypeDesc}>Sell products</span>
+          <img src="./Enfuna UI illustrations-08.svg" alt="Rider" className={styles.accountTypeIcon} />
+          <span className={styles.accountTypeLabel}>Rider</span>
         </button>
 
         <button
           type="button"
-          className={`${styles.userTypeButton} ${userType === "vendor" ? styles.selected : ""}`}
-          onClick={() => handleUserTypeSelect("vendor")}
+          className={`${styles.accountTypeButton} ${selectedAccountType === "driver" ? styles.selected : ""}`}
+          onClick={() => handleAccountTypeSelect("driver")}
         >
-          <div className={styles.userTypeIcon}>🛒</div>
-          <span className={styles.userTypeLabel}>Vendor</span>
-          <span className={styles.userTypeDesc}>Supply goods</span>
+          <img src="./svg3" alt="Driver" className={styles.accountTypeIcon} />
+          <span className={styles.accountTypeLabel}>Driver</span>
         </button>
 
         <button
           type="button"
-          className={`${styles.userTypeButton} ${userType === "rider" ? styles.selected : ""}`}
-          onClick={() => handleUserTypeSelect("rider")}
+          className={`${styles.accountTypeButton} ${selectedAccountType === "vendor" ? styles.selected : ""}`}
+          onClick={() => handleAccountTypeSelect("vendor")}
         >
-          <div className={styles.userTypeIcon}>🚴</div>
-          <span className={styles.userTypeLabel}>Rider</span>
-          <span className={styles.userTypeDesc}>Package delivery</span>
+          <img src="./svg4" alt="Vendor" className={styles.accountTypeIcon} />
+          <span className={styles.accountTypeLabel}>Vendor</span>
         </button>
 
         <button
           type="button"
-          className={`${styles.userTypeButton} ${userType === "driver" ? styles.selected : ""}`}
-          onClick={() => handleUserTypeSelect("driver")}
+          className={`${styles.accountTypeButton} ${selectedAccountType === "business" ? styles.selected : ""}`}
+          onClick={() => handleAccountTypeSelect("business")}
         >
-          <div className={styles.userTypeIcon}>🚕</div>
-          <span className={styles.userTypeLabel}>Driver</span>
-          <span className={styles.userTypeDesc}>Transport services</span>
+          <img src="./svg5" alt="Business" className={styles.accountTypeIcon} />
+          <span className={styles.accountTypeLabel}>Business</span>
         </button>
       </div>
-      {formErrors.userType && (
-        <p className={styles.errorText}>{formErrors.userType}</p>
-      )}
+
+      <div className={styles.authLinks}>
+        <p>Already have an account already? <button type="button" className={styles.linkButton}>Login</button></p>
+      </div>
+
+      <div className={styles.buttonGroup}>
+        <button type="button" className={styles.secondaryButton}>Back</button>
+        <button 
+          type="button" 
+          className={styles.primaryButton}
+          onClick={() => setCurrentStep(2)}
+          disabled={!selectedAccountType}
+        >
+          Continue
+        </button>
+      </div>
     </div>
   );
 
-  const renderAdditionalFields = () => {
-    if (!userType) return null;
+  // Step 2: Create Account
+  const renderCreateAccount = () => (
+    <div className={styles.authCard}>
+      <div className={styles.logoSection}>
+        <img src="/start.png" alt="Enfuna" className={styles.brandLogo} />
+        <p className={styles.tagline}>Get Digitized.Get Funded.</p>
+      </div>
 
-    return (
-      <div className={styles.additionalFields}>
-        <h4 className={styles.sectionTitle}>Additional Information</h4>
-        
-        {/* Common fields for all business users */}
+      <h1 className={styles.authTitle}>Create Enfuna Account</h1>
+
+      <form onSubmit={handleSendCode} className={styles.authForm}>
+        <div className={`${styles.formGroup} ${formErrors.fullName ? styles.error : ""}`}>
+          <label htmlFor="fullName" className={styles.inputLabel}>
+            Full Names:
+          </label>
+          <input
+            type="text"
+            id="fullName"
+            name="fullName"
+            placeholder="Enter your full name"
+            value={formValues.fullName}
+            onChange={handleChange}
+            className={styles.inputField}
+          />
+          {formErrors.fullName && (
+            <p className={styles.errorText}>{formErrors.fullName}</p>
+          )}
+        </div>
+
         <div className={`${styles.formGroup} ${formErrors.phoneNumber ? styles.error : ""}`}>
           <label htmlFor="phoneNumber" className={styles.inputLabel}>
-            Phone Number *
+            Phone Number:
           </label>
           <input
             type="tel"
             id="phoneNumber"
             name="phoneNumber"
-            placeholder="Your contact number"
+            placeholder="Enter your phone number"
             value={formValues.phoneNumber}
             onChange={handleChange}
             className={styles.inputField}
@@ -325,383 +235,166 @@ function Auth({ onLogin }) {
           )}
         </div>
 
-        <div className={`${styles.formGroup} ${formErrors.address ? styles.error : ""}`}>
-          <label htmlFor="address" className={styles.inputLabel}>
-            {userType === "rider" || userType === "driver" ? "Home Address" : "Business Address"} *
-          </label>
+        <button type="submit" className={styles.primaryButton}>
+          Send Code
+        </button>
+      </form>
+
+      <div className={styles.buttonGroup}>
+        <button 
+          type="button" 
+          className={styles.secondaryButton}
+          onClick={() => setCurrentStep(1)}
+        >
+          Back
+        </button>
+        <button type="button" className={styles.secondaryButton}>Cancel</button>
+      </div>
+    </div>
+  );
+
+  // Step 3: OTP Verification
+  const renderOTPVerification = () => (
+    <div className={styles.authCard}>
+      <div className={styles.logoSection}>
+        <img src="/start.png" alt="Enfuna" className={styles.brandLogo} />
+        <p className={styles.tagline}>Get Digitized. Get Funded.</p>
+      </div>
+
+      <h1 className={styles.authTitle}>Enter OTP Code</h1>
+
+      <form onSubmit={handleVerifyCode} className={styles.authForm}>
+        <div className={`${styles.formGroup} ${formErrors.otp ? styles.error : ""}`}>
           <input
             type="text"
-            id="address"
-            name="address"
-            placeholder={userType === "rider" || userType === "driver" ? "Your home address" : "Business address"}
-            value={formValues.address}
+            id="otp"
+            name="otp"
+            placeholder="Enter 6-digit code"
+            value={formValues.otp}
             onChange={handleChange}
             className={styles.inputField}
+            maxLength={6}
           />
-          {formErrors.address && (
-            <p className={styles.errorText}>{formErrors.address}</p>
+          {formErrors.otp && (
+            <p className={styles.errorText}>{formErrors.otp}</p>
           )}
         </div>
 
-        {/* Merchant/Vendor specific field */}
-        {(userType === "merchant" || userType === "vendor") && (
-          <div className={`${styles.formGroup} ${formErrors.businessName ? styles.error : ""}`}>
-            <label htmlFor="businessName" className={styles.inputLabel}>
-              Business Name *
-            </label>
-            <input
-              type="text"
-              id="businessName"
-              name="businessName"
-              placeholder="Your business name"
-              value={formValues.businessName}
-              onChange={handleChange}
-              className={styles.inputField}
-            />
-            {formErrors.businessName && (
-              <p className={styles.errorText}>{formErrors.businessName}</p>
-            )}
-          </div>
-        )}
+        <button type="submit" className={styles.primaryButton}>
+          Verify Code
+        </button>
+      </form>
 
-        {/* Rider/Driver specific field */}
-        {(userType === "rider" || userType === "driver") && (
-          <div className={`${styles.formGroup} ${formErrors.vehicleType ? styles.error : ""}`}>
-            <label htmlFor="vehicleType" className={styles.inputLabel}>
-              Vehicle Type *
-            </label>
-            <select
-              id="vehicleType"
-              name="vehicleType"
-              value={formValues.vehicleType}
-              onChange={handleChange}
-              className={styles.inputField}
-            >
-              <option value="">Select vehicle type</option>
-              {userType === "rider" && (
-                <>
-                  <option value="motorcycle">Motorcycle</option>
-                  <option value="bicycle">Bicycle</option>
-                  <option value="scooter">Scooter</option>
-                </>
-              )}
-              {userType === "driver" && (
-                <>
-                  <option value="sedan">Sedan</option>
-                  <option value="suv">SUV</option>
-                  <option value="minivan">Minivan</option>
-                  <option value="bus">Bus</option>
-                </>
-              )}
-            </select>
-            {formErrors.vehicleType && (
-              <p className={styles.errorText}>{formErrors.vehicleType}</p>
-            )}
-          </div>
-        )}
+      <div className={styles.authLinks}>
+        <p>Didn't Receive Code? <button type="button" className={styles.linkButton}>Resend Code</button></p>
       </div>
-    );
+    </div>
+  );
+
+  // Step 4: Password Creation
+  const renderPasswordCreation = () => (
+    <div className={styles.authCard}>
+      <div className={styles.logoSection}>
+        <img src="/start.png" alt="Enfuna" className={styles.brandLogo} />
+        <p className={styles.tagline}>Get Digitized. Get Funded.</p>
+      </div>
+
+      <h1 className={styles.authTitle}>Enter Password</h1>
+
+      <form onSubmit={handlePasswordSubmit} className={styles.authForm}>
+        <div className={`${styles.formGroup} ${formErrors.password ? styles.error : ""}`}>
+          <label htmlFor="password" className={styles.inputLabel}>
+            Password:
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            value={formValues.password}
+            onChange={handleChange}
+            className={styles.inputField}
+          />
+          {formErrors.password && (
+            <p className={styles.errorText}>{formErrors.password}</p>
+          )}
+        </div>
+
+        <div className={`${styles.formGroup} ${formErrors.confirmPassword ? styles.error : ""}`}>
+          <label htmlFor="confirmPassword" className={styles.inputLabel}>
+            Confirm Password:
+          </label>
+          <input
+            type="password"
+            id="confirmPassword"
+            name="confirmPassword"
+            placeholder="Confirm your password"
+            value={formValues.confirmPassword}
+            onChange={handleChange}
+            className={styles.inputField}
+          />
+          {formErrors.confirmPassword && (
+            <p className={styles.errorText}>{formErrors.confirmPassword}</p>
+          )}
+        </div>
+
+        <button type="submit" className={styles.primaryButton} disabled={isLoading}>
+          {isLoading ? "Processing..." : "Continue"}
+        </button>
+      </form>
+
+      <div className={styles.authLinks}>
+        <p>Already have an account? <button type="button" className={styles.linkButton}>Login</button></p>
+      </div>
+    </div>
+  );
+
+  // Step 5: Welcome Screen
+  const renderWelcomeScreen = () => (
+    <div className={styles.authCard}>
+      <div className={styles.logoSection}>
+        <img src="/start.png" alt="Enfuna" className={styles.brandLogo} />
+        <p className={styles.tagline}>Get Digitized.Get Funded.</p>
+      </div>
+
+      <div className={styles.welcomeContent}>
+        <h1 className={styles.welcomeTitle}>Hi {formValues.fullName || "User"}, You're in!</h1>
+        <p className={styles.welcomeMessage}>Welcome to your {selectedAccountType} dashboard</p>
+        
+        <button 
+          type="button" 
+          className={styles.primaryButton}
+          onClick={handleProceedToDashboard}
+        >
+          Proceed to Dashboard
+        </button>
+      </div>
+    </div>
+  );
+
+  // Render current step
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 1:
+        return renderAccountTypeSelection();
+      case 2:
+        return renderCreateAccount();
+      case 3:
+        return renderOTPVerification();
+      case 4:
+        return renderPasswordCreation();
+      case 5:
+        return renderWelcomeScreen();
+      default:
+        return renderAccountTypeSelection();
+    }
   };
-
-  const renderBasicInfoForm = () => (
-    <form onSubmit={handleBasicInfoSubmit} className={styles.authForm}>
-      <h1 className={styles.authTitle}>Create Account</h1>
-      <p className={styles.authSubtitle}>
-        Get started with your account
-      </p>
-
-      <div className={`${styles.formGroup} ${formErrors.fullName ? styles.error : ""}`}>
-        <label htmlFor="fullName" className={styles.inputLabel}>
-          Full Name
-        </label>
-        <input
-          type="text"
-          id="fullName"
-          name="fullName"
-          placeholder="Enter your full name"
-          value={formValues.fullName}
-          onChange={handleChange}
-          className={styles.inputField}
-        />
-        {formErrors.fullName && (
-          <p className={styles.errorText}>{formErrors.fullName}</p>
-        )}
-      </div>
-
-      <div className={`${styles.formGroup} ${formErrors.usernameOrEmail ? styles.error : ""}`}>
-        <label htmlFor="usernameOrEmail" className={styles.inputLabel}>
-          Email or Username
-        </label>
-        <input
-          type="text"
-          id="usernameOrEmail"
-          name="usernameOrEmail"
-          placeholder="Enter your email or username"
-          value={formValues.usernameOrEmail}
-          onChange={handleChange}
-          className={styles.inputField}
-        />
-        {formErrors.usernameOrEmail && (
-          <p className={styles.errorText}>{formErrors.usernameOrEmail}</p>
-        )}
-      </div>
-
-      <div className={`${styles.formGroup} ${formErrors.password ? styles.error : ""}`}>
-        <label htmlFor="password" className={styles.inputLabel}>
-          Password
-        </label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="Enter your password"
-          value={formValues.password}
-          onChange={handleChange}
-          className={styles.inputField}
-        />
-        {formErrors.password && (
-          <p className={styles.errorText}>{formErrors.password}</p>
-        )}
-      </div>
-
-      <div className={`${styles.formGroup} ${formErrors.confirmPassword ? styles.error : ""}`}>
-        <label htmlFor="confirmPassword" className={styles.inputLabel}>
-          Confirm Password
-        </label>
-        <input
-          type="password"
-          id="confirmPassword"
-          name="confirmPassword"
-          placeholder="Confirm your password"
-          value={formValues.confirmPassword}
-          onChange={handleChange}
-          className={styles.inputField}
-        />
-        {formErrors.confirmPassword && (
-          <p className={styles.errorText}>{formErrors.confirmPassword}</p>
-        )}
-      </div>
-
-      <button
-        type="submit"
-        className={styles.submitButton}
-      >
-        Continue
-      </button>
-
-      <div className={styles.authToggle}>
-        Already have an account?{" "}
-        <button
-          type="button"
-          className={styles.toggleButton}
-          onClick={() => {
-            setIsLogin(true);
-            setFormErrors({});
-            setUserType("");
-            setFormValues(initialFormValues);
-          }}
-        >
-          Sign In
-        </button>
-      </div>
-    </form>
-  );
-
-  const renderUserTypeForm = () => (
-    <form onSubmit={handleSignupSubmit} className={styles.authForm}>
-      <div className={styles.formHeader}>
-        <button
-          type="button"
-          className={styles.backButton}
-          onClick={() => setShowUserType(false)}
-        >
-          ← Back
-        </button>
-        <h1 className={styles.authTitle}>Choose Account Type</h1>
-      </div>
-      
-      {renderUserTypeSelection()}
-      {renderAdditionalFields()}
-
-      <button
-        type="submit"
-        className={styles.submitButton}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <span className={styles.spinner}></span>
-        ) : (
-          "Create Account"
-        )}
-      </button>
-
-      {formErrors.auth && (
-        <div className={styles.authError}>
-          <p>{formErrors.auth}</p>
-        </div>
-      )}
-    </form>
-  );
-
-  const renderLoginForm = () => (
-    <form onSubmit={handleLoginSubmit} className={styles.authForm}>
-      
-      <h1 className={styles.authTitle}>Welcome Back To Enfuna</h1>
-      
-      <p className={styles.authSubtitle}>
-        Sign in to your account
-      </p>
-
-      <div className={`${styles.formGroup} ${formErrors.usernameOrEmail ? styles.error : ""}`}>
-        <label htmlFor="usernameOrEmail" className={styles.inputLabel}>
-          Email or Username
-        </label>
-        <input
-          type="text"
-          id="usernameOrEmail"
-          name="usernameOrEmail"
-          placeholder="Enter your email or username"
-          value={formValues.usernameOrEmail}
-          onChange={handleChange}
-          className={styles.inputField}
-        />
-        {formErrors.usernameOrEmail && (
-          <p className={styles.errorText}>{formErrors.usernameOrEmail}</p>
-        )}
-      </div>
-
-      <div className={`${styles.formGroup} ${formErrors.password ? styles.error : ""}`}>
-        <label htmlFor="password" className={styles.inputLabel}>
-          Password
-        </label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="Enter your password"
-          value={formValues.password}
-          onChange={handleChange}
-          className={styles.inputField}
-        />
-        {formErrors.password && (
-          <p className={styles.errorText}>{formErrors.password}</p>
-        )}
-      </div>
-
-      <div className={styles.forgotPassword}>
-        <button
-          type="button"
-          className={styles.forgotPasswordButton}
-          onClick={() => navigate("/forgot-password")}
-        >
-          Forgot password?
-        </button>
-      </div>
-
-      <button
-        type="submit"
-        className={styles.submitButton}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <span className={styles.spinner}></span>
-        ) : (
-          "Sign In"
-        )}
-      </button>
-
-      {formErrors.auth && (
-        <div className={styles.authError}>
-          <p>{formErrors.auth}</p>
-        </div>
-      )}
-
-      <div className={styles.authToggle}>
-        Don't have an account?{" "}
-        <button
-          type="button"
-          className={styles.toggleButton}
-          onClick={() => {
-            setIsLogin(false);
-            setFormErrors({});
-            setUserType("");
-            setFormValues(initialFormValues);
-            setShowUserType(false);
-          }}
-        >
-          Sign Up
-        </button>
-      </div>
-
-      {/* Login Passwords*/}
-      {process.env.NODE_ENV === "development" && (
-        <div className={styles.devHint}>
-          <p>Super Admin: super / enfuna</p>
-          <p>Admin: admin / enfuna</p>
-          <p>Normal User: normal / normal</p>
-          <p>Vendor User: vendor / vendor</p>
-          <p>Driver User: driver / driver</p>
-          <p>Rider User: rider / rider</p>
-        </div>
-      )}
-    </form>
-  );
 
   return (
     <div className={styles.authContainer}>
       <div className={styles.authLayout}>
-        {/* Left Side - Form */}
         <div className={styles.authFormContainer}>
-          <div className={styles.authCard}>
-            <div className={styles.logoContainer}>
-              <img src={companyLogo} alt="Company Logo" className={styles.logo} />
-            </div>
-
-            {Object.keys(formErrors).length === 0 && isSubmit && (
-              <div className={styles.successMessage}>
-                {isLogin ? "Logged in successfully" : "Account created successfully"}
-              </div>
-            )}
-
-            {isLogin ? renderLoginForm() : (
-              showUserType ? renderUserTypeForm() : renderBasicInfoForm()
-            )}
-          </div>
-        </div>
-
-        {/* Right Side - Image */}
-        <div className={styles.authImageContainer}>
-          <div className={styles.imageContent}>
-            <img 
-              src={authImage} 
-              alt="Authentication" 
-              className={styles.authImage}
-              onError={(e) => {
-                // Fallback if image doesn't exist - create a gradient background
-                e.target.style.display = 'none';
-                e.target.parentElement.innerHTML = `
-                  <div style="
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                    color: white;
-                    padding: 2rem;
-                    text-align: center;
-                  ">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
-                    <h2 style="font-size: 1.5rem; margin-bottom: 1rem; font-weight: bold;">Welcome to Enfuna</h2>
-                    <p style="font-size: 1rem; opacity: 0.9; max-width: 300px;">
-                      Join thousands of users managing their business efficiently
-                    </p>
-                  </div>
-                `;
-              }}
-            />
-          </div>
+          {renderCurrentStep()}
         </div>
       </div>
     </div>
