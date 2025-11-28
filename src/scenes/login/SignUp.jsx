@@ -4,7 +4,7 @@ import styles from "./Auth.module.css";
 
 function Auth({ onLogin }) {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(1); // 1: Account Type, 2: Create Account, 3: OTP, 4: Password, 5: Welcome
+  const [currentStep, setCurrentStep] = useState(1); // 1: Login, 2: Account Type, 3: Create Account, 4: OTP, 5: Password, 6: Welcome
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAccountType, setSelectedAccountType] = useState("");
   
@@ -15,7 +15,9 @@ function Auth({ onLogin }) {
     password: "",
     confirmPassword: "",
     otp: "",
-    accountType: ""
+    accountType: "",
+    usernameOrEmail: "",
+    loginPassword: ""
   });
 
   const [formErrors, setFormErrors] = useState({});
@@ -47,7 +49,7 @@ function Auth({ onLogin }) {
     }
     
     if (Object.keys(errors).length === 0) {
-      setCurrentStep(3); // Move to OTP step
+      setCurrentStep(4); // Move to OTP step
     } else {
       setFormErrors(errors);
     }
@@ -64,7 +66,7 @@ function Auth({ onLogin }) {
     }
     
     if (Object.keys(errors).length === 0) {
-      setCurrentStep(4); // Move to password step
+      setCurrentStep(5); // Move to password step
     } else {
       setFormErrors(errors);
     }
@@ -91,7 +93,51 @@ function Auth({ onLogin }) {
       // Simulate API call
       setTimeout(() => {
         setIsLoading(false);
-        setCurrentStep(5); // Move to welcome step
+        setCurrentStep(6); // Move to welcome step
+      }, 1000);
+    } else {
+      setFormErrors(errors);
+    }
+  };
+
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    const errors = {};
+    
+    if (!formValues.usernameOrEmail) {
+      errors.usernameOrEmail = "Username or email is required";
+    }
+    if (!formValues.loginPassword) {
+      errors.loginPassword = "Password is required";
+    }
+    
+    if (Object.keys(errors).length === 0) {
+      setIsLoading(true);
+      // Simulate API call
+      setTimeout(() => {
+        setIsLoading(false);
+        
+        // Determine user role based on login credentials
+        let userRole = "normal";
+        const { usernameOrEmail, loginPassword } = formValues;
+        
+        // Simple credential check
+        if (usernameOrEmail.toLowerCase().includes("rider") && loginPassword === "password") {
+          userRole = "rider";
+        } else if (usernameOrEmail.toLowerCase().includes("driver") && loginPassword === "password") {
+          userRole = "driver";
+        } else if (usernameOrEmail.toLowerCase().includes("vendor") && loginPassword === "password") {
+          userRole = "vendor";
+        } else if (usernameOrEmail.toLowerCase().includes("business") && loginPassword === "password") {
+          userRole = "admin";
+        } else if (usernameOrEmail.toLowerCase().includes("admin") && loginPassword === "password") {
+          userRole = "admin";
+        } else {
+          // Default login for demo
+          userRole = "rider";
+        }
+        
+        onLogin(userRole);
       }, 1000);
     } else {
       setFormErrors(errors);
@@ -121,65 +167,149 @@ function Auth({ onLogin }) {
     onLogin(userRole);
   };
 
-  // Step 1: Choose Account Type
+  const getAccountTypeBackground = (type) => {
+    switch (type) {
+      case "rider":
+      case "business":
+        return "#FDEA02"; // Yellow background
+      case "driver":
+      case "vendor":
+        return "#0125DC"; // Blue background
+      default:
+        return "#f5f5f5";
+    }
+  };
+
+  // Step 1: Login Form
+  const renderLoginForm = () => (
+    <div className={styles.authCard}>
+      <div className={styles.logoSection}>
+        <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
+        <p className={styles.tagline}>Get Digitized.Get Funded.</p>
+      </div>
+
+      <h1 className={styles.authTitle}>Login to Enfuna</h1>
+
+      <form onSubmit={handleLoginSubmit} className={styles.authForm}>
+        <div className={`${styles.formGroup} ${formErrors.usernameOrEmail ? styles.error : ""}`}>
+          <label htmlFor="usernameOrEmail" className={styles.inputLabel}>
+            Username or Email:
+          </label>
+          <input
+            type="text"
+            id="usernameOrEmail"
+            name="usernameOrEmail"
+            placeholder="Enter your username or email"
+            value={formValues.usernameOrEmail}
+            onChange={handleChange}
+            className={styles.inputField}
+          />
+          {formErrors.usernameOrEmail && (
+            <p className={styles.errorText}>{formErrors.usernameOrEmail}</p>
+          )}
+        </div>
+
+        <div className={`${styles.formGroup} ${formErrors.loginPassword ? styles.error : ""}`}>
+          <label htmlFor="loginPassword" className={styles.inputLabel}>
+            Password:
+          </label>
+          <input
+            type="password"
+            id="loginPassword"
+            name="loginPassword"
+            placeholder="Enter your password"
+            value={formValues.loginPassword}
+            onChange={handleChange}
+            className={styles.inputField}
+          />
+          {formErrors.loginPassword && (
+            <p className={styles.errorText}>{formErrors.loginPassword}</p>
+          )}
+        </div>
+
+        <button type="submit" className={styles.primaryButton} disabled={isLoading}>
+          {isLoading ? "Signing In..." : "Sign In"}
+        </button>
+      </form>
+
+      <div className={styles.authLinks}>
+        <p>Don't have an account? <button 
+          type="button" 
+          className={styles.linkButton}
+          onClick={() => setCurrentStep(2)}
+        >Sign Up</button></p>
+      </div>
+
+      <div className={styles.devHint}>
+        <p><strong>Demo Credentials:</strong></p>
+        <p>Username: rider, driver, vendor, business</p>
+        <p>Password: password</p>
+      </div>
+    </div>
+  );
+
+  // Step 2: Choose Account Type
   const renderAccountTypeSelection = () => (
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogo} />
-        <p className={styles.tagline}>Get Digitized.Get Funded.</p>
       </div>
 
       <h1 className={styles.authTitle}>Choose Account Type</h1>
       <p className={styles.sectionSubtitle}>Select an Account to Proceed</p>
 
       <div className={styles.accountTypeGrid}>
-        <button
-          type="button"
-          className={`${styles.accountTypeButton} ${selectedAccountType === "rider" ? styles.selected : ""}`}
-          onClick={() => handleAccountTypeSelect("rider")}
-        >
-          <img src="./Enfuna UI illustrations-08.svg" alt="Rider" className={styles.accountTypeIcon} />
-          <span className={styles.accountTypeLabel}>Rider</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.accountTypeButton} ${selectedAccountType === "driver" ? styles.selected : ""}`}
-          onClick={() => handleAccountTypeSelect("driver")}
-        >
-          <img src="./svg3" alt="Driver" className={styles.accountTypeIcon} />
-          <span className={styles.accountTypeLabel}>Driver</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.accountTypeButton} ${selectedAccountType === "vendor" ? styles.selected : ""}`}
-          onClick={() => handleAccountTypeSelect("vendor")}
-        >
-          <img src="./svg4" alt="Vendor" className={styles.accountTypeIcon} />
-          <span className={styles.accountTypeLabel}>Vendor</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.accountTypeButton} ${selectedAccountType === "business" ? styles.selected : ""}`}
-          onClick={() => handleAccountTypeSelect("business")}
-        >
-          <img src="./svg5" alt="Business" className={styles.accountTypeIcon} />
-          <span className={styles.accountTypeLabel}>Business</span>
-        </button>
+        {["rider", "driver", "vendor", "business"].map((type) => (
+          <button
+            key={type}
+            type="button"
+            className={`${styles.accountTypeButton} ${selectedAccountType === type ? styles.selected : ""}`}
+            onClick={() => handleAccountTypeSelect(type)}
+          >
+            <div 
+              className={styles.accountTypeIconContainer}
+              style={{ backgroundColor: getAccountTypeBackground(type) }}
+            >
+              <img 
+                src={`/${type}.svg`} 
+                alt={type} 
+                className={styles.accountTypeIcon}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+              <div className={styles.fallbackIcon} style={{ display: 'none' }}>
+                {type.charAt(0).toUpperCase()}
+              </div>
+            </div>
+            <span className={styles.accountTypeLabel}>
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </span>
+          </button>
+        ))}
       </div>
 
       <div className={styles.authLinks}>
-        <p>Already have an account already? <button type="button" className={styles.linkButton}>Login</button></p>
+        <p>Already have an account already? <button 
+          type="button" 
+          className={styles.linkButton}
+          onClick={() => setCurrentStep(1)}
+        >Login</button></p>
       </div>
 
       <div className={styles.buttonGroup}>
-        <button type="button" className={styles.secondaryButton}>Back</button>
+        <button 
+          type="button" 
+          className={styles.secondaryButton}
+          onClick={() => setCurrentStep(1)}
+        >
+          Back
+        </button>
         <button 
           type="button" 
           className={styles.primaryButton}
-          onClick={() => setCurrentStep(2)}
+          onClick={() => setCurrentStep(3)}
           disabled={!selectedAccountType}
         >
           Continue
@@ -188,11 +318,11 @@ function Auth({ onLogin }) {
     </div>
   );
 
-  // Step 2: Create Account
+  // Step 3: Create Account
   const renderCreateAccount = () => (
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
-        <img src="/start.png" alt="Enfuna" className={styles.brandLogo} />
+        <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
         <p className={styles.tagline}>Get Digitized.Get Funded.</p>
       </div>
 
@@ -244,20 +374,26 @@ function Auth({ onLogin }) {
         <button 
           type="button" 
           className={styles.secondaryButton}
-          onClick={() => setCurrentStep(1)}
+          onClick={() => setCurrentStep(2)}
         >
           Back
         </button>
-        <button type="button" className={styles.secondaryButton}>Cancel</button>
+        <button 
+          type="button" 
+          className={styles.secondaryButton}
+          onClick={() => setCurrentStep(1)}
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );
 
-  // Step 3: OTP Verification
+  // Step 4: OTP Verification
   const renderOTPVerification = () => (
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
-        <img src="/start.png" alt="Enfuna" className={styles.brandLogo} />
+        <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
         <p className={styles.tagline}>Get Digitized. Get Funded.</p>
       </div>
 
@@ -291,11 +427,11 @@ function Auth({ onLogin }) {
     </div>
   );
 
-  // Step 4: Password Creation
+  // Step 5: Password Creation
   const renderPasswordCreation = () => (
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
-        <img src="/start.png" alt="Enfuna" className={styles.brandLogo} />
+        <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
         <p className={styles.tagline}>Get Digitized. Get Funded.</p>
       </div>
 
@@ -344,16 +480,20 @@ function Auth({ onLogin }) {
       </form>
 
       <div className={styles.authLinks}>
-        <p>Already have an account? <button type="button" className={styles.linkButton}>Login</button></p>
+        <p>Already have an account? <button 
+          type="button" 
+          className={styles.linkButton}
+          onClick={() => setCurrentStep(1)}
+        >Login</button></p>
       </div>
     </div>
   );
 
-  // Step 5: Welcome Screen
+  // Step 6: Welcome Screen
   const renderWelcomeScreen = () => (
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
-        <img src="/start.png" alt="Enfuna" className={styles.brandLogo} />
+        <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
         <p className={styles.tagline}>Get Digitized.Get Funded.</p>
       </div>
 
@@ -376,17 +516,19 @@ function Auth({ onLogin }) {
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 1:
-        return renderAccountTypeSelection();
+        return renderLoginForm();
       case 2:
-        return renderCreateAccount();
+        return renderAccountTypeSelection();
       case 3:
-        return renderOTPVerification();
+        return renderCreateAccount();
       case 4:
-        return renderPasswordCreation();
+        return renderOTPVerification();
       case 5:
+        return renderPasswordCreation();
+      case 6:
         return renderWelcomeScreen();
       default:
-        return renderAccountTypeSelection();
+        return renderLoginForm();
     }
   };
 

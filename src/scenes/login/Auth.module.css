@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 1rem;
 }
 
 .authLayout {
@@ -24,11 +24,11 @@
 
 .authCard {
   background: white;
-  padding: 3rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 500px;
+  max-width: 480px;
   text-align: center;
 }
 
@@ -37,72 +37,104 @@
 }
 
 .brandLogo {
-  width: 120px;
+  width: 180px;
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.brandLogoLarge {
+  width: 220px;
   height: auto;
   margin-bottom: 1rem;
 }
 
 .tagline {
-  color: #666;
-  font-size: 0.9rem;
+  color: #0125DC;
+  font-size: 1rem;
+  font-weight: 500;
   margin: 0;
 }
 
 .authTitle {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: bold;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: #0125DC;
 }
 
 .sectionSubtitle {
   color: #666;
   margin-bottom: 2rem;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .accountTypeGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
 .accountTypeButton {
   background: white;
   border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 16px;
   padding: 1.5rem 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
+  min-height: 160px;
+  position: relative;
+  overflow: hidden;
 }
 
 .accountTypeButton:hover {
-  border-color: #001B98;
+  border-color: #0125DC;
+  transform: translateY(-2px);
 }
 
 .accountTypeButton.selected {
-  border-color: #001B98;
-  background: #f0f4ff;
+  border-color: #0125DC;
+  transform: translateY(-2px);
+}
+
+.accountTypeIconContainer {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  transition: all 0.3s ease;
 }
 
 .accountTypeIcon {
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 60px;
   object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.fallbackIcon {
+  font-size: 2rem;
+  font-weight: bold;
+  color: white;
 }
 
 .accountTypeLabel {
-  font-weight: 600;
-  color: #333;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #0125DC;
+  text-transform: capitalize;
 }
 
 .authForm {
   text-align: left;
+  margin-top: 1.5rem;
 }
 
 .formGroup {
@@ -113,82 +145,110 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #333;
+  color: #0125DC;
+  font-size: 0.95rem;
 }
 
 .inputField {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
   font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #fafafa;
 }
 
 .inputField:focus {
   outline: none;
-  border-color: #001B98;
+  border-color: #0125DC;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(1, 37, 220, 0.1);
 }
 
 .formGroup.error .inputField {
   border-color: #e74c3c;
+  background: #fef7f7;
 }
 
 .errorText {
   color: #e74c3c;
   font-size: 0.8rem;
   margin-top: 0.25rem;
+  font-weight: 500;
 }
 
 .primaryButton {
-  background: #001B98;
+  background: #0125DC;
   color: white;
   border: none;
-  padding: 0.75rem 2rem;
+  padding: 1rem 2rem;
   border-radius: 25px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   width: 100%;
   margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  text-transform: none;
 }
 
 .primaryButton:hover {
-  background: #00157A;
+  background: #001B98;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(1, 37, 220, 0.3);
 }
 
 .primaryButton:disabled {
   background: #ccc;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .secondaryButton {
   background: transparent;
   color: #666;
-  border: 1px solid #ddd;
-  padding: 0.75rem 2rem;
+  border: 2px solid #ddd;
+  padding: 0.875rem 2rem;
   border-radius: 25px;
   font-size: 1rem;
   cursor: pointer;
   flex: 1;
+  transition: all 0.3s ease;
+  text-transform: none;
+}
+
+.secondaryButton:hover {
+  border-color: #0125DC;
+  color: #0125DC;
+  background: #f8f9ff;
 }
 
 .buttonGroup {
   display: flex;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
 .authLinks {
   margin-top: 1.5rem;
   font-size: 0.9rem;
+  color: #666;
 }
 
 .linkButton {
   background: none;
   border: none;
-  color: #001B98;
+  color: #0125DC;
   text-decoration: underline;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.linkButton:hover {
+  color: #001B98;
 }
 
 .welcomeContent {
@@ -196,13 +256,97 @@
 }
 
 .welcomeTitle {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: bold;
   margin-bottom: 1rem;
-  color: #333;
+  color: #0125DC;
 }
 
 .welcomeMessage {
   color: #666;
   margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.devHint {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #0125DC;
+  text-align: left;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.devHint p {
+  margin: 0.25rem 0;
+}
+
+.devHint strong {
+  color: #0125DC;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .authCard {
+    padding: 2rem 1.5rem;
+    margin: 1rem;
+  }
+
+  .accountTypeGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .accountTypeButton {
+    min-height: 140px;
+    padding: 1.25rem 1rem;
+  }
+
+  .accountTypeIconContainer {
+    width: 80px;
+    height: 80px;
+  }
+
+  .accountTypeIcon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .brandLogo {
+    width: 160px;
+  }
+
+  .brandLogoLarge {
+    width: 200px;
+  }
+
+  .authTitle {
+    font-size: 1.5rem;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .authContainer {
+    padding: 0.5rem;
+  }
+
+  .authCard {
+    padding: 1.5rem 1rem;
+  }
+
+  .accountTypeIconContainer {
+    width: 70px;
+    height: 70px;
+  }
+
+  .accountTypeIcon {
+    width: 45px;
+    height: 45px;
+  }
 }
