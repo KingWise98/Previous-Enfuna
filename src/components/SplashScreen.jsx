@@ -95,7 +95,7 @@ const SplashScreen = ({ onGetStarted }) => {
           fontSize: "1.1rem",
           fontWeight: "bold",
           borderRadius: 2,
-          minWidth: 100,
+          minWidth: 200,
           mt: 4,
           '&:hover': {
             backgroundColor: "#00157A", // Darker shade for hover
