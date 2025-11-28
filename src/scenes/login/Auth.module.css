@@ -32,17 +32,17 @@
 }
 
 .brandLogoLarge {
-  height: 190px;
+  height: 60px;
   width: auto;
 }
 
 .brandLogoMedium {
-  height: 190px;
+  height: 48px;
   width: auto;
 }
 
 .brandLogo {
-  height: 190px;
+  height: 40px;
   width: auto;
 }
 
@@ -306,4 +306,158 @@
   font-size: 16px;
   color: #666;
   margin-bottom: 32px;
+}
+
+/* Mobile responsive styles for account type selection */
+@media (max-width: 768px) {
+  .authCard {
+    padding: 24px 16px;
+  }
+
+  .authTitle {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .sectionSubtitle {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  .accountTypeButton {
+    padding: 16px 12px;
+  }
+
+  .accountTypeIconContainer {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 8px;
+  }
+
+  .accountTypeLabel {
+    font-size: 16px;
+  }
+
+  .buttonGroup {
+    gap: 12px;
+  }
+
+  .buttonGroup button {
+    max-width: 100%;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .authContainer {
+    padding: 12px;
+  }
+
+  .authCard {
+    padding: 20px 12px;
+    border-radius: 12px;
+  }
+
+  .logoSection {
+    margin-bottom: 16px;
+  }
+
+  .brandLogoMedium {
+    height: 40px;
+  }
+
+  .authTitle {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+
+  .sectionSubtitle {
+    font-size: 12px;
+    margin-bottom: 20px;
+  }
+
+  .accountTypeGrid {
+    margin-bottom: 16px;
+  }
+
+  .accountTypeButton {
+    padding: 12px 8px;
+  }
+
+  .accountTypeButton:hover {
+    transform: scale(1.02);
+  }
+
+  .accountTypeButton.selected {
+    transform: scale(1.05);
+  }
+
+  .accountTypeIconContainer {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 6px;
+    border-radius: 12px;
+  }
+
+  .accountTypeLabel {
+    font-size: 14px;
+    margin-top: 6px;
+  }
+
+  .authLinks p {
+    font-size: 12px;
+  }
+
+  .linkButton {
+    font-size: 12px;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .buttonGroup button {
+    max-width: 100%;
+    padding: 12px 12px;
+    font-size: 14px;
+  }
+
+  .authForm {
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .inputField {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .inputLabel {
+    font-size: 13px;
+  }
+
+  .devHint {
+    margin-top: 16px;
+    padding: 12px;
+    font-size: 11px;
+  }
+
+  .welcomeTitle {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+
+  .welcomeMessage {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
 }
