@@ -185,7 +185,7 @@ function Auth({ onLogin }) {
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
-        <p className={styles.tagline}>Get Digitized.Get Funded.</p>
+        
       </div>
 
       <h1 className={styles.authTitle}>Login to Enfuna</h1>
@@ -323,7 +323,7 @@ function Auth({ onLogin }) {
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
-        <p className={styles.tagline}>Get Digitized.Get Funded.</p>
+        
       </div>
 
       <h1 className={styles.authTitle}>Create Enfuna Account</h1>
@@ -394,7 +394,7 @@ function Auth({ onLogin }) {
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
-        <p className={styles.tagline}>Get Digitized. Get Funded.</p>
+        
       </div>
 
       <h1 className={styles.authTitle}>Enter OTP Code</h1>
@@ -432,7 +432,7 @@ function Auth({ onLogin }) {
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
-        <p className={styles.tagline}>Get Digitized. Get Funded.</p>
+       
       </div>
 
       <h1 className={styles.authTitle}>Enter Password</h1>
@@ -494,7 +494,7 @@ function Auth({ onLogin }) {
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
-        <p className={styles.tagline}>Get Digitized.Get Funded.</p>
+       
       </div>
 
       <div className={styles.welcomeContent}>
