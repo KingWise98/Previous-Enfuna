@@ -1,14 +1,15 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import styles from "./Auth.module.css";
+"use client"
+
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import styles from "./Auth.module.css"
 
 function Auth({ onLogin }) {
-  const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(1); // 1: Login, 2: Account Type, 3: Create Account, 4: OTP, 5: Password, 6: Welcome
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedAccountType, setSelectedAccountType] = useState("");
-  
-  // Form values
+  const navigate = useNavigate()
+  const [currentStep, setCurrentStep] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
+  const [selectedAccountType, setSelectedAccountType] = useState("")
+
   const [formValues, setFormValues] = useState({
     fullName: "",
     phoneNumber: "",
@@ -17,179 +18,220 @@ function Auth({ onLogin }) {
     otp: "",
     accountType: "",
     usernameOrEmail: "",
-    loginPassword: ""
-  });
+    loginPassword: "",
+  })
 
-  const [formErrors, setFormErrors] = useState({});
+  const [formErrors, setFormErrors] = useState({})
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormValues({ ...formValues, [name]: value });
-    
-    // Clear error when user starts typing
+    const { name, value } = e.target
+    setFormValues({ ...formValues, [name]: value })
     if (formErrors[name]) {
-      setFormErrors({ ...formErrors, [name]: "" });
+      setFormErrors({ ...formErrors, [name]: "" })
     }
-  };
+  }
 
   const handleAccountTypeSelect = (type) => {
-    setSelectedAccountType(type);
-    setFormValues({ ...formValues, accountType: type });
-  };
+    setSelectedAccountType(type)
+    setFormValues({ ...formValues, accountType: type })
+    setCurrentStep(3)
+  }
 
   const handleSendCode = (e) => {
-    e.preventDefault();
-    const errors = {};
-    
+    e.preventDefault()
+    const errors = {}
     if (!formValues.fullName) {
-      errors.fullName = "Full name is required";
+      errors.fullName = "Full name is required"
     }
     if (!formValues.phoneNumber) {
-      errors.phoneNumber = "Phone number is required";
+      errors.phoneNumber = "Phone number is required"
     }
-    
     if (Object.keys(errors).length === 0) {
-      setCurrentStep(4); // Move to OTP step
+      setCurrentStep(4)
     } else {
-      setFormErrors(errors);
+      setFormErrors(errors)
     }
-  };
+  }
 
   const handleVerifyCode = (e) => {
-    e.preventDefault();
-    const errors = {};
-    
+    e.preventDefault()
+    const errors = {}
     if (!formValues.otp) {
-      errors.otp = "OTP code is required";
+      errors.otp = "OTP code is required"
     } else if (formValues.otp.length !== 6) {
-      errors.otp = "OTP must be 6 digits";
+      errors.otp = "OTP must be 6 digits"
     }
-    
     if (Object.keys(errors).length === 0) {
-      setCurrentStep(5); // Move to password step
+      setCurrentStep(5)
     } else {
-      setFormErrors(errors);
+      setFormErrors(errors)
     }
-  };
+  }
 
   const handlePasswordSubmit = (e) => {
-    e.preventDefault();
-    const errors = {};
-    
+    e.preventDefault()
+    const errors = {}
     if (!formValues.password) {
-      errors.password = "Password is required";
+      errors.password = "Password is required"
     } else if (formValues.password.length < 6) {
-      errors.password = "Password must be at least 6 characters";
+      errors.password = "Password must be at least 6 characters"
     }
-    
     if (!formValues.confirmPassword) {
-      errors.confirmPassword = "Please confirm your password";
+      errors.confirmPassword = "Please confirm your password"
     } else if (formValues.confirmPassword !== formValues.password) {
-      errors.confirmPassword = "Passwords do not match";
+      errors.confirmPassword = "Passwords do not match"
     }
-    
     if (Object.keys(errors).length === 0) {
-      setIsLoading(true);
-      // Simulate API call
+      setIsLoading(true)
       setTimeout(() => {
-        setIsLoading(false);
-        setCurrentStep(6); // Move to welcome step
-      }, 1000);
+        setIsLoading(false)
+        setCurrentStep(6)
+      }, 1000)
     } else {
-      setFormErrors(errors);
+      setFormErrors(errors)
     }
-  };
+  }
 
   const handleLoginSubmit = (e) => {
-    e.preventDefault();
-    const errors = {};
-    
+    e.preventDefault()
+    const errors = {}
     if (!formValues.usernameOrEmail) {
-      errors.usernameOrEmail = "Username or email is required";
+      errors.usernameOrEmail = "Username or email is required"
     }
     if (!formValues.loginPassword) {
-      errors.loginPassword = "Password is required";
+      errors.loginPassword = "Password is required"
     }
-    
     if (Object.keys(errors).length === 0) {
-      setIsLoading(true);
-      // Simulate API call
+      setIsLoading(true)
       setTimeout(() => {
-        setIsLoading(false);
-        
-        // Determine user role based on login credentials
-        let userRole = "normal";
-        const { usernameOrEmail, loginPassword } = formValues;
-        
-        // Simple credential check
+        setIsLoading(false)
+        let userRole = "normal"
+        const { usernameOrEmail, loginPassword } = formValues
         if (usernameOrEmail.toLowerCase().includes("rider") && loginPassword === "password") {
-          userRole = "rider";
+          userRole = "rider"
         } else if (usernameOrEmail.toLowerCase().includes("driver") && loginPassword === "password") {
-          userRole = "driver";
+          userRole = "driver"
         } else if (usernameOrEmail.toLowerCase().includes("vendor") && loginPassword === "password") {
-          userRole = "vendor";
+          userRole = "vendor"
         } else if (usernameOrEmail.toLowerCase().includes("business") && loginPassword === "password") {
-          userRole = "admin";
+          userRole = "admin"
         } else if (usernameOrEmail.toLowerCase().includes("admin") && loginPassword === "password") {
-          userRole = "admin";
+          userRole = "admin"
         } else {
-          // Default login for demo
-          userRole = "rider";
+          userRole = "rider"
         }
-        
-        onLogin(userRole);
-      }, 1000);
+        onLogin(userRole)
+      }, 1000)
     } else {
-      setFormErrors(errors);
+      setFormErrors(errors)
     }
-  };
+  }
 
   const handleProceedToDashboard = () => {
-    // Determine user role based on account type
-    let userRole = "normal";
+    let userRole = "normal"
     switch (selectedAccountType) {
       case "rider":
-        userRole = "rider";
-        break;
+        userRole = "rider"
+        break
       case "driver":
-        userRole = "driver";
-        break;
+        userRole = "driver"
+        break
       case "vendor":
-        userRole = "vendor";
-        break;
+        userRole = "vendor"
+        break
       case "business":
-        userRole = "admin";
-        break;
+        userRole = "admin"
+        break
       default:
-        userRole = "normal";
+        userRole = "normal"
     }
-    
-    onLogin(userRole);
-  };
+    onLogin(userRole)
+  }
 
   const getAccountTypeBackground = (type) => {
     switch (type) {
       case "rider":
       case "business":
-        return "#FDEA02"; // Yellow background
+        return "#FEF999"
       case "driver":
       case "vendor":
-        return "#0125DC"; // Blue background
+        return "#0125DC"
       default:
-        return "#f5f5f5";
+        return "#f5f5f5"
     }
-  };
+  }
 
-  // Step 1: Login Form
+  const renderAccountTypeSelection = () => (
+    <div className={styles.authCard}>
+      <h1 className={styles.authTitle}>Choose Account Type</h1>
+
+      <div className={styles.logoSection}>
+        <img src="/start.png" alt="Enfuna" className={styles.brandLogoMedium} />
+      </div>
+
+      <p className={styles.sectionSubtitle}>Select an Account to Proceed</p>
+
+      <div className={styles.accountTypeGridContainer}>
+        <div className={styles.accountTypeGrid}>
+          {["rider", "driver", "vendor", "business"].map((type) => (
+            <button
+              key={type}
+              type="button"
+              className={`${styles.accountTypeButton} ${selectedAccountType === type ? styles.selected : ""}`}
+              onClick={() => handleAccountTypeSelect(type)}
+            >
+              <div
+                className={styles.accountTypeIconContainer}
+                style={{ backgroundColor: getAccountTypeBackground(type) }}
+              >
+                <img
+                  src={`/${type}.svg`}
+                  alt={type}
+                  className={styles.accountTypeIcon}
+                  onError={(e) => {
+                    e.target.style.display = "none"
+                    e.target.nextSibling.style.display = "block"
+                  }}
+                />
+                <div className={styles.fallbackIcon} style={{ display: "none" }}>
+                  {type.charAt(0).toUpperCase()}
+                </div>
+              </div>
+              <span className={styles.accountTypeLabel}>{type.charAt(0).toUpperCase() + type.slice(1)}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className={styles.horizontalDivider}></div>
+        <div className={styles.verticalDivider}></div>
+      </div>
+
+      <div className={styles.authLinks}>
+        <p>
+          Already have an account already?{" "}
+          <button type="button" className={styles.linkButton} onClick={() => setCurrentStep(1)}>
+            Login
+          </button>
+        </p>
+      </div>
+
+      <div className={styles.buttonGroup}>
+        <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(1)}>
+          Back
+        </button>
+        <button type="button" className={styles.primaryButton} onClick={() => setCurrentStep(1)}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+
   const renderLoginForm = () => (
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
-        
       </div>
-
       <h1 className={styles.authTitle}>Login to Enfuna</h1>
-
       <form onSubmit={handleLoginSubmit} className={styles.authForm}>
         <div className={`${styles.formGroup} ${formErrors.usernameOrEmail ? styles.error : ""}`}>
           <label htmlFor="usernameOrEmail" className={styles.inputLabel}>
@@ -204,11 +246,8 @@ function Auth({ onLogin }) {
             onChange={handleChange}
             className={styles.inputField}
           />
-          {formErrors.usernameOrEmail && (
-            <p className={styles.errorText}>{formErrors.usernameOrEmail}</p>
-          )}
+          {formErrors.usernameOrEmail && <p className={styles.errorText}>{formErrors.usernameOrEmail}</p>}
         </div>
-
         <div className={`${styles.formGroup} ${formErrors.loginPassword ? styles.error : ""}`}>
           <label htmlFor="loginPassword" className={styles.inputLabel}>
             Password:
@@ -222,112 +261,36 @@ function Auth({ onLogin }) {
             onChange={handleChange}
             className={styles.inputField}
           />
-          {formErrors.loginPassword && (
-            <p className={styles.errorText}>{formErrors.loginPassword}</p>
-          )}
+          {formErrors.loginPassword && <p className={styles.errorText}>{formErrors.loginPassword}</p>}
         </div>
-
         <button type="submit" className={styles.primaryButton} disabled={isLoading}>
           {isLoading ? "Signing In..." : "Sign In"}
         </button>
       </form>
-
       <div className={styles.authLinks}>
-        <p>Don't have an account? <button 
-          type="button" 
-          className={styles.linkButton}
-          onClick={() => setCurrentStep(2)}
-        >Sign Up</button></p>
+        <p>
+          Don't have an account?{" "}
+          <button type="button" className={styles.linkButton} onClick={() => setCurrentStep(2)}>
+            Sign Up
+          </button>
+        </p>
       </div>
-
       <div className={styles.devHint}>
-        <p><strong>Demo Credentials:</strong></p>
+        <p>
+          <strong>Demo Credentials:</strong>
+        </p>
         <p>Username: rider, driver, vendor, business</p>
         <p>Password: password</p>
       </div>
     </div>
-  );
+  )
 
-  // Step 2: Choose Account Type
-  const renderAccountTypeSelection = () => (
-    <div className={styles.authCard}>
-      <div className={styles.logoSection}>
-        <img src="/start.png" alt="Enfuna" className={styles.brandLogo} />
-      </div>
-
-      <h1 className={styles.authTitle}>Choose Account Type</h1>
-      <p className={styles.sectionSubtitle}>Select an Account to Proceed</p>
-
-      <div className={styles.accountTypeGrid}>
-        {["rider", "driver", "vendor", "business"].map((type) => (
-          <button
-            key={type}
-            type="button"
-            className={`${styles.accountTypeButton} ${selectedAccountType === type ? styles.selected : ""}`}
-            onClick={() => handleAccountTypeSelect(type)}
-          >
-            <div 
-              className={styles.accountTypeIconContainer}
-              style={{ backgroundColor: getAccountTypeBackground(type) }}
-            >
-              <img 
-                src={`/${type}.svg`} 
-                alt={type} 
-                className={styles.accountTypeIcon}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
-                }}
-              />
-              <div className={styles.fallbackIcon} style={{ display: 'none' }}>
-                {type.charAt(0).toUpperCase()}
-              </div>
-            </div>
-            <span className={styles.accountTypeLabel}>
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      <div className={styles.authLinks}>
-        <p>Already have an account already? <button 
-          type="button" 
-          className={styles.linkButton}
-          onClick={() => setCurrentStep(1)}
-        >Login</button></p>
-      </div>
-
-      <div className={styles.buttonGroup}>
-        <button 
-          type="button" 
-          className={styles.secondaryButton}
-          onClick={() => setCurrentStep(1)}
-        >
-          Back
-        </button>
-        <button 
-          type="button" 
-          className={styles.primaryButton}
-          onClick={() => setCurrentStep(3)}
-          disabled={!selectedAccountType}
-        >
-          Continue
-        </button>
-      </div>
-    </div>
-  );
-
-  // Step 3: Create Account
   const renderCreateAccount = () => (
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
-        
       </div>
-
       <h1 className={styles.authTitle}>Create Enfuna Account</h1>
-
       <form onSubmit={handleSendCode} className={styles.authForm}>
         <div className={`${styles.formGroup} ${formErrors.fullName ? styles.error : ""}`}>
           <label htmlFor="fullName" className={styles.inputLabel}>
@@ -342,11 +305,8 @@ function Auth({ onLogin }) {
             onChange={handleChange}
             className={styles.inputField}
           />
-          {formErrors.fullName && (
-            <p className={styles.errorText}>{formErrors.fullName}</p>
-          )}
+          {formErrors.fullName && <p className={styles.errorText}>{formErrors.fullName}</p>}
         </div>
-
         <div className={`${styles.formGroup} ${formErrors.phoneNumber ? styles.error : ""}`}>
           <label htmlFor="phoneNumber" className={styles.inputLabel}>
             Phone Number:
@@ -360,45 +320,29 @@ function Auth({ onLogin }) {
             onChange={handleChange}
             className={styles.inputField}
           />
-          {formErrors.phoneNumber && (
-            <p className={styles.errorText}>{formErrors.phoneNumber}</p>
-          )}
+          {formErrors.phoneNumber && <p className={styles.errorText}>{formErrors.phoneNumber}</p>}
         </div>
-
         <button type="submit" className={styles.primaryButton}>
           Send Code
         </button>
       </form>
-
       <div className={styles.buttonGroup}>
-        <button 
-          type="button" 
-          className={styles.secondaryButton}
-          onClick={() => setCurrentStep(2)}
-        >
+        <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(2)}>
           Back
         </button>
-        <button 
-          type="button" 
-          className={styles.secondaryButton}
-          onClick={() => setCurrentStep(1)}
-        >
+        <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(1)}>
           Cancel
         </button>
       </div>
     </div>
-  );
+  )
 
-  // Step 4: OTP Verification
   const renderOTPVerification = () => (
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
-        
       </div>
-
       <h1 className={styles.authTitle}>Enter OTP Code</h1>
-
       <form onSubmit={handleVerifyCode} className={styles.authForm}>
         <div className={`${styles.formGroup} ${formErrors.otp ? styles.error : ""}`}>
           <input
@@ -411,32 +355,29 @@ function Auth({ onLogin }) {
             className={styles.inputField}
             maxLength={6}
           />
-          {formErrors.otp && (
-            <p className={styles.errorText}>{formErrors.otp}</p>
-          )}
+          {formErrors.otp && <p className={styles.errorText}>{formErrors.otp}</p>}
         </div>
-
         <button type="submit" className={styles.primaryButton}>
           Verify Code
         </button>
       </form>
-
       <div className={styles.authLinks}>
-        <p>Didn't Receive Code? <button type="button" className={styles.linkButton}>Resend Code</button></p>
+        <p>
+          Didn't Receive Code?{" "}
+          <button type="button" className={styles.linkButton}>
+            Resend Code
+          </button>
+        </p>
       </div>
     </div>
-  );
+  )
 
-  // Step 5: Password Creation
   const renderPasswordCreation = () => (
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
-       
       </div>
-
       <h1 className={styles.authTitle}>Enter Password</h1>
-
       <form onSubmit={handlePasswordSubmit} className={styles.authForm}>
         <div className={`${styles.formGroup} ${formErrors.password ? styles.error : ""}`}>
           <label htmlFor="password" className={styles.inputLabel}>
@@ -451,11 +392,8 @@ function Auth({ onLogin }) {
             onChange={handleChange}
             className={styles.inputField}
           />
-          {formErrors.password && (
-            <p className={styles.errorText}>{formErrors.password}</p>
-          )}
+          {formErrors.password && <p className={styles.errorText}>{formErrors.password}</p>}
         </div>
-
         <div className={`${styles.formGroup} ${formErrors.confirmPassword ? styles.error : ""}`}>
           <label htmlFor="confirmPassword" className={styles.inputLabel}>
             Confirm Password:
@@ -469,78 +407,64 @@ function Auth({ onLogin }) {
             onChange={handleChange}
             className={styles.inputField}
           />
-          {formErrors.confirmPassword && (
-            <p className={styles.errorText}>{formErrors.confirmPassword}</p>
-          )}
+          {formErrors.confirmPassword && <p className={styles.errorText}>{formErrors.confirmPassword}</p>}
         </div>
-
         <button type="submit" className={styles.primaryButton} disabled={isLoading}>
           {isLoading ? "Processing..." : "Continue"}
         </button>
       </form>
-
       <div className={styles.authLinks}>
-        <p>Already have an account? <button 
-          type="button" 
-          className={styles.linkButton}
-          onClick={() => setCurrentStep(1)}
-        >Login</button></p>
+        <p>
+          Already have an account?{" "}
+          <button type="button" className={styles.linkButton} onClick={() => setCurrentStep(1)}>
+            Login
+          </button>
+        </p>
       </div>
     </div>
-  );
+  )
 
-  // Step 6: Welcome Screen
   const renderWelcomeScreen = () => (
     <div className={styles.authCard}>
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
-       
       </div>
-
       <div className={styles.welcomeContent}>
         <h1 className={styles.welcomeTitle}>Hi {formValues.fullName || "User"}, You're in!</h1>
         <p className={styles.welcomeMessage}>Welcome to your {selectedAccountType} dashboard</p>
-        
-        <button 
-          type="button" 
-          className={styles.primaryButton}
-          onClick={handleProceedToDashboard}
-        >
+        <button type="button" className={styles.primaryButton} onClick={handleProceedToDashboard}>
           Proceed to Dashboard
         </button>
       </div>
     </div>
-  );
+  )
 
-  // Render current step
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 1:
-        return renderLoginForm();
+        return renderLoginForm()
       case 2:
-        return renderAccountTypeSelection();
+        return renderAccountTypeSelection()
       case 3:
-        return renderCreateAccount();
+        return renderCreateAccount()
       case 4:
-        return renderOTPVerification();
+        return renderOTPVerification()
       case 5:
-        return renderPasswordCreation();
+        return renderPasswordCreation()
       case 6:
-        return renderWelcomeScreen();
+        return renderWelcomeScreen()
       default:
-        return renderLoginForm();
+        return renderLoginForm()
     }
-  };
+  }
 
   return (
     <div className={styles.authContainer}>
       <div className={styles.authLayout}>
-        <div className={styles.authFormContainer}>
-          {renderCurrentStep()}
-        </div>
+        <div className={styles.authFormContainer}>{renderCurrentStep()}</div>
       </div>
     </div>
-  );
+  )
 }
 
-export default Auth;
+export default Auth
