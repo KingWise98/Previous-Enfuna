@@ -327,7 +327,7 @@ const DashboardPage = () => {
 
         <Grid container spacing={3}>
           {/* Left Column - Quick Actions & Recent Activity */}
-          <Grid item xs={12} lg={8}>
+          <Grid item xs={15} lg={8}>
             {/* Quick Actions */}
             <Card sx={{ 
               mb: 3, 

@@ -235,9 +235,6 @@ function App() {
       const savedRole = localStorage.getItem('userRole');
       const currentPath = window.location.pathname;
       
-      // Simulate some loading time for better splash screen experience
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
       if (savedRole && savedRole !== "null" && savedRole !== "undefined") {
         setUserRole(savedRole);
         // If user is logged in but on login page, redirect to appropriate dashboard
@@ -264,15 +261,14 @@ function App() {
       }
       
       setIsLoading(false);
-      
-      // Hide splash screen after everything is loaded
-      setTimeout(() => {
-        setShowSplash(false);
-      }, 500);
     };
 
     checkAuth();
   }, [navigate]);
+
+  const handleGetStarted = () => {
+    setShowSplash(false);
+  };
 
   const handleLogin = (role) => {
     setUserRole(role);
@@ -312,7 +308,14 @@ function App() {
 
   // Show splash screen while loading
   if (showSplash) {
-    return <SplashScreen />;
+    return (
+      <ColorModeContext.Provider value={colorMode}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <SplashScreen onGetStarted={handleGetStarted} />
+        </ThemeProvider>
+      </ColorModeContext.Provider>
+    );
   }
 
   // Show loading indicator after splash but before auth check completes

@@ -1,9 +1,16 @@
 // components/SplashScreen.jsx
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
-const SplashScreen = () => {
+const SplashScreen = ({ onGetStarted }) => {
   const theme = useTheme();
+  
+  const handleGetStarted = () => {
+    // Call the parent component's function to proceed
+    if (onGetStarted) {
+      onGetStarted();
+    }
+  };
   
   return (
     <Box
@@ -13,72 +20,90 @@ const SplashScreen = () => {
         left: 0,
         width: "100vw",
         height: "100vh",
-        backgroundColor: theme.palette.background.default,
+        backgroundColor: "#FFFEFE", // Specific background color
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         zIndex: 9999,
+        padding: 3,
       }}
     >
-      {/* Replace with your actual logo - using a placeholder for now */}
+      {/* Welcome text */}
+      <Typography 
+        variant="h6" 
+        sx={{ 
+          color: "#4A6FDC", // Light dark blue color
+          mb: 4,
+          textAlign: "center",
+          fontWeight: "normal",
+          fontSize: "1.25rem",
+        }}
+      >
+        WELCOME TO,
+      </Typography>
+      
+      {/* Logo image */}
       <Box
         component="img"
         src="/logo.png" // Path to your logo in public folder
-        alt="Logo"
+        alt="Enfuna Logo"
         sx={{
           width: 150,
           height: 150,
           mb: 3,
-          borderRadius: 2,
-          
-          
+          objectFit: "contain",
         }}
         onError={(e) => {
-          // Fallback if logo doesn't exist
+          // Fallback if logo doesn't exist - show placeholder
           e.target.style.display = 'none';
+          const fallback = document.getElementById('logo-fallback');
+          if (fallback) fallback.style.display = 'flex';
         }}
       />
       
       {/* Fallback if logo doesn't load */}
-    
-
-      <Typography 
-        variant="h4" 
-        sx={{ 
-          color: theme.palette.text.primary,
-          fontWeight: "bold",
-          mb: 1
-        }}
-      >
-         Enfuna
-      </Typography>
-      
-      <Typography 
-        variant="body1" 
-        sx={{ 
-          color: theme.palette.text.secondary 
-        }}
-      >
-        Loading...
-      </Typography>
-
-      {/* Optional: Loading spinner */}
       <Box
+        id="logo-fallback"
         sx={{
-          width: 40,
-          height: 40,
-          border: `4px solid ${theme.palette.primary.light}`,
-          borderTop: `4px solid ${theme.palette.primary.main}`,
+          width: 120,
+          height: 120,
+          backgroundColor: theme.palette.primary.main,
+          color: "#FFFEFE", // Match background color for text
           borderRadius: "50%",
-          animation: "spin 1s linear infinite",
-          mt: 3,
-          "@keyframes spin": {
-            "0%": { transform: "rotate(0deg)" },
-            "100%": { transform: "rotate(360deg)" },
+          display: "none", // Hidden by default, shown only if logo fails to load
+          justifyContent: "center",
+          alignItems: "center",
+          fontSize: "3rem",
+          fontWeight: "bold",
+          mb: 3,
+        }}
+      >
+        E
+      </Box>
+
+      {/* Get Started Button */}
+      <Button
+        variant="contained"
+        size="large"
+        onClick={handleGetStarted}
+        sx={{
+          backgroundColor: "#001B98", // Specific blue color for button
+          color: "#FFFFFF",
+          paddingX: 4,
+          paddingY: 1.5,
+          fontSize: "1.1rem",
+          fontWeight: "bold",
+          borderRadius: 2,
+          minWidth: 200,
+          mt: 4,
+          '&:hover': {
+            backgroundColor: "#00157A", // Darker shade for hover
           },
         }}
-      />
+      >
+        Get Started
+      </Button>
     </Box>
   );
 };
