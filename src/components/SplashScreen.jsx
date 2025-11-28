@@ -46,11 +46,11 @@ const SplashScreen = ({ onGetStarted }) => {
       {/* Logo image */}
       <Box
         component="img"
-        src="/logo.png" // Path to your logo in public folder
+        src="/start.png" // Path to your logo in public folder
         alt="Enfuna Logo"
         sx={{
-          width: 150,
-          height: 150,
+          width: 500,
+          height: 350,
           mb: 3,
           objectFit: "contain",
         }}
