@@ -37,7 +37,7 @@ function Auth({ onLogin }) {
     setCurrentStep(3)
   }
 
-  const handleSendCode = (e) => {
+  const handleCreateAccount = (e) => {
     e.preventDefault()
     const errors = {}
     if (!formValues.fullName) {
@@ -47,22 +47,7 @@ function Auth({ onLogin }) {
       errors.phoneNumber = "Phone number is required"
     }
     if (Object.keys(errors).length === 0) {
-      setCurrentStep(4)
-    } else {
-      setFormErrors(errors)
-    }
-  }
-
-  const handleVerifyCode = (e) => {
-    e.preventDefault()
-    const errors = {}
-    if (!formValues.otp) {
-      errors.otp = "OTP code is required"
-    } else if (formValues.otp.length !== 6) {
-      errors.otp = "OTP must be 6 digits"
-    }
-    if (Object.keys(errors).length === 0) {
-      setCurrentStep(5)
+      setCurrentStep(4) // Go to password creation
     } else {
       setFormErrors(errors)
     }
@@ -82,10 +67,25 @@ function Auth({ onLogin }) {
       errors.confirmPassword = "Passwords do not match"
     }
     if (Object.keys(errors).length === 0) {
+      setCurrentStep(5) // Go to OTP verification
+    } else {
+      setFormErrors(errors)
+    }
+  }
+
+  const handleVerifyCode = (e) => {
+    e.preventDefault()
+    const errors = {}
+    if (!formValues.otp) {
+      errors.otp = "OTP code is required"
+    } else if (formValues.otp.length !== 6) {
+      errors.otp = "OTP must be 6 digits"
+    }
+    if (Object.keys(errors).length === 0) {
       setIsLoading(true)
       setTimeout(() => {
         setIsLoading(false)
-        setCurrentStep(6)
+        setCurrentStep(6) // Go to welcome screen
       }, 1000)
     } else {
       setFormErrors(errors)
@@ -291,7 +291,7 @@ function Auth({ onLogin }) {
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
       </div>
       <h1 className={styles.authTitle}>Create Enfuna Account</h1>
-      <form onSubmit={handleSendCode} className={styles.authForm}>
+      <form onSubmit={handleCreateAccount} className={styles.authForm}>
         <div className={`${styles.formGroup} ${formErrors.fullName ? styles.error : ""}`}>
           <label htmlFor="fullName" className={styles.inputLabel}>
             Full Names:
@@ -323,7 +323,7 @@ function Auth({ onLogin }) {
           {formErrors.phoneNumber && <p className={styles.errorText}>{formErrors.phoneNumber}</p>}
         </div>
         <button type="submit" className={styles.primaryButton}>
-          Send Code
+          Continue to Password
         </button>
       </form>
       <div className={styles.buttonGroup}>
@@ -333,41 +333,6 @@ function Auth({ onLogin }) {
         <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(1)}>
           Cancel
         </button>
-      </div>
-    </div>
-  )
-
-  const renderOTPVerification = () => (
-    <div className={styles.authCard}>
-      <div className={styles.logoSection}>
-        <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
-      </div>
-      <h1 className={styles.authTitle}>Enter OTP Code</h1>
-      <form onSubmit={handleVerifyCode} className={styles.authForm}>
-        <div className={`${styles.formGroup} ${formErrors.otp ? styles.error : ""}`}>
-          <input
-            type="text"
-            id="otp"
-            name="otp"
-            placeholder="Enter 6-digit code"
-            value={formValues.otp}
-            onChange={handleChange}
-            className={styles.inputField}
-            maxLength={6}
-          />
-          {formErrors.otp && <p className={styles.errorText}>{formErrors.otp}</p>}
-        </div>
-        <button type="submit" className={styles.primaryButton}>
-          Verify Code
-        </button>
-      </form>
-      <div className={styles.authLinks}>
-        <p>
-          Didn't Receive Code?{" "}
-          <button type="button" className={styles.linkButton}>
-            Resend Code
-          </button>
-        </p>
       </div>
     </div>
   )
@@ -409,17 +374,57 @@ function Auth({ onLogin }) {
           />
           {formErrors.confirmPassword && <p className={styles.errorText}>{formErrors.confirmPassword}</p>}
         </div>
+        <button type="submit" className={styles.primaryButton}>
+          Send OTP Code
+        </button>
+      </form>
+      <div className={styles.buttonGroup}>
+        <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(3)}>
+          Back
+        </button>
+        <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(1)}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+
+  const renderOTPVerification = () => (
+    <div className={styles.authCard}>
+      <div className={styles.logoSection}>
+        <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
+      </div>
+      <h1 className={styles.authTitle}>Enter OTP Code</h1>
+      <form onSubmit={handleVerifyCode} className={styles.authForm}>
+        <div className={`${styles.formGroup} ${formErrors.otp ? styles.error : ""}`}>
+          <input
+            type="text"
+            id="otp"
+            name="otp"
+            placeholder="Enter 6-digit code"
+            value={formValues.otp}
+            onChange={handleChange}
+            className={styles.inputField}
+            maxLength={6}
+          />
+          {formErrors.otp && <p className={styles.errorText}>{formErrors.otp}</p>}
+        </div>
         <button type="submit" className={styles.primaryButton} disabled={isLoading}>
-          {isLoading ? "Processing..." : "Continue"}
+          {isLoading ? "Verifying..." : "Verify Code"}
         </button>
       </form>
       <div className={styles.authLinks}>
         <p>
-          Already have an account?{" "}
-          <button type="button" className={styles.linkButton} onClick={() => setCurrentStep(1)}>
-            Login
+          Didn't Receive Code?{" "}
+          <button type="button" className={styles.linkButton}>
+            Resend Code
           </button>
         </p>
+      </div>
+      <div className={styles.buttonGroup}>
+        <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(4)}>
+          Back
+        </button>
       </div>
     </div>
   )
@@ -448,9 +453,9 @@ function Auth({ onLogin }) {
       case 3:
         return renderCreateAccount()
       case 4:
-        return renderOTPVerification()
-      case 5:
         return renderPasswordCreation()
+      case 5:
+        return renderOTPVerification()
       case 6:
         return renderWelcomeScreen()
       default:
