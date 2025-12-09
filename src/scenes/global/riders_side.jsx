@@ -1,60 +1,97 @@
-"use client"
-
-import { useState } from "react"
-import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar"
-import { Box, IconButton, Typography, useTheme, Chip } from "@mui/material"
-import { Link } from "react-router-dom"
-import "react-pro-sidebar/dist/css/styles.css"
-import { tokens } from "../../theme"
-import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined"
-import WorkOutlineIcon from "@mui/icons-material/WorkOutline"
-import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined"
-import TimelineIcon from "@mui/icons-material/Timeline"
-import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined"
-import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined"
-import PaymentIcon from "@mui/icons-material/Payment"
-import ImportContactsIcon from "@mui/icons-material/ImportContacts"
-import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined"
-import SettingsIcon from "@mui/icons-material/Settings"
-import ReplayIcon from "@mui/icons-material/Replay"
-import CloseIcon from "@mui/icons-material/Close"
+import { useState } from "react";
+import { ProSidebar, Menu, SubMenu, MenuItem } from "react-pro-sidebar";
+import { Box, IconButton, Typography, useTheme } from "@mui/material";
+import { Link } from "react-router-dom";
+import "react-pro-sidebar/dist/css/styles.css";
+import { tokens } from "../../theme";
+import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import CreditCardOutlinedIcon from "@mui/icons-material/CreditCardOutlined";
+import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
+import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
+import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
+import BalanceOutlinedIcon from "@mui/icons-material/BalanceOutlined";
+import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
+import BookOutlinedIcon from "@mui/icons-material/BookOutlined";
+import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
+import CreateOutlinedIcon from "@mui/icons-material/CreateOutlined";
+import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
+import InventoryOutlinedIcon from "@mui/icons-material/InventoryOutlined";
+import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
+import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
+import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
+import TimelineIcon from "@mui/icons-material/Timeline";
+import PaymentIcon from "@mui/icons-material/Payment";
+import ReportIcon from "@mui/icons-material/Report";
+import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
+import CakeIcon from "@mui/icons-material/Cake";
+import LocalDrinkIcon from "@mui/icons-material/LocalDrink";
+import LocalCafeIcon from "@mui/icons-material/LocalCafe";
+import SyncAltIcon from "@mui/icons-material/SyncAlt";
+import PauseCircleOutlineIcon from "@mui/icons-material/PauseCircleOutline";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import ReplayIcon from "@mui/icons-material/Replay";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import StorageIcon from "@mui/icons-material/Storage";
+import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import SettingsIcon from "@mui/icons-material/Settings";
+import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
+import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import PersonAddIcon from "@mui/icons-material/PersonAdd"; 
+import GroupAddIcon from "@mui/icons-material/GroupAdd"; 
+import ImportContactsIcon from "@mui/icons-material/ImportContacts"; 
+import CloseIcon from "@mui/icons-material/Close";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   return (
-    <MenuItem
-      active={selected === title}
-      onClick={() => setSelected(title)}
+    <MenuItem 
+      active={selected === title} 
+      onClick={() => setSelected(title)} 
       icon={icon}
       style={{
-        color: selected === title ? "#FFEC01" : "#ffffff",
-        backgroundColor: selected === title ? "#0024DC" : "transparent",
-        margin: "2px 0",
-        borderRadius: "8px",
+        color: selected === title ? '#FFEC01' : '#ffffff',
+        backgroundColor: selected === title ? '#0025DD' : 'transparent',
+        margin: '2px 0',
+        borderRadius: '8px',
       }}
     >
-      <Typography style={{ fontWeight: selected === title ? "bold" : "normal" }}>{title}</Typography>
+      <Typography style={{ fontWeight: selected === title ? 'bold' : 'normal' }}>
+        {title}
+      </Typography>
       <Link to={to} />
     </MenuItem>
-  )
-}
+  );
+};
 
 const Riders = () => {
-  const theme = useTheme()
-  const colors = tokens(theme.palette.mode)
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  const [isToggled, setIsToggled] = useState(false)
-  const [selected, setSelected] = useState("Dashboard")
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isToggled, setIsToggled] = useState(false);
+  const [selected, setSelected] = useState("Dashboard");
 
+  // Handle responsive behavior
   const handleToggle = () => {
-    setIsToggled(!isToggled)
-  }
+    setIsToggled(!isToggled);
+  };
 
-  const handleItemClick = (title) => {
-    setSelected(title)
+  const handleCloseSidebar = () => {
     if (window.innerWidth <= 768) {
-      setIsToggled(false)
+      setIsToggled(false);
     }
-  }
+  };
+
+  // Update selected and close sidebar on mobile
+  const handleItemClick = (title) => {
+    setSelected(title);
+    if (window.innerWidth <= 768) {
+      setIsToggled(false);
+    }
+  };
 
   return (
     <>
@@ -62,16 +99,16 @@ const Riders = () => {
       <IconButton
         onClick={handleToggle}
         sx={{
-          position: "fixed",
+          position: 'fixed',
           top: 16,
           left: 16,
           zIndex: 9999,
-          backgroundColor: "#E4EBFE",
-          color: "#FFEC01",
-          "&:hover": {
-            backgroundColor: "#E4EBFE",
+          backgroundColor: '#0025DD',
+          color: '#FFEC01',
+          '&:hover': {
+            backgroundColor: '#001FB8',
           },
-          display: { xs: "block", md: "none" },
+          display: { xs: 'block', md: 'none' },
         }}
       >
         <MenuOutlinedIcon />
@@ -81,14 +118,14 @@ const Riders = () => {
       {isToggled && (
         <Box
           sx={{
-            position: "fixed",
+            position: 'fixed',
             top: 0,
             left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
             zIndex: 9997,
-            display: { xs: "block", md: "none" },
+            display: { xs: 'block', md: 'none' },
           }}
           onClick={() => setIsToggled(false)}
         />
@@ -97,203 +134,174 @@ const Riders = () => {
       <Box
         sx={{
           "& .pro-sidebar": {
-            position: { xs: "fixed", md: "relative" },
+            position: { xs: 'fixed', md: 'relative' },
             zIndex: 9998,
-            height: { xs: "100vh", md: "auto" },
-            left: { xs: isToggled ? 0 : "-100%", md: 0 },
-            transition: "left 0.3s ease",
+            height: { xs: '100vh', md: 'auto' },
+            left: { xs: isToggled ? 0 : '-100%', md: 0 },
+            transition: 'left 0.3s ease',
           },
           "& .pro-sidebar-inner": {
             background: `linear-gradient(180deg, #0025DD 0%, #001FB8 100%) !important`,
-            borderRight: "2px solid #FFEC01",
+            borderRight: '2px solid #FFEC01',
           },
           "& .pro-icon-wrapper": {
-            backgroundColor: "transparent !important",
+            backgroundColor: 'transparent !important',
           },
           "& .pro-inner-item": {
-            padding: "8px 16px !important",
+            padding: '8px 16px !important',
           },
           "& .pro-inner-item:hover": {
-            backgroundColor: "#E4EBFE !important",
+            backgroundColor: '#001FB8 !important',
           },
           "& .pro-menu-item.active": {
-            backgroundColor: "#FFEC01 !important",
-            color: "#0025DD !important",
+            backgroundColor: '#FFEC01 !important',
+            color: '#0025DD !important',
+          },
+          "& .pro-sub-menu .pro-inner-list-item": {
+            backgroundColor: '#001FB8 !important',
           },
         }}
       >
-        <ProSidebar collapsed={isCollapsed} toggled={isToggled} onToggle={handleToggle} breakPoint="md">
+        <ProSidebar 
+          collapsed={isCollapsed} 
+          toggled={isToggled}
+          onToggle={handleToggle}
+          breakPoint="md"
+        >
           <Menu iconShape="square">
-            <MenuItem
+            {/* Header with close button for mobile */}
+            <MenuItem 
               onClick={() => {
                 if (window.innerWidth > 768) {
-                  setIsCollapsed(!isCollapsed)
+                  setIsCollapsed(!isCollapsed);
                 } else {
-                  setIsToggled(false)
+                  setIsToggled(false);
                 }
-              }}
+              }} 
               icon={
                 window.innerWidth <= 768 ? (
-                  <CloseIcon sx={{ color: "#FFEC01" }} />
+                  <CloseIcon sx={{ color: '#FFEC01' }} />
                 ) : (
-                  <MenuOutlinedIcon sx={{ color: "#FFEC01" }} />
+                  <MenuOutlinedIcon sx={{ color: '#FFEC01' }} />
                 )
               }
               style={{
-                backgroundColor: "#0025DD",
-                color: "#FFEC01",
-                borderBottom: "2px solid #FFEC01",
+                backgroundColor: '#0025DD',
+                color: '#FFEC01',
+                borderBottom: '2px solid #FFEC01',
               }}
-            >
+            > 
               {!isCollapsed && (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <img src="/logo1.png" alt="Enfuna" style={{ height: "80px", width: "auto" }} />
-                </Box>
+                <Typography 
+                  variant="h3" 
+                  sx={{ 
+                    color: '#FFEC01',
+                    fontWeight: 'bold',
+                    fontSize: { xs: '1.5rem', md: '1.75rem' }
+                  }}
+                >
+                  RIDER
+                </Typography>
               )}
             </MenuItem>
 
-            <Box sx={{ padding: "16px", color: "#ffffff", borderBottom: "1px solid #FFEC01" }}>
-              <Typography sx={{ fontSize: "12px", color: "#FFEC01", fontWeight: "bold" }}>RIDER</Typography>
-              <Typography sx={{ fontSize: "18px", fontWeight: "bold" }}>Dashboard</Typography>
-            </Box>
-
-            <Box
-              sx={{
-                padding: "12px",
-                margin: "12px",
-                backgroundColor: "#ffffff",
-                borderRadius: "8px",
-                textAlign: "left",
+            {/* Main Menu Items */}
+            <SubMenu 
+              title="Point Of Sale (POS)" 
+              icon={<ShoppingCartOutlinedIcon sx={{ color: '#ffffff' }} />}
+              style={{
+                color: '#ffffff',
+                fontWeight: 'bold',
               }}
             >
-              <Typography sx={{ fontSize: "14px", fontWeight: "bold", color: "#0025DD" }}>Peter Kure</Typography>
-              <Typography sx={{ fontSize: "12px", color: "#666", marginBottom: "8px" }}>Rider • Mukono</Typography>
-              <Chip
-                label="*Free Trial"
-                size="small"
-                sx={{
-                  backgroundColor: "#FFEC01",
-                  color: "#0025DD",
-                  fontWeight: "bold",
-                  fontSize: "12px",
-                }}
+              <Item 
+                title="Dashboard" 
+                to="/rider/dashboards" 
+                icon={<CategoryOutlinedIcon />} 
+                selected={selected} 
+                setSelected={handleItemClick} 
               />
-            </Box>
-
-            <Box sx={{ padding: "12px", margin: "12px" }}>
-              <Box
-                sx={{
-                  backgroundColor: "#E4EBFE",
-                  color: "#0025DD",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  textAlign: "center",
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                  "&:hover": {
-                    backgroundColor: "#FFEC01",
-                  },
-                }}
-              >
-                Dashboard
-              </Box>
-            </Box>
-
-            <Box sx={{ borderTop: "1px solid #FFEC01", margin: "12px 0" }} />
-
-            <Item
-              title="Trips"
-              to="/rider/trips"
-              icon={<WorkOutlineIcon />}
-              selected={selected}
-              setSelected={handleItemClick}
-            />
-            <Item
-              title="Deliveries"
-              to="/rider/deliveries"
-              icon={<WorkOutlineIcon />}
-              selected={selected}
-              setSelected={handleItemClick}
-            />
-            <Item
-              title="Payments"
-              to="/rider/payments"
-              icon={<MonetizationOnOutlinedIcon />}
-              selected={selected}
-              setSelected={handleItemClick}
-            />
-            <Item
-              title="Earnings"
-              to="/rider/earnings"
-              icon={<MonetizationOnOutlinedIcon />}
-              selected={selected}
-              setSelected={handleItemClick}
-            />
-            <Item
-              title="Expenses"
-              to="/rider/expenses"
-              icon={<TimelineIcon />}
-              selected={selected}
-              setSelected={handleItemClick}
-            />
-            <Item
-              title="Wallet"
-              to="/rider/wallet"
-              icon={<AccountBalanceOutlinedIcon />}
-              selected={selected}
-              setSelected={handleItemClick}
-            />
-            <Item
-              title="Transactions"
-              to="/rider/transactions"
-              icon={<ReceiptLongOutlinedIcon />}
-              selected={selected}
-              setSelected={handleItemClick}
-            />
-            <Item
-              title="Financials & Reports"
-              to="/rider/financials"
-              icon={<PaymentIcon />}
-              selected={selected}
-              setSelected={handleItemClick}
-            />
-            <Item
-              title="Customers"
-              to="/rider/customers"
-              icon={<ImportContactsIcon />}
-              selected={selected}
-              setSelected={handleItemClick}
-            />
-            <Item
-              title="Support & Disputes"
-              to="/rider/support"
-              icon={<PeopleOutlinedIcon />}
-              selected={selected}
-              setSelected={handleItemClick}
-            />
-            <Item
-              title="Profile"
-              to="/rider/profile"
-              icon={<PeopleOutlinedIcon />}
-              selected={selected}
-              setSelected={handleItemClick}
-            />
-
-            <Box sx={{ marginTop: "auto", borderTop: "1px solid #FFEC01", paddingTop: "12px" }}>
-              <Item
-                title="Settings"
-                to="/rider/settings"
-                icon={<SettingsIcon />}
-                selected={selected}
-                setSelected={handleItemClick}
+              <Item 
+                title="New Ride" 
+                to="/rider/ride" 
+                icon={<LocalOfferIcon />} 
+                selected={selected} 
+                setSelected={handleItemClick} 
               />
-              <Item title="Logout" to="/" icon={<ReplayIcon />} selected={selected} setSelected={handleItemClick} />
-            </Box>
+              <Item 
+                title="Deliveries" 
+                to="/rider/delivery" 
+                icon={<WorkOutlineIcon />} 
+                selected={selected} 
+                setSelected={handleItemClick} 
+              />
+              
+              <Item 
+                title="Payments" 
+                to="/rider/payments" 
+                icon={<MonetizationOnOutlinedIcon />} 
+                selected={selected} 
+                setSelected={handleItemClick} 
+              />
+              <Item 
+                title="Expenses" 
+                to="/rider/expense" 
+                icon={<TimelineIcon />} 
+                selected={selected} 
+                setSelected={handleItemClick} 
+              />
+              
+              <Item 
+                title="Statements" 
+                to="/rider/statements" 
+                icon={<DescriptionOutlinedIcon />} 
+                selected={selected} 
+                setSelected={handleItemClick} 
+              />
+              <Item 
+                title="Customers" 
+                to="/rider/contacts" 
+                icon={<ImportContactsIcon />} 
+                selected={selected} 
+                setSelected={handleItemClick} 
+              />
+              <Item 
+                title="Earnings" 
+                to="/rider/earning" 
+                icon={<ImportContactsIcon />} 
+                selected={selected} 
+                setSelected={handleItemClick} 
+              />
+            </SubMenu>
+
+            <Item 
+              title="Groups" 
+              to="/rider/group" 
+              icon={<GroupAddIcon />} 
+              selected={selected} 
+              setSelected={handleItemClick} 
+            />
+
+            <Item 
+              title="Profile" 
+              to="/rider/profile" 
+              icon={<PeopleOutlinedIcon />} 
+              selected={selected} 
+              setSelected={handleItemClick} 
+            />
+
+            <Item 
+              title="LOG OUT" 
+              to="/" 
+              icon={<ReplayIcon />} 
+              selected={selected} 
+              setSelected={handleItemClick} 
+            />
           </Menu>
         </ProSidebar>
       </Box>
     </>
-  )
-}
+  );
+};
 
-export default Riders
+export default Riders;
