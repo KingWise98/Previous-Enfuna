@@ -743,21 +743,21 @@ const Ride = () => {
                   className={`payment-option ${selectedPayment === "momo" ? "selected" : ""}`}
                   onClick={() => setSelectedPayment("momo")}
                 >
-                  <img src="./assets/mtn.jpg" alt="MTN MoMo" className="payment-logo" />
+                  <img src="./assets/mtn.png" alt="MTN MoMo" className="payment-logo" />
                   {selectedPayment === "momo" && <div className="checkmark">✓</div>}
                 </div>
                 <div
                   className={`payment-option ${selectedPayment === "airtel" ? "selected" : ""}`}
                   onClick={() => setSelectedPayment("airtel")}
                 >
-                  <img src="./assets/airtel.jpg" alt="Airtel Money" className="payment-logo" />
+                  <img src="./assets/airtel.png" alt="Airtel Money" className="payment-logo" />
                   {selectedPayment === "airtel" && <div className="checkmark">✓</div>}
                 </div>
                 <div
                   className={`payment-option ${selectedPayment === "visa" ? "selected" : ""}`}
                   onClick={() => setSelectedPayment("visa")}
                 >
-                  <img src="./assets/visa.jpg" alt="Visa" className="payment-logo" />
+                  <img src="./assets/visa.png" alt="Visa" className="payment-logo" />
                   {selectedPayment === "visa" && <div className="checkmark">✓</div>}
                 </div>
                 <div className="payment-option">
