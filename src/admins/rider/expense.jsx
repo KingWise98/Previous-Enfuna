@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -8,747 +7,448 @@ import {
   CardContent,
   Grid,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Paper,
-  Chip,
-  Avatar,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  ListItemSecondaryAction,
-  Stepper,
-  Step,
-  StepLabel,
-  Divider,
-  Tabs,
-  Tab,
+  Paper,
   useTheme,
   useMediaQuery,
   AppBar,
   Toolbar,
-  Switch,
-  FormControlLabel,
-  RadioGroup,
-  Radio,
-  FormLabel,
+  IconButton,
+  Snackbar,
+  Alert,
+  Divider,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Chip,
+  Avatar,
+  Stepper,
+  Step,
+  StepLabel,
+  FormControl,
   InputAdornment,
-  LinearProgress
+  MenuItem,
+  Select,
+  FormControlLabel,
+  RadioGroup,
+  Radio,
+  LinearProgress,
+  Tooltip,
+  Tabs,
+  Tab
 } from '@mui/material';
 import {
+  LocalGasStation,
+  AttachMoney,
   Add,
+  Delete,
+  Visibility,
+  Refresh,
+  Share,
+  CloudUpload,
+  ArrowBack,
   Close,
   CheckCircle,
-  CameraAlt,
-  Receipt,
-  LocalGasStation,
-  LocalParking,
-  Build,
-  Restaurant,
-  WifiCalling3,
-  MoreHoriz,
-  Delete,
-  Edit,
-  Download,
+  Description,
+  CreditCard,
+  Smartphone,
   TrendingUp,
   TrendingDown,
-  CalendarToday,
-  Category,
-  AttachMoney,
-  Description,
-  PhotoCamera,
-  QrCodeScanner,
+  PieChart,
+  Download,
   Search,
   FilterList,
-  Refresh,
-  WhatsApp,
-  Email,
-  Print,
-  ArrowBack
+  Receipt,
+  Build,
+  LocalParking,
+  Restaurant,
+  PhoneAndroid,
+  Security,
+  DirectionsCar,
+  MoreHoriz,
+  CalendarToday,
+  AccountBalanceWallet,
+  Assessment,
+  PhotoCamera,
+  Check,
+  Clear
 } from '@mui/icons-material';
 
 const ExpensesPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const navigate = useNavigate();
   
+  // State management
+  const [showNewExpenseDialog, setShowNewExpenseDialog] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [activeStep, setActiveStep] = useState(0);
-  const [showAddExpense, setShowAddExpense] = useState(false);
-  const [expenseTab, setExpenseTab] = useState(0);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('all');
-
+  const [receiptFile, setReceiptFile] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [activeTab, setActiveTab] = useState(0);
+  
   // Expense form state
   const [expenseForm, setExpenseForm] = useState({
-    type: 'fuel',
+    category: 'Fuel',
     amount: '',
-    description: '',
     date: new Date().toISOString().split('T')[0],
-    time: new Date().toTimeString().slice(0, 5),
-    hasReceipt: false,
-    receiptImage: null,
-    vehicle: 'default',
-    paymentMethod: 'cash'
+    description: '',
+    paymentMethod: 'MTN MoMo',
+    motorbike: 'Bajaj Boxer - UAJ 879G'
   });
-
-  // Mock expenses data
+  
+  // Dashboard stats
+  const [dashboardStats, setDashboardStats] = useState({
+    weeklyExpenses: 18000,
+    weeklyExpensesChange: '+21',
+    fuelExpenses: 75000,
+    fuelExpensesChange: '+8.5% ↑',
+    monthlyExpenses: 430000,
+    monthlyExpensesChange: '+20.5% ↑',
+    topCategory: 'Fuel',
+    todayExpenses: 24000
+  });
+  
+  // Expense breakdown
+  const [expenseBreakdown, setExpenseBreakdown] = useState([
+    { category: 'Fuel', percentage: 82, amount: 82000, color: '#0025DD' },
+    { category: 'Repairs', percentage: 50, amount: 50000, color: '#FF9800' },
+    { category: 'Meals', percentage: 32, amount: 32000, color: '#E91E63' },
+    { category: 'Airtime', percentage: 12, amount: 12000, color: '#9C27B0' },
+    { category: 'Parking', percentage: 2, amount: 2000, color: '#00C853' },
+    { category: 'Insurance', percentage: 15, amount: 15000, color: '#3F51B5' },
+    { category: 'Washing', percentage: 8, amount: 8000, color: '#00BCD4' },
+    { category: 'Other', percentage: 5, amount: 5000, color: '#795548' }
+  ]);
+  
+  // Expense history
   const [expenses, setExpenses] = useState([
     {
       id: 1,
-      type: 'fuel',
-      amount: 45000,
-      description: 'Petrol refill at Shell',
-      date: '2024-01-15',
-      time: '08:30',
+      date: '2025-12-05',
+      time: '17:45 AM',
+      category: 'Fuel',
+      description: 'Petrol refill at shell',
+      amount: 10000,
       hasReceipt: true,
-      vehicle: 'Toyota Premio - UBB 123A',
-      status: 'verified'
+      paymentMethod: 'Cash',
+      receiptUrl: null
     },
     {
       id: 2,
-      type: 'parking',
-      amount: 5000,
-      description: 'City parking fees',
-      date: '2024-01-15',
-      time: '10:15',
-      hasReceipt: false,
-      vehicle: 'Toyota Premio - UBB 123A',
-      status: 'pending'
+      date: '2025-12-05',
+      time: '08:30 AM',
+      category: 'Repairs',
+      description: 'Tyre replacement',
+      amount: 20000,
+      hasReceipt: true,
+      paymentMethod: 'MTN MoMo',
+      receiptUrl: null
     },
     {
       id: 3,
-      type: 'meals',
-      amount: 8000,
-      description: 'Lunch and drinks',
-      date: '2024-01-15',
-      time: '13:00',
+      date: '2025-12-05',
+      time: '07:31 AM',
+      category: 'Airtime',
+      description: 'Mobile airtime',
+      amount: 2000,
       hasReceipt: false,
-      vehicle: 'Toyota Premio - UBB 123A',
-      status: 'verified'
+      paymentMethod: 'MTN MoMo',
+      receiptUrl: null
     },
     {
       id: 4,
-      type: 'airtime',
-      amount: 3000,
-      description: 'Mobile data bundle',
-      date: '2024-01-14',
-      time: '16:45',
+      date: '2025-12-05',
+      time: '12:31 AM',
+      category: 'Fuel',
+      description: 'Evening petrol',
+      amount: 10000,
       hasReceipt: true,
-      vehicle: 'Toyota Premio - UBB 123A',
-      status: 'verified'
+      paymentMethod: 'Cash',
+      receiptUrl: null
     },
     {
       id: 5,
-      type: 'repairs',
-      amount: 25000,
-      description: 'Tire replacement',
-      date: '2024-01-14',
-      time: '11:20',
+      date: '2025-12-04',
+      time: '14:20 PM',
+      category: 'Parking',
+      description: 'City parking fees',
+      amount: 5000,
       hasReceipt: true,
-      vehicle: 'Toyota Premio - UBB 123A',
-      status: 'verified'
+      paymentMethod: 'Cash',
+      receiptUrl: null
+    },
+    {
+      id: 6,
+      date: '2025-12-04',
+      time: '11:15 AM',
+      category: 'Meals',
+      description: 'Lunch at restaurant',
+      amount: 8000,
+      hasReceipt: false,
+      paymentMethod: 'MTN MoMo',
+      receiptUrl: null
     }
   ]);
 
-  const expenseTypes = [
-    { value: 'fuel', label: 'Fuel', icon: <LocalGasStation />, color: '#FF6B6B', emoji: '⛽' },
-    { value: 'parking', label: 'Parking', icon: <LocalParking />, color: '#4ECDC4', emoji: '🅿️' },
-    { value: 'repairs', label: 'Repairs', icon: <Build />, color: '#45B7D1', emoji: '🔧' },
-    { value: 'meals', label: 'Meals', icon: <Restaurant />, color: '#96CEB4', emoji: '🍔' },
-    { value: 'airtime', label: 'Airtime', icon: <WifiCalling3 />, color: '#FFEC01', emoji: '📞' },
-    { value: 'insurance', label: 'Insurance', icon: <Receipt />, color: '#0025DD', emoji: '📄' },
-    { value: 'cleaning', label: 'Cleaning', icon: <MoreHoriz />, color: '#6B7280', emoji: '🧹' },
-    { value: 'other', label: 'Other', icon: <MoreHoriz />, color: '#9CA3AF', emoji: '📦' }
-  ];
-
-  const vehicles = [
-    { value: 'default', label: 'Toyota Premio - UBB 123A' },
-    { value: 'backup', label: 'Honda Fit - UBA 456B' }
+  const expenseCategories = [
+    { id: 'fuel', label: 'Fuel', icon: <LocalGasStation />, color: '#0025DD' },
+    { id: 'parking', label: 'Parking', icon: <LocalParking />, color: '#00C853' },
+    { id: 'repairs', label: 'Repairs', icon: <Build />, color: '#FF9800' },
+    { id: 'meals', label: 'Meals', icon: <Restaurant />, color: '#E91E63' },
+    { id: 'airtime', label: 'Airtime', icon: <PhoneAndroid />, color: '#9C27B0' },
+    { id: 'insurance', label: 'Insurance', icon: <Security />, color: '#3F51B5' },
+    { id: 'washing', label: 'Washing Bay', icon: <DirectionsCar />, color: '#00BCD4' },
+    { id: 'other', label: 'Other', icon: <MoreHoriz />, color: '#795548' }
   ];
 
   const paymentMethods = [
-    { value: 'cash', label: 'Cash' },
-    { value: 'mobile', label: 'Mobile Money' },
-    { value: 'card', label: 'Card' },
-    { value: 'bank', label: 'Bank Transfer' }
+    { value: 'cash', label: 'Cash', icon: '💵' },
+    { value: 'mtn', label: 'MTN MoMo', icon: '📱' },
+    { value: 'airtel', label: 'Airtel Money', icon: '📱' },
+    { value: 'card', label: 'Card', icon: '💳' }
   ];
 
   const steps = ['Category & Amount', 'Details & Receipt', 'Review & Save'];
 
-  // Stats calculations
-  const todayExpenses = expenses.filter(exp => exp.date === new Date().toISOString().split('T')[0]);
-  const weeklyExpenses = expenses.filter(exp => {
-    const expenseDate = new Date(exp.date);
-    const today = new Date();
-    const weekAgo = new Date(today.setDate(today.getDate() - 7));
-    return expenseDate >= weekAgo;
-  });
-
-  const totalToday = todayExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-  const totalWeekly = weeklyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-  const totalMonthly = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-
-  const categoryTotals = expenseTypes.map(type => ({
-    ...type,
-    total: expenses.filter(exp => exp.type === type.value).reduce((sum, exp) => sum + exp.amount, 0),
-    percentage: Math.round((expenses.filter(exp => exp.type === type.value).reduce((sum, exp) => sum + exp.amount, 0) / totalMonthly) * 100)
-  })).filter(cat => cat.total > 0);
-
-  const handleNext = () => {
-    setActiveStep((prev) => prev + 1);
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
   };
 
-  const handleBack = () => {
+  const handleInputChange = (field) => (event) => {
+    setExpenseForm(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+  };
+
+  const handleCategorySelect = (category) => {
+    setExpenseForm(prev => ({
+      ...prev,
+      category
+    }));
+  };
+
+  const handleNextStep = () => {
+    if (activeStep === 0 && (!expenseForm.category || !expenseForm.amount)) {
+      showSnackbar('Please select category and enter amount', 'error');
+      return;
+    }
+    if (activeStep === steps.length - 1) {
+      handleSaveExpense();
+    } else {
+      setActiveStep((prev) => prev + 1);
+    }
+  };
+
+  const handleBackStep = () => {
     setActiveStep((prev) => prev - 1);
   };
 
   const handleSaveExpense = () => {
     const newExpense = {
       id: expenses.length + 1,
-      ...expenseForm,
-      amount: parseInt(expenseForm.amount),
-      status: 'pending',
-      timestamp: new Date().toISOString()
+      date: expenseForm.date,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      category: expenseForm.category,
+      description: expenseForm.description || 'No Description Provided',
+      amount: parseInt(expenseForm.amount.replace(/,/g, '')) || 0,
+      hasReceipt: !!receiptFile,
+      paymentMethod: expenseForm.paymentMethod,
+      receiptUrl: receiptFile ? URL.createObjectURL(receiptFile) : null
     };
-    
-    setExpenses(prev => [newExpense, ...prev]);
-    setShowAddExpense(false);
-    setActiveStep(0);
-    setExpenseForm({
-      type: 'fuel',
-      amount: '',
-      description: '',
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().slice(0, 5),
-      hasReceipt: false,
-      receiptImage: null,
-      vehicle: 'default',
-      paymentMethod: 'cash'
-    });
-  };
 
-  const handleInputChange = (field) => (event) => {
-    setExpenseForm(prev => ({
+    // Add to expenses
+    setExpenses(prev => [newExpense, ...prev]);
+    
+    // Update dashboard stats
+    const amount = parseInt(expenseForm.amount.replace(/,/g, '')) || 0;
+    const today = new Date().toISOString().split('T')[0];
+    const isToday = expenseForm.date === today;
+    
+    setDashboardStats(prev => ({
       ...prev,
-      [field]: event.target.type === 'checkbox' ? event.target.checked : event.target.value
+      weeklyExpenses: prev.weeklyExpenses + amount,
+      monthlyExpenses: prev.monthlyExpenses + amount,
+      todayExpenses: isToday ? prev.todayExpenses + amount : prev.todayExpenses,
+      fuelExpenses: expenseForm.category === 'Fuel' ? prev.fuelExpenses + amount : prev.fuelExpenses
     }));
+
+    // Update breakdown
+    const categoryBreakdown = expenseBreakdown.find(item => item.category === expenseForm.category);
+    if (categoryBreakdown) {
+      const newAmount = categoryBreakdown.amount + amount;
+      const totalAmount = expenseBreakdown.reduce((sum, item) => sum + item.amount, 0) + amount;
+      
+      // Recalculate all percentages
+      const updatedBreakdown = expenseBreakdown.map(item => {
+        if (item.category === expenseForm.category) {
+          return {
+            ...item,
+            amount: newAmount,
+            percentage: Math.round((newAmount / totalAmount) * 100)
+          };
+        }
+        return {
+          ...item,
+          percentage: Math.round((item.amount / totalAmount) * 100)
+        };
+      });
+      
+      setExpenseBreakdown(updatedBreakdown);
+    }
+
+    // Reset form
+    setExpenseForm({
+      category: 'Fuel',
+      amount: '',
+      date: new Date().toISOString().split('T')[0],
+      description: '',
+      paymentMethod: 'MTN MoMo',
+      motorbike: 'Bajaj Boxer - UAJ 879G'
+    });
+    setReceiptFile(null);
+    setActiveStep(0);
+    setShowNewExpenseDialog(false);
+    showSnackbar('Expense saved successfully!');
   };
 
   const handleDeleteExpense = (id) => {
-    setExpenses(prev => prev.filter(exp => exp.id !== id));
+    const expenseToDelete = expenses.find(exp => exp.id === id);
+    if (expenseToDelete) {
+      setExpenses(prev => prev.filter(exp => exp.id !== id));
+      
+      // Update stats
+      setDashboardStats(prev => ({
+        ...prev,
+        weeklyExpenses: Math.max(0, prev.weeklyExpenses - expenseToDelete.amount),
+        monthlyExpenses: Math.max(0, prev.monthlyExpenses - expenseToDelete.amount)
+      }));
+      
+      showSnackbar('Expense deleted successfully!');
+    }
   };
 
-  const handleReceiptCapture = () => {
-    // Simulate receipt capture
-    setExpenseForm(prev => ({
-      ...prev,
-      hasReceipt: true,
-      receiptImage: 'captured_receipt.jpg'
-    }));
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        showSnackbar('File size exceeds 10MB limit', 'error');
+        return;
+      }
+      setReceiptFile(file);
+      showSnackbar('Receipt uploaded successfully!');
+    }
   };
 
+  const formatCurrency = (amount) => {
+    return `UGX ${amount.toLocaleString()}`;
+  };
+
+  const getCategoryIcon = (category) => {
+    const cat = expenseCategories.find(c => c.label === category);
+    return cat ? cat.icon : <MoreHoriz />;
+  };
+
+  const getCategoryColor = (category) => {
+    const cat = expenseCategories.find(c => c.label === category);
+    return cat ? cat.color : '#795548';
+  };
+
+  // Filter expenses based on search and category
   const filteredExpenses = expenses.filter(expense => {
-    const matchesSearch = expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      expenseTypes.find(t => t.value === expense.type)?.label.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = filterCategory === 'all' || expense.type === filterCategory;
-    
+    const matchesSearch = searchQuery === '' || 
+      expense.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      expense.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || 
+      expense.category.toLowerCase() === selectedCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
 
-  // Financial Summary Cards for Top Section
-  const FinancialSummary = () => (
-    <Grid container spacing={2} sx={{ mb: 3 }}>
-      {/* Total Expenses */}
-      <Grid item xs={12} sm={6} lg={3}>
-        <Card sx={{ 
-          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
-          color: 'white',
-          borderRadius: 3,
-          boxShadow: '0 4px 12px rgba(0, 37, 221, 0.2)'
-        }}>
-          <CardContent sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-              <Receipt sx={{ fontSize: 40, opacity: 0.8 }} />
-              <TrendingDown sx={{ fontSize: 20 }} />
-            </Box>
-            <Typography variant="h4" fontWeight="bold" sx={{ mb: 1 }}>
-              UGX {totalMonthly.toLocaleString()}
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              Total Expenses
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-              <Typography variant="caption">
-                This month
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
+  // Calculate today's total
+  const today = new Date().toISOString().split('T')[0];
+  const todayExpensesTotal = expenses
+    .filter(exp => exp.date === today)
+    .reduce((sum, exp) => sum + exp.amount, 0);
 
-      {/* Today's Expenses */}
-      <Grid item xs={12} sm={6} lg={3}>
-        <Card sx={{ 
-          backgroundColor: 'white',
-          borderRadius: 3,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #e2e8f0'
-        }}>
-          <CardContent sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-              <CalendarToday sx={{ fontSize: 40, color: '#0025DD' }} />
-              <TrendingDown sx={{ fontSize: 20, color: '#EF4444' }} />
-            </Box>
-            <Typography variant="h4" fontWeight="bold" color="#0025DD" sx={{ mb: 1 }}>
-              UGX {totalToday.toLocaleString()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Today's Expenses
-            </Typography>
-            <Typography variant="caption" color="#EF4444" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-              {todayExpenses.length} transactions
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
+  // Handle amount formatting
+  const handleAmountChange = (value) => {
+    // Remove non-numeric characters except commas
+    const numericValue = value.replace(/[^\d,]/g, '');
+    
+    // Format with commas
+    const formattedValue = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    setExpenseForm(prev => ({
+      ...prev,
+      amount: formattedValue
+    }));
+  };
 
-      {/* This Week */}
-      <Grid item xs={12} sm={6} lg={3}>
-        <Card sx={{ 
-          backgroundColor: 'white',
-          borderRadius: 3,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #e2e8f0'
-        }}>
-          <CardContent sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-              <TrendingDown sx={{ fontSize: 40, color: '#FF6B6B' }} />
-              <TrendingDown sx={{ fontSize: 20, color: '#EF4444' }} />
-            </Box>
-            <Typography variant="h4" fontWeight="bold" color="#FF6B6B" sx={{ mb: 1 }}>
-              UGX {totalWeekly.toLocaleString()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              This Week
-            </Typography>
-            <Typography variant="caption" color="#EF4444" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-              {weeklyExpenses.length} expenses
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
+  const handleExportReport = () => {
+    const csvContent = [
+      ['Date', 'Time', 'Category', 'Description', 'Amount', 'Payment Method', 'Receipt'],
+      ...expenses.map(exp => [
+        exp.date,
+        exp.time,
+        exp.category,
+        exp.description,
+        exp.amount,
+        exp.paymentMethod,
+        exp.hasReceipt ? 'Yes' : 'No'
+      ])
+    ].map(row => row.join(',')).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `expenses-report-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    
+    showSnackbar('Report exported successfully!');
+  };
 
-      {/* Top Category */}
-      <Grid item xs={12} sm={6} lg={3}>
-        <Card sx={{ 
-          backgroundColor: 'white',
-          borderRadius: 3,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #e2e8f0'
-        }}>
-          <CardContent sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-              <Category sx={{ fontSize: 40, color: '#0025DD' }} />
-              <LocalGasStation sx={{ fontSize: 20, color: '#FF6B6B' }} />
-            </Box>
-            <Typography variant="h4" fontWeight="bold" color="#0025DD" sx={{ mb: 1 }}>
-              Fuel
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Top Category
-            </Typography>
-            <Typography variant="caption" color="#FF6B6B" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-              UGX {categoryTotals[0]?.total.toLocaleString()}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
-  );
+  const handleShareReport = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'My Expenses Report',
+        text: `Total Expenses: ${formatCurrency(dashboardStats.monthlyExpenses)}`,
+        url: window.location.href
+      }).then(() => {
+        showSnackbar('Report shared successfully!');
+      }).catch(error => {
+        showSnackbar('Failed to share report', 'error');
+      });
+    } else {
+      showSnackbar('Web Share API not supported', 'warning');
+    }
+  };
 
-  // Quick Add Expense Component
-  const QuickAddExpense = () => (
-    <Dialog 
-      open={showAddExpense} 
-      onClose={() => {
-        setShowAddExpense(false);
-        setActiveStep(0);
-      }}
-      maxWidth="md"
-      fullWidth
-      fullScreen={isMobile}
-    >
-      <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6" fontWeight="bold">
-            Add New Expense
-          </Typography>
-          <IconButton 
-            onClick={() => {
-              setShowAddExpense(false);
-              setActiveStep(0);
-            }}
-            sx={{ color: 'white' }}
-          >
-            <Close />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      
-      <DialogContent>
-        <Stepper activeStep={activeStep} sx={{ mb: 4, mt: 2 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+  const handleScanReceipt = () => {
+    showSnackbar('Receipt scanning feature coming soon!', 'info');
+  };
 
-        {/* Step 1: Category & Amount */}
-        {activeStep === 0 && (
-          <Box>
-            <Typography variant="h6" gutterBottom color="#0025DD">
-              What did you spend on?
-            </Typography>
-            
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <FormLabel component="legend" sx={{ mb: 2, display: 'block', color: '#0025DD', fontWeight: 'bold' }}>
-                  Expense Category
-                </FormLabel>
-                <Grid container spacing={1}>
-                  {expenseTypes.map((type) => (
-                    <Grid item xs={6} sm={4} md={3} key={type.value}>
-                      <Paper
-                        sx={{
-                          p: 2,
-                          textAlign: 'center',
-                          cursor: 'pointer',
-                          border: expenseForm.type === type.value ? `2px solid ${type.color}` : '1px solid',
-                          borderColor: expenseForm.type === type.value ? type.color : '#e2e8f0',
-                          backgroundColor: expenseForm.type === type.value ? `${type.color}20` : 'background.paper',
-                          '&:hover': {
-                            backgroundColor: `${type.color}20`
-                          }
-                        }}
-                        onClick={() => setExpenseForm(prev => ({ ...prev, type: type.value }))}
-                      >
-                        <Typography variant="h4" sx={{ mb: 1 }}>
-                          {type.emoji}
-                        </Typography>
-                        <Typography variant="body2" fontWeight="medium">
-                          {type.label}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Amount (UGX)"
-                  type="number"
-                  value={expenseForm.amount}
-                  onChange={handleInputChange('amount')}
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">UGX</InputAdornment>,
-                  }}
-                  placeholder="0"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Date"
-                  type="date"
-                  value={expenseForm.date}
-                  onChange={handleInputChange('date')}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Time"
-                  type="time"
-                  value={expenseForm.time}
-                  onChange={handleInputChange('time')}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-            </Grid>
-          </Box>
-        )}
-
-        {/* Step 2: Details & Receipt */}
-        {activeStep === 1 && (
-          <Box>
-            <Typography variant="h6" gutterBottom color="#0025DD">
-              Add Details
-            </Typography>
-            
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Description"
-                  value={expenseForm.description}
-                  onChange={handleInputChange('description')}
-                  placeholder="Brief description of this expense..."
-                  multiline
-                  rows={3}
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Vehicle</InputLabel>
-                  <Select
-                    value={expenseForm.vehicle}
-                    onChange={handleInputChange('vehicle')}
-                    label="Vehicle"
-                  >
-                    {vehicles.map(vehicle => (
-                      <MenuItem key={vehicle.value} value={vehicle.value}>
-                        {vehicle.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Payment Method</InputLabel>
-                  <Select
-                    value={expenseForm.paymentMethod}
-                    onChange={handleInputChange('paymentMethod')}
-                    label="Payment Method"
-                  >
-                    {paymentMethods.map(method => (
-                      <MenuItem key={method.value} value={method.value}>
-                        {method.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Card variant="outlined" sx={{ borderColor: '#0025DD20' }}>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                      <Typography variant="h6" color="#0025DD">
-                        Receipt Capture
-                      </Typography>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={expenseForm.hasReceipt}
-                            onChange={handleInputChange('hasReceipt')}
-                            sx={{
-                              '& .MuiSwitch-switchBase.Mui-checked': {
-                                color: '#0025DD',
-                              },
-                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                backgroundColor: '#0025DD',
-                              },
-                            }}
-                          />
-                        }
-                        label="I have a receipt"
-                      />
-                    </Box>
-                    
-                    {expenseForm.hasReceipt && (
-                      <Box sx={{ textAlign: 'center', p: 3 }}>
-                        {expenseForm.receiptImage ? (
-                          <Box>
-                            <Avatar
-                              sx={{ width: 100, height: 100, mx: 'auto', mb: 2 }}
-                              src="/api/placeholder/100/100"
-                              variant="rounded"
-                            />
-                            <Typography variant="body2" color="#10B981" fontWeight="bold">
-                              ✓ Receipt captured
-                            </Typography>
-                          </Box>
-                        ) : (
-                          <Button
-                            variant="outlined"
-                            sx={{
-                              borderColor: '#0025DD',
-                              color: '#0025DD'
-                            }}
-                            startIcon={<CameraAlt />}
-                            onClick={handleReceiptCapture}
-                            size="large"
-                          >
-                            Capture Receipt
-                          </Button>
-                        )}
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </Box>
-        )}
-
-        {/* Step 3: Review & Save */}
-        {activeStep === 2 && (
-          <Box>
-            <Typography variant="h6" gutterBottom color="#0025DD">
-              Review Expense
-            </Typography>
-            
-            <Card variant="outlined" sx={{ mb: 3, borderColor: '#0025DD20' }}>
-              <CardContent>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Category
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                      <Typography variant="h4">
-                        {expenseTypes.find(t => t.value === expenseForm.type)?.emoji}
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium">
-                        {expenseTypes.find(t => t.value === expenseForm.type)?.label}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Amount
-                    </Typography>
-                    <Typography variant="h5" color="#EF4444" fontWeight="bold" sx={{ mt: 1 }}>
-                      UGX {parseInt(expenseForm.amount || 0).toLocaleString()}
-                    </Typography>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Typography variant="body2" color="text.secondary">
-                      Description
-                    </Typography>
-                    <Typography variant="body1" sx={{ mt: 1 }}>
-                      {expenseForm.description || 'No description provided'}
-                    </Typography>
-                  </Grid>
-
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Date & Time
-                    </Typography>
-                    <Typography variant="body1" sx={{ mt: 1 }}>
-                      {new Date(expenseForm.date).toLocaleDateString()} at {expenseForm.time}
-                    </Typography>
-                  </Grid>
-
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Payment Method
-                    </Typography>
-                    <Typography variant="body1" sx={{ mt: 1 }}>
-                      {paymentMethods.find(m => m.value === expenseForm.paymentMethod)?.label}
-                    </Typography>
-                  </Grid>
-
-                  {expenseForm.hasReceipt && (
-                    <Grid item xs={12}>
-                      <Chip 
-                        icon={<CheckCircle />} 
-                        label="Receipt Attached" 
-                        sx={{ 
-                          backgroundColor: '#10B98120',
-                          color: '#10B981'
-                        }}
-                        variant="outlined"
-                      />
-                    </Grid>
-                  )}
-                </Grid>
-              </CardContent>
-            </Card>
-
-            <Box sx={{ p: 2, backgroundColor: '#10B98120', borderRadius: 2 }}>
-              <Typography variant="body2" color="#10B981" fontWeight="bold">
-                ✅ Ready to save this expense! It will be added to your daily totals.
-              </Typography>
-            </Box>
-          </Box>
-        )}
-      </DialogContent>
-      
-      <DialogActions sx={{ p: 3 }}>
-        <Button
-          onClick={handleBack}
-          disabled={activeStep === 0}
-          sx={{ color: '#0025DD' }}
-        >
-          Back
-        </Button>
-        
-        {activeStep === steps.length - 1 ? (
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: '#0025DD',
-              '&:hover': {
-                backgroundColor: '#001FB8'
-              }
-            }}
-            onClick={handleSaveExpense}
-            startIcon={<CheckCircle />}
-            disabled={!expenseForm.amount}
-          >
-            Save Expense
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: '#0025DD',
-              '&:hover': {
-                backgroundColor: '#001FB8'
-              }
-            }}
-            onClick={handleNext}
-            disabled={activeStep === 0 && !expenseForm.amount}
-          >
-            Next
-          </Button>
-        )}
-      </DialogActions>
-    </Dialog>
-  );
+  const handleViewReceipt = (expense) => {
+    if (expense.hasReceipt && expense.receiptUrl) {
+      window.open(expense.receiptUrl, '_blank');
+    } else if (expense.hasReceipt) {
+      showSnackbar('Receipt preview coming soon!', 'info');
+    } else {
+      showSnackbar('No receipt available for this expense', 'warning');
+    }
+  };
 
   return (
     <Box sx={{ 
       minHeight: '100vh', 
-      backgroundColor: '#f8fafc',
+      backgroundColor: '#f5f5f5',
       pb: 3
     }}>
       {/* Header */}
@@ -756,20 +456,12 @@ const ExpensesPage = () => {
         position="static" 
         sx={{ 
           backgroundColor: '#0025DD',
-          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
-          boxShadow: 'none'
+          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)'
         }}
       >
         <Toolbar>
-          <IconButton
-            edge="start"
-            sx={{ color: 'white', mr: 2 }}
-            onClick={() => navigate(-1)}
-          >
-            <ArrowBack />
-          </IconButton>
           <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-            Expenses
+            EXPENSE DASHBOARD
           </Typography>
           <Button
             variant="contained"
@@ -782,320 +474,928 @@ const ExpensesPage = () => {
               }
             }}
             startIcon={<Add />}
-            onClick={() => setShowAddExpense(true)}
+            onClick={() => setShowNewExpenseDialog(true)}
           >
-            Add Expense
+            ADD NEW EXPENSE
           </Button>
         </Toolbar>
       </AppBar>
 
       {/* Main Content */}
       <Box sx={{ p: isMobile ? 2 : 3 }}>
-        {/* Financial Summary Cards */}
-        <FinancialSummary />
+        <Tabs 
+          value={activeTab} 
+          onChange={(e, newValue) => setActiveTab(newValue)}
+          sx={{ mb: 3 }}
+        >
+          <Tab label="Overview" />
+          <Tab label="Expenses" />
+          <Tab label="Analytics" />
+        </Tabs>
 
-        <Grid container spacing={3}>
-          {/* Main Content */}
-          <Grid item xs={12} lg={8}>
-            {/* Search and Filter */}
-            <Card sx={{ 
-              mb: 2,
-              borderRadius: 3,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              border: '1px solid #e2e8f0'
-            }}>
-              <CardContent>
-                <Grid container spacing={2} alignItems="center">
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      placeholder="Search expenses..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      InputProps={{
-                        startAdornment: <Search color="action" sx={{ mr: 1 }} />
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel>Category</InputLabel>
-                      <Select
-                        value={filterCategory}
-                        onChange={(e) => setFilterCategory(e.target.value)}
-                        label="Category"
-                      >
-                        <MenuItem value="all">All Categories</MenuItem>
-                        {expenseTypes.map(type => (
-                          <MenuItem key={type.value} value={type.value}>
-                            {type.emoji} {type.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Box sx={{ display: 'flex', gap: 1, justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-                      <Button 
-                        startIcon={<Refresh />} 
-                        variant="outlined" 
+        {activeTab === 0 && (
+          <Grid container spacing={3}>
+            {/* Left Column - Stats & Quick Actions */}
+            <Grid item xs={12} md={8}>
+              {/* Stats Cards */}
+              <Grid container spacing={3} sx={{ mb: 3 }}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Card sx={{ backgroundColor: '#0025DD', color: 'white' }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <AccountBalanceWallet sx={{ mr: 1 }} />
+                        <Typography variant="body2">Weekly Expenses</Typography>
+                      </Box>
+                      <Typography variant="h5" fontWeight="bold" gutterBottom>
+                        {formatCurrency(dashboardStats.weeklyExpenses)}
+                      </Typography>
+                      <Chip 
+                        label={dashboardStats.weeklyExpensesChange}
                         size="small"
-                        sx={{
-                          borderColor: '#0025DD',
-                          color: '#0025DD'
-                        }}
-                      >
-                        Refresh
-                      </Button>
-                      <Button 
-                        startIcon={<Download />} 
-                        variant="outlined" 
-                        size="small"
-                        sx={{
-                          borderColor: '#0025DD',
-                          color: '#0025DD'
-                        }}
-                      >
-                        Export
-                      </Button>
-                    </Box>
-                  </Grid>
+                        sx={{ backgroundColor: '#FFEC01', color: '#000', fontWeight: 'bold' }}
+                      />
+                    </CardContent>
+                  </Card>
                 </Grid>
-              </CardContent>
-            </Card>
+                
+                <Grid item xs={12} sm={6} md={3}>
+                  <Card sx={{ border: `2px solid #00C853` }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <LocalGasStation sx={{ mr: 1, color: '#00C853' }} />
+                        <Typography variant="body2">Fuel Expenses</Typography>
+                      </Box>
+                      <Typography variant="h5" fontWeight="bold" color="#00C853" gutterBottom>
+                        {formatCurrency(dashboardStats.fuelExpenses)}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <TrendingUp sx={{ color: '#00C853', fontSize: 16, mr: 0.5 }} />
+                        <Typography variant="caption" color="#00C853">
+                          {dashboardStats.fuelExpensesChange}
+                        </Typography>
+                      </Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Top Category
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                
+                <Grid item xs={12} sm={6} md={3}>
+                  <Card sx={{ backgroundColor: '#FF980020' }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <Assessment sx={{ mr: 1, color: '#FF9800' }} />
+                        <Typography variant="body2">Monthly Expenses</Typography>
+                      </Box>
+                      <Typography variant="h5" fontWeight="bold" color="#FF9800" gutterBottom>
+                        {formatCurrency(dashboardStats.monthlyExpenses)}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <TrendingUp sx={{ color: '#FF9800', fontSize: 16, mr: 0.5 }} />
+                        <Typography variant="caption" color="#FF9800">
+                          {dashboardStats.monthlyExpensesChange}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
 
-            {/* Expenses List */}
-            <Card sx={{ 
-              borderRadius: 3,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              border: '1px solid #e2e8f0'
-            }}>
-              <CardContent sx={{ p: 0 }}>
-                {isMobile ? (
-                  /* Mobile List View */
-                  <List>
-                    {filteredExpenses.map((expense) => (
-                      <ListItem key={expense.id} divider>
-                        <ListItemIcon>
-                          <Avatar sx={{ backgroundColor: `${expenseTypes.find(t => t.value === expense.type)?.color}20` }}>
-                            <Typography variant="h6">
-                              {expenseTypes.find(t => t.value === expense.type)?.emoji}
-                            </Typography>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Card sx={{ backgroundColor: '#E91E6320' }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <CalendarToday sx={{ mr: 1, color: '#E91E63' }} />
+                        <Typography variant="body2">Today's Expenses</Typography>
+                      </Box>
+                      <Typography variant="h5" fontWeight="bold" color="#E91E63" gutterBottom>
+                        {formatCurrency(todayExpensesTotal)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {expenses.filter(exp => exp.date === today).length} expenses today
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+
+              {/* Quick Actions */}
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    Quick Actions
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={4}>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        sx={{ backgroundColor: '#0025DD' }}
+                        startIcon={<Add />}
+                        onClick={() => setShowNewExpenseDialog(true)}
+                      >
+                        Add New Expense
+                      </Button>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        sx={{ borderColor: '#0025DD', color: '#0025DD' }}
+                        startIcon={<PhotoCamera />}
+                        onClick={handleScanReceipt}
+                      >
+                        Scan Receipt
+                      </Button>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        sx={{ borderColor: '#0025DD', color: '#0025DD' }}
+                        startIcon={<Download />}
+                        onClick={handleExportReport}
+                      >
+                        Export Report
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+
+              {/* Expense Breakdown Chart */}
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    Expense Breakdown
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Usage Breakdown This Month
+                  </Typography>
+                  
+                  <Grid container spacing={2} sx={{ mt: 2 }}>
+                    <Grid item xs={12} md={6}>
+                      {expenseBreakdown.map((item, index) => (
+                        <Box key={index} sx={{ mb: 2 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Box sx={{ 
+                                width: 12, 
+                                height: 12, 
+                                backgroundColor: item.color,
+                                borderRadius: '50%',
+                                mr: 1
+                              }} />
+                              <Typography variant="body2">{item.category}</Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="body2" fontWeight="bold">
+                                {item.percentage}%
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                ({formatCurrency(item.amount)})
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <LinearProgress 
+                            variant="determinate" 
+                            value={item.percentage} 
+                            sx={{ 
+                              height: 8,
+                              borderRadius: 4,
+                              backgroundColor: item.color + '20',
+                              '& .MuiLinearProgress-bar': {
+                                backgroundColor: item.color,
+                                borderRadius: 4
+                              }
+                            }}
+                          />
+                        </Box>
+                      ))}
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <PieChart sx={{ fontSize: 200, opacity: 0.1, color: '#0025DD' }} />
+                        <Box sx={{ position: 'absolute', textAlign: 'center' }}>
+                          <Typography variant="h4" fontWeight="bold" color="#0025DD">
+                            {formatCurrency(dashboardStats.monthlyExpenses)}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Total Monthly
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Right Column - Today's Expenses & Quick Stats */}
+            <Grid item xs={12} md={4}>
+              {/* Today's Expenses */}
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    Today's Expenses
+                  </Typography>
+                  
+                  <Box sx={{ mb: 2 }}>
+                    {expenses
+                      .filter(exp => exp.date === today)
+                      .slice(0, 5)
+                      .map((expense, index) => (
+                        <Box 
+                          key={index} 
+                          sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            mb: 2,
+                            p: 1,
+                            borderRadius: 1,
+                            backgroundColor: '#f9f9f9',
+                            border: '1px solid #e0e0e0'
+                          }}
+                        >
+                          <Avatar 
+                            sx={{ 
+                              mr: 2,
+                              bgcolor: getCategoryColor(expense.category) + '20',
+                              color: getCategoryColor(expense.category),
+                              width: 40,
+                              height: 40
+                            }}
+                          >
+                            {getCategoryIcon(expense.category)}
                           </Avatar>
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Typography variant="subtitle1" fontWeight="medium">
-                                {expenseTypes.find(t => t.value === expense.type)?.label}
-                              </Typography>
-                              <Typography variant="h6" color="#EF4444">
-                                UGX {expense.amount.toLocaleString()}
-                              </Typography>
-                            </Box>
-                          }
-                          secondary={
-                            <Box>
-                              <Typography variant="body2" color="text.secondary">
-                                {expense.description}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {expense.date} • {expense.time}
-                              </Typography>
-                            </Box>
-                          }
-                        />
-                        <ListItemSecondaryAction>
-                          <IconButton edge="end" onClick={() => handleDeleteExpense(expense.id)}>
-                            <Delete sx={{ color: '#EF4444' }} />
-                          </IconButton>
-                        </ListItemSecondaryAction>
-                      </ListItem>
+                          <Box sx={{ flexGrow: 1 }}>
+                            <Typography variant="body2" fontWeight="500">
+                              {expense.category}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {expense.description}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              {expense.time}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ textAlign: 'right' }}>
+                            <Typography variant="body1" fontWeight="bold" color="#0025DD">
+                              UGX {expense.amount.toLocaleString()}
+                            </Typography>
+                            <Chip 
+                              size="small" 
+                              icon={expense.hasReceipt ? <Check /> : <Clear />}
+                              label={expense.hasReceipt ? 'Receipt' : 'No Receipt'}
+                              sx={{ 
+                                mt: 0.5,
+                                fontSize: '0.6rem',
+                                height: 20,
+                                backgroundColor: expense.hasReceipt ? '#0025DD20' : '#ffebee',
+                                color: expense.hasReceipt ? '#0025DD' : '#d32f2f'
+                              }}
+                            />
+                          </Box>
+                        </Box>
                     ))}
-                  </List>
-                ) : (
-                  /* Desktop Table View */
-                  <TableContainer>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Category</TableCell>
-                          <TableCell>Description</TableCell>
-                          <TableCell align="right">Amount</TableCell>
-                          <TableCell>Date & Time</TableCell>
-                          <TableCell>Receipt</TableCell>
-                          <TableCell>Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {filteredExpenses.map((expense) => (
-                          <TableRow key={expense.id} hover>
-                            <TableCell>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="h5">
-                                  {expenseTypes.find(t => t.value === expense.type)?.emoji}
-                                </Typography>
-                                <Typography variant="body2">
-                                  {expenseTypes.find(t => t.value === expense.type)?.label}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2">
-                                {expense.description}
-                              </Typography>
-                            </TableCell>
-                            <TableCell align="right">
-                              <Typography variant="body1" fontWeight="bold" color="#EF4444">
-                                UGX {expense.amount.toLocaleString()}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2">
-                                {expense.date}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {expense.time}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              {expense.hasReceipt ? (
-                                <Chip 
-                                  icon={<CheckCircle />} 
-                                  label="Yes" 
-                                  size="small" 
-                                  sx={{ 
-                                    backgroundColor: '#10B98120',
-                                    color: '#10B981'
-                                  }} 
-                                />
-                              ) : (
-                                <Chip label="No" size="small" variant="outlined" />
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <Box sx={{ display: 'flex', gap: 1 }}>
-                                <IconButton size="small">
-                                  <Edit sx={{ color: '#0025DD' }} />
-                                </IconButton>
-                                <IconButton size="small" onClick={() => handleDeleteExpense(expense.id)}>
-                                  <Delete sx={{ color: '#EF4444' }} />
-                                </IconButton>
-                              </Box>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
+                  </Box>
 
-                {filteredExpenses.length === 0 && (
-                  <Box sx={{ textAlign: 'center', p: 4 }}>
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
-                      No expenses found
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {expenses.length === 0 ? 'Start by adding your first expense' : 'Try adjusting your search or filters'}
+                  {expenses.filter(exp => exp.date === today).length === 0 && (
+                    <Box sx={{ textAlign: 'center', py: 3 }}>
+                      <Receipt sx={{ fontSize: 48, color: '#e0e0e0', mb: 1 }} />
+                      <Typography variant="body2" color="text.secondary">
+                        No expenses today
+                      </Typography>
+                    </Box>
+                  )}
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h6">Total Today</Typography>
+                    <Typography variant="h5" fontWeight="bold" color="#0025DD">
+                      UGX {todayExpensesTotal.toLocaleString()}
                     </Typography>
                   </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
+                </CardContent>
+              </Card>
 
-          {/* Sidebar */}
-          <Grid item xs={12} lg={4}>
-            {/* Expense Categories Breakdown */}
-            <Card sx={{ 
-              mb: 2,
-              borderRadius: 3,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              border: '1px solid #e2e8f0'
-            }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom color="#0025DD">
-                  Expense Breakdown
-                </Typography>
-                <List dense>
-                  {categoryTotals.map((category) => (
-                    <ListItem key={category.value} divider>
-                      <ListItemIcon>
-                        <Avatar sx={{ backgroundColor: `${category.color}20`, width: 32, height: 32 }}>
-                          <Typography variant="body2" fontWeight="bold">
-                            {category.emoji}
-                          </Typography>
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={category.label}
-                        secondary={`UGX ${category.total.toLocaleString()}`}
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="body2" color="text.secondary">
-                          {category.percentage}%
+              {/* Quick Stats */}
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    Quick Stats
+                  </Typography>
+                  
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Paper sx={{ p: 2, textAlign: 'center' }}>
+                        <Typography variant="h4" fontWeight="bold" color="#0025DD">
+                          {expenses.length}
                         </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  ))}
-                </List>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card sx={{ 
-              borderRadius: 3,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              border: '1px solid #e2e8f0'
-            }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom color="#0025DD">
-                  Quick Actions
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Button
-                    variant="outlined"
-                    sx={{
-                      borderColor: '#0025DD',
-                      color: '#0025DD'
-                    }}
-                    startIcon={<CameraAlt />}
-                    onClick={() => setShowAddExpense(true)}
-                    fullWidth
-                  >
-                    Quick Add Expense
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    sx={{
-                      borderColor: '#0025DD',
-                      color: '#0025DD'
-                    }}
-                    startIcon={<Receipt />}
-                    fullWidth
-                  >
-                    Scan Receipt
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    sx={{
-                      borderColor: '#0025DD',
-                      color: '#0025DD'
-                    }}
-                    startIcon={<Download />}
-                    fullWidth
-                  >
-                    Export Report
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
+                        <Typography variant="caption">
+                          Total Expenses
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Paper sx={{ p: 2, textAlign: 'center' }}>
+                        <Typography variant="h4" fontWeight="bold" color="#00C853">
+                          {expenses.filter(exp => exp.hasReceipt).length}
+                        </Typography>
+                        <Typography variant="caption">
+                          With Receipts
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Paper sx={{ p: 2, textAlign: 'center' }}>
+                        <Typography variant="h4" fontWeight="bold" color="#FF9800">
+                          {new Set(expenses.map(exp => exp.date)).size}
+                        </Typography>
+                        <Typography variant="caption">
+                          Days Active
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Paper sx={{ p: 2, textAlign: 'center' }}>
+                        <Typography variant="h4" fontWeight="bold" color="#9C27B0">
+                          {expenseCategories.length}
+                        </Typography>
+                        <Typography variant="caption">
+                          Categories
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
+        )}
+
+        {activeTab === 1 && (
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+                <Typography variant="h6" fontWeight="bold">
+                  Expense Activity
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <TextField
+                    size="small"
+                    placeholder="Search expenses..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    sx={{ minWidth: 200 }}
+                    InputProps={{
+                      startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />
+                    }}
+                  />
+                  <FormControl size="small" sx={{ minWidth: 150 }}>
+                    <Select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                    >
+                      <MenuItem value="all">All Categories</MenuItem>
+                      {expenseCategories.map(cat => (
+                        <MenuItem key={cat.id} value={cat.label}>{cat.label}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <Tooltip title="Refresh">
+                    <IconButton onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }}>
+                      <Refresh />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Export">
+                    <IconButton onClick={handleExportReport}>
+                      <Download />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Share">
+                    <IconButton onClick={handleShareReport}>
+                      <Share />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>
+
+              <TableContainer sx={{ maxHeight: 500 }}>
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Date & Time</TableCell>
+                      <TableCell>Category</TableCell>
+                      <TableCell>Description</TableCell>
+                      <TableCell>Amount</TableCell>
+                      <TableCell>Payment</TableCell>
+                      <TableCell>Receipt</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredExpenses.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                          <Receipt sx={{ fontSize: 48, color: '#e0e0e0', mb: 1 }} />
+                          <Typography variant="body1" color="text.secondary">
+                            No expenses found
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredExpenses.map((expense) => (
+                        <TableRow key={expense.id} hover>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="500">{expense.date}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {expense.time}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              icon={getCategoryIcon(expense.category)}
+                              label={expense.category}
+                              size="small"
+                              sx={{ 
+                                backgroundColor: getCategoryColor(expense.category) + '20',
+                                color: getCategoryColor(expense.category)
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Tooltip title={expense.description}>
+                              <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
+                                {expense.description}
+                              </Typography>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body1" fontWeight="bold" color="#0025DD">
+                              {formatCurrency(expense.amount)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={expense.paymentMethod}
+                              size="small"
+                              variant="outlined"
+                              sx={{ 
+                                borderColor: '#0025DD',
+                                color: '#0025DD'
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              size="small"
+                              variant={expense.hasReceipt ? "contained" : "outlined"}
+                              startIcon={expense.hasReceipt ? <Receipt /> : <Clear />}
+                              sx={{
+                                backgroundColor: expense.hasReceipt ? '#0025DD' : 'transparent',
+                                color: expense.hasReceipt ? 'white' : '#d32f2f',
+                                borderColor: expense.hasReceipt ? '#0025DD' : '#d32f2f'
+                              }}
+                              onClick={() => handleViewReceipt(expense)}
+                            >
+                              {expense.hasReceipt ? 'View' : 'None'}
+                            </Button>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Tooltip title="View Details">
+                                <IconButton 
+                                  size="small" 
+                                  color="primary"
+                                  onClick={() => handleViewReceipt(expense)}
+                                >
+                                  <Visibility fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton 
+                                  size="small" 
+                                  color="error"
+                                  onClick={() => handleDeleteExpense(expense.id)}
+                                >
+                                  <Delete fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 2 && (
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    Expense Analytics
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Detailed analysis of your spending patterns
+                  </Typography>
+                  
+                  {/* Add analytics charts here */}
+                  <Box sx={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Assessment sx={{ fontSize: 200, opacity: 0.1, color: '#0025DD' }} />
+                    <Typography variant="h6" color="text.secondary" sx={{ position: 'absolute' }}>
+                      Analytics charts coming soon...
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        )}
       </Box>
 
-      <QuickAddExpense />
+      {/* New Expense Dialog */}
+      <Dialog 
+        open={showNewExpenseDialog} 
+        onClose={() => {
+          setShowNewExpenseDialog(false);
+          setActiveStep(0);
+          setReceiptFile(null);
+        }} 
+        maxWidth="sm" 
+        fullWidth
+        fullScreen={isMobile}
+        PaperProps={{
+          sx: {
+            maxHeight: '90vh',
+            overflow: 'auto'
+          }
+        }}
+      >
+        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white', py: 2 }}>
+          <Typography variant="h6" fontWeight="bold">
+            ADD NEW EXPENSE
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+            {steps[activeStep]}
+          </Typography>
+        </DialogTitle>
+        
+        <DialogContent sx={{ p: 3 }}>
+          {/* Stepper */}
+          <Box sx={{ mb: 4 }}>
+            <Stepper activeStep={activeStep} alternativeLabel>
+              {steps.map((label, index) => (
+                <Step key={label}>
+                  <StepLabel 
+                    sx={{
+                      '& .MuiStepLabel-label': {
+                        fontSize: '0.75rem',
+                        fontWeight: activeStep === index ? 'bold' : 'normal'
+                      }
+                    }}
+                  >
+                    {label}
+                  </StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </Box>
+
+          {/* Step 1: Category & Amount */}
+          {activeStep === 0 && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                What Did You Spend On
+              </Typography>
+              
+              <Typography variant="subtitle1" gutterBottom sx={{ mt: 3, mb: 2 }}>
+                Expense Category
+              </Typography>
+              
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                {expenseCategories.map((category) => (
+                  <Grid item xs={6} sm={4} md={3} key={category.id}>
+                    <Button
+                      fullWidth
+                      variant={expenseForm.category === category.label ? "contained" : "outlined"}
+                      sx={{
+                        height: '80px',
+                        flexDirection: 'column',
+                        borderColor: category.color,
+                        color: expenseForm.category === category.label ? 'white' : category.color,
+                        backgroundColor: expenseForm.category === category.label ? category.color : 'transparent',
+                        '&:hover': {
+                          backgroundColor: expenseForm.category === category.label ? category.color : category.color + '10'
+                        }
+                      }}
+                      onClick={() => handleCategorySelect(category.label)}
+                    >
+                      <Box sx={{ mb: 1 }}>{category.icon}</Box>
+                      <Typography variant="caption">{category.label}</Typography>
+                    </Button>
+                  </Grid>
+                ))}
+              </Grid>
+
+              <Divider sx={{ my: 3 }} />
+
+              <Typography variant="h6" gutterBottom>
+                Enter Amount
+              </Typography>
+              
+              <TextField
+                fullWidth
+                value={expenseForm.amount}
+                onChange={(e) => handleAmountChange(e.target.value)}
+                placeholder="10,000"
+                sx={{ mb: 3 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Typography variant="h6" color="#0025DD">UGX</Typography>
+                    </InputAdornment>
+                  ),
+                  sx: { 
+                    fontSize: '2rem',
+                    fontWeight: 'bold',
+                    textAlign: 'center'
+                  }
+                }}
+              />
+
+              <Typography variant="subtitle1" gutterBottom>
+                Date
+              </Typography>
+              
+              <TextField
+                fullWidth
+                type="date"
+                value={expenseForm.date}
+                onChange={handleInputChange('date')}
+                sx={{ mb: 3 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CalendarToday sx={{ color: '#0025DD' }} />
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Box>
+          )}
+
+          {/* Step 2: Details & Receipt */}
+          {activeStep === 1 && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Details & Report
+              </Typography>
+
+              <Typography variant="subtitle1" gutterBottom sx={{ mt: 3, mb: 2 }}>
+                Attach Receipt
+              </Typography>
+
+              <Paper
+                sx={{
+                  p: 4,
+                  border: '2px dashed #0025DD',
+                  textAlign: 'center',
+                  backgroundColor: '#0025DD05',
+                  mb: 3,
+                  cursor: 'pointer'
+                }}
+                onClick={() => document.getElementById('receipt-upload').click()}
+              >
+                <CloudUpload sx={{ fontSize: 48, color: '#0025DD', mb: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  Drag and Drop or Click to Upload
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Max File Size 10MB
+                </Typography>
+                {receiptFile && (
+                  <Chip 
+                    label={receiptFile.name}
+                    onDelete={() => setReceiptFile(null)}
+                    sx={{ mt: 2 }}
+                  />
+                )}
+                <input
+                  id="receipt-upload"
+                  type="file"
+                  accept="image/*,.pdf"
+                  style={{ display: 'none' }}
+                  onChange={handleFileUpload}
+                />
+              </Paper>
+
+              <Typography variant="subtitle1" gutterBottom sx={{ mb: 2 }}>
+                Add Details (Optional)
+              </Typography>
+
+              <TextField
+                fullWidth
+                label="Description"
+                value={expenseForm.description}
+                onChange={handleInputChange('description')}
+                multiline
+                rows={3}
+                sx={{ mb: 3 }}
+              />
+
+              <Typography variant="subtitle1" gutterBottom sx={{ mb: 2 }}>
+                Motorbike Details
+              </Typography>
+
+              <Paper sx={{ p: 2, mb: 3, backgroundColor: '#f5f5f5' }}>
+                <Typography variant="body1" fontWeight="bold">
+                  {expenseForm.motorbike}
+                </Typography>
+              </Paper>
+
+              <Typography variant="subtitle1" gutterBottom sx={{ mb: 2 }}>
+                Payment Method
+              </Typography>
+
+              <RadioGroup
+                value={expenseForm.paymentMethod}
+                onChange={handleInputChange('paymentMethod')}
+                sx={{ mb: 3 }}
+              >
+                {paymentMethods.map((method) => (
+                  <FormControlLabel 
+                    key={method.value}
+                    value={method.label}
+                    control={<Radio />}
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="h5">{method.icon}</Typography>
+                        <Typography>{method.label}</Typography>
+                      </Box>
+                    }
+                  />
+                ))}
+              </RadioGroup>
+            </Box>
+          )}
+
+          {/* Step 3: Review & Save */}
+          {activeStep === 2 && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Review Expense
+              </Typography>
+
+              <Paper sx={{ p: 3, mt: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Avatar 
+                        sx={{ 
+                          mr: 2,
+                          bgcolor: getCategoryColor(expenseForm.category) + '20',
+                          color: getCategoryColor(expenseForm.category),
+                          width: 40,
+                          height: 40
+                        }}
+                      >
+                        {getCategoryIcon(expenseForm.category)}
+                      </Avatar>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Category
+                        </Typography>
+                        <Typography variant="body1" fontWeight="bold">
+                          {expenseForm.category}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Typography variant="body2" color="text.secondary">
+                      Amount
+                    </Typography>
+                    <Typography variant="h5" fontWeight="bold" color="#0025DD" sx={{ mt: 0.5 }}>
+                      UGX {expenseForm.amount}
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Typography variant="body2" color="text.secondary">
+                      Description
+                    </Typography>
+                    <Typography variant="body1" sx={{ mt: 0.5 }}>
+                      {expenseForm.description || 'No Description Provided'}
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid item xs={6}>
+                    <Typography variant="body2" color="text.secondary">
+                      Date
+                    </Typography>
+                    <Typography variant="body1" sx={{ mt: 0.5 }}>
+                      {expenseForm.date}
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid item xs={6}>
+                    <Typography variant="body2" color="text.secondary">
+                      Time
+                    </Typography>
+                    <Typography variant="body1" sx={{ mt: 0.5 }}>
+                      10:30 AM
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Typography variant="body2" color="text.secondary">
+                      Payment Method
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                      {expenseForm.paymentMethod === 'Cash' && '💵'}
+                      {expenseForm.paymentMethod === 'MTN MoMo' && '📱'}
+                      {expenseForm.paymentMethod === 'Airtel Money' && '📱'}
+                      {expenseForm.paymentMethod === 'Card' && '💳'}
+                      <Typography variant="body1" sx={{ ml: 1 }}>
+                        {expenseForm.paymentMethod}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  
+                  {receiptFile && (
+                    <Grid item xs={12}>
+                      <Typography variant="body2" color="text.secondary">
+                        Receipt
+                      </Typography>
+                      <Chip 
+                        label={receiptFile.name}
+                        icon={<Receipt />}
+                        sx={{ mt: 0.5 }}
+                      />
+                    </Grid>
+                  )}
+                </Grid>
+              </Paper>
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+            <Button 
+              onClick={activeStep > 0 ? handleBackStep : () => {
+                setShowNewExpenseDialog(false);
+                setActiveStep(0);
+              }}
+              sx={{ color: '#0025DD' }}
+              startIcon={activeStep > 0 ? <ArrowBack /> : <Close />}
+            >
+              {activeStep > 0 ? 'Back' : 'Cancel'}
+            </Button>
+            
+            <Button 
+              variant="contained"
+              sx={{
+                backgroundColor: '#0025DD',
+                '&:hover': {
+                  backgroundColor: '#001FB8'
+                }
+              }}
+              onClick={handleNextStep}
+            >
+              {activeStep === steps.length - 1 ? 'Save Expense' : 'Continue'}
+            </Button>
+          </Box>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          severity={snackbar.severity} 
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          sx={{
+            backgroundColor: snackbar.severity === 'success' ? '#0025DD' : undefined,
+            color: 'white'
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

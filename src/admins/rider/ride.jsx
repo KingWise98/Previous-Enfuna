@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+
 import "./ride.css"
 
 const Ride = () => {
@@ -349,15 +350,7 @@ const Ride = () => {
       {/* Dashboard Screen */}
       {screen === "dashboard" && (
         <div className="screen dashboard-screen fade-in">
-          <div className="search-bar">
-            <input type="text" placeholder="Search" />
-            <div className="header-icons">
-              <span className="icon">☀️</span>
-              <span className="icon">🔔</span>
-              <span className="icon">⚙️</span>
-              <span className="icon">👤</span>
-            </div>
-          </div>
+          
 
           <div className="quick-actions">
             <h2>Quick Actions</h2>
@@ -383,7 +376,7 @@ const Ride = () => {
           </div>
 
           <div className="ready-to-ride">
-            <div className="scooter-icon">🛵</div>
+            <div className="scooter-icon">🏍️</div>
             <h2>Ready to Ride?</h2>
             <p>Start A New Trip And Start Earning</p>
             <button className="start-new-trip-btn" onClick={() => setScreen("newTrip")}>
@@ -743,21 +736,21 @@ const Ride = () => {
                   className={`payment-option ${selectedPayment === "momo" ? "selected" : ""}`}
                   onClick={() => setSelectedPayment("momo")}
                 >
-                  <img src="./assets/mtn.png" alt="MTN MoMo" className="payment-logo" />
+                  <img src="./assets/mtn.jpg" alt="MTN MoMo" className="payment-logo" />
                   {selectedPayment === "momo" && <div className="checkmark">✓</div>}
                 </div>
                 <div
                   className={`payment-option ${selectedPayment === "airtel" ? "selected" : ""}`}
                   onClick={() => setSelectedPayment("airtel")}
                 >
-                  <img src="./assets/airtel.png" alt="Airtel Money" className="payment-logo" />
+                  <img src="./assets/airtel.jpg" alt="Airtel Money" className="payment-logo" />
                   {selectedPayment === "airtel" && <div className="checkmark">✓</div>}
                 </div>
                 <div
                   className={`payment-option ${selectedPayment === "visa" ? "selected" : ""}`}
                   onClick={() => setSelectedPayment("visa")}
                 >
-                  <img src="./assets/visa.png" alt="Visa" className="payment-logo" />
+                  <img src="./assets/visa.jpg" alt="Visa" className="payment-logo" />
                   {selectedPayment === "visa" && <div className="checkmark">✓</div>}
                 </div>
                 <div className="payment-option">
