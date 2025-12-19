@@ -1,0 +1,405 @@
+/* Animations */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes slideInFromRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(0, 37, 221, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(0, 37, 221, 0.6); }
+}
+
+@keyframes progressBar {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+@keyframes slideInFromLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Global Styles */
+.ride-container {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  overflow-x: hidden;
+}
+
+/* Card Animations */
+.animated-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animated-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 37, 221, 0.12);
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+.glow {
+  animation: glow 2s infinite;
+}
+
+.slide-in-right {
+  animation: slideInFromRight 0.6s ease-out;
+}
+
+.slide-in-left {
+  animation: slideInFromLeft 0.6s ease-out;
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Header */
+.app-header {
+  background: linear-gradient(135deg, #0025DD 0%, #001FB8 100%);
+  box-shadow: 0 4px 20px rgba(0, 37, 221, 0.15);
+}
+
+/* Progress Bar */
+.progress-bar {
+  height: 4px;
+  background-color: rgba(0, 37, 221, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0025DD 0%, #001FB8 100%);
+  animation: progressBar 2s ease-in-out infinite;
+}
+
+/* Buttons */
+.start-trip-btn {
+  background: linear-gradient(135deg, #FFEC01 0%, #FFD700 100%);
+  color: #000;
+  font-weight: 800;
+  box-shadow: 0 4px 15px rgba(255, 236, 1, 0.3);
+  transition: all 0.3s ease;
+}
+
+.start-trip-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(255, 236, 1, 0.4);
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #0025DD 0%, #001FB8 100%);
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 37, 221, 0.3);
+}
+
+.success-btn {
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.success-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+}
+
+.danger-btn {
+  border-color: #FF3B30;
+  color: #FF3B30;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.danger-btn:hover {
+  border-color: #D32F2F;
+  background-color: rgba(255, 59, 48, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Trip Status */
+.active-trip-card {
+  border: 2px solid rgba(0, 37, 221, 0.2);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+}
+
+.no-trip-card {
+  border: 2px dashed rgba(0, 37, 221, 0.3);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.no-trip-card:hover {
+  border-color: #0025DD;
+  box-shadow: 0 12px 40px rgba(0, 37, 221, 0.15);
+}
+
+/* Stats Cards */
+.stats-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Payment Method Cards */
+.payment-method-card {
+  padding: 16px;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  background: transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.payment-method-card.selected {
+  border-color: currentColor;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Earnings Progress */
+.earnings-progress {
+  background-color: #e0e0e0;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.earnings-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0025DD 0%, #001FB8 100%);
+  border-radius: 4px;
+}
+
+/* Quick Actions */
+.quick-action-btn {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.quick-action-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Mobile Floating Button */
+.floating-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0025DD 0%, #001FB8 100%);
+  box-shadow: 0 8px 24px rgba(0, 37, 221, 0.4);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.floating-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Trip History Items */
+.trip-history-item {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  margin-bottom: 8px;
+}
+
+.trip-history-item:hover {
+  background-color: rgba(0, 37, 221, 0.05);
+  border-color: rgba(0, 37, 221, 0.3);
+  transform: translateX(4px);
+}
+
+/* Dialog Styles */
+.dialog-header {
+  background: linear-gradient(135deg, #0025DD 0%, #001FB8 100%);
+  color: white;
+  padding: 24px 32px;
+}
+
+.dialog-content {
+  padding: 32px;
+}
+
+/* Form Controls */
+.form-select {
+  border-radius: 8px;
+}
+
+.form-select .MuiSelect-select {
+  padding: 12px 14px;
+}
+
+/* Stepper */
+.stepper-container {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.stepper-step {
+  transition: all 0.3s ease;
+}
+
+.stepper-step.active {
+  background-color: rgba(0, 37, 221, 0.1);
+  border-color: #0025DD;
+}
+
+/* Payment Icons */
+.payment-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.payment-icon:hover {
+  transform: scale(1.05);
+}
+
+.payment-icon.selected {
+  border: 3px solid #0025DD;
+  box-shadow: 0 4px 12px rgba(0, 37, 221, 0.2);
+}
+
+/* Trip Summary */
+.trip-summary-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 37, 221, 0.1);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 900px) {
+  .ride-container {
+    padding-bottom: 100px;
+  }
+  
+  .floating-btn {
+    bottom: 80px;
+  }
+  
+  .trip-history-item {
+    flex-direction: column;
+  }
+  
+  .payment-methods-container {
+    flex-direction: column;
+  }
+  
+  .payment-icon {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .dialog-content {
+    padding: 16px;
+  }
+  
+  .stepper-container {
+    padding: 16px;
+  }
+}
+
+/* Loading States */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.status-badge.active {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.status-badge.completed {
+  background-color: #0025DD;
+  color: white;
+}
+
+.status-badge.cancelled {
+  background-color: #FF3B30;
+  color: white;
+}
+
+/* Search Bar */
+.search-bar {
+  background-color: white;
+  border-radius: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.search-bar:focus-within {
+  box-shadow: 0 4px 16px rgba(0, 37, 221, 0.2);
+}

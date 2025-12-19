@@ -283,6 +283,14 @@ const Riders = () => {
             />
 
             <Item 
+              title="Support & Disputes" 
+              to="/rider/support" 
+              icon={<GroupAddIcon />} 
+              selected={selected} 
+              setSelected={PersonAddIcon} 
+            />
+
+            <Item 
               title="Profile" 
               to="/rider/profile" 
               icon={<PeopleOutlinedIcon />} 

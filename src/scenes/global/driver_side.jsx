@@ -273,6 +273,14 @@ const Driver = () => {
             </SubMenu>
 
             <Item 
+                          title="Support & Disputes" 
+                          to="/driver/support" 
+                          icon={<GroupAddIcon />} 
+                          selected={selected} 
+                          setSelected={PeopleOutlineIcon} 
+                        />
+
+            <Item 
               title="Profile" 
               to="/driver/profile" 
               icon={<PeopleOutlinedIcon />} 
