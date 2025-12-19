@@ -26,30 +26,153 @@ const Ride = () => {
   const [showDestSuggestions, setShowDestSuggestions] = useState(false)
   const [cancelReason, setCancelReason] = useState("")
   const [manualOverride, setManualOverride] = useState(false)
+  const [showMobilePayment, setShowMobilePayment] = useState(false)
+
   const [tripHistory, setTripHistory] = useState([
     {
-      id: "T20330",
-      from: "Mukono",
-      to: "Kampala",
-      duration: "18 min 01 sec",
-      distance: "5.3 KM",
-      amount: 4000,
-      paymentMethod: "Cash",
-      date: "27 Nov 2025",
-      status: "Paid",
-    },
-    {
-      id: "T20329",
+      id: "Trip-007",
       from: "Kireka",
       to: "Banda",
-      duration: "4 min 21 sec",
-      distance: "5.3 KM",
+      route: "Kireka - Banda",
+      duration: "5.2km",
+      time: "12min",
+      amount: 2000,
+      paymentMethod: "Cash",
+      date: "Apr 23, 2025, 9:00 AM",
+      status: "Completed",
+      tripType: "Normal Trip",
+      manualOverride: "YES",
+      customer: "John Doe",
+      phone: "+256 700000001",
+    },
+    {
+      id: "Trip-007",
+      from: "Gulu",
+      to: "Nakaful",
+      route: "Gulu - Nakaful",
+      duration: "8.7km",
+      time: "17min",
+      amount: 8000,
+      paymentMethod: "Cash",
+      date: "Apr 23, 2025, 1:30 PM",
+      status: "Cancelled",
+      tripType: "Normal Trip",
+      manualOverride: "NO",
+      customer: "Jane Smith",
+      phone: "+256 700000002",
+    },
+    {
+      id: "Trip-007",
+      from: "Kireka",
+      to: "Banda",
+      route: "Kireka - Banda",
+      duration: "2.2km",
+      time: "14min",
+      amount: 6000,
+      paymentMethod: "MTN MoMo",
+      date: "Apr 23, 2025, 9:30 AM",
+      status: "Completed",
+      tripType: "Normal Trip",
+      manualOverride: "YES",
+      customer: "Alice Johnson",
+      phone: "+256 700000003",
+    },
+    {
+      id: "Trip-007",
+      from: "Kireka",
+      to: "Banda",
+      route: "Kireka - Banda",
+      duration: "4.5km",
+      time: "30min",
+      amount: 3000,
+      paymentMethod: "MTN MoMo",
+      date: "Apr 23, 2025, 6:00 AM",
+      status: "Pending",
+      tripType: "Quick Trip",
+      manualOverride: "NO",
+      customer: "Bob Williams",
+      phone: "+256 700000004",
+    },
+    {
+      id: "Trip-007",
+      from: "Kireka",
+      to: "Banda",
+      route: "Kireka - Banda",
+      duration: "5.3km",
+      time: "21min",
       amount: 2000,
       paymentMethod: "Airtel Money",
-      date: "27 Nov 2025",
-      status: "Paid",
+      date: "Apr 23, 2025, 9:00 AM",
+      status: "Completed",
+      tripType: "Normal Trip",
+      manualOverride: "NO",
+      customer: "Carol Davis",
+      phone: "+256 700000005",
+    },
+    {
+      id: "Trip-007",
+      from: "Kireka",
+      to: "Banda",
+      route: "Kireka - Banda",
+      duration: "5.2km",
+      time: "7min",
+      amount: 8000,
+      paymentMethod: "MTN MoMo",
+      date: "Apr 23, 2025, 9:00 AM",
+      status: "Completed",
+      tripType: "Normal Trip",
+      manualOverride: "NO",
+      customer: "David Brown",
+      phone: "+256 700000006",
+    },
+    {
+      id: "Trip-007",
+      from: "Kireka",
+      to: "Banda",
+      route: "Kireka - Banda",
+      duration: "5.3km",
+      time: "59min",
+      amount: 12500,
+      paymentMethod: "Cash",
+      date: "Apr 23, 2025, 9:00 AM",
+      status: "Completed",
+      tripType: "Quick Trip",
+      manualOverride: "YES",
+      customer: "Eve Martinez",
+      phone: "+256 700000007",
+    },
+    {
+      id: "Trip-007",
+      from: "Kireka",
+      to: "Banda",
+      route: "Kireka - Banda",
+      duration: "5.2km",
+      time: "4min",
+      amount: 5000,
+      paymentMethod: "Split Pay",
+      date: "Apr 23, 2025, 9:00 AM",
+      status: "Completed",
+      tripType: "Normal Trip",
+      manualOverride: "NO",
+      customer: "Frank Wilson",
+      phone: "+256 700000008",
     },
   ])
+
+  const [historyFilters, setHistoryFilters] = useState({
+    search: "",
+    status: "All Status",
+    tripType: "Normal Trip",
+    paymentMethod: "All Status",
+    route: "All Routes",
+    dateRange: { start: "", end: "" },
+    minFare: 0,
+    maxFare: 3000,
+    sortBy: "Date",
+  })
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 8
 
   const popularLocations = ["Mukono", "Kampala", "Kireka", "Banda", "Ntinda", "Nakawa"]
 
@@ -97,7 +220,11 @@ const Ride = () => {
   }
 
   const handleReceivePayment = () => {
-    setScreen("payment")
+    if (window.innerWidth <= 768) {
+      setShowMobilePayment(true)
+    } else {
+      setScreen("payment")
+    }
   }
 
   const handlePaymentComplete = () => {
@@ -105,8 +232,9 @@ const Ride = () => {
       id: tripData.tripId,
       from: tripData.pickup,
       to: tripData.destination,
-      duration: formatTime(tripData.duration),
-      distance: `${tripData.distance} KM`,
+      route: `${tripData.pickup} - ${tripData.destination}`,
+      duration: `${tripData.distance} km`,
+      time: formatTime(tripData.duration),
       amount: tripData.amount,
       paymentMethod:
         selectedPayment === "momo"
@@ -117,9 +245,14 @@ const Ride = () => {
               ? "Visa"
               : "Cash",
       date: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
-      status: "Paid",
+      status: "Completed",
+      tripType: "Normal Trip",
+      manualOverride: manualOverride ? "YES" : "NO",
+      customer: "Unknown",
+      phone: "+256 70xxxxxxxx",
     }
     setTripHistory([newTrip, ...tripHistory])
+    setShowMobilePayment(false)
     setScreen("invoice")
   }
 
@@ -168,12 +301,63 @@ const Ride = () => {
     setTripData({ ...tripData, stops: newStops })
   }
 
+  const filteredTrips = tripHistory.filter((trip) => {
+    const matchesSearch =
+      trip.route.toLowerCase().includes(historyFilters.search.toLowerCase()) ||
+      trip.id.toLowerCase().includes(historyFilters.search.toLowerCase()) ||
+      trip.customer.toLowerCase().includes(historyFilters.search.toLowerCase()) ||
+      trip.phone.includes(historyFilters.search)
+
+    const matchesStatus = historyFilters.status === "All Status" || trip.status === historyFilters.status
+    const matchesTripType = historyFilters.tripType === "Normal Trip" || trip.tripType === historyFilters.tripType
+    const matchesPayment =
+      historyFilters.paymentMethod === "All Status" || trip.paymentMethod === historyFilters.paymentMethod
+    const matchesFare = trip.amount >= historyFilters.minFare && trip.amount <= historyFilters.maxFare
+
+    return matchesSearch && matchesStatus && matchesTripType && matchesPayment && matchesFare
+  })
+
+  const totalPages = Math.ceil(filteredTrips.length / itemsPerPage)
+  const paginatedTrips = filteredTrips.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  const stats = {
+    total: tripHistory.length,
+    totalMoney: tripHistory.reduce((sum, trip) => sum + trip.amount, 0),
+    completed: tripHistory.filter((t) => t.status === "Completed").length,
+    cancellationRate: ((tripHistory.filter((t) => t.status === "Cancelled").length / tripHistory.length) * 100).toFixed(
+      1,
+    ),
+  }
+
+  const clearFilters = () => {
+    setHistoryFilters({
+      search: "",
+      status: "All Status",
+      tripType: "Normal Trip",
+      paymentMethod: "All Status",
+      route: "All Routes",
+      dateRange: { start: "", end: "" },
+      minFare: 0,
+      maxFare: 3000,
+      sortBy: "Date",
+    })
+    setCurrentPage(1)
+  }
+
   return (
     <div className="ride-container">
       {/* Dashboard Screen */}
       {screen === "dashboard" && (
         <div className="screen dashboard-screen fade-in">
-          
+          <div className="search-bar">
+            <input type="text" placeholder="Search" />
+            <div className="header-icons">
+              <span className="icon">☀️</span>
+              <span className="icon">🔔</span>
+              <span className="icon">⚙️</span>
+              <span className="icon">👤</span>
+            </div>
+          </div>
 
           <div className="quick-actions">
             <h2>Quick Actions</h2>
@@ -213,10 +397,12 @@ const Ride = () => {
                 <h2>Trip History</h2>
                 <p className="subtitle">View completed trip summary</p>
               </div>
-              <button className="view-detailed-btn">View Detailed Trip History</button>
+              <button className="view-detailed-btn" onClick={() => setScreen("tripHistory")}>
+                View Detailed Trip History
+              </button>
             </div>
 
-            {tripHistory.map((trip, index) => (
+            {tripHistory.slice(0, 2).map((trip, index) => (
               <div key={index} className="history-item slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
                 <div className="history-row">
                   <div className="history-col">
@@ -229,11 +415,11 @@ const Ride = () => {
                   </div>
                   <div className="history-col">
                     <div className="label">Duration</div>
-                    <div className="value">{trip.duration}</div>
+                    <div className="value">{trip.time}</div>
                   </div>
                   <div className="history-col">
                     <div className="label">Distance</div>
-                    <div className="value">{trip.distance}</div>
+                    <div className="value">{trip.duration}</div>
                   </div>
                 </div>
                 <div className="history-footer">
@@ -551,6 +737,7 @@ const Ride = () => {
                   onClick={() => setSelectedPayment("cash")}
                 >
                   <div className="payment-icon cash">CASH</div>
+                  {selectedPayment === "cash" && <div className="checkmark">✓</div>}
                 </div>
                 <div
                   className={`payment-option ${selectedPayment === "momo" ? "selected" : ""}`}
@@ -751,6 +938,329 @@ const Ride = () => {
             <button className="btn-danger" onClick={handleCancelConfirm}>
               Confirm Cancellation
             </button>
+          </div>
+        </div>
+      )}
+
+      {screen === "tripHistory" && (
+        <div className="screen trip-history-dashboard fade-in">
+          <div className="history-dashboard-header">
+            <div className="header-top">
+              <button className="back-btn" onClick={() => setScreen("dashboard")}>
+                ← Back
+              </button>
+              <h1>Trip History Dashboard</h1>
+              <div className="header-actions">
+                <button className="export-btn">📤 Export</button>
+                <button className="share-btn">🔗 Share</button>
+                <div className="user-badge">
+                  <span className="user-icon">👤</span>
+                  <span className="user-name">Moses K</span>
+                  <span className="user-id">MK</span>
+                </div>
+              </div>
+            </div>
+            <p className="dashboard-subtitle">
+              View real-time trip analytics, all completed trips and their history details
+            </p>
+          </div>
+
+          <div className="stats-grid">
+            <div className="stat-card blue">
+              <div className="stat-icon">🚗</div>
+              <div className="stat-info">
+                <div className="stat-label">Total Trips</div>
+                <div className="stat-value">{stats.total}</div>
+                <div className="stat-change">+12 from yesterday</div>
+              </div>
+            </div>
+            <div className="stat-card dark">
+              <div className="stat-icon">💰</div>
+              <div className="stat-info">
+                <div className="stat-label">Total Money</div>
+                <div className="stat-value">
+                  {stats.totalMoney.toLocaleString()} <span className="stat-currency">UGX</span>
+                </div>
+                <div className="stat-change">+6% Up from yesterday</div>
+              </div>
+            </div>
+            <div className="stat-card green">
+              <div className="stat-icon">✓</div>
+              <div className="stat-info">
+                <div className="stat-label">Completed Trips</div>
+                <div className="stat-value">{stats.completed}</div>
+                <div className="stat-change">+40% Up from yesterday</div>
+              </div>
+            </div>
+            <div className="stat-card yellow">
+              <div className="stat-icon">⚠</div>
+              <div className="stat-info">
+                <div className="stat-label">Cancellation Rate</div>
+                <div className="stat-value">{stats.cancellationRate}%</div>
+                <div className="stat-change">-3% less from yesterday</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="history-content-wrapper">
+            <div className="filters-sidebar">
+              <div className="search-section">
+                <h3>Search</h3>
+                <input
+                  type="text"
+                  placeholder="Trip ID, Phone, Customer..."
+                  value={historyFilters.search}
+                  onChange={(e) => setHistoryFilters({ ...historyFilters, search: e.target.value })}
+                />
+              </div>
+
+              <div className="filters-section">
+                <h3>Filters</h3>
+
+                <div className="filter-group">
+                  <label>Trip status</label>
+                  <select
+                    value={historyFilters.status}
+                    onChange={(e) => setHistoryFilters({ ...historyFilters, status: e.target.value })}
+                  >
+                    <option>All Status</option>
+                    <option>Completed</option>
+                    <option>Cancelled</option>
+                    <option>No-show</option>
+                    <option>In-progress</option>
+                    <option>Pending</option>
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label>Trip Type</label>
+                  <select
+                    value={historyFilters.tripType}
+                    onChange={(e) => setHistoryFilters({ ...historyFilters, tripType: e.target.value })}
+                  >
+                    <option>Normal Trip</option>
+                    <option>Quick Trip</option>
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label>Payment Method</label>
+                  <select
+                    value={historyFilters.paymentMethod}
+                    onChange={(e) => setHistoryFilters({ ...historyFilters, paymentMethod: e.target.value })}
+                  >
+                    <option>All Status</option>
+                    <option>Cash</option>
+                    <option>MTN MoMo</option>
+                    <option>Airtel Money</option>
+                    <option>Split Pay</option>
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label>Routes</label>
+                  <select
+                    value={historyFilters.route}
+                    onChange={(e) => setHistoryFilters({ ...historyFilters, route: e.target.value })}
+                  >
+                    <option>All Routes</option>
+                    <option>Kireka - Banda</option>
+                    <option>Mukono - Kampala</option>
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label>
+                    Amount Range: UGX {historyFilters.minFare} - UGX {historyFilters.maxFare}
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="15000"
+                    value={historyFilters.maxFare}
+                    onChange={(e) => setHistoryFilters({ ...historyFilters, maxFare: Number.parseInt(e.target.value) })}
+                    className="fare-slider"
+                  />
+                </div>
+
+                <div className="filter-group">
+                  <label>Sort By</label>
+                  <select
+                    value={historyFilters.sortBy}
+                    onChange={(e) => setHistoryFilters({ ...historyFilters, sortBy: e.target.value })}
+                  >
+                    <option>Date</option>
+                    <option>Newest</option>
+                  </select>
+                </div>
+
+                <button className="clear-filter-btn" onClick={clearFilters}>
+                  Clear All Filter
+                </button>
+              </div>
+            </div>
+
+            <div className="trips-table-section">
+              <div className="table-wrapper">
+                <table className="trips-table">
+                  <thead>
+                    <tr>
+                      <th>Trip ID</th>
+                      <th>Route & Time taken</th>
+                      <th>Distance & Time taken</th>
+                      <th>Amount</th>
+                      <th>Manual Over ride</th>
+                      <th>Payment Method</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedTrips.map((trip, index) => (
+                      <tr key={index} className="fade-in" style={{ animationDelay: `${index * 0.05}s` }}>
+                        <td>
+                          <div className="trip-id">{trip.id}</div>
+                          <div className="trip-date">{trip.date}</div>
+                        </td>
+                        <td>
+                          <div className="route-info">
+                            <div className="route">{trip.route}</div>
+                            <div className="time">{trip.time}</div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="distance-info">
+                            <div className="distance">{trip.duration}</div>
+                            <div className="time">{trip.time}</div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="amount-cell">UGX {trip.amount.toLocaleString()}</div>
+                        </td>
+                        <td>
+                          <span className={`override-badge ${trip.manualOverride === "YES" ? "yes" : "no"}`}>
+                            {trip.manualOverride}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={`payment-method-badge ${trip.paymentMethod.toLowerCase().replace(" ", "-")}`}
+                          >
+                            {trip.paymentMethod}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`status-badge-table ${trip.status.toLowerCase()}`}>{trip.status}</span>
+                        </td>
+                        <td>
+                          <button className="action-btn-table">👁</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="pagination">
+                <div className="pagination-info">Showing {paginatedTrips.length} trips</div>
+                <div className="pagination-controls">
+                  <button
+                    className="page-btn"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                  >
+                    Previous
+                  </button>
+                  {[...Array(totalPages)].map((_, i) => (
+                    <button
+                      key={i}
+                      className={`page-number ${currentPage === i + 1 ? "active" : ""}`}
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                  <button
+                    className="page-btn"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showMobilePayment && (
+        <div className="modal-overlay" onClick={() => setShowMobilePayment(false)}>
+          <div className="mobile-payment-modal fade-in scale-in" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-payment-header">Receive Money</div>
+
+            <div className="mobile-payment-content">
+              <div className="mobile-amount-section">
+                <label>Enter Cash Amount</label>
+                <div className="mobile-amount-display">
+                  <span className="amount">{tripData.amount.toLocaleString()}</span>
+                  <span className="currency">UGX</span>
+                </div>
+              </div>
+
+              <div className="mobile-payment-methods">
+                <h3>Select Payment Method</h3>
+                <div className="mobile-payment-grid">
+                  <div
+                    className={`mobile-payment-option ${selectedPayment === "cash" ? "selected" : ""}`}
+                    onClick={() => setSelectedPayment("cash")}
+                  >
+                    <div className="payment-icon cash">CASH</div>
+                    {selectedPayment === "cash" && <div className="checkmark">✓</div>}
+                  </div>
+                  <div
+                    className={`mobile-payment-option ${selectedPayment === "momo" ? "selected" : ""}`}
+                    onClick={() => setSelectedPayment("momo")}
+                  >
+                    <img src="./assets/mtn.png" alt="MTN MoMo" className="payment-logo" />
+                    {selectedPayment === "momo" && <div className="checkmark">✓</div>}
+                    <span className="payment-label">MoMo</span>
+                  </div>
+                  <div
+                    className={`mobile-payment-option ${selectedPayment === "airtel" ? "selected" : ""}`}
+                    onClick={() => setSelectedPayment("airtel")}
+                  >
+                    <img src="./assets/airtel.png" alt="Airtel Money" className="payment-logo" />
+                    {selectedPayment === "airtel" && <div className="checkmark">✓</div>}
+                    <span className="payment-label">airtel</span>
+                  </div>
+                  <div
+                    className={`mobile-payment-option ${selectedPayment === "visa" ? "selected" : ""}`}
+                    onClick={() => setSelectedPayment("visa")}
+                  >
+                    <img src="./assets/visa.png" alt="Visa" className="payment-logo" />
+                    {selectedPayment === "visa" && <div className="checkmark">✓</div>}
+                  </div>
+                  <div className="mobile-payment-option">
+                    <div className="qr-code-icon">⊞</div>
+                    <span className="payment-label">QR Code</span>
+                  </div>
+                  <div className="mobile-payment-option">
+                    <div className="split-icon">◯◯</div>
+                    <span className="payment-label">Split Payment</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mobile-payment-actions">
+                <button className="btn-secondary-mobile" onClick={() => setShowMobilePayment(false)}>
+                  Cancel
+                </button>
+                <button className="btn-primary-mobile" onClick={handlePaymentComplete}>
+                  Continue
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
