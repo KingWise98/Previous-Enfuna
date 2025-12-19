@@ -93,11 +93,11 @@ const DashboardPage = () => {
   };
 
   const tabs = [
-    { id: 'start-trip', label: 'Start Trip', icon: <TripOrigin /> },
-    { id: 'deliveries', label: 'Deliveries', icon: <LocalShipping /> },
-    { id: 'receive-money', label: 'Receive Money', icon: <Payment /> },
-    { id: 'withdraw-money', label: 'Withdraw Money', icon: <AccountBalanceWallet /> },
-    { id: 'add-expense', label: 'Add Expense', icon: <Add /> },
+    { id: 'start-trip', label: 'Start Trip',  },
+    { id: 'deliveries', label: 'Deliveries',  },
+    { id: 'receive-money', label: 'Receive Money', },
+    { id: 'withdraw-money', label: 'Withdraw Money',  },
+    { id: 'add-expense', label: 'Add Expense', },
   ];
 
   return (
@@ -117,12 +117,10 @@ const DashboardPage = () => {
       >
         <Toolbar>
           <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              ENFUNA Driver
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.8, fontSize: '0.85rem' }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.85rem' }}>
               Quick Actions
             </Typography>
+           
           </Box>
           <Button
             variant="contained"
