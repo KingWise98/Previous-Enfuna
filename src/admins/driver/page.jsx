@@ -1,898 +1,889 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+"use client"
+
+import { useState } from "react"
+import "./payment.css"
 import {
-  Box,
-  Typography,
-  Button,
-  Card,
-  CardContent,
-  Grid,
-  Avatar,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Snackbar,
-  Alert,
-  useTheme,
-  useMediaQuery,
-  AppBar,
-  Toolbar,
-  IconButton,
-  Divider,
-  LinearProgress
-} from '@mui/material';
-import {
-  AccountBalanceWallet,
-  Payment,
-  QrCode,
-  Smartphone,
-  LocalAtm,
-  Receipt,
   TrendingUp,
-  Download,
-  Share,
+  AlertCircle,
   CheckCircle,
-  Schedule,
-  Close,
-  Phone,
-  AttachMoney,
-  ArrowBack
-} from '@mui/icons-material';
+  Clock,
+  Download,
+  Share2,
+  Cloud,
+  ArrowLeft,
+  Upload,
+  Search,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  TrendingDown,
+  Menu,
+  X,
+} from "lucide-react"
 
-const SimplePaymentsPage = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const navigate = useNavigate();
-  
-  const [paymentData, setPaymentData] = useState({
-    wallet: {
-      balance: 285000,
-      available: 275000,
-      pending: 10000
-    },
-    earnings: {
-      today: 45000,
-      week: 285000,
-      month: 1150000
-    },
-    recentPayments: [
-      {
-        id: 1,
-        amount: 20000,
-        customer: 'Customer #1234',
-        method: 'cash',
-        status: 'completed',
-        time: '2:30 PM',
-        date: 'Today'
-      },
-      {
-        id: 2,
-        amount: 60000,
-        customer: 'Customer #5678',
-        method: 'mobile',
-        status: 'completed',
-        time: '12:15 PM',
-        date: 'Today'
-      },
-      {
-        id: 3,
-        amount: 15000,
-        customer: 'Customer #9012',
-        method: 'qr',
-        status: 'completed',
-        time: '10:45 AM',
-        date: 'Today'
-      },
-      {
-        id: 4,
-        amount: 10000,
-        customer: 'Customer #3456',
-        method: 'cash',
-        status: 'pending',
-        time: '9:30 AM',
-        date: 'Today'
-      }
-    ]
-  });
+export default function PaymentsApp() {
+  const [currentView, setCurrentView] = useState("dashboard")
+  const [activeTab, setActiveTab] = useState("daily")
+  const [activeFilter, setActiveFilter] = useState("all")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedTransaction, setSelectedTransaction] = useState("")
+  const [disputeReason, setDisputeReason] = useState("")
+  const [disputeTab, setDisputeTab] = useState("file")
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const [showQRDialog, setShowQRDialog] = useState(false);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [showMobileDialog, setShowMobileDialog] = useState(false);
-  const [showCashDialog, setShowCashDialog] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [cashAmount, setCashAmount] = useState('');
-
-  const paymentMethods = [
+  // Stats data
+  const dashboardStats = [
     {
-      title: 'Show QR Code',
-      description: 'Customer scans to pay',
-      icon: <QrCode sx={{ fontSize: isMobile ? 30 : 40 }} />,
-      color: '#0025DD',
-      action: () => setShowQRDialog(true)
+      label: "Total Collections Today",
+      value: "125,000",
+      currency: "UGX",
+      change: "+12.5%",
+      trend: "up",
+      icon: TrendingUp,
+      color: "blue",
     },
+    { label: "Pending Payments", value: "18", change: "+2", trend: "warning", icon: Clock, color: "yellow" },
+    { label: "Pending Reconciliations", value: "23", change: "+20.5%", trend: "up", icon: AlertCircle, color: "green" },
+    { label: "Success Rate", value: "98.2%", change: "+20.5%", trend: "up", icon: CheckCircle, color: "green" },
+  ]
+
+  const paymentMethodsData = [
+    { name: "MTN MoMo", percentage: 82, transactions: "1240 Transactions", color: "payment-mtn" },
+    { name: "Airtel Money", percentage: 2, transactions: "10 Transactions", color: "payment-airtel" },
+    { name: "Cash", percentage: 50, transactions: "460 Transactions", color: "payment-cash" },
+    { name: "QR Code", percentage: 12, transactions: "60 Transactions", color: "payment-qr" },
+    { name: "Split Payment", percentage: 12, transactions: "60 Transactions", color: "payment-split" },
+    { name: "Card Payment", percentage: 1, transactions: "2 Transactions", color: "payment-card" },
+  ]
+
+  const recentTransactionsData = [
+    { type: "Quick Trip", method: "Cash", time: "09:30 AM", status: "Completed", amount: "2,500" },
+    { type: "Delivery", method: "MTN MoMo", time: "09:30 AM", status: "Completed", amount: "12,000" },
+    { type: "Quick Trip", method: "QR Code", time: "09:30 AM", status: "Failed", amount: "3,000" },
+    { type: "Normal Trip", method: "MTN MoMo", time: "09:30 AM", status: "Pending", amount: "20,000" },
+    { type: "Delivery", method: "Cash", time: "09:30 AM", status: "Completed", amount: "15,000" },
+  ]
+
+  const analyticsCards = [
+    { label: "Cash", amount: "50,000", change: "+12.5%", trend: "up" },
+    { label: "MTN MoMo", amount: "180,000", currency: "UGX", change: "+22.5%", trend: "up" },
+    { label: "Split Pay", amount: "15,000", currency: "UGX", change: "-2.5%", trend: "down" },
+    { label: "QR Code", amount: "40,000", currency: "UGX", change: "-2.5%", trend: "down" },
+  ]
+
+  const conversionFunnelData = [
+    { stage: "Clicks", value: 250, percentage: 100 },
+    { stage: "Clicks", value: 85, percentage: 34 },
+    { stage: "Signups", value: 42, percentage: 49 },
+    { stage: "Activated", value: 33, percentage: 90 },
+    { stage: "First Trip", value: 35, percentage: 92 },
+  ]
+
+  const disputesData = [
     {
-      title: 'Mobile Money',
-      description: 'Send payment request',
-      icon: <Smartphone sx={{ fontSize: isMobile ? 30 : 40 }} />,
-      color: '#FFEC01',
-      textColor: '#000',
-      action: () => setShowMobileDialog(true)
+      id: "TXN-9000900",
+      reason: "Amount incorrect",
+      filed: "12-12-2025",
+      notes: "Under investigation by finance team...",
+      status: "Under Review",
+      statusColor: "yellow",
     },
     {
-      title: 'Cash Payment',
-      description: 'Record cash received',
-      icon: <LocalAtm sx={{ fontSize: isMobile ? 30 : 40 }} />,
-      color: '#10B981',
-      action: () => setShowCashDialog(true)
+      id: "TXN-9000900",
+      reason: "Amount incorrect",
+      filed: "12-12-2025",
+      notes: "Awaiting customer documentations",
+      status: "Open",
+      statusColor: "red",
     },
     {
-      title: 'Request Payment',
-      description: 'Any payment method',
-      icon: <Payment sx={{ fontSize: isMobile ? 30 : 40 }} />,
-      color: '#4ECDC4',
-      action: () => setShowPaymentDialog(true)
-    }
-  ];
+      id: "TXN-9000900",
+      reason: "Amount incorrect",
+      filed: "12-12-2025",
+      notes: "Under investigation by finance team...",
+      status: "Under Review",
+      statusColor: "yellow",
+    },
+    {
+      id: "TXN-9000900",
+      reason: "Duplicate Charge",
+      filed: "12-12-2025",
+      notes: "Refund Processed, dispute closed",
+      status: "Resolved",
+      statusColor: "green",
+    },
+  ]
 
-  const showSnackbar = (message, severity = 'success') => {
-    setSnackbar({ open: true, message, severity });
-  };
+  const paymentsHistoryData = [
+    {
+      description: "Quick Trip",
+      date: "03-12-2025 09.30 AM",
+      txnId: "QT6730000",
+      amount: "2,500",
+      method: "Cash",
+      methodDate: "03-12-2025 09.30 AM",
+      status: "Completed",
+    },
+    {
+      description: "Quick Trip",
+      date: "03-12-2025 09.30 AM",
+      txnId: "QT6730000",
+      amount: "2,500",
+      method: "MTN MoMO",
+      methodDate: "03-12-2025 09.30 AM",
+      status: "Completed",
+    },
+    {
+      description: "Quick Trip",
+      date: "03-12-2025 09.30 AM",
+      txnId: "QT6730000",
+      amount: "2,500",
+      method: "QR Code",
+      methodDate: "03-12-2025 09.30 AM",
+      status: "Failed",
+    },
+    {
+      description: "Quick Trip",
+      date: "03-12-2025 09.30 AM",
+      txnId: "QT6730000",
+      amount: "2,500",
+      method: "MTN MoMo",
+      methodDate: "03-12-2025 09.30 AM",
+      status: "Completed",
+    },
+    {
+      description: "Quick Trip",
+      date: "03-12-2025 09.30 AM",
+      txnId: "QT6730000",
+      amount: "2,500",
+      method: "Airtel Money",
+      methodDate: "03-12-2025 09.30 AM",
+      status: "Pending",
+    },
+    {
+      description: "Quick Trip",
+      date: "03-12-2025 09.30 AM",
+      txnId: "QT6730000",
+      amount: "2,500",
+      method: "Cash",
+      methodDate: "03-12-2025 09.30 AM",
+      status: "Completed",
+    },
+  ]
 
-  const handleRequestPayment = () => {
-    if (!paymentAmount || paymentAmount <= 0) {
-      showSnackbar('Please enter a valid amount', 'error');
-      return;
-    }
+  const pendingPaymentsData = [
+    {
+      id: "T908",
+      type: "Quick Trip",
+      method: "MTN MoMo",
+      ref: "Mo780045",
+      amount: "67,000",
+      date: "03-12-2025",
+      time: "10:30 AM",
+      status: "Pending",
+      statusColor: "yellow",
+    },
+    {
+      id: "T908",
+      type: "Delivery",
+      method: "MTN MoMo",
+      ref: "Mo780045",
+      amount: "2,000",
+      date: "03-12-2025",
+      time: "10:30 AM",
+      status: "Verifying",
+      statusColor: "purple",
+    },
+    {
+      id: "T908",
+      type: "Normal Trip",
+      method: "QR Code",
+      ref: "QR780045",
+      amount: "7,000",
+      date: "03-12-2025",
+      time: "10:30 AM",
+      status: "Pending",
+      statusColor: "yellow",
+    },
+    {
+      id: "T908",
+      type: "Quick Trip",
+      method: "Airtel Money",
+      ref: "AA780000",
+      amount: "5,000",
+      date: "03-12-2025",
+      time: "10:30 AM",
+      status: "Processing",
+      statusColor: "blue",
+    },
+  ]
 
-    const newPayment = {
-      id: Date.now(),
-      amount: parseInt(paymentAmount),
-      customer: customerPhone ? `Customer (${customerPhone})` : 'Walk-in Customer',
-      method: 'mobile',
-      status: 'pending',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      date: 'Today'
-    };
+  const chartData = [
+    { day: "Sunday", failed: 200, completed: 650 },
+    { day: "Monday", failed: 300, completed: 250 },
+    { day: "Tuesday", failed: 200, completed: 500 },
+    { day: "Wed", failed: 180, completed: 700 },
+    { day: "Thursday", failed: 250, completed: 680 },
+    { day: "Friday", failed: 220, completed: 580 },
+  ]
 
-    // Update payments list
-    setPaymentData(prev => ({
-      ...prev,
-      recentPayments: [newPayment, ...prev.recentPayments],
-      wallet: {
-        ...prev.wallet,
-        pending: prev.wallet.pending + parseInt(paymentAmount)
-      }
-    }));
+  // Render functions for each view
+  const renderDashboard = () => (
+    <div className="payments-container">
+      <header className="payments-header">
+        <div className="payments-header-content">
+          <div className="payments-header-left">
+            <img src="/logo.png" alt="Enfuna" className="payments-logo" />
+            <div>
+              <h1 className="payments-title">PAYMENT DASHBOARD</h1>
+              <p className="payments-subtitle">Real-Time payment overview and analytics</p>
+            </div>
+          </div>
+          <div className="payments-header-right">
+            <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X /> : <Menu />}
+            </button>
+            <div className="user-badge">
+              <span className="user-name">Moses. K</span>
+              <div className="user-avatar">MK</div>
+            </div>
+          </div>
+        </div>
+      </header>
 
-    setShowPaymentDialog(false);
-    setPaymentAmount('');
-    setCustomerPhone('');
-    showSnackbar(`Payment request sent for UGX ${parseInt(paymentAmount).toLocaleString()}`);
+      <main className="payments-main">
+        {/* Stats Grid */}
+        <div className="stats-grid">
+          {dashboardStats.map((stat, index) => (
+            <div key={index} className={`stat-card stat-card-${stat.color}`}>
+              <div className="stat-header">
+                <span className="stat-label">{stat.label}</span>
+                <div className={`stat-icon stat-icon-${stat.color}`}>
+                  <stat.icon className="icon" />
+                </div>
+              </div>
+              <div className="stat-content">
+                <div className="stat-value">
+                  {stat.value}
+                  {stat.currency && <span className="stat-currency">{stat.currency}</span>}
+                </div>
+                <div className={`stat-change stat-change-${stat.trend}`}>{stat.change}</div>
+              </div>
+            </div>
+          ))}
+        </div>
 
-    // Simulate payment completion after 3 seconds
-    setTimeout(() => {
-      setPaymentData(prev => ({
-        ...prev,
-        recentPayments: prev.recentPayments.map(payment =>
-          payment.id === newPayment.id
-            ? { ...payment, status: 'completed' }
-            : payment
-        ),
-        wallet: {
-          ...prev.wallet,
-          balance: prev.wallet.balance + parseInt(paymentAmount),
-          available: prev.wallet.available + parseInt(paymentAmount),
-          pending: prev.wallet.pending - parseInt(paymentAmount),
-        },
-        earnings: {
-          ...prev.earnings,
-          today: prev.earnings.today + parseInt(paymentAmount),
-          week: prev.earnings.week + parseInt(paymentAmount),
-          month: prev.earnings.month + parseInt(paymentAmount)
-        }
-      }));
-      showSnackbar(`Payment received! UGX ${parseInt(paymentAmount).toLocaleString()} added to your wallet`, 'success');
-    }, 3000);
-  };
+        {/* Action Buttons */}
+        <div className="action-buttons">
+          <button className="btn btn-primary" onClick={() => setCurrentView("pending")}>
+            Pending Payments
+          </button>
+          <button className="btn btn-yellow">Receive Money</button>
+          <button className="btn btn-dark" onClick={() => setCurrentView("disputes")}>
+            File Dispute
+          </button>
+          <button className="btn btn-navy" onClick={() => setCurrentView("analytics")}>
+            View Analytics
+          </button>
+        </div>
 
-  const handleMobilePayment = () => {
-    if (!paymentAmount || paymentAmount <= 0) {
-      showSnackbar('Please enter a valid amount', 'error');
-      return;
-    }
+        {/* Payment Methods & Recent Transactions */}
+        <div className="content-grid">
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title">Payment Methods</h2>
+              <p className="card-subtitle">Usage Breakdown Today</p>
+            </div>
+            <div className="payment-methods">
+              {paymentMethodsData.map((method, index) => (
+                <div key={index} className="payment-method">
+                  <div className="payment-method-header">
+                    <span className="payment-method-name">{method.name}</span>
+                    <span className="payment-method-percentage">{method.percentage}%</span>
+                  </div>
+                  <div className="progress-bar">
+                    <div className={`progress-fill ${method.color}`} style={{ width: `${method.percentage}%` }}></div>
+                  </div>
+                  <p className="payment-method-transactions">{method.transactions}</p>
+                </div>
+              ))}
+            </div>
+          </div>
 
-    if (!customerPhone) {
-      showSnackbar('Please enter customer phone number', 'error');
-      return;
-    }
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title">Recent Transactions</h2>
+              <p className="card-subtitle">Latest Payment activity</p>
+            </div>
+            <div className="transactions-list">
+              {recentTransactionsData.map((transaction, index) => (
+                <div key={index} className="transaction-item">
+                  <div className="transaction-info">
+                    <h3 className="transaction-type">{transaction.type}</h3>
+                    <p className="transaction-details">
+                      {transaction.method} <span className="transaction-time">{transaction.time}</span>
+                    </p>
+                  </div>
+                  <div className="transaction-amount">UGX {transaction.amount}</div>
+                  <span className={`status-badge status-${transaction.status.toLowerCase()}`}>
+                    {transaction.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <button className="btn btn-primary btn-full" onClick={() => setCurrentView("history")}>
+              View All Transactions
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
 
-    const newPayment = {
-      id: Date.now(),
-      amount: parseInt(paymentAmount),
-      customer: `Customer (${customerPhone})`,
-      method: 'mobile',
-      status: 'pending',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      date: 'Today'
-    };
+  const renderAnalytics = () => (
+    <div className="payments-container analytics-view">
+      <header className="payments-header payments-header-blue">
+        <div className="payments-header-content">
+          <div className="payments-header-left">
+            <button className="btn-back" onClick={() => setCurrentView("dashboard")}>
+              <ArrowLeft />
+            </button>
+            <div>
+              <h1 className="payments-title">Payment Analytics</h1>
+              <p className="payments-subtitle">Real-time Payment performance analytics</p>
+            </div>
+          </div>
+          <div className="payments-header-right">
+            <button className="btn-icon">
+              <Download />
+            </button>
+            <button className="btn-icon">
+              <Share2 />
+            </button>
+            <button className="btn-icon">
+              <Cloud />
+            </button>
+            <div className="user-badge">
+              <span className="user-name">Moses. K</span>
+              <div className="user-avatar">MK</div>
+            </div>
+          </div>
+        </div>
+      </header>
 
-    setPaymentData(prev => ({
-      ...prev,
-      recentPayments: [newPayment, ...prev.recentPayments],
-      wallet: {
-        ...prev.wallet,
-        pending: prev.wallet.pending + parseInt(paymentAmount)
-      }
-    }));
+      <main className="payments-main">
+        {/* Time Period Tabs */}
+        <div className="tab-buttons">
+          <button className={`tab-btn ${activeTab === "daily" ? "active" : ""}`} onClick={() => setActiveTab("daily")}>
+            Daily
+          </button>
+          <button
+            className={`tab-btn ${activeTab === "weekly" ? "active" : ""}`}
+            onClick={() => setActiveTab("weekly")}
+          >
+            Weekly
+          </button>
+          <button
+            className={`tab-btn ${activeTab === "monthly" ? "active" : ""}`}
+            onClick={() => setActiveTab("monthly")}
+          >
+            Monthly
+          </button>
+        </div>
 
-    setShowMobileDialog(false);
-    setPaymentAmount('');
-    setCustomerPhone('');
-    showSnackbar(`Mobile money request sent to ${customerPhone}`);
+        {/* Analytics Cards */}
+        <div className="analytics-cards">
+          {analyticsCards.map((card, index) => (
+            <div key={index} className="card analytics-card">
+              <div className="analytics-card-header">
+                <span className="analytics-label">{card.label}</span>
+                <span className={`analytics-change ${card.trend === "up" ? "positive" : "negative"}`}>
+                  {card.change}
+                  {card.trend === "up" ? (
+                    <TrendingUp className="trend-icon" />
+                  ) : (
+                    <TrendingDown className="trend-icon" />
+                  )}
+                </span>
+              </div>
+              <div className="analytics-amount">{card.amount}</div>
+              {card.currency && <div className="analytics-currency">{card.currency}</div>}
+            </div>
+          ))}
+        </div>
 
-    // Simulate payment completion
-    setTimeout(() => {
-      setPaymentData(prev => ({
-        ...prev,
-        recentPayments: prev.recentPayments.map(payment =>
-          payment.id === newPayment.id
-            ? { ...payment, status: 'completed' }
-            : payment
-        ),
-        wallet: {
-          ...prev.wallet,
-          balance: prev.wallet.balance + parseInt(paymentAmount),
-          available: prev.wallet.available + parseInt(paymentAmount),
-          pending: prev.wallet.pending - parseInt(paymentAmount),
-        },
-        earnings: {
-          ...prev.earnings,
-          today: prev.earnings.today + parseInt(paymentAmount),
-          week: prev.earnings.week + parseInt(paymentAmount),
-          month: prev.earnings.month + parseInt(paymentAmount)
-        }
-      }));
-      showSnackbar(`Mobile money received from ${customerPhone}`, 'success');
-    }, 3000);
-  };
+        {/* Charts */}
+        <div className="content-grid">
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title">Payment Summary</h2>
+              <p className="card-subtitle">Today's completed Vs failed Payments</p>
+            </div>
+            <div className="chart-container">
+              {chartData.map((data, index) => (
+                <div key={index} className="chart-bar-group">
+                  <div className="chart-bars">
+                    <div
+                      className="chart-bar chart-bar-completed"
+                      style={{ height: `${(data.completed / 700) * 200}px` }}
+                    ></div>
+                    <div
+                      className="chart-bar chart-bar-failed"
+                      style={{ height: `${(data.failed / 700) * 200}px` }}
+                    ></div>
+                  </div>
+                  <span className="chart-label">{data.day}</span>
+                </div>
+              ))}
+            </div>
+            <div className="chart-legend">
+              <div className="legend-item">
+                <div className="legend-color legend-failed"></div>
+                <span>Failed</span>
+              </div>
+              <div className="legend-item">
+                <div className="legend-color legend-completed"></div>
+                <span>Completed</span>
+              </div>
+            </div>
+          </div>
 
-  const handleCashPayment = () => {
-    if (!cashAmount || cashAmount <= 0) {
-      showSnackbar('Please enter a valid amount', 'error');
-      return;
-    }
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title">Payment Methods</h2>
+              <p className="card-subtitle">Payment Breakdown Today</p>
+            </div>
+            <div className="payment-methods">
+              {paymentMethodsData.map((method, index) => (
+                <div key={index} className="payment-method">
+                  <div className="payment-method-header">
+                    <span className="payment-method-name">{method.name}</span>
+                    <span className="payment-method-percentage">{method.percentage}%</span>
+                  </div>
+                  <div className="progress-bar">
+                    <div className={`progress-fill ${method.color}`} style={{ width: `${method.percentage}%` }}></div>
+                  </div>
+                  <p className="payment-method-transactions">{method.transactions}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-    const newPayment = {
-      id: Date.now(),
-      amount: parseInt(cashAmount),
-      customer: 'Cash Customer',
-      method: 'cash',
-      status: 'completed',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      date: 'Today'
-    };
+        {/* Conversion Funnel */}
+        <div className="card">
+          <h2 className="card-title">Referral Conversion Funnel</h2>
+          <div className="funnel-container">
+            {conversionFunnelData.map((item, index) => (
+              <div key={index} className="funnel-item">
+                <div className="funnel-header">
+                  <span className="funnel-stage">{item.stage}</span>
+                  <span className="funnel-value">
+                    {item.value} ({item.percentage}%)
+                  </span>
+                </div>
+                <div className="progress-bar">
+                  <div className="progress-fill progress-fill-blue" style={{ width: `${item.percentage}%` }}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+    </div>
+  )
 
-    setPaymentData(prev => ({
-      ...prev,
-      recentPayments: [newPayment, ...prev.recentPayments],
-      wallet: {
-        ...prev.wallet,
-        balance: prev.wallet.balance + parseInt(cashAmount),
-        available: prev.wallet.available + parseInt(cashAmount)
-      },
-      earnings: {
-        ...prev.earnings,
-        today: prev.earnings.today + parseInt(cashAmount),
-        week: prev.earnings.week + parseInt(cashAmount),
-        month: prev.earnings.month + parseInt(cashAmount)
-      }
-    }));
+  const renderPending = () => (
+    <div className="payments-container pending-view">
+      <header className="payments-header payments-header-blue">
+        <div className="payments-header-content">
+          <div className="payments-header-left">
+            <button className="btn-back" onClick={() => setCurrentView("dashboard")}>
+              <ArrowLeft />
+            </button>
+            <div>
+              <h1 className="payments-title">Pending Payments</h1>
+              <p className="payments-subtitle">Track and Manage Payments awaiting Completion</p>
+            </div>
+          </div>
+          <button className="btn btn-light" onClick={() => setCurrentView("dashboard")}>
+            Back To Dashboard
+          </button>
+        </div>
+      </header>
 
-    setShowCashDialog(false);
-    setCashAmount('');
-    showSnackbar(`Cash payment of UGX ${parseInt(cashAmount).toLocaleString()} recorded`, 'success');
-  };
+      <main className="payments-main">
+        {/* Stats */}
+        <div className="pending-stats">
+          <div className="card stat-card-border">
+            <div className="stat-label">Pending Payments</div>
+            <div className="stat-value">5</div>
+            <div className="stat-detail">awaiting processing</div>
+          </div>
+          <div className="card stat-card-yellow">
+            <div className="stat-label">Total Amount</div>
+            <div className="stat-value">96,000</div>
+            <div className="stat-detail">in 8 transactions</div>
+          </div>
+          <div className="card stat-card-dark">
+            <div className="stat-label">Average Time</div>
+            <div className="stat-value">2h : 25m</div>
+            <div className="stat-detail">to complete</div>
+          </div>
+        </div>
 
-  const handleWithdraw = () => {
-    if (paymentData.wallet.available <= 0) {
-      showSnackbar('No available balance to withdraw', 'error');
-      return;
-    }
+        {/* Search & Filters */}
+        <div className="card">
+          <h2 className="card-title">Search</h2>
+          <div className="search-filter-container">
+            <div className="search-input-wrapper">
+              <Search className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search By: Customer, ID, Phone number etc..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+            </div>
+            <div className="filter-buttons">
+              <button
+                className={`filter-btn ${activeFilter === "all" ? "active" : ""}`}
+                onClick={() => setActiveFilter("all")}
+              >
+                All (8)
+              </button>
+              <button
+                className={`filter-btn ${activeFilter === "pending" ? "active" : ""}`}
+                onClick={() => setActiveFilter("pending")}
+              >
+                Pending
+              </button>
+              <button
+                className={`filter-btn ${activeFilter === "processing" ? "active" : ""}`}
+                onClick={() => setActiveFilter("processing")}
+              >
+                Processing
+              </button>
+            </div>
+          </div>
+        </div>
 
-    setPaymentData(prev => ({
-      ...prev,
-      wallet: {
-        ...prev.wallet,
-        balance: prev.wallet.balance - prev.wallet.available,
-        available: 0
-      }
-    }));
+        {/* Payments List */}
+        <div className="payments-list">
+          {pendingPaymentsData.map((payment, index) => (
+            <div key={index} className="card payment-card">
+              <div className="payment-card-grid">
+                <div className="payment-info-section">
+                  <h3 className="payment-type">{payment.type}</h3>
+                  <p className="payment-id">ID: {payment.id}</p>
+                </div>
+                <div className="payment-info-section">
+                  <h4 className="payment-method">{payment.method}</h4>
+                  <p className="payment-ref">Ref: {payment.ref}</p>
+                </div>
+                <div className="payment-info-section">
+                  <h4 className="payment-amount">UGX: {payment.amount}</h4>
+                  <p className="payment-date">
+                    {payment.date} <span>{payment.time}</span>
+                  </p>
+                </div>
+              </div>
+              <div className="payment-actions">
+                <span className={`status-badge status-${payment.statusColor}`}>{payment.status}</span>
+                <span className="payment-time">{payment.time}</span>
+                <button className="btn btn-outline">View Details</button>
+                <button className="btn btn-primary">
+                  <RefreshCw className="btn-icon-left" />
+                  Retry
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+    </div>
+  )
 
-    showSnackbar(`Withdrawal request for UGX ${paymentData.wallet.available.toLocaleString()} submitted!`, 'success');
-  };
+  const renderDisputes = () => (
+    <div className="payments-container disputes-view">
+      <header className="payments-header">
+        <div className="payments-header-content">
+          <div className="payments-header-left">
+            <button className="btn-back" onClick={() => setCurrentView("dashboard")}>
+              <ArrowLeft />
+            </button>
+            <div>
+              <h1 className="payments-title">Disputes Management</h1>
+              <p className="payments-subtitle">File and Track Payment Disputes</p>
+            </div>
+          </div>
+          <button className="btn btn-light" onClick={() => setCurrentView("dashboard")}>
+            Back To Dashboard
+          </button>
+        </div>
+      </header>
 
-  const handleExport = () => {
-    showSnackbar('Payment history exported successfully', 'info');
-  };
+      <main className="payments-main">
+        {/* Tabs */}
+        <div className="tab-buttons">
+          <button className={`tab-btn ${disputeTab === "file" ? "active" : ""}`} onClick={() => setDisputeTab("file")}>
+            File a Dispute
+          </button>
+          <button
+            className={`tab-btn ${disputeTab === "track" ? "active" : ""}`}
+            onClick={() => setDisputeTab("track")}
+          >
+            Track A Dispute
+          </button>
+        </div>
 
-  const handleShare = () => {
-    showSnackbar('Payment summary shared', 'info');
-  };
+        {disputeTab === "file" ? (
+          <div className="card">
+            <div className="dispute-header">
+              <h2 className="dispute-title">File a Dispute</h2>
+              <p className="dispute-subtitle">Report an Issue with a transaction</p>
+            </div>
 
-  const getMethodIcon = (method) => {
-    switch (method) {
-      case 'cash': return <LocalAtm />;
-      case 'mobile': return <Smartphone />;
-      case 'qr': return <QrCode />;
-      default: return <Payment />;
-    }
-  };
+            <div className="form-container">
+              <div className="form-group">
+                <label className="form-label">Select Transaction</label>
+                <select
+                  className="form-select"
+                  value={selectedTransaction}
+                  onChange={(e) => setSelectedTransaction(e.target.value)}
+                >
+                  <option value="">Select a transaction</option>
+                  <option value="txn1">TXN-9000900 - UGX 67,000</option>
+                  <option value="txn2">TXN-9000901 - UGX 2,000</option>
+                </select>
+              </div>
 
-  const getMethodColor = (method) => {
-    switch (method) {
-      case 'cash': return '#FFEC01';
-      case 'mobile': return '#0025DD';
-      case 'qr': return '#10B981';
-      default: return '#4ECDC4';
-    }
-  };
+              <div className="form-group">
+                <label className="form-label">Dispute Reason</label>
+                <select
+                  className="form-select"
+                  value={disputeReason}
+                  onChange={(e) => setDisputeReason(e.target.value)}
+                >
+                  <option value="">Dispute a reason</option>
+                  <option value="amount">Amount Incorrect</option>
+                  <option value="duplicate">Duplicate Charge</option>
+                  <option value="unauthorized">Unauthorized Transaction</option>
+                </select>
+              </div>
 
-  const getStatusIcon = (status) => {
-    return status === 'completed' ? <CheckCircle sx={{ color: '#10B981' }} /> : <Schedule sx={{ color: '#FFEC01' }} />;
-  };
+              <div className="form-group">
+                <label className="form-label">Attach Evidence</label>
+                <div className="upload-area">
+                  <Upload className="upload-icon" />
+                  <p className="upload-text">Drag and Drop or Click to Upload</p>
+                  <p className="upload-subtext">Max File Size 10MB</p>
+                </div>
+              </div>
 
-  // Financial Summary Cards for Top Section
-  const FinancialSummary = () => (
-    <Grid container spacing={2} sx={{ mb: 3 }}>
-      {/* Total Balance */}
-      <Grid item xs={12} sm={6} lg={3}>
-        <Card sx={{ 
-          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
-          color: 'white',
-          borderRadius: 3,
-          boxShadow: '0 4px 12px rgba(0, 37, 221, 0.2)'
-        }}>
-          <CardContent sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-              <AccountBalanceWallet sx={{ fontSize: 40, opacity: 0.8 }} />
-              <TrendingUp sx={{ fontSize: 20 }} />
-            </Box>
-            <Typography variant="h4" fontWeight="bold" sx={{ mb: 1 }}>
-              UGX {paymentData.wallet.balance.toLocaleString()}
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              Total Balance
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-              <Typography variant="caption">
-                Available: UGX {paymentData.wallet.available.toLocaleString()}
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
+              <div className="form-actions">
+                <button className="btn btn-outline">Cancel</button>
+                <button className="btn btn-primary">Submit Dispute</button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="dispute-track-header">
+              <h2 className="dispute-title">Track a Dispute</h2>
+              <p className="dispute-subtitle">Track an issue with a transaction</p>
+            </div>
 
-      {/* Today's Earnings */}
-      <Grid item xs={12} sm={6} lg={3}>
-        <Card sx={{ 
-          backgroundColor: 'white',
-          borderRadius: 3,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #e2e8f0'
-        }}>
-          <CardContent sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-              <Receipt sx={{ fontSize: 40, color: '#0025DD' }} />
-              <TrendingUp sx={{ fontSize: 20, color: '#10B981' }} />
-            </Box>
-            <Typography variant="h4" fontWeight="bold" color="#0025DD" sx={{ mb: 1 }}>
-              UGX {paymentData.earnings.today.toLocaleString()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Today's Earnings
-            </Typography>
-            <Typography variant="caption" color="#10B981" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-              {paymentData.recentPayments.filter(p => p.status === 'completed').length} payments
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
+            <div className="disputes-list">
+              {disputesData.map((dispute, index) => (
+                <div key={index} className="card dispute-card">
+                  <div className="dispute-content">
+                    <div className="dispute-info">
+                      <h3 className="dispute-id">{dispute.id}</h3>
+                      <p className="dispute-reason">{dispute.reason}</p>
+                      <p className="dispute-filed">Filed: {dispute.filed}</p>
+                      <p className="dispute-notes">
+                        <strong>Admin Notes:</strong> {dispute.notes}
+                      </p>
+                    </div>
+                    <span className={`status-badge status-${dispute.statusColor}`}>{dispute.status}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </main>
+    </div>
+  )
 
-      {/* This Week */}
-      <Grid item xs={12} sm={6} lg={3}>
-        <Card sx={{ 
-          backgroundColor: 'white',
-          borderRadius: 3,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #e2e8f0'
-        }}>
-          <CardContent sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-              <TrendingUp sx={{ fontSize: 40, color: '#10B981' }} />
-              <TrendingUp sx={{ fontSize: 20, color: '#10B981' }} />
-            </Box>
-            <Typography variant="h4" fontWeight="bold" color="#10B981" sx={{ mb: 1 }}>
-              UGX {paymentData.earnings.week.toLocaleString()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              This Week
-            </Typography>
-            <Typography variant="caption" color="#10B981" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-              +12.5% from last week
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
+  const renderHistory = () => (
+    <div className="payments-container history-view">
+      <header className="payments-header payments-header-navy">
+        <div className="payments-header-content">
+          <div className="payments-header-left">
+            <button className="btn-back" onClick={() => setCurrentView("dashboard")}>
+              <ArrowLeft />
+            </button>
+            <div>
+              <h1 className="payments-title">Payment History</h1>
+              <p className="payments-subtitle">Manage and view all your deliveries</p>
+            </div>
+          </div>
+          <div className="payments-header-right">
+            <button className="btn btn-light">View Analytics</button>
+            <button className="btn-icon">
+              <Download />
+            </button>
+            <button className="btn-icon">
+              <Share2 />
+            </button>
+            <button className="btn-icon">
+              <Cloud />
+            </button>
+            <div className="user-badge">
+              <span className="user-name">Moses. K</span>
+              <div className="user-avatar">MK</div>
+            </div>
+          </div>
+        </div>
+      </header>
 
-      {/* Pending */}
-      <Grid item xs={12} sm={6} lg={3}>
-        <Card sx={{ 
-          backgroundColor: 'white',
-          borderRadius: 3,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #e2e8f0'
-        }}>
-          <CardContent sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-              <Schedule sx={{ fontSize: 40, color: '#FFEC01' }} />
-              <TrendingUp sx={{ fontSize: 20, color: '#FFEC01' }} />
-            </Box>
-            <Typography variant="h4" fontWeight="bold" color="#FFEC01" sx={{ mb: 1 }}>
-              UGX {paymentData.wallet.pending.toLocaleString()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Pending
-            </Typography>
-            <Typography variant="caption" color="#FFEC01" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-              {paymentData.recentPayments.filter(p => p.status === 'pending').length} payments
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
-  );
+      <main className="payments-main">
+        {/* Search & Filters */}
+        <div className="card">
+          <h2 className="card-title">Search History</h2>
+          <div className="search-filter-container">
+            <div className="search-input-wrapper">
+              <Search className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search By: Description, ID, Status etc..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+            </div>
+            <div className="filter-buttons">
+              <button
+                className={`filter-btn ${activeFilter === "all" ? "active" : ""}`}
+                onClick={() => setActiveFilter("all")}
+              >
+                All (8)
+              </button>
+              <button
+                className={`filter-btn ${activeFilter === "pending" ? "active" : ""}`}
+                onClick={() => setActiveFilter("pending")}
+              >
+                Pending
+              </button>
+              <button
+                className={`filter-btn ${activeFilter === "completed" ? "active" : ""}`}
+                onClick={() => setActiveFilter("completed")}
+              >
+                Completed
+              </button>
+            </div>
+          </div>
+        </div>
 
+        {/* Desktop Table */}
+        <div className="card history-table-desktop">
+          <table className="history-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Transaction ID</th>
+                <th>Amount</th>
+                <th>Payment Method</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paymentsHistoryData.map((payment, index) => (
+                <tr key={index}>
+                  <td>
+                    <div className="table-description">{payment.description}</div>
+                    <div className="table-date">{payment.date}</div>
+                  </td>
+                  <td className="table-txn-id">{payment.txnId}</td>
+                  <td className="table-amount">UGX {payment.amount}</td>
+                  <td>
+                    <div className="table-method">{payment.method}</div>
+                    <div className="table-date">{payment.methodDate}</div>
+                  </td>
+                  <td>
+                    <span className={`status-badge status-${payment.status.toLowerCase()}`}>{payment.status}</span>
+                  </td>
+                  <td>
+                    <button className="btn btn-outline btn-sm">View Details</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="history-cards-mobile">
+          {paymentsHistoryData.map((payment, index) => (
+            <div key={index} className="card history-card-mobile">
+              <div className="history-card-header">
+                <div>
+                  <h3 className="history-card-title">{payment.description}</h3>
+                  <p className="history-card-date">{payment.date}</p>
+                </div>
+                <span className={`status-badge status-${payment.status.toLowerCase()}`}>{payment.status}</span>
+              </div>
+              <div className="history-card-details">
+                <div className="history-detail">
+                  <span className="detail-label">Transaction ID:</span>
+                  <p className="detail-value">{payment.txnId}</p>
+                </div>
+                <div className="history-detail">
+                  <span className="detail-label">Amount:</span>
+                  <p className="detail-value">UGX {payment.amount}</p>
+                </div>
+                <div className="history-detail history-detail-full">
+                  <span className="detail-label">Payment Method:</span>
+                  <p className="detail-value">{payment.method}</p>
+                </div>
+              </div>
+              <button className="btn btn-outline btn-full">View Details</button>
+            </div>
+          ))}
+        </div>
+
+        {/* Pagination */}
+        <div className="card pagination-card">
+          <div className="pagination">
+            <span className="pagination-info">Showing 8 Payments</span>
+            <div className="pagination-buttons">
+              <button className="btn btn-icon-text">
+                <ChevronLeft />
+                Previous
+              </button>
+              <button className="btn btn-icon-text">
+                Next
+                <ChevronRight />
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+
+  // Main render
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
-      backgroundColor: '#f8fafc',
-      pb: 3
-    }}>
-      {/* Header */}
-      <AppBar 
-        position="static" 
-        sx={{ 
-          backgroundColor: '#0025DD',
-          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
-          boxShadow: 'none'
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            edge="start"
-            sx={{ color: 'white', mr: 2 }}
-            onClick={() => navigate(-1)}
-          >
-            <ArrowBack />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-            Payments
-          </Typography>
-          <Chip 
-            label="Active Driver" 
-            sx={{ 
-              backgroundColor: '#FFEC01', 
-              color: '#000',
-              fontWeight: 'bold'
-            }}
-          />
-        </Toolbar>
-      </AppBar>
-
-      {/* Main Content */}
-      <Box sx={{ p: isMobile ? 2 : 3 }}>
-        {/* Financial Summary Cards */}
-        <FinancialSummary />
-
-        {/* Quick Payment Actions */}
-        <Card sx={{ 
-          mb: 3,
-          borderRadius: 3,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #e2e8f0'
-        }}>
-          <CardContent>
-            <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
-              Receive Payments
-            </Typography>
-            <Grid container spacing={2}>
-              {paymentMethods.map((method, index) => (
-                <Grid item xs={6} sm={3} key={index}>
-                  <Card 
-                    sx={{ 
-                      cursor: 'pointer',
-                      textAlign: 'center',
-                      p: 2,
-                      backgroundColor: method.color,
-                      color: method.textColor || 'white',
-                      borderRadius: 2,
-                      '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)'
-                      },
-                      transition: 'all 0.3s ease'
-                    }}
-                    onClick={method.action}
-                  >
-                    <Box sx={{ mb: 1 }}>
-                      {method.icon}
-                    </Box>
-                    <Typography variant="body2" fontWeight="bold" gutterBottom>
-                      {method.title}
-                    </Typography>
-                    <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                      {method.description}
-                    </Typography>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </CardContent>
-        </Card>
-
-        {/* Recent Payments */}
-        <Card sx={{ 
-          borderRadius: 3,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #e2e8f0'
-        }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6" fontWeight="bold" color="#0025DD">
-                Recent Payments
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <IconButton 
-                  size="small" 
-                  onClick={handleExport}
-                  sx={{ color: '#0025DD' }}
-                >
-                  <Download />
-                </IconButton>
-                <IconButton 
-                  size="small" 
-                  onClick={handleShare}
-                  sx={{ color: '#0025DD' }}
-                >
-                  <Share />
-                </IconButton>
-              </Box>
-            </Box>
-
-            <List>
-              {paymentData.recentPayments.map((payment, index) => (
-                <ListItem 
-                  key={payment.id} 
-                  divider={index < paymentData.recentPayments.length - 1}
-                  sx={{ px: 0 }}
-                >
-                  <ListItemIcon>
-                    <Avatar sx={{ backgroundColor: `${getMethodColor(payment.method)}20` }}>
-                      {getMethodIcon(payment.method)}
-                    </Avatar>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <Box>
-                          <Typography variant="body1" fontWeight="500">
-                            {payment.customer}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {payment.time} • {payment.method.toUpperCase()}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ textAlign: 'right' }}>
-                          <Typography variant="body1" fontWeight="bold" color="#10B981">
-                            UGX {payment.amount.toLocaleString()}
-                          </Typography>
-                          <Chip 
-                            icon={getStatusIcon(payment.status)}
-                            label={payment.status}
-                            size="small"
-                            sx={{ 
-                              backgroundColor: payment.status === 'completed' ? '#10B98120' : '#FFEC01',
-                              color: payment.status === 'completed' ? '#10B981' : '#000',
-                              mt: 0.5
-                            }}
-                            variant="outlined"
-                          />
-                        </Box>
-                      </Box>
-                    }
-                  />
-                </ListItem>
-              ))}
-            </List>
-
-            {/* Quick Summary */}
-            <Box sx={{ mt: 3, p: 2, backgroundColor: '#0025DD10', borderRadius: 2 }}>
-              <Grid container spacing={2} textAlign="center">
-                <Grid item xs={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    Total
-                  </Typography>
-                  <Typography variant="h6" color="#0025DD" fontWeight="bold">
-                    {paymentData.recentPayments.length}
-                  </Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    Completed
-                  </Typography>
-                  <Typography variant="h6" color="#10B981" fontWeight="bold">
-                    {paymentData.recentPayments.filter(p => p.status === 'completed').length}
-                  </Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    Pending
-                  </Typography>
-                  <Typography variant="h6" color="#FFEC01" fontWeight="bold">
-                    {paymentData.recentPayments.filter(p => p.status === 'pending').length}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Big Action Buttons at Bottom */}
-        <Grid container spacing={2} sx={{ mt: 3 }}>
-          <Grid item xs={6}>
-            <Button
-              variant="contained"
-              fullWidth
-              sx={{
-                backgroundColor: '#0025DD',
-                '&:hover': {
-                  backgroundColor: '#001FB8'
-                }
-              }}
-              startIcon={<QrCode />}
-              onClick={() => setShowQRDialog(true)}
-              size="large"
-            >
-              Show QR
-            </Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button
-              variant="outlined"
-              fullWidth
-              sx={{
-                borderColor: '#0025DD',
-                color: '#0025DD'
-              }}
-              startIcon={<Smartphone />}
-              onClick={() => setShowMobileDialog(true)}
-              size="large"
-            >
-              Mobile Money
-            </Button>
-          </Grid>
-        </Grid>
-      </Box>
-
-      {/* QR Code Dialog */}
-      <Dialog open={showQRDialog} onClose={() => setShowQRDialog(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6" fontWeight="bold">Your Payment QR Code</Typography>
-            <IconButton onClick={() => setShowQRDialog(false)} sx={{ color: 'white' }}>
-              <Close />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent sx={{ textAlign: 'center', py: 4 }}>
-          <Box 
-            sx={{ 
-              width: 200, 
-              height: 200, 
-              bgcolor: '#0025DD10', 
-              mx: 'auto',
-              mb: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 2,
-              border: '2px dashed #0025DD'
-            }}
-          >
-            <QrCode sx={{ fontSize: 100, color: '#0025DD' }} />
-          </Box>
-          <Typography variant="body1" gutterBottom fontWeight="bold">
-            Show this QR code to your customer
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            They can scan it to pay any amount
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
-          <Button 
-            variant="outlined"
-            sx={{
-              borderColor: '#0025DD',
-              color: '#0025DD'
-            }}
-            onClick={() => setShowQRDialog(false)}
-          >
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* General Payment Dialog */}
-      <Dialog open={showPaymentDialog} onClose={() => setShowPaymentDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
-          <Typography variant="h6" fontWeight="bold">Request Payment</Typography>
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Amount (UGX)"
-            type="number"
-            value={paymentAmount}
-            onChange={(e) => setPaymentAmount(e.target.value)}
-            sx={{ mb: 2, mt: 1 }}
-            InputProps={{
-              startAdornment: <AttachMoney color="action" sx={{ mr: 1 }} />
-            }}
-          />
-          <TextField
-            fullWidth
-            label="Customer Phone (Optional)"
-            value={customerPhone}
-            onChange={(e) => setCustomerPhone(e.target.value)}
-            placeholder="256712345678"
-            InputProps={{
-              startAdornment: <Phone color="action" sx={{ mr: 1 }} />
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={() => setShowPaymentDialog(false)}
-            sx={{ color: '#0025DD' }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            variant="contained"
-            sx={{
-              backgroundColor: '#0025DD',
-              '&:hover': {
-                backgroundColor: '#001FB8'
-              }
-            }}
-            onClick={handleRequestPayment}
-          >
-            Request Payment
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Mobile Money Dialog */}
-      <Dialog open={showMobileDialog} onClose={() => setShowMobileDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
-          <Typography variant="h6" fontWeight="bold">Mobile Money Payment</Typography>
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Amount (UGX)"
-            type="number"
-            value={paymentAmount}
-            onChange={(e) => setPaymentAmount(e.target.value)}
-            sx={{ mb: 2, mt: 1 }}
-          />
-          <TextField
-            fullWidth
-            label="Customer Phone Number"
-            value={customerPhone}
-            onChange={(e) => setCustomerPhone(e.target.value)}
-            placeholder="256712345678"
-            required
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={() => setShowMobileDialog(false)}
-            sx={{ color: '#0025DD' }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            variant="contained"
-            sx={{
-              backgroundColor: '#0025DD',
-              '&:hover': {
-                backgroundColor: '#001FB8'
-              }
-            }}
-            onClick={handleMobilePayment}
-          >
-            Send Request
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Cash Payment Dialog */}
-      <Dialog open={showCashDialog} onClose={() => setShowCashDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
-          <Typography variant="h6" fontWeight="bold">Record Cash Payment</Typography>
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Amount Received (UGX)"
-            type="number"
-            value={cashAmount}
-            onChange={(e) => setCashAmount(e.target.value)}
-            sx={{ mt: 1 }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={() => setShowCashDialog(false)}
-            sx={{ color: '#0025DD' }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            variant="contained"
-            sx={{
-              backgroundColor: '#0025DD',
-              '&:hover': {
-                backgroundColor: '#001FB8'
-              }
-            }}
-            onClick={handleCashPayment}
-          >
-            Record Payment
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          severity={snackbar.severity} 
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          sx={{
-            backgroundColor: snackbar.severity === 'success' ? '#0025DD' : undefined,
-            color: 'white'
-          }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
-  );
-};
-
-export default SimplePaymentsPage;
+    <div className="payments-app">
+      {currentView === "dashboard" && renderDashboard()}
+      {currentView === "analytics" && renderAnalytics()}
+      {currentView === "pending" && renderPending()}
+      {currentView === "disputes" && renderDisputes()}
+      {currentView === "history" && renderHistory()}
+    </div>
+  )
+}

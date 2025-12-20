@@ -250,6 +250,13 @@ const Riders = () => {
                 selected={selected} 
                 setSelected={handleItemClick} 
               />
+              <Item 
+                title="Agent" 
+                to="/rider/agent" 
+                icon={<TimelineIcon />} 
+                selected={selected} 
+                setSelected={handleItemClick} 
+              />
               
               <Item 
                 title="Statements" 

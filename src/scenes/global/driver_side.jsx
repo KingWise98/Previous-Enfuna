@@ -235,6 +235,13 @@ const Driver = () => {
                 setSelected={setSelected} 
               />
               <Item 
+                title="Agent" 
+                to="/driver/agent" 
+                icon={<ImportContactsIcon />} 
+                selected={selected} 
+                setSelected={setSelected} 
+              />
+              <Item 
                 title="Payments" 
                 to="/driver/page" 
                 icon={<MonetizationOnOutlinedIcon />} 
