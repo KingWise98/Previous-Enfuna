@@ -1,1151 +1,954 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  Grid,
-  Avatar,
-  Button,
-  Chip,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  useTheme,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Tabs,
-  Tab,
-  Badge,
-  LinearProgress,
-  Tooltip,
-  Switch,
-  FormControlLabel,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Stepper,
-  Step,
-  StepLabel
-} from '@mui/material';
-import {
-  Groups,
-  AccountBalanceWallet,
-  Payment,
-  Add,
-  CheckCircle,
-  Schedule,
-  Cancel,
-  TrendingUp,
-  Security,
-  LocalAtm,
-  History,
-  ExpandMore,
-  PersonAdd,
-  Share,
-  Notifications,
-  EmojiEvents,
-  Lock,
-  GroupWork,
-  Savings,
-  RequestQuote,
-  Balance
-} from '@mui/icons-material';
+import './group.css';
 
-const GroupFundingDashboard = () => {
-  const theme = useTheme();
-  const [activeTab, setActiveTab] = useState(0);
-  const [createGroupDialog, setCreateGroupDialog] = useState(false);
-  const [joinGroupDialog, setJoinGroupDialog] = useState(false);
-  const [contributionDialog, setContributionDialog] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState(null);
+const Groups = () => {
+  const [activeTab, setActiveTab] = useState('myGroups');
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [createStep, setCreateStep] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [groupFilter, setGroupFilter] = useState('all');
   const [newGroup, setNewGroup] = useState({
     name: '',
     description: '',
+    type: 'savings',
+    maxMembers: 12,
+    targetAmount: '',
+    isPublic: true,
     contributionAmount: '',
     frequency: 'weekly',
-    maxMembers: 10,
-    targetAmount: '',
-    isPublic: true
+    rules: '',
+    adminFee: 0
   });
 
-  // Mock data
-  const [groups, setGroups] = useState([
+  // Sample Data
+  const [myGroups, setMyGroups] = useState([
     {
-      id: 'GRP001',
+      id: 1,
       name: 'Kampala Boda Savers',
-      description: 'Weekly savings group for motorcycle riders in central Kampala',
+      description: 'Weekly Savings group for motorcycle riders in central kampala',
       type: 'savings',
-      status: 'active',
       members: 8,
       maxMembers: 12,
-      contributionAmount: 50000,
-      frequency: 'weekly',
+      contribution: 50000,
       totalPool: 400000,
-      nextPayout: '2024-01-22',
-      createdBy: 'David Kato',
-      createdDate: '2024-01-01',
-      rules: {
-        lateFee: 5000,
-        maxMissedPayments: 2,
-        withdrawalNotice: '7 days'
-      }
+      frequency: 'Weekly',
+      progress: 68.7,
+      nextContribution: '2 days'
     },
     {
-      id: 'GRP002',
+      id: 2,
       name: 'Emergency Fund Circle',
-      description: 'Emergency support fund for unexpected expenses',
+      description: 'Emergency fund support for unexpected expenses',
       type: 'emergency',
-      status: 'active',
+      members: 7,
+      maxMembers: 12,
+      contribution: 30000,
+      totalPool: 60000,
+      frequency: 'Monthly',
+      progress: 50.7,
+      nextContribution: '5 days'
+    },
+    {
+      id: 3,
+      name: 'Bike Maintenance Group',
+      description: 'Regular savings for bike maintenance and repairs',
+      type: 'spares',
+      members: 5,
+      maxMembers: 10,
+      contribution: 20000,
+      totalPool: 120000,
+      frequency: 'Bi-weekly',
+      progress: 42.3,
+      nextContribution: '1 week'
+    }
+  ]);
+
+  const [availableGroups, setAvailableGroups] = useState([
+    {
+      id: 1,
+      name: 'Kampala Boda Savers',
+      type: 'savings',
+      description: 'Weekly Savings group for motorcycle riders in central kampala',
+      members: 8,
+      maxMembers: 12,
+      contribution: 50000,
+      frequency: 'Weekly',
+      isMember: true,
+      isPublic: true
+    },
+    {
+      id: 2,
+      name: 'Bike Upgrade Fund',
+      type: 'spares',
+      description: 'Save for bike upgrades and modifications',
+      members: 3,
+      maxMembers: 7,
+      contribution: 50000,
+      frequency: 'Weekly',
+      isMember: false,
+      isPublic: true
+    },
+    {
+      id: 3,
+      name: 'Emergency Circle Fund',
+      type: 'emergency',
+      description: 'Emergency support fund for medical and urgent needs',
+      members: 3,
+      maxMembers: 7,
+      contribution: 20000,
+      frequency: 'Monthly',
+      isMember: true,
+      isPublic: false
+    },
+    {
+      id: 4,
+      name: 'Rent Savings Group',
+      type: 'savings',
+      description: 'Monthly rent savings for rider accommodations',
       members: 6,
       maxMembers: 10,
-      contributionAmount: 20000,
-      frequency: 'monthly',
-      totalPool: 120000,
-      nextPayout: 'Flexible',
-      createdBy: 'Maria Nalwoga',
-      createdDate: '2024-01-10',
-      rules: {
-        lateFee: 2000,
-        maxMissedPayments: 1,
-        withdrawalNotice: '24 hours'
-      }
-    },
-    {
-      id: 'GRP003',
-      name: 'Bike Upgrade Fund',
-      description: 'Saving together for motorcycle upgrades and repairs',
-      type: 'equipment',
-      status: 'pending',
-      members: 3,
-      maxMembers: 8,
-      contributionAmount: 100000,
-      frequency: 'monthly',
-      totalPool: 300000,
-      nextPayout: '2024-03-15',
-      createdBy: 'John Mugisha',
-      createdDate: '2024-01-12',
-      rules: {
-        lateFee: 10000,
-        maxMissedPayments: 0,
-        withdrawalNotice: '30 days'
-      }
+      contribution: 40000,
+      frequency: 'Monthly',
+      isMember: false,
+      isPublic: true
     }
   ]);
 
-  const [myGroups, setMyGroups] = useState(['GRP001', 'GRP002']);
   const [contributions, setContributions] = useState([
     {
-      id: 'CONT001',
-      groupId: 'GRP001',
+      id: 1,
+      date: '13-Dec-2025',
+      group: 'Kampala Boda Savers',
       amount: 50000,
-      date: '2024-01-15',
-      status: 'completed',
-      member: 'David Kato'
+      status: 'Completed',
+      type: 'Savings',
+      receipt: 'receipt_001.pdf'
     },
     {
-      id: 'CONT002',
-      groupId: 'GRP001',
+      id: 2,
+      date: '13-Dec-2025',
+      group: 'Kampala Boda Savers',
       amount: 50000,
-      date: '2024-01-08',
-      status: 'completed',
-      member: 'David Kato'
+      status: 'Completed',
+      type: 'Savings',
+      receipt: 'receipt_002.pdf'
     },
     {
-      id: 'CONT003',
-      groupId: 'GRP002',
-      amount: 20000,
-      date: '2024-01-15',
-      status: 'completed',
-      member: 'David Kato'
+      id: 3,
+      date: '13-Dec-2025',
+      group: 'Kampala Boda Savers',
+      amount: 50000,
+      status: 'Completed',
+      type: 'Spares',
+      receipt: 'receipt_003.pdf'
+    },
+    {
+      id: 4,
+      date: '13-Dec-2025',
+      group: 'Kampala Boda Savers',
+      amount: 50000,
+      status: 'Completed',
+      type: 'Emergency',
+      receipt: 'receipt_004.pdf'
+    },
+    {
+      id: 5,
+      date: '10-Dec-2025',
+      group: 'Emergency Fund Circle',
+      amount: 30000,
+      status: 'Pending',
+      type: 'Emergency',
+      receipt: ''
     }
   ]);
 
-  const groupTypes = [
-    { value: 'savings', label: '💵 Regular Savings', description: 'Fixed contributions at regular intervals' },
-    { value: 'emergency', label: '🚨 Emergency Fund', description: 'For unexpected expenses and emergencies' },
-    { value: 'equipment', label: '🏍️ Equipment Fund', description: 'Saving for bike upgrades and repairs' },
-    { value: 'investment', label: '📈 Investment Pool', description: 'Group investment opportunities' },
-    { value: 'loan', label: '💰 Loan Circle', description: 'Rotating credit among members' }
-  ];
-
-  const frequencies = [
-    { value: 'daily', label: 'Daily' },
-    { value: 'weekly', label: 'Weekly' },
-    { value: 'monthly', label: 'Monthly' },
-    { value: 'custom', label: 'Custom' }
-  ];
-
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
+  // Analytics data
+  const analyticsData = {
+    activeGroups: 3,
+    totalContributions: 120000,
+    totalMembers: 14,
+    groupPerformance: [
+      { month: 'Jan', value: 65 },
+      { month: 'Feb', value: 78 },
+      { month: 'Mar', value: 72 },
+      { month: 'Apr', value: 85 },
+      { month: 'May', value: 90 },
+      { month: 'Jun', value: 88 }
+    ]
   };
 
-  const handleCreateGroup = () => {
-    const group = {
-      id: `GRP${Date.now()}`,
-      ...newGroup,
-      members: 1,
-      totalPool: 0,
-      status: 'active',
-      createdBy: 'David Kato',
-      createdDate: new Date().toISOString().split('T')[0],
-      rules: {
-        lateFee: 5000,
-        maxMissedPayments: 2,
-        withdrawalNotice: '7 days'
-      }
-    };
-
-    setGroups(prev => [group, ...prev]);
-    setMyGroups(prev => [...prev, group.id]);
-    setCreateGroupDialog(false);
-    setNewGroup({
-      name: '',
-      description: '',
-      contributionAmount: '',
-      frequency: 'weekly',
-      maxMembers: 10,
-      targetAmount: '',
-      isPublic: true
-    });
-
-    alert(`🎉 Group "${group.name}" created successfully!`);
+  const stats = {
+    activeGroups: myGroups.length,
+    totalContributions: myGroups.reduce((sum, group) => sum + group.totalPool, 0),
+    nextContributions: myGroups.filter(g => g.nextContribution === '2 days').length
   };
 
   const handleJoinGroup = (groupId) => {
-    if (!myGroups.includes(groupId)) {
-      setMyGroups(prev => [...prev, groupId]);
-      
-      // Add sample contribution
-      const group = groups.find(g => g.id === groupId);
-      const newContribution = {
-        id: `CONT${Date.now()}`,
-        groupId: groupId,
-        amount: group.contributionAmount,
-        date: new Date().toISOString().split('T')[0],
-        status: 'completed',
-        member: 'David Kato'
-      };
-
-      setContributions(prev => [newContribution, ...prev]);
-      
-      // Update group members count
-      setGroups(prev => 
-        prev.map(group => 
-          group.id === groupId 
-            ? { ...group, members: group.members + 1, totalPool: group.totalPool + group.contributionAmount }
-            : group
-        )
-      );
-
-      alert(`✅ Successfully joined "${group.name}"! Your first contribution has been processed.`);
-    }
-    setJoinGroupDialog(false);
-  };
-
-  const handleMakeContribution = (groupId, amount) => {
-    const group = groups.find(g => g.id === groupId);
-    const newContribution = {
-      id: `CONT${Date.now()}`,
-      groupId: groupId,
-      amount: amount,
-      date: new Date().toISOString().split('T')[0],
-      status: 'completed',
-      member: 'David Kato'
-    };
-
-    setContributions(prev => [newContribution, ...prev]);
+    setAvailableGroups(availableGroups.map(group => 
+      group.id === groupId ? { ...group, isMember: true, members: group.members + 1 } : group
+    ));
     
-    // Update group pool
-    setGroups(prev => 
-      prev.map(group => 
-        group.id === groupId 
-          ? { ...group, totalPool: group.totalPool + amount }
-          : group
-      )
-    );
-
-    setContributionDialog(false);
-    alert(`✅ Contribution of UGX ${amount.toLocaleString()} made to ${group.name}`);
+    const groupToJoin = availableGroups.find(g => g.id === groupId);
+    setMyGroups([...myGroups, {
+      id: myGroups.length + 1,
+      name: groupToJoin.name,
+      description: groupToJoin.description,
+      type: groupToJoin.type,
+      members: groupToJoin.members + 1,
+      maxMembers: groupToJoin.maxMembers,
+      contribution: groupToJoin.contribution,
+      totalPool: groupToJoin.contribution * (groupToJoin.members + 1),
+      frequency: groupToJoin.frequency,
+      progress: ((groupToJoin.members + 1) / groupToJoin.maxMembers) * 100,
+      nextContribution: '7 days'
+    }]);
   };
 
-  const getGroupTypeColor = (type) => {
-    switch (type) {
-      case 'savings': return 'primary';
-      case 'emergency': return 'error';
-      case 'equipment': return 'warning';
-      case 'investment': return 'success';
-      case 'loan': return 'info';
-      default: return 'default';
+  const handleContribute = (groupId) => {
+    setMyGroups(myGroups.map(group => {
+      if (group.id === groupId) {
+        const newTotal = group.totalPool + group.contribution;
+        const newProgress = (group.members / group.maxMembers) * 100;
+        
+        // Add to contributions history
+        const newContribution = {
+          id: contributions.length + 1,
+          date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          group: group.name,
+          amount: group.contribution,
+          status: 'Completed',
+          type: group.type.charAt(0).toUpperCase() + group.type.slice(1),
+          receipt: `receipt_${Date.now()}.pdf`
+        };
+        
+        setContributions([newContribution, ...contributions]);
+        
+        return {
+          ...group,
+          totalPool: newTotal,
+          progress: newProgress
+        };
+      }
+      return group;
+    }));
+  };
+
+  const handleCreateGroup = (e) => {
+    e.preventDefault();
+    if (createStep < 3) {
+      setCreateStep(createStep + 1);
+    } else {
+      const newGroupObj = {
+        id: myGroups.length + 1,
+        name: newGroup.name,
+        description: newGroup.description,
+        type: newGroup.type,
+        members: 1,
+        maxMembers: parseInt(newGroup.maxMembers),
+        contribution: parseInt(newGroup.contributionAmount) || 0,
+        totalPool: parseInt(newGroup.contributionAmount) || 0,
+        frequency: newGroup.frequency.charAt(0).toUpperCase() + newGroup.frequency.slice(1),
+        progress: (1 / parseInt(newGroup.maxMembers)) * 100,
+        nextContribution: '7 days'
+      };
+      
+      setMyGroups([newGroupObj, ...myGroups]);
+      setAvailableGroups([{
+        id: availableGroups.length + 1,
+        name: newGroup.name,
+        type: newGroup.type,
+        description: newGroup.description,
+        members: 1,
+        maxMembers: parseInt(newGroup.maxMembers),
+        contribution: parseInt(newGroup.contributionAmount) || 0,
+        frequency: newGroup.frequency,
+        isMember: true,
+        isPublic: newGroup.isPublic
+      }, ...availableGroups]);
+      
+      setShowCreateGroup(false);
+      setCreateStep(1);
+      setNewGroup({
+        name: '',
+        description: '',
+        type: 'savings',
+        maxMembers: 12,
+        targetAmount: '',
+        isPublic: true,
+        contributionAmount: '',
+        frequency: 'weekly',
+        rules: '',
+        adminFee: 0
+      });
     }
   };
 
-  const getGroupStatusColor = (status) => {
-    switch (status) {
-      case 'active': return 'success';
-      case 'pending': return 'warning';
-      case 'closed': return 'error';
-      default: return 'default';
-    }
-  };
+  const filteredGroups = availableGroups.filter(group => {
+    const matchesSearch = group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         group.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter = groupFilter === 'all' || 
+                         (groupFilter === 'public' && group.isPublic) ||
+                         (groupFilter === 'private' && !group.isPublic);
+    return matchesSearch && matchesFilter;
+  });
 
-  const calculateProgress = (group) => {
-    return (group.totalPool / (group.contributionAmount * group.maxMembers)) * 100;
+  const getContributionColor = (type) => {
+    switch(type.toLowerCase()) {
+      case 'savings': return '#0033cc';
+      case 'emergency': return '#ff4444';
+      case 'spares': return '#00aa44';
+      default: return '#666';
+    }
   };
 
   return (
-    <Box sx={{ p: 3, minHeight: '100vh', backgroundColor: 'grey.50' }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Group Funding & Savings Circles 👥
-          </Typography>
-          <Typography variant="h6" color="textSecondary">
-            Join forces with other riders to save, invest, and access group benefits
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button 
-            startIcon={<Groups />} 
-            variant="outlined"
-            onClick={() => setJoinGroupDialog(true)}
-          >
-            Join Group
-          </Button>
-          <Button 
-            startIcon={<Add />} 
-            variant="contained"
-            onClick={() => setCreateGroupDialog(true)}
-          >
-            Create Group
-          </Button>
-        </Box>
-      </Box>
+    <div className="groups-container">
+      <header className="groups-header">
+        <h1>GROUP FUNDING AND EARNINGS</h1>
+        <p>Join forces with other riders to save, invest and access group benefits</p>
+      </header>
 
-      <Grid container spacing={3}>
-        {/* Left Sidebar - My Groups & Quick Stats */}
-        <Grid item xs={3}>
-          {/* My Groups Summary */}
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>My Groups</Typography>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="textSecondary">Active Groups</Typography>
-                <Typography variant="h4" color="primary.main" fontWeight="bold">
-                  {myGroups.length}
-                </Typography>
-              </Box>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="textSecondary">Total Contributions</Typography>
-                <Typography variant="h5" color="success.main">
-                  UGX {contributions.reduce((sum, cont) => sum + cont.amount, 0).toLocaleString()}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" color="textSecondary">Next Contribution</Typography>
-                <Typography variant="body1" fontWeight="bold">
-                  2 days
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
+      <div className="dashboard-overview">
+        <div className="stats-cards">
+          <div className="stat-card">
+            <h3>Active Groups</h3>
+            <p className="stat-number">{stats.activeGroups}</p>
+          </div>
+          <div className="stat-card">
+            <h3>Total Contributions</h3>
+            <p className="stat-number">UGX {stats.totalContributions.toLocaleString()}</p>
+          </div>
+          <div className="stat-card">
+            <h3>Next Contributions</h3>
+            <p className="stat-number">{stats.nextContributions} days</p>
+          </div>
+        </div>
 
-          {/* Quick Actions */}
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>Quick Actions</Typography>
-              <Button 
-                variant="outlined" 
-                fullWidth 
-                startIcon={<Payment />}
-                sx={{ mb: 1 }}
-                onClick={() => setContributionDialog(true)}
-              >
-                Make Contribution
-              </Button>
-              <Button 
-                variant="outlined" 
-                fullWidth 
-                startIcon={<RequestQuote />}
-                sx={{ mb: 1 }}
-              >
-                Request Withdrawal
-              </Button>
-              <Button 
-                variant="outlined" 
-                fullWidth 
-                startIcon={<Share />}
-              >
-                Invite Riders
-              </Button>
-            </CardContent>
-          </Card>
+        <div className="quick-actions">
+          <h3>Quick Actions</h3>
+          <div className="action-buttons">
+            <button className="action-btn contribute-btn">Make Contribution</button>
+            <button className="action-btn withdraw-btn">Request Withdrawal</button>
+            <button className="action-btn invite-btn">Invite Riders</button>
+          </div>
+        </div>
 
-          {/* Group Benefits */}
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>Group Benefits</Typography>
-              <List dense>
-                <ListItem>
-                  <ListItemIcon>
-                    <Avatar sx={{ bgcolor: 'success.100', width: 32, height: 32 }}>
-                      <Security color="success" fontSize="small" />
-                    </Avatar>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Collective Security"
-                    secondary="Emergency support from group"
+        <div className="benefits-section">
+          <h3>Group Benefits</h3>
+          <div className="benefits-grid">
+            <div className="benefit-card">
+              <div className="benefit-icon">🛡️</div>
+              <h4>Collective Security</h4>
+              <p>Emergency group Support</p>
+            </div>
+            <div className="benefit-card">
+              <div className="benefit-icon">📊</div>
+              <h4>Better Loan Rates</h4>
+              <p>Group Negotiation Power</p>
+            </div>
+            <div className="benefit-card">
+              <div className="benefit-icon">🏆</div>
+              <h4>Group Rewards</h4>
+              <p>Collective achievement Bonuses</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <nav className="groups-nav">
+        <button 
+          className={`nav-btn ${activeTab === 'myGroups' ? 'active' : ''}`}
+          onClick={() => setActiveTab('myGroups')}
+        >
+          My Groups
+        </button>
+        <button 
+          className={`nav-btn ${activeTab === 'allGroups' ? 'active' : ''}`}
+          onClick={() => setActiveTab('allGroups')}
+        >
+          All Groups
+        </button>
+        <button 
+          className={`nav-btn ${activeTab === 'contributions' ? 'active' : ''}`}
+          onClick={() => setActiveTab('contributions')}
+        >
+          Contributions
+        </button>
+        <button 
+          className={`nav-btn ${activeTab === 'analytics' ? 'active' : ''}`}
+          onClick={() => setActiveTab('analytics')}
+        >
+          Group Analytics
+        </button>
+      </nav>
+
+      <main className="groups-content">
+        {activeTab === 'myGroups' && (
+          <div className="my-groups-view">
+            <div className="content-header">
+              <h2>My Active Groups</h2>
+              <div className="header-actions">
+                <button className="join-group-btn" onClick={() => setActiveTab('allGroups')}>
+                  Join Group
+                </button>
+                <button className="create-group-btn" onClick={() => setShowCreateGroup(true)}>
+                  + Create Group
+                </button>
+              </div>
+            </div>
+
+            <div className="groups-grid">
+              {myGroups.map(group => (
+                <div key={group.id} className="group-card">
+                  <div className="group-header">
+                    <div>
+                      <h3>{group.name}</h3>
+                      <p className="group-description">{group.description}</p>
+                    </div>
+                    <span className={`group-type ${group.type}`}>
+                      {group.type.toUpperCase()}
+                    </span>
+                  </div>
+                  
+                  <div className="group-stats">
+                    <div className="stat-item">
+                      <span className="stat-label">Members</span>
+                      <span className="stat-value">{group.members}/{group.maxMembers}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Contribution</span>
+                      <span className="stat-value">UGX {group.contribution.toLocaleString()}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Total Pool</span>
+                      <span className="stat-value">UGX {group.totalPool.toLocaleString()}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Frequency</span>
+                      <span className="stat-value">{group.frequency}</span>
+                    </div>
+                  </div>
+
+                  <div className="progress-section">
+                    <div className="progress-header">
+                      <span>Group Progress</span>
+                      <span>{group.progress.toFixed(1)}%</span>
+                    </div>
+                    <div className="progress-bar">
+                      <div 
+                        className="progress-fill"
+                        style={{ width: `${group.progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div className="group-actions">
+                    <button 
+                      className="action-btn contribute-action"
+                      onClick={() => handleContribute(group.id)}
+                    >
+                      Contribute
+                    </button>
+                    <button className="action-btn view-action">
+                      View Details
+                    </button>
+                    <button className="action-btn invite-action">
+                      Invite
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="sidebar-content">
+              <div className="insights-section">
+                <h3>Group Insights</h3>
+                <div className="insight-item">
+                  <span>Most Active Group</span>
+                  <strong>Kampala Boda Savers</strong>
+                </div>
+                <div className="insight-item">
+                  <span>Highest Contribution</span>
+                  <strong>UGX 100,000</strong>
+                </div>
+                <div className="performance-chart">
+                  <h4>Group Performance</h4>
+                  <div className="chart-placeholder">
+                    {/* Chart would go here */}
+                    <div className="chart-bar" style={{ height: '80%' }}></div>
+                    <div className="chart-bar" style={{ height: '60%' }}></div>
+                    <div className="chart-bar" style={{ height: '90%' }}></div>
+                    <div className="chart-bar" style={{ height: '75%' }}></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="updates-section">
+                <h3>Group Updates</h3>
+                <div className="update-item">
+                  <div className="update-icon">👤</div>
+                  <div>
+                    <p><strong>New Member Joined</strong></p>
+                    <p>Marita Joined Emergency Fund Circle</p>
+                  </div>
+                </div>
+                <div className="update-item">
+                  <div className="update-icon">🎯</div>
+                  <div>
+                    <p><strong>Group Milestone</strong></p>
+                    <p>Bike Upgrade Fund reached 50% target</p>
+                  </div>
+                </div>
+                <div className="update-item">
+                  <div className="update-icon">⏰</div>
+                  <div>
+                    <p><strong>Contribution Due</strong></p>
+                    <p>Kampala Boda Savers - 2 days left</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'allGroups' && (
+          <div className="all-groups-view">
+            <div className="content-header">
+              <h2>Available Groups</h2>
+              <div className="filters">
+                <div className="filter-buttons">
+                  <button 
+                    className={`filter-btn ${groupFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setGroupFilter('all')}
+                  >
+                    All Types
+                  </button>
+                  <button 
+                    className={`filter-btn ${groupFilter === 'public' ? 'active' : ''}`}
+                    onClick={() => setGroupFilter('public')}
+                  >
+                    Public
+                  </button>
+                  <button 
+                    className={`filter-btn ${groupFilter === 'private' ? 'active' : ''}`}
+                    onClick={() => setGroupFilter('private')}
+                  >
+                    Private
+                  </button>
+                </div>
+                <div className="search-box">
+                  <input
+                    type="text"
+                    placeholder="Search groups..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="search-input"
                   />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Avatar sx={{ bgcolor: 'primary.100', width: 32, height: 32 }}>
-                      <TrendingUp color="primary" fontSize="small" />
-                    </Avatar>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Better Loan Rates"
-                    secondary="Group negotiation power"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Avatar sx={{ bgcolor: 'warning.100', width: 32, height: 32 }}>
-                      <EmojiEvents color="warning" fontSize="small" />
-                    </Avatar>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Group Rewards"
-                    secondary="Collective achievement bonuses"
-                  />
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
+                </div>
+              </div>
+            </div>
 
-        {/* Main Content Area */}
-        <Grid item xs={6}>
-          <Card>
-            <Tabs 
-              value={activeTab} 
-              onChange={handleTabChange}
-              variant="fullWidth"
-              sx={{ borderBottom: 1, borderColor: 'divider' }}
-            >
-              <Tab label="My Groups" icon={<Groups />} />
-              <Tab label="All Groups" icon={<GroupWork />} />
-              <Tab label="Contributions" icon={<Savings />} />
-              <Tab label="Group Analytics" icon={<TrendingUp />} />
-            </Tabs>
+            <div className="groups-list">
+              {filteredGroups.map(group => (
+                <div key={group.id} className="available-group-card">
+                  <div className="group-info">
+                    <div className="group-main-info">
+                      <h3>{group.name}</h3>
+                      <span className={`group-type-tag ${group.type}`}>
+                        {group.type.toUpperCase()}
+                      </span>
+                      <p className="group-desc">{group.description}</p>
+                    </div>
+                    
+                    <div className="group-details">
+                      <div className="detail-item">
+                        <span className="detail-label">Members</span>
+                        <span className="detail-value">{group.members}/{group.maxMembers}</span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Contribution</span>
+                        <span className="detail-value">UGX {group.contribution.toLocaleString()}</span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Frequency</span>
+                        <span className="detail-value">{group.frequency}</span>
+                      </div>
+                    </div>
+                  </div>
 
-            <CardContent sx={{ minHeight: 500 }}>
-              {/* My Groups */}
-              {activeTab === 0 && (
-                <Box>
-                  <Typography variant="h5" gutterBottom>My Active Groups</Typography>
-                  {groups.filter(group => myGroups.includes(group.id)).map((group) => (
-                    <Card key={group.id} sx={{ mb: 2 }}>
-                      <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                          <Box>
-                            <Typography variant="h6">{group.name}</Typography>
-                            <Typography variant="body2" color="textSecondary">
-                              {group.description}
-                            </Typography>
-                          </Box>
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            <Chip 
-                              label={group.type} 
-                              size="small"
-                              color={getGroupTypeColor(group.type)}
-                            />
-                            <Chip 
-                              label={group.status} 
-                              size="small"
-                              color={getGroupStatusColor(group.status)}
-                            />
-                          </Box>
-                        </Box>
-
-                        <Grid container spacing={2} sx={{ mb: 2 }}>
-                          <Grid item xs={3}>
-                            <Typography variant="body2" color="textSecondary">Members</Typography>
-                            <Typography variant="h6">
-                              {group.members}/{group.maxMembers}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={3}>
-                            <Typography variant="body2" color="textSecondary">Contribution</Typography>
-                            <Typography variant="h6">
-                              UGX {group.contributionAmount.toLocaleString()}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={3}>
-                            <Typography variant="body2" color="textSecondary">Total Pool</Typography>
-                            <Typography variant="h6" color="success.main">
-                              UGX {group.totalPool.toLocaleString()}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={3}>
-                            <Typography variant="body2" color="textSecondary">Frequency</Typography>
-                            <Typography variant="h6">
-                              {group.frequency}
-                            </Typography>
-                          </Grid>
-                        </Grid>
-
-                        <Box sx={{ mb: 2 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                            <Typography variant="body2">Group Progress</Typography>
-                            <Typography variant="body2">
-                              {calculateProgress(group).toFixed(1)}%
-                            </Typography>
-                          </Box>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={calculateProgress(group)} 
-                            color="primary"
-                          />
-                        </Box>
-
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          <Button 
-                            variant="contained" 
-                            size="small"
-                            onClick={() => {
-                              setSelectedGroup(group);
-                              setContributionDialog(true);
-                            }}
-                          >
-                            Contribute
-                          </Button>
-                          <Button variant="outlined" size="small">
-                            View Details
-                          </Button>
-                          <Button variant="outlined" size="small">
-                            Invite
-                          </Button>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </Box>
-              )}
-
-              {/* All Groups */}
-              {activeTab === 1 && (
-                <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h5">Available Groups</Typography>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button size="small" variant="outlined">
-                        All Types
-                      </Button>
-                      <Button size="small" variant="outlined">
-                        Public
-                      </Button>
-                      <Button size="small" variant="outlined">
-                        Private
-                      </Button>
-                    </Box>
-                  </Box>
-
-                  <Grid container spacing={2}>
-                    {groups.map((group) => (
-                      <Grid item xs={6} key={group.id}>
-                        <Card 
-                          sx={{ 
-                            height: '100%',
-                            border: myGroups.includes(group.id) ? `2px solid ${theme.palette.primary.main}` : '1px solid',
-                            borderColor: 'divider'
-                          }}
-                        >
-                          <CardContent>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                              <Typography variant="h6">{group.name}</Typography>
-                              <Chip 
-                                label={group.type} 
-                                size="small"
-                                color={getGroupTypeColor(group.type)}
-                              />
-                            </Box>
-
-                            <Typography variant="body2" color="textSecondary" paragraph>
-                              {group.description}
-                            </Typography>
-
-                            <Box sx={{ mb: 2 }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                <Typography variant="body2">Members</Typography>
-                                <Typography variant="body2">
-                                  {group.members}/{group.maxMembers}
-                                </Typography>
-                              </Box>
-                              <LinearProgress 
-                                variant="determinate" 
-                                value={(group.members / group.maxMembers) * 100} 
-                                color="primary"
-                              />
-                            </Box>
-
-                            <Grid container spacing={1} sx={{ mb: 2 }}>
-                              <Grid item xs={6}>
-                                <Typography variant="body2" color="textSecondary">Contribution</Typography>
-                                <Typography variant="body1" fontWeight="bold">
-                                  UGX {group.contributionAmount.toLocaleString()}
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={6}>
-                                <Typography variant="body2" color="textSecondary">Frequency</Typography>
-                                <Typography variant="body1" fontWeight="bold">
-                                  {group.frequency}
-                                </Typography>
-                              </Grid>
-                            </Grid>
-
-                            <Button
-                              variant={myGroups.includes(group.id) ? "outlined" : "contained"}
-                              fullWidth
-                              disabled={group.status !== 'active' || group.members >= group.maxMembers}
-                              onClick={() => myGroups.includes(group.id) ? {} : handleJoinGroup(group.id)}
-                              startIcon={myGroups.includes(group.id) ? <CheckCircle /> : <PersonAdd />}
-                            >
-                              {myGroups.includes(group.id) ? 'Already Member' : 'Join Group'}
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
-              )}
-
-              {/* Contributions */}
-              {activeTab === 2 && (
-                <Box>
-                  <Typography variant="h5" gutterBottom>Contribution History</Typography>
-                  <TableContainer>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Date</TableCell>
-                          <TableCell>Group</TableCell>
-                          <TableCell>Amount</TableCell>
-                          <TableCell>Status</TableCell>
-                          <TableCell>Type</TableCell>
-                          <TableCell>Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {contributions.map((contribution) => {
-                          const group = groups.find(g => g.id === contribution.groupId);
-                          return (
-                            <TableRow key={contribution.id} hover>
-                              <TableCell>
-                                <Typography variant="body2">
-                                  {new Date(contribution.date).toLocaleDateString()}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2" fontWeight="500">
-                                  {group?.name}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2" fontWeight="bold" color="success.main">
-                                  UGX {contribution.amount.toLocaleString()}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Chip 
-                                  label={contribution.status} 
-                                  size="small"
-                                  color={contribution.status === 'completed' ? 'success' : 'warning'}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <Chip 
-                                  label={group?.type} 
-                                  size="small"
-                                  color={getGroupTypeColor(group?.type)}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <Button size="small">Receipt</Button>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Box>
-              )}
-
-              {/* Group Analytics */}
-              {activeTab === 3 && (
-                <Box>
-                  <Typography variant="h5" gutterBottom>Group Analytics</Typography>
-                  <Grid container spacing={3} sx={{ mb: 4 }}>
-                    <Grid item xs={4}>
-                      <Paper sx={{ p: 3, textAlign: 'center' }}>
-                        <Typography variant="h3" color="primary" fontWeight="bold">
-                          {myGroups.length}
-                        </Typography>
-                        <Typography variant="body2">Active Groups</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Paper sx={{ p: 3, textAlign: 'center' }}>
-                        <Typography variant="h3" color="success.main" fontWeight="bold">
-                          UGX {contributions.reduce((sum, cont) => sum + cont.amount, 0).toLocaleString()}
-                        </Typography>
-                        <Typography variant="body2">Total Contributions</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Paper sx={{ p: 3, textAlign: 'center' }}>
-                        <Typography variant="h3" color="warning.main" fontWeight="bold">
-                          {groups.filter(g => myGroups.includes(g.id)).reduce((sum, group) => sum + group.members, 0)}
-                        </Typography>
-                        <Typography variant="body2">Total Members</Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-
-                  <Typography variant="h6" gutterBottom>Group Performance</Typography>
-                  {groups.filter(group => myGroups.includes(group.id)).map((group) => (
-                    <Accordion key={group.id}>
-                      <AccordionSummary expandIcon={<ExpandMore />}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', pr: 2 }}>
-                          <Typography>{group.name}</Typography>
-                          <Typography color="success.main">
-                            UGX {group.totalPool.toLocaleString()}
-                          </Typography>
-                        </Box>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <Grid container spacing={2}>
-                          <Grid item xs={4}>
-                            <Typography variant="body2">Monthly Growth</Typography>
-                            <Typography variant="h6" color="success.main">
-                              +15%
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={4}>
-                            <Typography variant="body2">Member Activity</Typography>
-                            <Typography variant="h6" color="primary.main">
-                              92%
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={4}>
-                            <Typography variant="body2">Next Payout</Typography>
-                            <Typography variant="h6">
-                              {group.nextPayout}
-                            </Typography>
-                          </Grid>
-                        </Grid>
-                      </AccordionDetails>
-                    </Accordion>
-                  ))}
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Right Sidebar - Group Insights & Notifications */}
-        <Grid item xs={3}>
-          {/* Group Insights */}
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>Group Insights</Typography>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="textSecondary">Most Active Group</Typography>
-                <Typography variant="body1" fontWeight="bold">
-                  Kampala Boda Savers
-                </Typography>
-              </Box>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="textSecondary">Highest Contribution</Typography>
-                <Typography variant="body1" fontWeight="bold" color="success.main">
-                  UGX 100,000
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" color="textSecondary">Group Performance</Typography>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={85} 
-                  color="success"
-                  sx={{ mt: 1 }}
-                />
-              </Box>
-            </CardContent>
-          </Card>
-
-          {/* Group Notifications */}
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>Group Updates</Typography>
-              <List dense>
-                <ListItem>
-                  <ListItemIcon>
-                    <Avatar sx={{ bgcolor: 'info.100', width: 32, height: 32 }}>
-                      <Notifications color="info" fontSize="small" />
-                    </Avatar>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="New Member Joined"
-                    secondary="Maria joined Emergency Fund Circle"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Avatar sx={{ bgcolor: 'warning.100', width: 32, height: 32 }}>
-                      <Schedule color="warning" fontSize="small" />
-                    </Avatar>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Contribution Due"
-                    secondary="Kampala Boda Savers - 2 days left"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Avatar sx={{ bgcolor: 'success.100', width: 32, height: 32 }}>
-                      <EmojiEvents color="success" fontSize="small" />
-                    </Avatar>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Group Milestone"
-                    secondary="Bike Upgrade Fund reached 50% target"
-                  />
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
-
-          {/* Create Group CTA */}
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Groups sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-              <Typography variant="h6" gutterBottom>
-                Start Your Own Group
-              </Typography>
-              <Typography variant="body2" color="textSecondary" paragraph>
-                Create a savings circle with other riders and achieve your financial goals together
-              </Typography>
-              <Button 
-                variant="contained" 
-                startIcon={<Add />}
-                onClick={() => setCreateGroupDialog(true)}
-              >
-                Create Group
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* Create Group Dialog */}
-      <Dialog 
-        open={createGroupDialog} 
-        onClose={() => setCreateGroupDialog(false)} 
-        maxWidth="md" 
-        fullWidth
-      >
-        <DialogTitle>
-          <Typography variant="h5">Create New Group</Typography>
-        </DialogTitle>
-        <DialogContent dividers>
-          <Stepper activeStep={0} sx={{ mb: 3 }}>
-            <Step>
-              <StepLabel>Group Details</StepLabel>
-            </Step>
-            <Step>
-              <StepLabel>Contribution Setup</StepLabel>
-            </Step>
-            <Step>
-              <StepLabel>Rules & Settings</StepLabel>
-            </Step>
-          </Stepper>
-
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Group Name"
-                value={newGroup.name}
-                onChange={(e) => setNewGroup(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., Kampala Boda Savers"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Group Description"
-                multiline
-                rows={3}
-                value={newGroup.description}
-                onChange={(e) => setNewGroup(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe the purpose and goals of your group..."
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <FormControl fullWidth>
-                <InputLabel>Group Type</InputLabel>
-                <Select
-                  value={newGroup.type}
-                  onChange={(e) => setNewGroup(prev => ({ ...prev, type: e.target.value }))}
-                  label="Group Type"
-                >
-                  {groupTypes.map(type => (
-                    <MenuItem key={type.value} value={type.value}>
-                      {type.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Maximum Members"
-                type="number"
-                value={newGroup.maxMembers}
-                onChange={(e) => setNewGroup(prev => ({ ...prev, maxMembers: parseInt(e.target.value) }))}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Contribution Amount (UGX)"
-                type="number"
-                value={newGroup.contributionAmount}
-                onChange={(e) => setNewGroup(prev => ({ ...prev, contributionAmount: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <FormControl fullWidth>
-                <InputLabel>Contribution Frequency</InputLabel>
-                <Select
-                  value={newGroup.frequency}
-                  onChange={(e) => setNewGroup(prev => ({ ...prev, frequency: e.target.value }))}
-                  label="Contribution Frequency"
-                >
-                  {frequencies.map(freq => (
-                    <MenuItem key={freq.value} value={freq.value}>
-                      {freq.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Target Amount (UGX) - Optional"
-                type="number"
-                value={newGroup.targetAmount}
-                onChange={(e) => setNewGroup(prev => ({ ...prev, targetAmount: e.target.value }))}
-                placeholder="Leave empty if no specific target"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={newGroup.isPublic}
-                    onChange={(e) => setNewGroup(prev => ({ ...prev, isPublic: e.target.checked }))}
-                  />
-                }
-                label="Public Group (Visible to all riders)"
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setCreateGroupDialog(false)}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            onClick={handleCreateGroup}
-            disabled={!newGroup.name || !newGroup.contributionAmount}
-          >
-            Create Group
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Join Group Dialog */}
-      <Dialog 
-        open={joinGroupDialog} 
-        onClose={() => setJoinGroupDialog(false)} 
-        maxWidth="md" 
-        fullWidth
-      >
-        <DialogTitle>
-          <Typography variant="h5">Join a Group</Typography>
-        </DialogTitle>
-        <DialogContent dividers>
-          <Typography variant="body1" paragraph>
-            Browse available groups and join ones that match your savings goals
-          </Typography>
-          
-          <Grid container spacing={2}>
-            {groups
-              .filter(group => !myGroups.includes(group.id) && group.status === 'active')
-              .map((group) => (
-                <Grid item xs={6} key={group.id}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Typography variant="h6" gutterBottom>{group.name}</Typography>
-                      <Typography variant="body2" color="textSecondary" paragraph>
-                        {group.description}
-                      </Typography>
-                      
-                      <Box sx={{ mb: 2 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                          <Typography variant="body2">Members</Typography>
-                          <Typography variant="body2">
-                            {group.members}/{group.maxMembers}
-                          </Typography>
-                        </Box>
-                        <LinearProgress 
-                          variant="determinate" 
-                          value={(group.members / group.maxMembers) * 100} 
-                        />
-                      </Box>
-
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                        <Box>
-                          <Typography variant="body2">Contribution</Typography>
-                          <Typography variant="body1" fontWeight="bold">
-                            UGX {group.contributionAmount.toLocaleString()}
-                          </Typography>
-                        </Box>
-                        <Box>
-                          <Typography variant="body2">Frequency</Typography>
-                          <Typography variant="body1" fontWeight="bold">
-                            {group.frequency}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      <Button
-                        variant="contained"
-                        fullWidth
-                        disabled={group.members >= group.maxMembers}
+                  <div className="group-action">
+                    {group.isMember ? (
+                      <button className="already-member-btn" disabled>
+                        Already Member
+                      </button>
+                    ) : (
+                      <button 
+                        className="join-group-action"
                         onClick={() => handleJoinGroup(group.id)}
                       >
-                        {group.members >= group.maxMembers ? 'Group Full' : 'Join Group'}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </Grid>
+                        Join Group
+                      </button>
+                    )}
+                  </div>
+                </div>
               ))}
-          </Grid>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setJoinGroupDialog(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+            </div>
+          </div>
+        )}
 
-      {/* Contribution Dialog */}
-      <Dialog 
-        open={contributionDialog} 
-        onClose={() => setContributionDialog(false)} 
-        maxWidth="sm" 
-        fullWidth
-      >
-        <DialogTitle>
-          <Typography variant="h5">Make Contribution</Typography>
-        </DialogTitle>
-        <DialogContent dividers>
-          {selectedGroup ? (
-            <Box>
-              <Typography variant="h6" gutterBottom>{selectedGroup.name}</Typography>
-              <Typography variant="body2" color="textSecondary" paragraph>
-                Regular contribution amount: UGX {selectedGroup.contributionAmount.toLocaleString()}
-              </Typography>
+        {activeTab === 'contributions' && (
+          <div className="contributions-view">
+            <div className="content-header">
+              <h2>Contribution History</h2>
+            </div>
 
-              <TextField
-                fullWidth
-                label="Contribution Amount (UGX)"
-                type="number"
-                defaultValue={selectedGroup.contributionAmount}
-                InputProps={{
-                  startAdornment: <Typography sx={{ mr: 1 }}>UGX</Typography>
-                }}
-                sx={{ mb: 2 }}
-              />
-
-              <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                <Typography variant="body2" gutterBottom>
-                  Contribution Details:
-                </Typography>
-                <Typography variant="body2">
-                  • Will be processed immediately
-                </Typography>
-                <Typography variant="body2">
-                  • Added to group pool: UGX {selectedGroup.totalPool.toLocaleString()}
-                </Typography>
-                <Typography variant="body2">
-                  • Next contribution due: {selectedGroup.nextPayout}
-                </Typography>
-              </Box>
-            </Box>
-          ) : (
-            <Box>
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Select Group</InputLabel>
-                <Select
-                  value={''}
-                  onChange={(e) => setSelectedGroup(groups.find(g => g.id === e.target.value))}
-                  label="Select Group"
-                >
-                  {groups.filter(group => myGroups.includes(group.id)).map(group => (
-                    <MenuItem key={group.id} value={group.id}>
-                      {group.name}
-                    </MenuItem>
+            <div className="contributions-table-container">
+              <table className="contributions-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Group</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Type</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {contributions.map(contribution => (
+                    <tr key={contribution.id}>
+                      <td>{contribution.date}</td>
+                      <td>
+                        <div className="group-cell">
+                          <div className="group-color-dot" style={{ backgroundColor: getContributionColor(contribution.type) }}></div>
+                          {contribution.group}
+                        </div>
+                      </td>
+                      <td className="amount-cell">UGX {contribution.amount.toLocaleString()}</td>
+                      <td>
+                        <span className={`status-badge ${contribution.status.toLowerCase()}`}>
+                          {contribution.status}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="type-badge" style={{ backgroundColor: getContributionColor(contribution.type) }}>
+                          {contribution.type}
+                        </span>
+                      </td>
+                      <td>
+                        {contribution.receipt ? (
+                          <button className="receipt-btn">
+                            Receipt
+                          </button>
+                        ) : (
+                          <span className="no-receipt">No Receipt</span>
+                        )}
+                      </td>
+                    </tr>
                   ))}
-                </Select>
-              </FormControl>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setContributionDialog(false)}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            onClick={() => selectedGroup && handleMakeContribution(selectedGroup.id, selectedGroup.contributionAmount)}
-            disabled={!selectedGroup}
-          >
-            Make Contribution
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className="analytics-view">
+            <div className="content-header">
+              <h2>Analytics</h2>
+            </div>
+
+            <div className="analytics-stats">
+              <div className="analytics-stat-card">
+                <h3>Active Groups</h3>
+                <p className="analytics-stat-number">{analyticsData.activeGroups}</p>
+              </div>
+              <div className="analytics-stat-card">
+                <h3>Total Contributions</h3>
+                <p className="analytics-stat-number">UGX {analyticsData.totalContributions.toLocaleString()}</p>
+              </div>
+              <div className="analytics-stat-card">
+                <h3>Total Members</h3>
+                <p className="analytics-stat-number">{analyticsData.totalMembers}</p>
+              </div>
+            </div>
+
+            <div className="analytics-charts">
+              <div className="chart-section">
+                <h3>Group Performance</h3>
+                <div className="performance-metrics">
+                  <div className="performance-card">
+                    <div className="performance-header">
+                      <h4>Kampala Boda Savers</h4>
+                      <div className="performance-stats">
+                        <div className="stat-item">
+                          <span>Monthly Growth</span>
+                          <span className="positive">+15%</span>
+                        </div>
+                        <div className="stat-item">
+                          <span>Member Activity</span>
+                          <span>92%</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="performance-body">
+                      <div className="pool-amount">UGX 400,000</div>
+                      <div className="next-payout">
+                        <span>Next Payout</span>
+                        <strong>2025-12-31</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="performance-card">
+                    <div className="performance-header">
+                      <h4>Emergency Fund Circle</h4>
+                      <div className="performance-stats">
+                        <div className="stat-item">
+                          <span>Monthly Growth</span>
+                          <span className="positive">+8%</span>
+                        </div>
+                        <div className="stat-item">
+                          <span>Member Activity</span>
+                          <span>78%</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="performance-body">
+                      <div className="pool-amount">UGX 60,000</div>
+                      <div className="next-payout">
+                        <span>Next Payout</span>
+                        <strong>2025-12-15</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Create Group Modal */}
+      {showCreateGroup && (
+        <div className="modal-overlay">
+          <div className="create-group-modal">
+            <div className="modal-header">
+              <h2>Create New Group</h2>
+              <button className="close-modal" onClick={() => setShowCreateGroup(false)}>
+                ×
+              </button>
+            </div>
+
+            <div className="creation-steps">
+              <div className="step-indicator">
+                <div className={`step ${createStep >= 1 ? 'active' : ''}`}>
+                  <span className="step-number">1</span>
+                  <span className="step-label">Group Details</span>
+                </div>
+                <div className="step-line"></div>
+                <div className={`step ${createStep >= 2 ? 'active' : ''}`}>
+                  <span className="step-number">2</span>
+                  <span className="step-label">Contribution Setup</span>
+                </div>
+                <div className="step-line"></div>
+                <div className={`step ${createStep >= 3 ? 'active' : ''}`}>
+                  <span className="step-number">3</span>
+                  <span className="step-label">Rules and Settings</span>
+                </div>
+              </div>
+
+              <form onSubmit={handleCreateGroup} className="create-group-form">
+                {createStep === 1 && (
+                  <div className="form-step">
+                    <div className="form-group">
+                      <label htmlFor="groupName">Group Name</label>
+                      <input
+                        type="text"
+                        id="groupName"
+                        value={newGroup.name}
+                        onChange={(e) => setNewGroup({...newGroup, name: e.target.value})}
+                        placeholder="Enter group name"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="groupDescription">Group Description</label>
+                      <textarea
+                        id="groupDescription"
+                        value={newGroup.description}
+                        onChange={(e) => setNewGroup({...newGroup, description: e.target.value})}
+                        placeholder="Describe the purpose of this group"
+                        rows="4"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Group Type</label>
+                      <div className="type-buttons">
+                        {['savings', 'emergency', 'spares', 'investment'].map(type => (
+                          <button
+                            key={type}
+                            type="button"
+                            className={`type-option ${newGroup.type === type ? 'selected' : ''}`}
+                            onClick={() => setNewGroup({...newGroup, type})}
+                          >
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="maxMembers">Maximum Number of Members</label>
+                        <input
+                          type="number"
+                          id="maxMembers"
+                          value={newGroup.maxMembers}
+                          onChange={(e) => setNewGroup({...newGroup, maxMembers: e.target.value})}
+                          min="2"
+                          max="50"
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="targetAmount">Target Amount (UGX) - Optional</label>
+                        <input
+                          type="number"
+                          id="targetAmount"
+                          value={newGroup.targetAmount}
+                          onChange={(e) => setNewGroup({...newGroup, targetAmount: e.target.value})}
+                          placeholder="Optional target amount"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={newGroup.isPublic}
+                          onChange={(e) => setNewGroup({...newGroup, isPublic: e.target.checked})}
+                        />
+                        <span>Public Group (Visible to all Riders)</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {createStep === 2 && (
+                  <div className="form-step">
+                    <div className="form-group">
+                      <label htmlFor="contributionAmount">Contribution Amount (UGX)</label>
+                      <input
+                        type="number"
+                        id="contributionAmount"
+                        value={newGroup.contributionAmount}
+                        onChange={(e) => setNewGroup({...newGroup, contributionAmount: e.target.value})}
+                        placeholder="Amount per contribution"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Contribution Frequency</label>
+                      <div className="frequency-buttons">
+                        {['weekly', 'bi-weekly', 'monthly', 'quarterly'].map(freq => (
+                          <button
+                            key={freq}
+                            type="button"
+                            className={`frequency-option ${newGroup.frequency === freq ? 'selected' : ''}`}
+                            onClick={() => setNewGroup({...newGroup, frequency: freq})}
+                          >
+                            {freq.charAt(0).toUpperCase() + freq.slice(1)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="adminFee">Administration Fee (%) - Optional</label>
+                      <input
+                        type="number"
+                        id="adminFee"
+                        value={newGroup.adminFee}
+                        onChange={(e) => setNewGroup({...newGroup, adminFee: e.target.value})}
+                        placeholder="Optional admin fee percentage"
+                        min="0"
+                        max="10"
+                        step="0.1"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {createStep === 3 && (
+                  <div className="form-step">
+                    <div className="form-group">
+                      <label htmlFor="groupRules">Group Rules and Guidelines</label>
+                      <textarea
+                        id="groupRules"
+                        value={newGroup.rules}
+                        onChange={(e) => setNewGroup({...newGroup, rules: e.target.value})}
+                        placeholder="Define rules for contributions, withdrawals, penalties, etc."
+                        rows="8"
+                      />
+                    </div>
+
+                    <div className="rules-checklist">
+                      <h4>Default Rules Applied</h4>
+                      <label className="checkbox-label">
+                        <input type="checkbox" defaultChecked disabled />
+                        <span>Late contributions incur 5% penalty</span>
+                      </label>
+                      <label className="checkbox-label">
+                        <input type="checkbox" defaultChecked disabled />
+                        <span>Withdrawals require 24 hours notice</span>
+                      </label>
+                      <label className="checkbox-label">
+                        <input type="checkbox" defaultChecked disabled />
+                        <span>Emergency withdrawals available</span>
+                      </label>
+                      <label className="checkbox-label">
+                        <input type="checkbox" defaultChecked disabled />
+                        <span>Monthly transparency reports</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                <div className="form-actions">
+                  {createStep > 1 && (
+                    <button 
+                      type="button" 
+                      className="back-btn"
+                      onClick={() => setCreateStep(createStep - 1)}
+                    >
+                      Back
+                    </button>
+                  )}
+                  <button type="submit" className="submit-btn">
+                    {createStep === 3 ? 'Create Group' : 'Continue'}
+                  </button>
+                  <button 
+                    type="button" 
+                    className="cancel-btn"
+                    onClick={() => setShowCreateGroup(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
-export default GroupFundingDashboard;
+export default Groups;
