@@ -6,7 +6,8 @@
 }
 
 .payments-app {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Poppins", sans-serif;
+
   color: #1e293b;
   background: #f8fafc;
 }
@@ -33,7 +34,7 @@
 }
 
 .payments-header-blue {
-  background: #2563eb;
+  background: #0033cc;
   color: white;
 }
 
