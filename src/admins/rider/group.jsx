@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './group.css';
 
 const Groups = () => {
   const [activeTab, setActiveTab] = useState('myGroups');
   const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [currentReceipt, setCurrentReceipt] = useState(null);
   const [createStep, setCreateStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [groupFilter, setGroupFilter] = useState('all');
@@ -25,7 +29,7 @@ const Groups = () => {
     {
       id: 1,
       name: 'Kampala Boda Savers',
-      description: 'Weekly Savings group for motorcycle riders in central kampala',
+      description: 'Weekly savings for motorcycle riders',
       type: 'savings',
       members: 8,
       maxMembers: 12,
@@ -38,7 +42,7 @@ const Groups = () => {
     {
       id: 2,
       name: 'Emergency Fund Circle',
-      description: 'Emergency fund support for unexpected expenses',
+      description: 'Emergency fund support',
       type: 'emergency',
       members: 7,
       maxMembers: 12,
@@ -51,7 +55,7 @@ const Groups = () => {
     {
       id: 3,
       name: 'Bike Maintenance Group',
-      description: 'Regular savings for bike maintenance and repairs',
+      description: 'Regular savings for bike maintenance',
       type: 'spares',
       members: 5,
       maxMembers: 10,
@@ -68,7 +72,7 @@ const Groups = () => {
       id: 1,
       name: 'Kampala Boda Savers',
       type: 'savings',
-      description: 'Weekly Savings group for motorcycle riders in central kampala',
+      description: 'Weekly savings for riders',
       members: 8,
       maxMembers: 12,
       contribution: 50000,
@@ -80,7 +84,7 @@ const Groups = () => {
       id: 2,
       name: 'Bike Upgrade Fund',
       type: 'spares',
-      description: 'Save for bike upgrades and modifications',
+      description: 'Save for bike upgrades',
       members: 3,
       maxMembers: 7,
       contribution: 50000,
@@ -92,7 +96,7 @@ const Groups = () => {
       id: 3,
       name: 'Emergency Circle Fund',
       type: 'emergency',
-      description: 'Emergency support fund for medical and urgent needs',
+      description: 'Emergency support fund',
       members: 3,
       maxMembers: 7,
       contribution: 20000,
@@ -104,7 +108,7 @@ const Groups = () => {
       id: 4,
       name: 'Rent Savings Group',
       type: 'savings',
-      description: 'Monthly rent savings for rider accommodations',
+      description: 'Monthly rent savings',
       members: 6,
       maxMembers: 10,
       contribution: 40000,
@@ -165,7 +169,7 @@ const Groups = () => {
   // Analytics data
   const analyticsData = {
     activeGroups: 3,
-    totalContributions: 120000,
+    totalContributions: 280000,
     totalMembers: 14,
     groupPerformance: [
       { month: 'Jan', value: 65 },
@@ -183,14 +187,22 @@ const Groups = () => {
     nextContributions: myGroups.filter(g => g.nextContribution === '2 days').length
   };
 
+  const showNotification = (message) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
   const handleJoinGroup = (groupId) => {
     setAvailableGroups(availableGroups.map(group => 
       group.id === groupId ? { ...group, isMember: true, members: group.members + 1 } : group
     ));
     
     const groupToJoin = availableGroups.find(g => g.id === groupId);
-    setMyGroups([...myGroups, {
-      id: myGroups.length + 1,
+    const newGroupId = Date.now();
+    
+    const newGroupObj = {
+      id: newGroupId,
       name: groupToJoin.name,
       description: groupToJoin.description,
       type: groupToJoin.type,
@@ -201,7 +213,28 @@ const Groups = () => {
       frequency: groupToJoin.frequency,
       progress: ((groupToJoin.members + 1) / groupToJoin.maxMembers) * 100,
       nextContribution: '7 days'
-    }]);
+    };
+    
+    setMyGroups([newGroupObj, ...myGroups]);
+    showNotification(`Successfully joined ${groupToJoin.name}`);
+  };
+
+  const generateReceipt = (group, amount) => {
+    const receiptId = `REC${Date.now()}`;
+    const timestamp = new Date().toLocaleString();
+    
+    return {
+      id: receiptId,
+      date: timestamp,
+      groupName: group.name,
+      groupType: group.type,
+      amount: amount,
+      reference: `CONT${Date.now()}`,
+      transactionId: `TXN${Date.now()}`,
+      status: 'Completed',
+      memberId: 'RIDER001',
+      memberName: 'John Doe'
+    };
   };
 
   const handleContribute = (groupId) => {
@@ -209,6 +242,9 @@ const Groups = () => {
       if (group.id === groupId) {
         const newTotal = group.totalPool + group.contribution;
         const newProgress = (group.members / group.maxMembers) * 100;
+        
+        // Generate receipt
+        const receipt = generateReceipt(group, group.contribution);
         
         // Add to contributions history
         const newContribution = {
@@ -218,15 +254,24 @@ const Groups = () => {
           amount: group.contribution,
           status: 'Completed',
           type: group.type.charAt(0).toUpperCase() + group.type.slice(1),
-          receipt: `receipt_${Date.now()}.pdf`
+          receipt: receipt
         };
         
         setContributions([newContribution, ...contributions]);
         
+        // Show receipt modal
+        setCurrentReceipt(receipt);
+        setShowReceipt(true);
+        
+        // Show success notification
+        showNotification(`Contribution of UGX ${group.contribution.toLocaleString()} successful`);
+        
         return {
           ...group,
           totalPool: newTotal,
-          progress: newProgress
+          progress: newProgress,
+          nextContribution: group.frequency === 'Weekly' ? '7 days' : 
+                          group.frequency === 'Monthly' ? '30 days' : '14 days'
         };
       }
       return group;
@@ -238,8 +283,9 @@ const Groups = () => {
     if (createStep < 3) {
       setCreateStep(createStep + 1);
     } else {
+      const newGroupId = Date.now();
       const newGroupObj = {
-        id: myGroups.length + 1,
+        id: newGroupId,
         name: newGroup.name,
         description: newGroup.description,
         type: newGroup.type,
@@ -253,6 +299,7 @@ const Groups = () => {
       };
       
       setMyGroups([newGroupObj, ...myGroups]);
+      
       setAvailableGroups([{
         id: availableGroups.length + 1,
         name: newGroup.name,
@@ -280,7 +327,53 @@ const Groups = () => {
         rules: '',
         adminFee: 0
       });
+      
+      showNotification(`Group "${newGroup.name}" created successfully!`);
     }
+  };
+
+  const handleViewReceipt = (receipt) => {
+    setCurrentReceipt(receipt);
+    setShowReceipt(true);
+  };
+
+  const handleDownloadReceipt = () => {
+    if (!currentReceipt) return;
+    
+    const receiptContent = `
+      GROUP CONTRIBUTION RECEIPT
+      =========================
+      
+      Receipt ID: ${currentReceipt.id}
+      Date: ${currentReceipt.date}
+      
+      Group: ${currentReceipt.groupName}
+      Type: ${currentReceipt.groupType}
+      
+      Amount: UGX ${currentReceipt.amount.toLocaleString()}
+      Reference: ${currentReceipt.reference}
+      Transaction ID: ${currentReceipt.transactionId}
+      
+      Member: ${currentReceipt.memberName}
+      Member ID: ${currentReceipt.memberId}
+      
+      Status: ${currentReceipt.status}
+      
+      Thank you for your contribution!
+      =========================
+    `;
+    
+    const blob = new Blob([receiptContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `receipt_${currentReceipt.id}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showNotification('Receipt downloaded successfully');
   };
 
   const filteredGroups = availableGroups.filter(group => {
@@ -294,11 +387,28 @@ const Groups = () => {
 
   const getContributionColor = (type) => {
     switch(type.toLowerCase()) {
-      case 'savings': return '#0033cc';
-      case 'emergency': return '#ff4444';
-      case 'spares': return '#00aa44';
-      default: return '#666';
+      case 'savings': return '#4361ee';
+      case 'emergency': return '#ef4444';
+      case 'spares': return '#4ade80';
+      default: return '#6b7280';
     }
+  };
+
+  // Quick action handlers
+  const handleQuickContribute = () => {
+    if (myGroups.length > 0) {
+      handleContribute(myGroups[0].id);
+    } else {
+      showNotification('No groups available for contribution');
+    }
+  };
+
+  const handleQuickWithdraw = () => {
+    showNotification('Withdrawal request submitted for review');
+  };
+
+  const handleQuickInvite = () => {
+    showNotification('Invitation link copied to clipboard');
   };
 
   return (
@@ -320,16 +430,22 @@ const Groups = () => {
           </div>
           <div className="stat-card">
             <h3>Next Contributions</h3>
-            <p className="stat-number">{stats.nextContributions} days</p>
+            <p className="stat-number">{stats.nextContributions}</p>
           </div>
         </div>
 
         <div className="quick-actions">
           <h3>Quick Actions</h3>
           <div className="action-buttons">
-            <button className="action-btn contribute-btn">Make Contribution</button>
-            <button className="action-btn withdraw-btn">Request Withdrawal</button>
-            <button className="action-btn invite-btn">Invite Riders</button>
+            <button className="action-btn contribute-btn" onClick={handleQuickContribute}>
+              <span>💳</span> Make Contribution
+            </button>
+            <button className="action-btn withdraw-btn" onClick={handleQuickWithdraw}>
+              <span>💰</span> Request Withdrawal
+            </button>
+            <button className="action-btn invite-btn" onClick={handleQuickInvite}>
+              <span>👥</span> Invite Riders
+            </button>
           </div>
         </div>
 
@@ -339,17 +455,17 @@ const Groups = () => {
             <div className="benefit-card">
               <div className="benefit-icon">🛡️</div>
               <h4>Collective Security</h4>
-              <p>Emergency group Support</p>
+              <p>Emergency group support and financial safety net</p>
             </div>
             <div className="benefit-card">
               <div className="benefit-icon">📊</div>
               <h4>Better Loan Rates</h4>
-              <p>Group Negotiation Power</p>
+              <p>Group negotiation power for favorable terms</p>
             </div>
             <div className="benefit-card">
               <div className="benefit-icon">🏆</div>
               <h4>Group Rewards</h4>
-              <p>Collective achievement Bonuses</p>
+              <p>Collective achievement bonuses and incentives</p>
             </div>
           </div>
         </div>
@@ -444,7 +560,7 @@ const Groups = () => {
 
                   <div className="group-actions">
                     <button 
-                      className="action-btn contribute-action"
+                      className="action-btn contribute-btn"
                       onClick={() => handleContribute(group.id)}
                     >
                       Contribute
@@ -452,7 +568,7 @@ const Groups = () => {
                     <button className="action-btn view-action">
                       View Details
                     </button>
-                    <button className="action-btn invite-action">
+                    <button className="action-btn invite-btn">
                       Invite
                     </button>
                   </div>
@@ -469,12 +585,15 @@ const Groups = () => {
                 </div>
                 <div className="insight-item">
                   <span>Highest Contribution</span>
-                  <strong>UGX 100,000</strong>
+                  <strong>UGX 50,000</strong>
+                </div>
+                <div className="insight-item">
+                  <span>Total Group Value</span>
+                  <strong>UGX {stats.totalContributions.toLocaleString()}</strong>
                 </div>
                 <div className="performance-chart">
                   <h4>Group Performance</h4>
                   <div className="chart-placeholder">
-                    {/* Chart would go here */}
                     <div className="chart-bar" style={{ height: '80%' }}></div>
                     <div className="chart-bar" style={{ height: '60%' }}></div>
                     <div className="chart-bar" style={{ height: '90%' }}></div>
@@ -484,12 +603,12 @@ const Groups = () => {
               </div>
 
               <div className="updates-section">
-                <h3>Group Updates</h3>
+                <h3>Recent Updates</h3>
                 <div className="update-item">
                   <div className="update-icon">👤</div>
                   <div>
                     <p><strong>New Member Joined</strong></p>
-                    <p>Marita Joined Emergency Fund Circle</p>
+                    <p>Marita joined Emergency Fund Circle</p>
                   </div>
                 </div>
                 <div className="update-item">
@@ -539,7 +658,7 @@ const Groups = () => {
                 <div className="search-box">
                   <input
                     type="text"
-                    placeholder="Search groups..."
+                    placeholder="Search groups by name or description..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="search-input"
@@ -573,13 +692,17 @@ const Groups = () => {
                         <span className="detail-label">Frequency</span>
                         <span className="detail-value">{group.frequency}</span>
                       </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Status</span>
+                        <span className="detail-value">{group.isPublic ? 'Public' : 'Private'}</span>
+                      </div>
                     </div>
                   </div>
 
                   <div className="group-action">
                     {group.isMember ? (
                       <button className="already-member-btn" disabled>
-                        Already Member
+                        Member
                       </button>
                     ) : (
                       <button 
@@ -592,6 +715,12 @@ const Groups = () => {
                   </div>
                 </div>
               ))}
+              
+              {filteredGroups.length === 0 && (
+                <div className="no-results">
+                  <p>No groups found matching your criteria.</p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -600,6 +729,11 @@ const Groups = () => {
           <div className="contributions-view">
             <div className="content-header">
               <h2>Contribution History</h2>
+              <div className="stats">
+                <span className="stat-badge">
+                  Total: UGX {contributions.reduce((sum, c) => sum + c.amount, 0).toLocaleString()}
+                </span>
+              </div>
             </div>
 
             <div className="contributions-table-container">
@@ -611,7 +745,7 @@ const Groups = () => {
                     <th>Amount</th>
                     <th>Status</th>
                     <th>Type</th>
-                    <th>Action</th>
+                    <th>Receipt</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -637,11 +771,14 @@ const Groups = () => {
                       </td>
                       <td>
                         {contribution.receipt ? (
-                          <button className="receipt-btn">
-                            Receipt
+                          <button 
+                            className="receipt-btn"
+                            onClick={() => handleViewReceipt(contribution.receipt)}
+                          >
+                            View Receipt
                           </button>
                         ) : (
-                          <span className="no-receipt">No Receipt</span>
+                          <span className="no-receipt">Pending</span>
                         )}
                       </td>
                     </tr>
@@ -655,7 +792,7 @@ const Groups = () => {
         {activeTab === 'analytics' && (
           <div className="analytics-view">
             <div className="content-header">
-              <h2>Analytics</h2>
+              <h2>Group Analytics</h2>
             </div>
 
             <div className="analytics-stats">
@@ -670,6 +807,10 @@ const Groups = () => {
               <div className="analytics-stat-card">
                 <h3>Total Members</h3>
                 <p className="analytics-stat-number">{analyticsData.totalMembers}</p>
+              </div>
+              <div className="analytics-stat-card">
+                <h3>Avg Contribution</h3>
+                <p className="analytics-stat-number">UGX {Math.round(analyticsData.totalContributions / contributions.length).toLocaleString()}</p>
               </div>
             </div>
 
@@ -754,7 +895,7 @@ const Groups = () => {
                 <div className="step-line"></div>
                 <div className={`step ${createStep >= 3 ? 'active' : ''}`}>
                   <span className="step-number">3</span>
-                  <span className="step-label">Rules and Settings</span>
+                  <span className="step-label">Rules & Settings</span>
                 </div>
               </div>
 
@@ -762,7 +903,7 @@ const Groups = () => {
                 {createStep === 1 && (
                   <div className="form-step">
                     <div className="form-group">
-                      <label htmlFor="groupName">Group Name</label>
+                      <label htmlFor="groupName">Group Name *</label>
                       <input
                         type="text"
                         id="groupName"
@@ -774,21 +915,21 @@ const Groups = () => {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="groupDescription">Group Description</label>
+                      <label htmlFor="groupDescription">Group Description *</label>
                       <textarea
                         id="groupDescription"
                         value={newGroup.description}
                         onChange={(e) => setNewGroup({...newGroup, description: e.target.value})}
                         placeholder="Describe the purpose of this group"
-                        rows="4"
+                        rows="3"
                         required
                       />
                     </div>
 
                     <div className="form-group">
-                      <label>Group Type</label>
+                      <label>Group Type *</label>
                       <div className="type-buttons">
-                        {['savings', 'emergency', 'spares', 'investment'].map(type => (
+                        {['savings', 'emergency', 'spares'].map(type => (
                           <button
                             key={type}
                             type="button"
@@ -803,7 +944,7 @@ const Groups = () => {
 
                     <div className="form-row">
                       <div className="form-group">
-                        <label htmlFor="maxMembers">Maximum Number of Members</label>
+                        <label htmlFor="maxMembers">Maximum Members *</label>
                         <input
                           type="number"
                           id="maxMembers"
@@ -816,13 +957,13 @@ const Groups = () => {
                       </div>
 
                       <div className="form-group">
-                        <label htmlFor="targetAmount">Target Amount (UGX) - Optional</label>
+                        <label htmlFor="targetAmount">Target Amount (UGX)</label>
                         <input
                           type="number"
                           id="targetAmount"
                           value={newGroup.targetAmount}
                           onChange={(e) => setNewGroup({...newGroup, targetAmount: e.target.value})}
-                          placeholder="Optional target amount"
+                          placeholder="Optional"
                         />
                       </div>
                     </div>
@@ -834,7 +975,7 @@ const Groups = () => {
                           checked={newGroup.isPublic}
                           onChange={(e) => setNewGroup({...newGroup, isPublic: e.target.checked})}
                         />
-                        <span>Public Group (Visible to all Riders)</span>
+                        <span>Make this group public (visible to all riders)</span>
                       </label>
                     </div>
                   </div>
@@ -843,7 +984,7 @@ const Groups = () => {
                 {createStep === 2 && (
                   <div className="form-step">
                     <div className="form-group">
-                      <label htmlFor="contributionAmount">Contribution Amount (UGX)</label>
+                      <label htmlFor="contributionAmount">Contribution Amount (UGX) *</label>
                       <input
                         type="number"
                         id="contributionAmount"
@@ -855,9 +996,9 @@ const Groups = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>Contribution Frequency</label>
+                      <label>Contribution Frequency *</label>
                       <div className="frequency-buttons">
-                        {['weekly', 'bi-weekly', 'monthly', 'quarterly'].map(freq => (
+                        {['weekly', 'bi-weekly', 'monthly'].map(freq => (
                           <button
                             key={freq}
                             type="button"
@@ -871,13 +1012,13 @@ const Groups = () => {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="adminFee">Administration Fee (%) - Optional</label>
+                      <label htmlFor="adminFee">Administration Fee (%)</label>
                       <input
                         type="number"
                         id="adminFee"
                         value={newGroup.adminFee}
                         onChange={(e) => setNewGroup({...newGroup, adminFee: e.target.value})}
-                        placeholder="Optional admin fee percentage"
+                        placeholder="Optional admin fee"
                         min="0"
                         max="10"
                         step="0.1"
@@ -895,7 +1036,7 @@ const Groups = () => {
                         value={newGroup.rules}
                         onChange={(e) => setNewGroup({...newGroup, rules: e.target.value})}
                         placeholder="Define rules for contributions, withdrawals, penalties, etc."
-                        rows="8"
+                        rows="5"
                       />
                     </div>
 
@@ -944,6 +1085,85 @@ const Groups = () => {
                 </div>
               </form>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Receipt Modal */}
+      {showReceipt && currentReceipt && (
+        <div className="modal-overlay">
+          <div className="create-group-modal receipt-modal">
+            <div className="receipt-header">
+              <h2>Contribution Receipt</h2>
+            </div>
+            
+            <div className="receipt-content">
+              <div className="receipt-info">
+                <div className="receipt-row">
+                  <span className="receipt-label">Receipt ID:</span>
+                  <span className="receipt-value">{currentReceipt.id}</span>
+                </div>
+                <div className="receipt-row">
+                  <span className="receipt-label">Date:</span>
+                  <span className="receipt-value">{currentReceipt.date}</span>
+                </div>
+                <div className="receipt-row">
+                  <span className="receipt-label">Group:</span>
+                  <span className="receipt-value">{currentReceipt.groupName}</span>
+                </div>
+                <div className="receipt-row">
+                  <span className="receipt-label">Type:</span>
+                  <span className="receipt-value">{currentReceipt.groupType}</span>
+                </div>
+                <div className="receipt-row">
+                  <span className="receipt-label">Amount:</span>
+                  <span className="receipt-value" style={{ color: 'var(--primary-color)', fontWeight: '600' }}>
+                    UGX {currentReceipt.amount.toLocaleString()}
+                  </span>
+                </div>
+                <div className="receipt-row">
+                  <span className="receipt-label">Reference:</span>
+                  <span className="receipt-value">{currentReceipt.reference}</span>
+                </div>
+                <div className="receipt-row">
+                  <span className="receipt-label">Transaction ID:</span>
+                  <span className="receipt-value">{currentReceipt.transactionId}</span>
+                </div>
+                <div className="receipt-row">
+                  <span className="receipt-label">Member:</span>
+                  <span className="receipt-value">{currentReceipt.memberName}</span>
+                </div>
+                <div className="receipt-row">
+                  <span className="receipt-label">Status:</span>
+                  <span className="receipt-value" style={{ color: 'var(--success-color)' }}>
+                    {currentReceipt.status}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="receipt-actions">
+                <button className="download-btn" onClick={handleDownloadReceipt}>
+                  Download Receipt
+                </button>
+                <button className="share-btn">
+                  Share
+                </button>
+                <button className="close-receipt-btn" onClick={() => setShowReceipt(false)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="toast">
+          <div className="toast-icon">✅</div>
+          <div className="toast-content">
+            <h4>Success!</h4>
+            <p>{toastMessage}</p>
           </div>
         </div>
       )}
