@@ -257,6 +257,15 @@ const Riders = () => {
                 selected={selected} 
                 setSelected={handleItemClick} 
               />
+
+              <Item 
+                title="Wallet" 
+                to="/rider/wallet" 
+                icon={<TimelineIcon />} 
+                selected={selected} 
+                setSelected={handleItemClick} 
+              />
+              
               
               <Item 
                 title="Statements" 
