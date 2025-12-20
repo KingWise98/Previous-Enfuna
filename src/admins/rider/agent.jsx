@@ -124,8 +124,8 @@ const RiderAgent = () => {
       <div className="rider-agent-container">
         <div className="welcome-screen">
           <div className="logo-section">
-            <img src="./assets/start.png" alt="Enfuna" className="enfuna-logo" />
-            <p className="tagline">Get Digitized. Get Funded.</p>
+            <img src="/start.png" alt="Enfuna" className="enfuna-logo" />
+            
           </div>
 
           <h1 className="welcome-title">Welcome to Rider - Agent Mode</h1>
