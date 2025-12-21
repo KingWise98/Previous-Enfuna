@@ -1,93 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Card,
-  CardContent,
-  Grid,
-  TextField,
-  Avatar,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Paper,
-  useTheme,
-  useMediaQuery,
-  AppBar,
-  Toolbar,
-  IconButton,
-  Snackbar,
-  Alert,
-  Divider,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  FormControl,
-  InputAdornment,
-  MenuItem,
-  Select,
-  Tabs,
-  Tab,
-  Stepper,
-  Step,
-  StepLabel,
-  Switch,
-  FormGroup,
-  FormControlLabel as MuiFormControlLabel
-} from '@mui/material';
-import {
-  DirectionsCar,
-  LocationOn,
-  LocationOff,
-  AttachMoney,
-  PlayArrow,
-  Stop,
-  Close,
-  Schedule,
-  CheckCircle,
-  AccountBalanceWallet,
-  CreditCard,
-  Smartphone,
-  AccessTime,
-  Speed,
-  Map,
-  Edit,
-  Cancel,
-  Add,
-  SwapHoriz,
-  Route,
-  Payment,
-  Report,
-  LocalGasStation,
-  AccountBalance
-} from '@mui/icons-material';
+import React, { useEffect, useMemo, useState } from 'react';
+import './trips.css';
+
+import airtelImg from './assets/airtel.jpg';
+import mtnImg from './assets/mtn.jpg';
+import visaImg from './assets/visa.jpg';
 
 const DrivePage = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
+  const [currentView, setCurrentView] = useState('dashboard');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    status: 'all',
+    paymentMethod: 'all',
+    route: 'all'
+  });
+
   const [activeTrip, setActiveTrip] = useState(null);
   const [showNewTripDialog, setShowNewTripDialog] = useState(false);
   const [showEndTripDialog, setShowEndTripDialog] = useState(false);
-  const [showEditTripDialog, setShowEditTripDialog] = useState(false);
   const [showCancelTripDialog, setShowCancelTripDialog] = useState(false);
-  const [showAddDestinationDialog, setShowAddDestinationDialog] = useState(false);
-  const [showEndShiftDialog, setShowEndShiftDialog] = useState(false);
-  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showReceiptDialog, setShowReceiptDialog] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('momo');
+  const [receiveAmount, setReceiveAmount] = useState(0);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [tripTime, setTripTime] = useState(0);
   const [earnings, setEarnings] = useState(0);
-  const [editTab, setEditTab] = useState(0);
-  const [shiftActive, setShiftActive] = useState(true);
+  const [shiftActive] = useState(true);
   const [shiftDuration, setShiftDuration] = useState(2040); // 34 minutes in seconds
-
+  const [isEditingFare, setIsEditingFare] = useState(false);
+  const [fareInput, setFareInput] = useState('');
   // Shift statistics
   const [shiftStats, setShiftStats] = useState({
     totalTrips: 8,
@@ -102,7 +43,8 @@ const DrivePage = () => {
     pickup: 'Kollo',
     destination: 'Ntinda',
     paymentMethod: 'momo',
-    vehicle: 'UBB 472Z'
+    vehicle: 'UBB 472Z',
+    fare: 2000
   });
 
   const [editForm, setEditForm] = useState({
@@ -168,9 +110,9 @@ const DrivePage = () => {
   ];
 
   const paymentMethods = [
-    { value: 'cash', label: 'Cash', icon: <AttachMoney /> },
-    { value: 'momo', label: 'MoMo', icon: <Smartphone /> },
-    { value: 'card', label: 'Card', icon: <CreditCard /> }
+    { value: 'cash', label: 'Cash' },
+    { value: 'momo', label: 'MoMo' },
+    { value: 'card', label: 'Card' }
   ];
 
   // Real-time trip timer
@@ -185,6 +127,22 @@ const DrivePage = () => {
     }
     return () => clearInterval(interval);
   }, [activeTrip]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('driver_trip_draft');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return;
+      setTripForm((p) => ({
+        ...p,
+        ...parsed,
+        fare: Number(parsed.fare ?? p.fare) || p.fare
+      }));
+    } catch (_) {
+      // ignore
+    }
+  }, []);
 
   // Shift timer
   useEffect(() => {
@@ -206,22 +164,24 @@ const DrivePage = () => {
     }
   }, [tripTime, activeTrip]);
 
+  useEffect(() => {
+    if (!showPaymentDialog) return;
+    const base = activeTrip ? earnings : Number(tripForm.fare || 0);
+    setReceiveAmount(Number.isFinite(base) ? base : 0);
+  }, [showPaymentDialog, activeTrip, earnings, tripForm.fare]);
+
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
   };
 
-  const handleInputChange = (field) => (event) => {
-    setTripForm(prev => ({
-      ...prev,
-      [field]: event.target.value
-    }));
-  };
-
-  const handleEditInputChange = (field) => (event) => {
-    setEditForm(prev => ({
-      ...prev,
-      [field]: event.target.value
-    }));
+  const commitFare = () => {
+    const next = Number(String(fareInput).replace(/,/g, '').trim());
+    if (!Number.isFinite(next) || next < 0) {
+      showSnackbar('Invalid amount', 'error');
+      return;
+    }
+    setTripForm((p) => ({ ...p, fare: Math.round(next) }));
+    setIsEditingFare(false);
   };
 
   const formatTime = (seconds) => {
@@ -250,7 +210,7 @@ const DrivePage = () => {
       destination: tripForm.destination,
       area: selectedDestination?.area,
       emoji: selectedDestination?.emoji,
-      fare: 15000, // Default fare
+      fare: Number(tripForm.fare) || 0,
       paymentMethod: tripForm.paymentMethod,
       vehicle: tripForm.vehicle,
       startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -283,7 +243,7 @@ const DrivePage = () => {
     };
 
     // Update shift stats
-    const paymentKey = activeTrip.paymentMethod === 'momo' ? 'momoEarnings' : 
+    const paymentKey = activeTrip.paymentMethod === 'momo' ? 'momoEarnings' :
                       activeTrip.paymentMethod === 'cash' ? 'cashEarnings' : 'momoEarnings';
     
     setShiftStats(prev => ({
@@ -300,23 +260,30 @@ const DrivePage = () => {
     showSnackbar(`Trip completed! You earned UGX ${earnings.toLocaleString()}`);
   };
 
-  const handleEndShift = () => {
-    setShiftActive(false);
-    setShowEndShiftDialog(false);
-    showSnackbar('Shift ended successfully!');
+  const handleCancelTrip = () => {
+    if (!activeTrip) return;
+
+    const cancelledTrip = {
+      ...activeTrip,
+      id: Date.now(),
+      status: 'cancelled',
+      endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      duration: formatTime(tripTime),
+      distance: `${calculateDistance().toFixed(1)} km`,
+      fare: 0,
+      cancelReason: editForm.cancelReason,
+      date: 'Today'
+    };
+
+    setTripHistory(prev => [cancelledTrip, ...prev]);
+    setActiveTrip(null);
+    setShowCancelTripDialog(false);
+    setEditForm((p) => ({ ...p, cancelReason: '' }));
+    showSnackbar('Trip cancelled.', 'success');
   };
 
   const calculateDistance = () => {
     return (tripTime / 60) * 0.8;
-  };
-
-  const getPaymentIcon = (method) => {
-    switch (method) {
-      case 'cash': return <AttachMoney />;
-      case 'card': return <CreditCard />;
-      case 'momo': return <Smartphone />;
-      default: return <AttachMoney />;
-    }
   };
 
   const getPaymentLabel = (method) => {
@@ -324,653 +291,613 @@ const DrivePage = () => {
       case 'cash': return 'Cash';
       case 'card': return 'Card';
       case 'momo': return 'MoMo';
+      case 'airtel': return 'Airtel Money';
+      case 'visa': return 'VISA';
+      case 'qr': return 'QR Code';
+      case 'split': return 'Split Payment';
       default: return 'Cash';
     }
   };
 
-  // Main Dashboard
+  const filteredTrips = useMemo(() => {
+    return tripHistory
+      .filter((t) => {
+        const routeStr = `${t.pickup} ${t.destination}`.toLowerCase();
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return true;
+        return routeStr.includes(query) || String(t.id).toLowerCase().includes(query);
+      })
+      .filter((t) => {
+        if (filters.paymentMethod === 'all') return true;
+        return t.paymentMethod === filters.paymentMethod;
+      })
+      .filter((t) => {
+        if (filters.status === 'all') return true;
+        return t.status === filters.status;
+      });
+  }, [tripHistory, searchQuery, filters.paymentMethod, filters.status]);
+
+  const analytics = useMemo(() => {
+    const totalTrips = filteredTrips.length;
+    const completedTrips = filteredTrips.filter((t) => t.status === 'completed').length;
+    const cancelledTrips = filteredTrips.filter((t) => t.status === 'cancelled').length;
+    const totalMoney = filteredTrips.reduce((sum, t) => {
+      if (t.status !== 'completed') return sum;
+      const amount = Number(t.fare);
+      return sum + (Number.isFinite(amount) ? amount : 0);
+    }, 0);
+    const cancellationRate = totalTrips === 0 ? 0 : (cancelledTrips / totalTrips) * 100;
+
+    return {
+      totalTrips,
+      completedTrips,
+      cancelledTrips,
+      totalMoney,
+      cancellationRate
+    };
+  }, [filteredTrips]);
+
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
-      backgroundColor: 'background.default',
-      pb: 3
-    }}>
-      {/* Header */}
-      <AppBar 
-        position="static" 
-        sx={{ 
-          backgroundColor: '#0025DD',
-          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)'
-        }}
-      >
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-            ENFUNA
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Chip 
-              icon={<DirectionsCar />}
-              label={`UBB 472Z • Active ${formatShiftTime(shiftDuration)}`}
-              sx={{ 
-                backgroundColor: '#FFEC01', 
-                color: '#000',
-                fontWeight: 'bold'
-              }}
+    <div className="trips-container driver-trips-scope">
+      {currentView === 'dashboard' && (
+        <div className="trips-dashboard">
+          <div className="trips-header">
+            <input
+              className="trips-search"
+              placeholder="Search…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-            {!activeTrip && (
-              <Button
-                variant="contained"
-                sx={{
-                  backgroundColor: '#FFEC01',
-                  color: '#000',
-                  fontWeight: 'bold',
-                  '&:hover': {
-                    backgroundColor: '#E6D401'
-                  }
-                }}
-                onClick={() => setShowNewTripDialog(true)}
-              >
-                New Trip
-              </Button>
-            )}
-          </Box>
-        </Toolbar>
-      </AppBar>
 
-      {/* Main Content */}
-      <Box sx={{ p: isMobile ? 2 : 3 }}>
-        <Grid container spacing={3}>
-          {/* Left Column - Trip Management */}
-          <Grid item xs={12} md={8}>
-            {activeTrip ? (
-              // Active Trip View
-              <Card sx={{ mb: 3, border: `2px solid #0025DD` }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h5" fontWeight="bold" color="#0025DD">
-                      Active Trip
-                    </Typography>
-                    <Chip 
-                      label="In Progress" 
-                      sx={{ 
-                        backgroundColor: '#FFEC01', 
-                        color: '#000',
-                        fontWeight: 'bold'
-                      }}
-                    />
-                  </Box>
+            <div className="trips-header-icons">
+              <button className="icon-btn" type="button" onClick={() => setCurrentView('history')}>≡</button>
+              <button className="icon-btn" type="button" onClick={() => setShowNewTripDialog(true)}>＋</button>
+            </div>
+          </div>
 
-                  {/* Trip Details */}
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6}>
-                      <Paper sx={{ p: 2, border: `1px solid #0025DD20` }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Pickup
-                        </Typography>
-                        <Typography variant="h6" fontWeight="bold">
-                          {activeTrip.pickup}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Paper sx={{ p: 2, border: `1px solid #0025DD20` }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Destination
-                        </Typography>
-                        <Typography variant="h6" fontWeight="bold">
-                          {activeTrip.destination}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Paper sx={{ p: 2, border: `1px solid #0025DD20` }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Payment
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {getPaymentIcon(activeTrip.paymentMethod)}
-                          <Typography variant="h6" fontWeight="bold">
-                            {getPaymentLabel(activeTrip.paymentMethod)}
-                          </Typography>
-                        </Box>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Paper sx={{ p: 2, border: `1px solid #0025DD20` }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Vehicle
-                        </Typography>
-                        <Typography variant="h6" fontWeight="bold">
-                          {activeTrip.vehicle}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
+          <div className="quick-actions">
+            <div className="section-header">
+              <div>
+                <h2 className="section-title">Quick Actions</h2>
+              </div>
+              <button className="complete-profile-btn" type="button">Complete Profile</button>
+            </div>
+            <div className="action-buttons">
+              <button className="action-btn primary" type="button" onClick={() => setShowNewTripDialog(true)}>Start Trip</button>
+              <button className="action-btn" type="button">Start Delivery</button>
+              <button className="action-btn" type="button" onClick={() => setShowPaymentDialog(true)}>Receive Money</button>
+              <button className="action-btn" type="button">Withdraw Money</button>
+              <button className="action-btn" type="button">Add Expenses</button>
+            </div>
+          </div>
 
-                  {/* Real-time Stats */}
-                  <Grid container spacing={2} sx={{ mt: 1, mb: 3 }}>
-                    <Grid item xs={4}>
-                      <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#0025DD10' }}>
-                        <AccessTime sx={{ color: '#0025DD', mb: 1 }} />
-                        <Typography variant="h6" fontWeight="bold" color="#0025DD">
-                          {formatTime(tripTime)}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Trip Time
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#0025DD10' }}>
-                        <Speed sx={{ color: '#0025DD', mb: 1 }} />
-                        <Typography variant="h6" fontWeight="bold" color="#0025DD">
-                          {calculateDistance().toFixed(1)} km
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Distance
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#0025DD10' }}>
-                        <AccountBalanceWallet sx={{ color: '#0025DD', mb: 1 }} />
-                        <Typography variant="h6" fontWeight="bold" color="#0025DD">
-                          UGX {earnings.toLocaleString()}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Earnings
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
+          {!activeTrip && (
+            <div className="wallet-section">
+              <div className="wallet-label">Wallet Balance</div>
+              <div className="wallet-amount">
+                <div className="wallet-balance">{shiftStats.netEarnings.toLocaleString()}</div>
+                <div className="wallet-currency">UGX</div>
+              </div>
+              <div className="wallet-label-sub">Available Balance</div>
+            </div>
+          )}
 
-                  {/* Action Buttons */}
-                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                    <Button
-                      variant="contained"
-                      sx={{
-                        backgroundColor: '#0025DD',
-                        flex: 1,
-                        minWidth: '120px'
-                      }}
-                      startIcon={<Map />}
-                    >
-                      Navigation
-                    </Button>
-                    <Button
-                      variant="contained"
-                      sx={{
-                        backgroundColor: '#FFEC01',
-                        color: '#000',
-                        flex: 1,
-                        minWidth: '120px'
-                      }}
-                      startIcon={<CheckCircle />}
-                      onClick={() => setShowEndTripDialog(true)}
-                    >
-                      End Trip
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      sx={{
-                        borderColor: '#0025DD',
-                        color: '#0025DD',
-                        flex: 1,
-                        minWidth: '120px'
-                      }}
-                      startIcon={<Cancel />}
-                      onClick={() => setShowCancelTripDialog(true)}
-                    >
-                      Cancel
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            ) : (
-              // No Active Trip - Quick Start
-              <Card sx={{ mb: 3, border: `2px dashed #0025DD` }}>
-                <CardContent sx={{ textAlign: 'center', py: 4 }}>
-                  <DirectionsCar sx={{ fontSize: 60, color: '#0025DD', mb: 2 }} />
-                  <Typography variant="h5" fontWeight="bold" gutterBottom color="#0025DD">
-                    Ready to Drive?
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                    Start a new trip and begin earning
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    sx={{
-                      backgroundColor: '#0025DD',
-                      px: 4,
-                      '&:hover': {
-                        backgroundColor: '#001FB8'
-                      }
-                    }}
-                    startIcon={<PlayArrow />}
-                    onClick={() => setShowNewTripDialog(true)}
-                  >
-                    Start New Trip
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+          {activeTrip ? (
+            <div className="ready-ride-section">
+              <h2 className="ready-title driver">Active Trip</h2>
+              <p className="ready-subtitle">{activeTrip.pickup} → {activeTrip.destination}</p>
+              <p className="section-subtitle">Payment: {getPaymentLabel(activeTrip.paymentMethod)} • Vehicle: {activeTrip.vehicle}</p>
+              <p className="section-subtitle">Time {formatTime(tripTime)} • Distance {calculateDistance().toFixed(1)} km • Earnings UGX {earnings.toLocaleString()}</p>
+              <div className="action-buttons">
+                <button className="action-btn" type="button" onClick={() => setShowEndTripDialog(true)}>End Trip</button>
+                <button className="action-btn" type="button" onClick={() => setShowPaymentDialog(true)}>Receive Money</button>
+                <button className="action-btn" type="button" onClick={() => setShowCancelTripDialog(true)}>Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <div className="ready-ride-section">
+              <div className="motorcycle-icon">🚗</div>
+              <h2 className="ready-title driver">Ready to Drive?</h2>
+              <p className="ready-subtitle">Start a new trip and begin earning</p>
+              <button className="start-trip-btn" type="button" onClick={() => setShowNewTripDialog(true)}>Start New Trip</button>
+            </div>
+          )}
 
-            {/* Trip History */}
-            <Card>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
-                  Recent Trips
-                </Typography>
-                <List>
-                  {tripHistory.map((trip, index) => (
-                    <ListItem 
-                      key={trip.id} 
-                      divider={index < tripHistory.length - 1}
-                      sx={{ px: 0 }}
-                    >
-                      <ListItemIcon>
-                        <Avatar sx={{ bgcolor: '#0025DD20', color: '#0025DD' }}>
-                          <DirectionsCar />
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography variant="body1" fontWeight="500">
-                                {trip.pickup} → {trip.destination}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {trip.distance} • {trip.duration} • {trip.startTime}
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: 'right', ml: 2 }}>
-                              <Typography variant="body1" fontWeight="bold" color="#0025DD">
-                                UGX {trip.fare.toLocaleString()}
-                              </Typography>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                                <Chip 
-                                  label={trip.paymentMethod.toUpperCase()}
-                                  size="small"
-                                  sx={{ 
-                                    backgroundColor: trip.paymentMethod === 'momo' ? '#0025DD20' : '#FFEC01',
-                                    color: trip.paymentMethod === 'momo' ? '#0025DD' : '#000'
-                                  }}
-                                />
-                              </Box>
-                            </Box>
-                          </Box>
-                        }
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </CardContent>
-            </Card>
-          </Grid>
+          <div className="trip-history-preview">
+            <div className="section-header">
+              <div>
+                <h2 className="section-title">Trip History</h2>
+                <p className="section-subtitle">View completed trip summary</p>
+              </div>
+              <button className="view-detailed-btn" type="button" onClick={() => setCurrentView('history')}>View Detailed Trip History</button>
+            </div>
 
-          {/* Right Column - Earnings & Shift Info */}
-          <Grid item xs={12} md={4}>
-            {/* Earnings Summary */}
-            <Card sx={{ mb: 3, border: `2px solid #0025DD` }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
-                  Earnings Summary
-                </Typography>
-                
-                <Box sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">Trips:</Typography>
-                    <Typography variant="body2" fontWeight="bold">{shiftStats.totalTrips}</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">MoMo:</Typography>
-                    <Typography variant="body2" fontWeight="bold">
-                      UGX {shiftStats.momoEarnings.toLocaleString()}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">Cash:</Typography>
-                    <Typography variant="body2" fontWeight="bold">
-                      UGX {shiftStats.cashEarnings.toLocaleString()}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">Fuel Expenses:</Typography>
-                    <Typography variant="body2" fontWeight="bold" color="error.main">
-                      UGX {shiftStats.fuelExpenses.toLocaleString()}
-                    </Typography>
-                  </Box>
-                </Box>
+            {tripHistory.slice(0, 3).map((trip) => (
+              <div className="trip-preview-card" key={trip.id}>
+                <div className="trip-preview-row">
+                  <div>
+                    <div className="trip-label">Route</div>
+                    <div className="trip-value">{trip.pickup} → {trip.destination}</div>
+                  </div>
+                  <div>
+                    <div className="trip-label">Amount</div>
+                    <div className="trip-value">UGX {Number(trip.fare).toLocaleString()}</div>
+                  </div>
+                </div>
+                <div className="trip-preview-bottom">
+                  <div className="trip-amount">{trip.distance} • {trip.duration}</div>
+                  <span className={`trip-payment-badge ${trip.paymentMethod === 'momo' ? 'momo' : 'cash'}`}>{getPaymentLabel(trip.paymentMethod)}</span>
+                  <span className={`manual-override-badge ${trip.status === 'cancelled' ? 'cancelled' : ''}`}>{trip.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-                <Divider sx={{ my: 2 }} />
+      {currentView === 'history' && (
+        <div className="trip-history-dashboard">
+          <div className="history-header">
+            <div>
+              <h1>Trip History Dashboard</h1>
+              <p>View all trips and filter by route, status and payment</p>
+            </div>
+            <div className="history-header-actions">
+              <button className="export-btn" type="button" onClick={() => setCurrentView('dashboard')}>Back to Dashboard</button>
+              <div className="user-badge">
+                <div className="user-initial">D</div>
+                <div>
+                  <div style={{ fontWeight: 700 }}>Driver</div>
+                  <div style={{ fontSize: 12, opacity: 0.8 }}>{formatShiftTime(shiftDuration)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                <Box sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                    <Typography variant="h6">Total Earnings:</Typography>
-                    <Typography variant="h6" fontWeight="bold" color="#0025DD">
-                      UGX {shiftStats.totalEarnings.toLocaleString()}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="h6">Net Earnings:</Typography>
-                    <Typography variant="h6" fontWeight="bold" color="#0025DD">
-                      UGX {shiftStats.netEarnings.toLocaleString()}
-                    </Typography>
-                  </Box>
-                </Box>
+          <div className="stats-panel">
+            <div className="stats-cards">
+              <div className="stat-card blue">
+                <div className="stat-icon">🚗</div>
+                <div className="stat-info">
+                  <div className="stat-label">Total Trips</div>
+                  <div className="stat-number">{analytics.totalTrips}</div>
+                </div>
+              </div>
+              <div className="stat-card dark">
+                <div className="stat-icon">💰</div>
+                <div className="stat-info">
+                  <div className="stat-label">Total Money</div>
+                  <div className="stat-number">{analytics.totalMoney.toLocaleString()} <span className="currency-small">UGX</span></div>
+                </div>
+              </div>
+              <div className="stat-card olive">
+                <div className="stat-icon">✅</div>
+                <div className="stat-info">
+                  <div className="stat-label">Completed Trips</div>
+                  <div className="stat-number">{analytics.completedTrips}</div>
+                </div>
+              </div>
+              <div className="stat-card cream">
+                <div className="stat-icon">✖</div>
+                <div className="stat-info">
+                  <div className="stat-label">Cancellation Rate</div>
+                  <div className="stat-number">{analytics.cancellationRate.toFixed(1)}%</div>
+                  <div className="stat-change negative">{analytics.cancelledTrips} cancelled</div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    sx={{
-                      borderColor: '#0025DD',
-                      color: '#0025DD'
-                    }}
-                    startIcon={<Report />}
-                    onClick={() => setShowReportDialog(true)}
-                  >
-                    Generate Report
-                  </Button>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                      backgroundColor: '#0025DD'
-                    }}
-                    startIcon={<Stop />}
-                    onClick={() => setShowEndShiftDialog(true)}
-                  >
-                    End Shift
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-
-            {/* Vehicle Info */}
-            <Card sx={{ border: `1px solid #0025DD20` }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
-                  Vehicle Info
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <DirectionsCar sx={{ color: '#0025DD', fontSize: 40 }} />
-                  <Box>
-                    <Typography variant="h6" fontWeight="bold">
-                      UBB 472Z
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Toyota Noah • 2020
-                    </Typography>
-                  </Box>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2">Status:</Typography>
-                  <Chip 
-                    label="Active" 
-                    size="small" 
-                    sx={{ 
-                      backgroundColor: '#FFEC01', 
-                      color: '#000',
-                      fontWeight: 'bold'
-                    }}
-                  />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </Box>
-
-      {/* New Trip Dialog */}
-      <Dialog 
-        open={showNewTripDialog} 
-        onClose={() => setShowNewTripDialog(false)} 
-        maxWidth="sm" 
-        fullWidth
-        fullScreen={isMobile}
-      >
-        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
-          <Typography variant="h6" fontWeight="bold">New Trip</Typography>
-        </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                  Pickup Location
-                </Typography>
-                <Select
-                  value={tripForm.pickup}
-                  onChange={handleInputChange('pickup')}
-                  sx={{ mb: 2 }}
-                >
-                  {popularDestinations.map((dest) => (
-                    <MenuItem key={dest.name} value={dest.name}>
-                      {dest.name} {dest.emoji}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                  Destination
-                </Typography>
-                <Select
-                  value={tripForm.destination}
-                  onChange={handleInputChange('destination')}
-                  sx={{ mb: 2 }}
-                >
-                  {popularDestinations.map((dest) => (
-                    <MenuItem key={dest.name} value={dest.name}>
-                      {dest.name} {dest.emoji}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                Payment Method
-              </Typography>
-              <RadioGroup
-                value={tripForm.paymentMethod}
-                onChange={handleInputChange('paymentMethod')}
-                row
-                sx={{ justifyContent: 'space-between', mb: 2 }}
-              >
-                {paymentMethods.map((method) => (
-                  <FormControlLabel 
-                    key={method.value}
-                    value={method.value} 
-                    control={<Radio sx={{ color: '#0025DD' }} />} 
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {method.icon}
-                        <Typography>{method.label}</Typography>
-                      </Box>
-                    } 
-                  />
-                ))}
-              </RadioGroup>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                Vehicle
-              </Typography>
-              <TextField
-                fullWidth
-                value={tripForm.vehicle}
-                onChange={handleInputChange('vehicle')}
-                sx={{ mb: 2 }}
+          <div className="history-content">
+            <div className="filters-sidebar">
+              <h3>Filters</h3>
+              <input
+                className="filter-search"
+                placeholder="Trip ID, Route…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button 
-            onClick={() => setShowNewTripDialog(false)}
-            sx={{ color: '#0025DD' }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            variant="contained"
-            sx={{
-              backgroundColor: '#0025DD',
-              '&:hover': {
-                backgroundColor: '#001FB8'
-              }
-            }}
-            onClick={handleStartTrip}
-            disabled={!tripForm.destination}
-          >
-            Save Trip
-          </Button>
-        </DialogActions>
-      </Dialog>
 
-      {/* End Trip Dialog */}
-      <Dialog 
-        open={showEndTripDialog} 
-        onClose={() => setShowEndTripDialog(false)} 
-        maxWidth="sm" 
-        fullWidth
-      >
-        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
-          <Typography variant="h6" fontWeight="bold">End Trip</Typography>
-        </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          <Box sx={{ textAlign: 'center', py: 2 }}>
-            <CheckCircle sx={{ fontSize: 60, color: '#0025DD', mb: 2 }} />
-            <Typography variant="h6" gutterBottom>
-              Complete Trip to {activeTrip?.destination}
-            </Typography>
-            
-            <Grid container spacing={2} sx={{ mb: 3, mt: 1 }}>
-              <Grid item xs={6}>
-                <Typography variant="body2" color="text.secondary">
-                  Duration
-                </Typography>
-                <Typography variant="h6" fontWeight="bold" color="#0025DD">
-                  {formatTime(tripTime)}
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body2" color="text.secondary">
-                  Distance
-                </Typography>
-                <Typography variant="h6" fontWeight="bold" color="#0025DD">
-                  {calculateDistance().toFixed(1)} km
-                </Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Divider sx={{ my: 1 }} />
-                <Typography variant="body2" color="text.secondary">
-                  Total Earnings
-                </Typography>
-                <Typography variant="h4" fontWeight="bold" color="#0025DD">
-                  UGX {earnings.toLocaleString()}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button 
-            onClick={() => setShowEndTripDialog(false)}
-            sx={{ color: '#0025DD' }}
-          >
-            Continue Trip
-          </Button>
-          <Button 
-            variant="contained"
-            sx={{
-              backgroundColor: '#0025DD'
-            }}
-            onClick={handleEndTrip}
-          >
-            Confirm End Trip
-          </Button>
-        </DialogActions>
-      </Dialog>
+              <div className="filter-group">
+                <label>Status</label>
+                <select value={filters.status} onChange={(e) => setFilters((p) => ({ ...p, status: e.target.value }))}>
+                  <option value="all">All</option>
+                  <option value="completed">Completed</option>
+                  <option value="active">Active</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
 
-      {/* End Shift Dialog */}
-      <Dialog 
-        open={showEndShiftDialog} 
-        onClose={() => setShowEndShiftDialog(false)} 
-        maxWidth="sm" 
-        fullWidth
-      >
-        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
-          <Typography variant="h6" fontWeight="bold">End Shift</Typography>
-        </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          <Box sx={{ textAlign: 'center', py: 2 }}>
-            <Stop sx={{ fontSize: 60, color: '#0025DD', mb: 2 }} />
-            <Typography variant="h6" gutterBottom>
-              End Current Shift?
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Shift Duration: {formatShiftTime(shiftDuration)}
-            </Typography>
-            
-            <Paper sx={{ p: 2, backgroundColor: '#0025DD10', mb: 2 }}>
-              <Typography variant="body1" fontWeight="bold" color="#0025DD">
-                Total Earnings: UGX {shiftStats.totalEarnings.toLocaleString()}
-              </Typography>
-            </Paper>
-            
-            <Typography variant="body2" color="text.secondary">
-              This will end your current shift and calculate your final earnings.
-            </Typography>
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button 
-            onClick={() => setShowEndShiftDialog(false)}
-            sx={{ color: '#0025DD' }}
-          >
-            Continue Shift
-          </Button>
-          <Button 
-            variant="contained"
-            sx={{
-              backgroundColor: '#0025DD'
-            }}
-            onClick={handleEndShift}
-          >
-            End Shift
-          </Button>
-        </DialogActions>
-      </Dialog>
+              <div className="filter-group">
+                <label>Payment Method</label>
+                <select value={filters.paymentMethod} onChange={(e) => setFilters((p) => ({ ...p, paymentMethod: e.target.value }))}>
+                  <option value="all">All</option>
+                  <option value="cash">Cash</option>
+                  <option value="momo">MoMo</option>
+                  <option value="card">Card</option>
+                </select>
+              </div>
 
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          severity={snackbar.severity} 
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          sx={{
-            backgroundColor: snackbar.severity === 'success' ? '#0025DD' : undefined,
-            color: 'white'
-          }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+              <button
+                className="clear-filters-btn"
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilters({ status: 'all', paymentMethod: 'all', route: 'all' });
+                }}
+              >
+                Clear Filters
+              </button>
+            </div>
+
+            <div className="trips-table-container">
+              <table className="trips-table">
+                <thead>
+                  <tr>
+                    <th>Trip ID</th>
+                    <th>Route</th>
+                    <th>Distance</th>
+                    <th>Duration</th>
+                    <th>Amount</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTrips.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ padding: 18, textAlign: 'center' }}>No trips match the current filters.</td>
+                    </tr>
+                  ) : (
+                    filteredTrips.map((trip) => (
+                      <tr key={trip.id}>
+                        <td className="trip-id">{trip.id}</td>
+                        <td>
+                          <div className="route-cell">{trip.pickup} → {trip.destination}</div>
+                          <div className="date-cell">{trip.date} • {trip.startTime}</div>
+                        </td>
+                        <td><div className="distance-cell">{trip.distance}</div></td>
+                        <td><div className="duration-cell">{trip.duration}</div></td>
+                        <td className="amount-cell">UGX {Number(trip.fare).toLocaleString()}</td>
+                        <td><span className={`payment-badge ${trip.paymentMethod === 'momo' ? 'momo' : 'cash'}`}>{getPaymentLabel(trip.paymentMethod)}</span></td>
+                        <td><span className={`status-badge ${trip.status === 'completed' ? 'completed' : 'cancelled'}`}>{trip.status}</span></td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+
+              <div className="pagination">
+                <div>Showing {filteredTrips.length} trips</div>
+                <div className="pagination-btns">
+                  <button type="button">Previous</button>
+                  <button type="button">Next</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showNewTripDialog && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card trip-setup-modal">
+            <div className="trip-setup-titlebar">New Trip</div>
+            <div className="modal-body">
+              <div className="trip-setup-head">
+                <div className="trip-setup-title">Trip Setup Form</div>
+                <div className="trip-setup-subtitle">Configure your trip details and start your journey</div>
+              </div>
+              <div className="trip-setup-divider" />
+
+              <div className="trip-setup-locations">
+                <div className="trip-setup-field">
+                  <label>Enter Pickup Location</label>
+                  <select
+                    className="trip-setup-input"
+                    value={tripForm.pickup}
+                    onChange={(e) => setTripForm((p) => ({ ...p, pickup: e.target.value }))}
+                  >
+                    {popularDestinations.map((dest) => (
+                      <option key={dest.name} value={dest.name}>{dest.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="trip-setup-to">TO</div>
+                <div className="trip-setup-field">
+                  <label>Enter Destination</label>
+                  <select
+                    className="trip-setup-input"
+                    value={tripForm.destination}
+                    onChange={(e) => setTripForm((p) => ({ ...p, destination: e.target.value }))}
+                  >
+                    {popularDestinations.map((dest) => (
+                      <option key={dest.name} value={dest.name}>{dest.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="trip-setup-amount">
+                <div className="trip-setup-amount-label">Enter Amount</div>
+                <div className="trip-setup-amount-box">
+                  {isEditingFare ? (
+                    <input
+                      className="trip-setup-amount-input"
+                      value={fareInput}
+                      onChange={(e) => setFareInput(e.target.value)}
+                      onBlur={commitFare}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') commitFare();
+                        if (e.key === 'Escape') setIsEditingFare(false);
+                      }}
+                      inputMode="numeric"
+                      autoFocus
+                    />
+                  ) : (
+                    <div className="trip-setup-amount-value">{Number(tripForm.fare || 0).toLocaleString()}</div>
+                  )}
+                  <div className="trip-setup-amount-currency">UGX</div>
+                </div>
+                <button
+                  type="button"
+                  className="trip-setup-change-amount"
+                  onClick={() => {
+                    if (!isEditingFare) {
+                      setFareInput(String(Number(tripForm.fare || 0)));
+                      setIsEditingFare(true);
+                      return;
+                    }
+                    commitFare();
+                  }}
+                >
+                  Change Amount
+                </button>
+              </div>
+
+              <div className="trip-setup-divider" />
+
+              <div className="trip-setup-actions">
+                <button type="button" className="trip-setup-btn primary" onClick={handleStartTrip} disabled={!tripForm.destination}>START TRIP</button>
+                <button type="button" className="trip-setup-btn secondary" onClick={() => {
+                  try {
+                    localStorage.setItem('driver_trip_draft', JSON.stringify(tripForm));
+                  } catch (_) {
+                    // ignore
+                  }
+                  setShowNewTripDialog(false);
+                  showSnackbar('Trip saved.', 'success');
+                }}>SAVE TRIP</button>
+                <button type="button" className="trip-setup-btn tertiary" onClick={() => {
+                  try {
+                    localStorage.removeItem('driver_trip_draft');
+                  } catch (_) {
+                    // ignore
+                  }
+                  setTripForm((p) => ({
+                    ...p,
+                    pickup: 'Kollo',
+                    destination: 'Ntinda',
+                    paymentMethod: 'momo',
+                    vehicle: 'UBB 472Z',
+                    fare: 2000
+                  }));
+                }}>CLEAR FORM</button>
+              </div>
+
+              <button type="button" className="trip-setup-cancel" onClick={() => setShowNewTripDialog(false)}>CANCEL TRIP</button>
+
+              <div className="trip-setup-hidden-fields">
+                <select value={tripForm.paymentMethod} onChange={(e) => setTripForm((p) => ({ ...p, paymentMethod: e.target.value }))}>
+                  {paymentMethods.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+                <input value={tripForm.vehicle} onChange={(e) => setTripForm((p) => ({ ...p, vehicle: e.target.value }))} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEndTripDialog && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <div className="modal-header">End Trip</div>
+            <div className="modal-body">
+              <div className="section-subtitle">Complete Trip to {activeTrip?.destination}</div>
+              <div className="trip-preview-row" style={{ marginTop: 14 }}>
+                <div>
+                  <div className="trip-label">Duration</div>
+                  <div className="trip-value">{formatTime(tripTime)}</div>
+                </div>
+                <div>
+                  <div className="trip-label">Distance</div>
+                  <div className="trip-value">{calculateDistance().toFixed(1)} km</div>
+                </div>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <div className="trip-label">Total Earnings</div>
+                <div className="trip-value">UGX {earnings.toLocaleString()}</div>
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button type="button" className="action-btn" onClick={() => setShowEndTripDialog(false)}>Continue Trip</button>
+              <button type="button" className="action-btn" onClick={() => {
+                setShowEndTripDialog(false);
+                setShowPaymentDialog(true);
+              }}>Receive Money</button>
+              <button type="button" className="action-btn primary" onClick={handleEndTrip}>Confirm End Trip</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPaymentDialog && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card receive-money-modal">
+            <div className="receive-money-header">Receive Money</div>
+            <div className="modal-body">
+              <div className="receive-money-section">
+                <div className="receive-money-label">Enter Cash Amount</div>
+                <div className="receive-money-amount">
+                  <input
+                    className="receive-money-amount-input"
+                    value={Number(receiveAmount || 0).toLocaleString()}
+                    onChange={(e) => {
+                      const raw = String(e.target.value).replace(/,/g, '').trim();
+                      const next = Number(raw);
+                      if (!Number.isFinite(next)) {
+                        setReceiveAmount(0);
+                        return;
+                      }
+                      setReceiveAmount(next);
+                    }}
+                    inputMode="numeric"
+                  />
+                  <div className="receive-money-ugx">UGX</div>
+                </div>
+              </div>
+
+              <div className="receive-money-section">
+                <div className="receive-money-label">Select Payment Method</div>
+                <div className="receive-money-divider" />
+                <div className="receive-money-methods">
+                  <button type="button" className={`pay-tile ${selectedPaymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setSelectedPaymentMethod('cash')}>
+                    <div className="pay-tile-check">✓</div>
+                    <div className="pay-tile-content cash">CASH</div>
+                  </button>
+                  <button type="button" className={`pay-tile ${selectedPaymentMethod === 'momo' ? 'selected' : ''}`} onClick={() => setSelectedPaymentMethod('momo')}>
+                    <div className="pay-tile-check">✓</div>
+                    <img className="pay-tile-image" src={mtnImg} alt="MoMo" />
+                  </button>
+                  <button type="button" className={`pay-tile ${selectedPaymentMethod === 'airtel' ? 'selected' : ''}`} onClick={() => setSelectedPaymentMethod('airtel')}>
+                    <div className="pay-tile-check">✓</div>
+                    <img className="pay-tile-image" src={airtelImg} alt="Airtel Money" />
+                  </button>
+                  <button type="button" className={`pay-tile ${selectedPaymentMethod === 'visa' ? 'selected' : ''}`} onClick={() => setSelectedPaymentMethod('visa')}>
+                    <div className="pay-tile-check">✓</div>
+                    <img className="pay-tile-image" src={visaImg} alt="VISA" />
+                  </button>
+                  <button type="button" className={`pay-tile ${selectedPaymentMethod === 'qr' ? 'selected' : ''}`} onClick={() => setSelectedPaymentMethod('qr')}>
+                    <div className="pay-tile-check">✓</div>
+                    <div className="pay-tile-content">
+                      <div className="pay-tile-icon" aria-hidden="true">
+                        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M3 3h8v8H3V3Z" stroke="currentColor" strokeWidth="2" />
+                          <path d="M13 3h8v8h-8V3Z" stroke="currentColor" strokeWidth="2" />
+                          <path d="M3 13h8v8H3v-8Z" stroke="currentColor" strokeWidth="2" />
+                          <path d="M13 13h4v4h-4v-4Z" stroke="currentColor" strokeWidth="2" />
+                          <path d="M17 17h4v4h-4v-4Z" stroke="currentColor" strokeWidth="2" />
+                        </svg>
+                      </div>
+                      <div className="pay-tile-caption">QR Code</div>
+                    </div>
+                  </button>
+                  <button type="button" className={`pay-tile ${selectedPaymentMethod === 'split' ? 'selected' : ''}`} onClick={() => setSelectedPaymentMethod('split')}>
+                    <div className="pay-tile-check">✓</div>
+                    <div className="pay-tile-content">
+                      <div className="pay-tile-icon" aria-hidden="true">
+                        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="9" cy="12" r="5" stroke="currentColor" strokeWidth="2" />
+                          <circle cx="15" cy="12" r="5" stroke="currentColor" strokeWidth="2" />
+                        </svg>
+                      </div>
+                      <div className="pay-tile-caption">Split Payment</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="receive-money-actions">
+              <button type="button" className="receive-money-btn ghost" onClick={() => setShowPaymentDialog(false)}>Cancel</button>
+              <button
+                type="button"
+                className="receive-money-btn primary"
+                onClick={() => {
+                  setShowPaymentDialog(false);
+                  setShowReceiptDialog(true);
+                }}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showReceiptDialog && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <div className="modal-header">Customer Receipt</div>
+            <div className="modal-body">
+              <div className="trip-preview-row">
+                <div>
+                  <div className="trip-label">Pickup</div>
+                  <div className="trip-value">{activeTrip?.pickup ?? '-'}</div>
+                </div>
+                <div>
+                  <div className="trip-label">Destination</div>
+                  <div className="trip-value">{activeTrip?.destination ?? '-'}</div>
+                </div>
+              </div>
+              <div className="trip-preview-row" style={{ marginTop: 12 }}>
+                <div>
+                  <div className="trip-label">Duration</div>
+                  <div className="trip-value">{formatTime(tripTime)}</div>
+                </div>
+                <div>
+                  <div className="trip-label">Distance</div>
+                  <div className="trip-value">{calculateDistance().toFixed(1)} km</div>
+                </div>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <div className="trip-label">Amount Paid</div>
+                <div className="trip-value">UGX {Number(receiveAmount || 0).toLocaleString()}</div>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <div className="trip-label">Payment Method</div>
+                <div className="trip-value">{getPaymentLabel(selectedPaymentMethod)}</div>
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button type="button" className="action-btn" onClick={() => setShowReceiptDialog(false)}>Back</button>
+              <button type="button" className="action-btn primary" onClick={() => {
+                setShowReceiptDialog(false);
+                if (activeTrip) handleEndTrip();
+              }}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCancelTripDialog && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <div className="modal-header">Cancel Trip</div>
+            <div className="modal-body">
+              <div className="filter-group">
+                <label>Reason</label>
+                <input value={editForm.cancelReason} onChange={(e) => setEditForm((p) => ({ ...p, cancelReason: e.target.value }))} />
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button type="button" className="action-btn" onClick={() => setShowCancelTripDialog(false)}>Back</button>
+              <button type="button" className="action-btn primary" onClick={handleCancelTrip} disabled={!activeTrip}>Confirm Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {snackbar.open && (
+        <div className="toast" role="status">
+          <div className="toast-inner">
+            <span>{snackbar.message}</span>
+            <button type="button" className="icon-btn" onClick={() => setSnackbar((p) => ({ ...p, open: false }))}>×</button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

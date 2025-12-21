@@ -1,0 +1,1254 @@
+.trips-container {
+   font-family: "Poppins", sans-serif;
+   max-width: 100%;
+   margin: 0 auto;
+   background: #f8f9fa;
+   min-height: 100vh;
+ }
+
+ .trips-dashboard {
+   padding: 20px;
+ }
+
+ .trips-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 30px;
+ }
+
+ .trips-search {
+   flex: 1;
+   max-width: 300px;
+   padding: 12px 20px;
+   border: none;
+   border-radius: 50px;
+   background: #e8e9f3;
+   font-size: 14px;
+ }
+
+ .trips-header-icons {
+   display: flex;
+   gap: 10px;
+ }
+
+ .icon-btn {
+   width: 40px;
+   height: 40px;
+   border: none;
+   background: white;
+   border-radius: 50%;
+   cursor: pointer;
+   font-size: 18px;
+ }
+
+ .quick-actions {
+   margin-bottom: 30px;
+ }
+
+ .section-title {
+   color: #ffffff;
+   font-size: 24px;
+   font-weight: 600;
+   margin-bottom: 15px;
+ }
+
+ .complete-profile-btn {
+   float: right;
+   padding: 10px 20px;
+   background: #e8e9f3;
+   border: none;
+   border-radius: 25px;
+   color: #0033cc;
+   cursor: pointer;
+   font-size: 14px;
+ }
+
+ .action-buttons {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 15px;
+   margin-top: 20px;
+ }
+
+ .action-btn {
+   padding: 12px 24px;
+   border: none;
+   border-radius: 8px;
+   background: #e8e9f3;
+   color: #0033cc;
+   font-size: 14px;
+   font-weight: 500;
+   cursor: pointer;
+   transition: all 0.3s;
+ }
+
+ .action-btn.primary {
+   background: #0033cc;
+   color: white;
+ }
+
+ .action-btn:hover {
+   transform: translateY(-2px);
+   box-shadow: 0 4px 12px rgba(0, 51, 204, 0.2);
+ }
+
+ .wallet-section {
+   background: linear-gradient(135deg, #fef08a 0%, #fde047 100%);
+   padding: 30px;
+   border-radius: 16px;
+   margin-bottom: 30px;
+ }
+
+ .wallet-label {
+   color: #000;
+   font-size: 14px;
+   margin-bottom: 5px;
+ }
+
+ .wallet-amount {
+   display: flex;
+   align-items: baseline;
+   gap: 10px;
+   margin: 10px 0;
+ }
+
+ .wallet-balance {
+   font-size: 48px;
+   font-weight: 700;
+   color: #000;
+ }
+
+ .wallet-currency {
+   font-size: 24px;
+   font-weight: 600;
+   color: #000;
+ }
+
+ .wallet-label-sub {
+   color: #000;
+   font-size: 12px;
+ }
+
+ .ready-ride-section {
+   background: white;
+   padding: 40px;
+   border-radius: 16px;
+   text-align: center;
+   margin-bottom: 30px;
+ }
+
+ .motorcycle-icon {
+   font-size: 80px;
+   margin-bottom: 20px;
+ }
+
+ .ready-title {
+   color: #0033cc;
+   font-size: 32px;
+   font-weight: 700;
+   margin-bottom: 10px;
+ }
+
+ .ready-subtitle {
+   color: #666;
+   font-size: 16px;
+   margin-bottom: 30px;
+ }
+
+ .start-trip-btn {
+   background: #0033cc;
+   color: white;
+   border: none;
+   padding: 18px 60px;
+   border-radius: 12px;
+   font-size: 18px;
+   font-weight: 600;
+   cursor: pointer;
+   transition: all 0.3s;
+ }
+
+ .start-trip-btn:hover {
+   background: #0029a3;
+   transform: translateY(-2px);
+   box-shadow: 0 8px 20px rgba(0, 51, 204, 0.3);
+ }
+
+ .trip-history-preview {
+   background: white;
+   padding: 30px;
+   border-radius: 16px;
+ }
+
+ .section-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 25px;
+ }
+
+ .section-subtitle {
+   color: #8b93a7;
+   font-size: 14px;
+   margin-top: 5px;
+ }
+
+ .view-detailed-btn {
+   background: #fef08a;
+   border: none;
+   padding: 12px 24px;
+   border-radius: 8px;
+   font-weight: 600;
+   cursor: pointer;
+   transition: all 0.3s;
+ }
+
+ .trip-preview-card {
+   background: #f8f9fa;
+   padding: 20px;
+   border-radius: 12px;
+   margin-bottom: 15px;
+ }
+
+ .trip-preview-row {
+   display: flex;
+   justify-content: space-between;
+   margin-bottom: 15px;
+ }
+
+ .trip-label {
+   color: #0033cc;
+   font-size: 12px;
+   margin-bottom: 5px;
+ }
+
+ .trip-value {
+   color: #000;
+   font-size: 16px;
+   font-weight: 600;
+ }
+
+ .trip-preview-bottom {
+   display: flex;
+   align-items: center;
+   gap: 15px;
+   flex-wrap: wrap;
+ }
+
+ .trip-amount {
+   background: #fef08a;
+   padding: 8px 16px;
+   border-radius: 8px;
+   font-weight: 600;
+ }
+
+ .trip-payment-badge {
+   padding: 6px 12px;
+   border-radius: 6px;
+   font-size: 12px;
+   font-weight: 600;
+ }
+
+ .trip-payment-badge.cash {
+   background: #fee;
+   color: #c00;
+ }
+
+ .trip-payment-badge.momo {
+   background: #fef08a;
+   color: #000;
+ }
+
+ .manual-override-badge {
+   background: #d4f4dd;
+   color: #0a7029;
+   padding: 6px 12px;
+   border-radius: 6px;
+   font-size: 12px;
+   font-weight: 600;
+ }
+
+ .trip-history-dashboard {
+   padding: 30px;
+   background: #f8f9fa;
+ }
+
+ .history-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 30px;
+ }
+
+ .history-header h1 {
+   color: #0033cc;
+   font-size: 36px;
+   font-weight: 700;
+   margin-bottom: 5px;
+ }
+
+ .history-header p {
+   color: #8b93a7;
+   font-size: 14px;
+ }
+
+ .history-header-actions {
+   display: flex;
+   gap: 15px;
+   align-items: center;
+ }
+
+ .export-btn,
+ .share-btn,
+ .cloud-btn {
+   background: white;
+   border: 1px solid #e8e9f3;
+   padding: 10px 20px;
+   border-radius: 8px;
+   cursor: pointer;
+   font-weight: 600;
+ }
+
+ .user-badge {
+   display: flex;
+   align-items: center;
+   gap: 10px;
+   background: #fef08a;
+   padding: 8px 15px;
+   border-radius: 25px;
+ }
+
+ .user-initial {
+   background: #fef08a;
+   border: 2px solid #000;
+   width: 35px;
+   height: 35px;
+   border-radius: 50%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   font-weight: 700;
+ }
+
+ .stats-panel {
+   background: white;
+   border: 1px solid #dbeafe;
+   border-radius: 16px;
+   padding: 18px;
+   box-shadow: 0 10px 24px rgba(0, 51, 204, 0.06);
+   margin-bottom: 26px;
+ }
+
+ .stats-cards {
+   display: grid;
+   grid-template-columns: repeat(4, 1fr);
+   gap: 20px;
+ }
+
+ .stat-card {
+   padding: 25px;
+   border-radius: 12px;
+   display: flex;
+   gap: 20px;
+ }
+
+ .stat-card.blue {
+   background: #0033cc;
+   border: 1px solid #0033cc;
+   color: white;
+ }
+
+ .stat-card.dark {
+   background: #061a4a;
+   color: white;
+   border: 1px solid #061a4a;
+ }
+
+ .stat-card.olive {
+   background: #5b5f00;
+   color: white;
+   border: 1px solid #5b5f00;
+ }
+
+ .stat-card.cream {
+   background: #fff7cc;
+   border: 1px solid #f2e2a7;
+ }
+
+ .stat-icon {
+   font-size: 36px;
+ }
+
+ .stat-info {
+   flex: 1;
+ }
+
+ .stat-label {
+   font-size: 14px;
+   margin-bottom: 8px;
+   opacity: 0.9;
+ }
+
+ .stat-number {
+   font-size: 32px;
+   font-weight: 700;
+   margin-bottom: 5px;
+ }
+
+ .currency-small {
+   font-size: 16px;
+   font-weight: 500;
+ }
+
+ .stat-change {
+   font-size: 12px;
+   font-weight: 600;
+ }
+
+ .stat-change.positive {
+   color: #22c55e;
+ }
+
+ .stat-change.negative {
+   color: #ef4444;
+ }
+
+ .history-content {
+   display: flex;
+   gap: 30px;
+ }
+
+ .filters-sidebar {
+   width: 250px;
+   background: white;
+   padding: 25px;
+   border-radius: 12px;
+   height: fit-content;
+   border: 1px solid #dbeafe;
+   box-shadow: 0 10px 24px rgba(0, 51, 204, 0.06);
+ }
+
+ .filters-sidebar h3 {
+   color: #0033cc;
+   font-size: 18px;
+   font-weight: 700;
+   margin-bottom: 15px;
+ }
+
+ .filter-search {
+   width: 100%;
+   padding: 12px;
+   border: 1px solid #c7d2fe;
+   border-radius: 8px;
+   margin-bottom: 25px;
+   font-size: 14px;
+ }
+
+ .filter-group {
+   margin-bottom: 20px;
+ }
+
+ .filter-group label {
+   display: block;
+   color: #0033cc;
+   font-size: 14px;
+   font-weight: 600;
+   margin-bottom: 8px;
+ }
+
+ .filter-group select {
+   width: 100%;
+   padding: 10px;
+   border: 1px solid #c7d2fe;
+   border-radius: 8px;
+   font-size: 14px;
+   margin-bottom: 10px;
+ }
+
+ .clear-filters-btn {
+   width: 100%;
+   background: #0033cc;
+   color: white;
+   border: none;
+   padding: 12px;
+   border-radius: 8px;
+   font-weight: 600;
+   cursor: pointer;
+   margin-top: 20px;
+ }
+
+ .trips-table-container {
+   flex: 1;
+   background: white;
+   border-radius: 12px;
+   overflow: hidden;
+   border: 1px solid #dbeafe;
+ }
+
+ .trips-table {
+   width: 100%;
+   border-collapse: collapse;
+ }
+
+ .trips-table th {
+   padding: 15px;
+   text-align: left;
+   color: #0033cc;
+   font-size: 14px;
+   font-weight: 700;
+   border-bottom: 1px solid #c7d2fe;
+ }
+
+ .trips-table td {
+   padding: 15px;
+   border-bottom: 1px solid #e5e7ff;
+ }
+
+ .trip-id {
+   color: #0033cc;
+   font-weight: 700;
+ }
+
+ .route-cell {
+   color: #0033cc;
+   font-weight: 600;
+   margin-bottom: 5px;
+ }
+
+ .date-cell {
+   color: #8b93a7;
+   font-size: 12px;
+ }
+
+ .distance-cell {
+   color: #0033cc;
+   font-weight: 600;
+   margin-bottom: 5px;
+ }
+
+ .duration-cell {
+   color: #8b93a7;
+   font-size: 12px;
+ }
+
+ .amount-cell {
+   color: #0033cc;
+   font-weight: 700;
+   white-space: nowrap;
+ }
+
+ .payment-badge {
+   display: inline-block;
+   padding: 6px 12px;
+   border-radius: 6px;
+   font-size: 12px;
+   font-weight: 600;
+ }
+
+ .payment-badge.cash {
+   background: #fee2e2;
+   color: #dc2626;
+ }
+
+ .payment-badge.momo {
+   background: #fef08a;
+   color: #000;
+ }
+
+ .status-badge {
+   display: inline-block;
+   padding: 6px 12px;
+   border-radius: 20px;
+   font-size: 12px;
+   font-weight: 600;
+ }
+
+ .status-badge.completed {
+   background: #d1fae5;
+   color: #065f46;
+ }
+
+ .status-badge.cancelled {
+   background: #fee2e2;
+   color: #dc2626;
+ }
+
+ .pagination {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   padding: 20px 25px;
+   background: #0033cc;
+   color: white;
+ }
+
+ .pagination-btns {
+   display: flex;
+   gap: 15px;
+ }
+
+ .pagination-btns button {
+   background: white;
+   color: #0033cc;
+   border: none;
+   padding: 10px 20px;
+   border-radius: 8px;
+   font-weight: 600;
+   cursor: pointer;
+ }
+
+ /* Driver-specific overrides */
+ .ready-title.driver {
+   color: #0033cc;
+ }
+
+ .driver-trips-scope.trips-container {
+   font-family: "Poppins", sans-serif;
+   max-width: 100%;
+   margin: 0 auto;
+   background: #f8f9fa;
+   min-height: 100vh;
+ }
+
+ .driver-trips-scope .modal-overlay {
+   position: fixed;
+   top: 0;
+   right: 0;
+   bottom: 0;
+   left: 0;
+   background: rgba(0, 0, 0, 0.45);
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   padding: 18px;
+   z-index: 12000;
+ }
+
+ .driver-trips-scope .modal-card {
+   width: 100%;
+   max-width: 520px;
+   background: #ffffff;
+   border-radius: 14px;
+   overflow: hidden;
+   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+   border: 1px solid #dbeafe;
+ }
+
+ .driver-trips-scope .modal-header {
+   background: #0033cc;
+   color: #ffffff;
+   font-weight: 800;
+   padding: 14px 16px;
+ }
+
+ .driver-trips-scope .modal-body {
+   padding: 16px;
+ }
+
+ .driver-trips-scope .modal-actions {
+   padding: 14px 16px;
+   display: flex;
+   gap: 10px;
+   justify-content: flex-end;
+   border-top: 1px solid #e5e7ff;
+   background: #ffffff;
+ }
+
+ .driver-trips-scope .receive-money-modal {
+   max-width: 720px;
+ }
+
+ .driver-trips-scope .receive-money-header {
+   background: #0033cc;
+   color: #ffffff;
+   font-weight: 900;
+   padding: 16px 18px;
+   font-size: 22px;
+ }
+
+ .driver-trips-scope .receive-money-section {
+   padding: 14px 0;
+ }
+
+ .driver-trips-scope .receive-money-label {
+   color: #0033cc;
+   font-weight: 800;
+   font-size: 14px;
+   margin-bottom: 10px;
+ }
+
+ .driver-trips-scope .receive-money-amount {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   border: 1px solid #93c5fd;
+   border-radius: 12px;
+   padding: 12px 14px;
+   background: #ffffff;
+ }
+
+ .driver-trips-scope .receive-money-amount-input {
+   border: none;
+   outline: none;
+   font-size: 46px;
+   font-weight: 900;
+   color: #0b1f5c;
+   width: 100%;
+   min-width: 220px;
+ }
+
+ .driver-trips-scope .receive-money-ugx {
+   color: #0b1f5c;
+   font-weight: 800;
+   padding-left: 12px;
+ }
+
+ .driver-trips-scope .receive-money-divider {
+   height: 2px;
+   background: #c7d2fe;
+   width: 100%;
+   margin: 8px 0 16px;
+ }
+
+ .driver-trips-scope .receive-money-methods {
+   display: grid;
+   grid-template-columns: repeat(6, minmax(0, 1fr));
+   gap: 16px;
+   align-items: start;
+ }
+
+ @media (max-width: 820px) {
+   .driver-trips-scope .receive-money-methods {
+     grid-template-columns: repeat(3, minmax(0, 1fr));
+   }
+ }
+
+ .driver-trips-scope .pay-tile {
+   position: relative;
+   border: 2px solid #dbeafe;
+   background: #ffffff;
+   border-radius: 0px;
+   height: 92px;
+   padding: 10px;
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+ }
+
+ .driver-trips-scope .pay-tile-image {
+   max-width: 100%;
+   max-height: 64px;
+   object-fit: contain;
+ }
+
+ .driver-trips-scope .pay-tile-content {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   gap: 6px;
+   color: #0b1f5c;
+   font-weight: 900;
+ }
+
+ .driver-trips-scope .pay-tile-content.cash {
+   font-size: 14px;
+   letter-spacing: 0.5px;
+ }
+
+ .driver-trips-scope .pay-tile-icon {
+   color: #0b1f5c;
+ }
+
+ .driver-trips-scope .pay-tile-caption {
+   font-size: 12px;
+   color: #0033cc;
+   font-weight: 800;
+ }
+
+ .driver-trips-scope .pay-tile-check {
+   position: absolute;
+   top: -10px;
+   right: -10px;
+   width: 22px;
+   height: 22px;
+   border-radius: 999px;
+   background: #16a34a;
+   color: #ffffff;
+   display: grid;
+   place-items: center;
+   font-size: 12px;
+   font-weight: 900;
+   opacity: 0;
+   transform: scale(0.9);
+   transition: opacity 0.15s ease, transform 0.15s ease;
+   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+ }
+
+ .driver-trips-scope .pay-tile.selected {
+   border-color: #0033cc;
+ }
+
+ .driver-trips-scope .pay-tile.selected .pay-tile-check {
+   opacity: 1;
+   transform: scale(1);
+ }
+
+ .driver-trips-scope .receive-money-actions {
+   display: grid;
+   grid-template-columns: 1fr 1fr;
+   gap: 18px;
+   padding: 18px;
+   background: #ffffff;
+ }
+
+ .driver-trips-scope .receive-money-btn {
+   border: none;
+   border-radius: 6px;
+   padding: 14px 18px;
+   font-weight: 900;
+   cursor: pointer;
+ }
+
+ .driver-trips-scope .receive-money-btn.ghost {
+   background: #e8edff;
+   color: #0033cc;
+ }
+
+ .driver-trips-scope .receive-money-btn.primary {
+   background: #0033cc;
+   color: #ffffff;
+ }
+
+ .modal-overlay {
+   position: fixed;
+   top: 0;
+   right: 0;
+   bottom: 0;
+   left: 0;
+   background: rgba(0, 0, 0, 0.45);
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   padding: 18px;
+   z-index: 12000;
+ }
+
+ .modal-card {
+   width: 100%;
+   max-width: 520px;
+   background: #ffffff;
+   border-radius: 14px;
+   overflow: hidden;
+   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+   border: 1px solid #dbeafe;
+ }
+
+ .modal-header {
+   background: #0033cc;
+   color: #ffffff;
+   font-weight: 800;
+   padding: 14px 16px;
+ }
+
+ .modal-body {
+   padding: 16px;
+ }
+
+ .modal-actions {
+   padding: 14px 16px;
+   display: flex;
+   gap: 10px;
+   justify-content: flex-end;
+   border-top: 1px solid #e5e7ff;
+   background: #ffffff;
+ }
+
+ .receive-money-modal {
+   max-width: 720px;
+ }
+
+ .receive-money-header {
+   background: #0033cc;
+   color: #ffffff;
+   font-weight: 900;
+   padding: 16px 18px;
+   font-size: 22px;
+ }
+
+ .receive-money-section {
+   padding: 14px 0;
+ }
+
+ .receive-money-label {
+   color: #0033cc;
+   font-weight: 800;
+   font-size: 14px;
+   margin-bottom: 10px;
+ }
+
+ .receive-money-amount {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   border: 1px solid #93c5fd;
+   border-radius: 12px;
+   padding: 12px 14px;
+   background: #ffffff;
+ }
+
+ .receive-money-amount-input {
+   border: none;
+   outline: none;
+   font-size: 46px;
+   font-weight: 900;
+   color: #0b1f5c;
+   width: 100%;
+   min-width: 220px;
+ }
+
+ .receive-money-ugx {
+   color: #0b1f5c;
+   font-weight: 800;
+   padding-left: 12px;
+ }
+
+ .receive-money-divider {
+   height: 2px;
+   background: #c7d2fe;
+   width: 100%;
+   margin: 8px 0 16px;
+ }
+
+ .receive-money-methods {
+   display: grid;
+   grid-template-columns: repeat(6, minmax(0, 1fr));
+   gap: 16px;
+   align-items: start;
+ }
+
+ @media (max-width: 820px) {
+   .receive-money-methods {
+     grid-template-columns: repeat(3, minmax(0, 1fr));
+   }
+ }
+
+ .pay-tile {
+   position: relative;
+   border: 2px solid #dbeafe;
+   background: #ffffff;
+   border-radius: 0px;
+   height: 92px;
+   padding: 10px;
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+ }
+
+ .pay-tile-image {
+   max-width: 100%;
+   max-height: 64px;
+   object-fit: contain;
+ }
+
+ .pay-tile-content {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   gap: 6px;
+   color: #0b1f5c;
+   font-weight: 900;
+ }
+
+ .pay-tile-content.cash {
+   font-size: 14px;
+   letter-spacing: 0.5px;
+ }
+
+ .pay-tile-icon {
+   color: #0b1f5c;
+ }
+
+ .pay-tile-caption {
+   font-size: 12px;
+   color: #0033cc;
+   font-weight: 800;
+ }
+
+ .pay-tile-check {
+   position: absolute;
+   top: -10px;
+   right: -10px;
+   width: 22px;
+   height: 22px;
+   border-radius: 999px;
+   background: #16a34a;
+   color: #ffffff;
+   display: grid;
+   place-items: center;
+   font-size: 12px;
+   font-weight: 900;
+   opacity: 0;
+   transform: scale(0.9);
+   transition: opacity 0.15s ease, transform 0.15s ease;
+   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+ }
+
+ .pay-tile.selected {
+   border-color: #0033cc;
+ }
+
+ .pay-tile.selected .pay-tile-check {
+   opacity: 1;
+   transform: scale(1);
+ }
+
+ .receive-money-actions {
+   display: grid;
+   grid-template-columns: 1fr 1fr;
+   gap: 18px;
+   padding: 18px;
+   background: #ffffff;
+ }
+
+ .receive-money-btn {
+   border: none;
+   border-radius: 6px;
+   padding: 14px 18px;
+   font-weight: 900;
+   cursor: pointer;
+ }
+
+ .receive-money-btn.ghost {
+   background: #e8edff;
+   color: #0033cc;
+ }
+
+ .receive-money-btn.primary {
+   background: #0033cc;
+   color: #ffffff;
+ }
+
+ .toast {
+   position: fixed;
+   left: 16px;
+   right: 16px;
+   bottom: 16px;
+   display: flex;
+   justify-content: center;
+   z-index: 1100;
+ }
+
+ .toast-inner {
+   width: 100%;
+   max-width: 520px;
+   background: #0033cc;
+   color: #ffffff;
+   border-radius: 12px;
+   padding: 12px 14px;
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 12px;
+   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+ }
+
+ .toast-inner .icon-btn {
+   background: rgba(255, 255, 255, 0.15);
+   color: #ffffff;
+ }
+
+ .trip-setup-modal {
+   max-width: 760px;
+   border-radius: 8px;
+ }
+
+ .trip-setup-titlebar {
+   margin: 22px auto 0;
+   width: calc(100% - 120px);
+   max-width: 520px;
+   background: #fef08a;
+   color: #5a5a00;
+   font-weight: 800;
+   padding: 12px 18px;
+   border-radius: 6px;
+   text-align: left;
+ }
+
+ .trip-setup-head {
+   text-align: center;
+   padding-top: 18px;
+ }
+
+ .trip-setup-title {
+   color: #0033cc;
+   font-weight: 800;
+ }
+
+ .trip-setup-subtitle {
+   color: #6b7cff;
+   font-size: 13px;
+   margin-top: 4px;
+ }
+
+ .trip-setup-divider {
+   height: 2px;
+   background: #c7d2fe;
+   width: 78%;
+   margin: 14px auto;
+ }
+
+ .trip-setup-locations {
+   display: grid;
+   grid-template-columns: 1fr auto 1fr;
+   gap: 18px;
+   align-items: end;
+   width: 78%;
+   margin: 0 auto;
+ }
+
+ .trip-setup-field label {
+   display: block;
+   color: #0033cc;
+   font-size: 13px;
+   font-weight: 700;
+   margin-bottom: 8px;
+ }
+
+ .trip-setup-input {
+   width: 100%;
+   border: 1px solid #93c5fd;
+   border-radius: 10px;
+   padding: 14px 16px;
+   color: #6b7cff;
+   background: #ffffff;
+   font-weight: 600;
+   outline: none;
+ }
+
+ .trip-setup-to {
+   align-self: center;
+   color: #0033cc;
+   font-weight: 800;
+   font-size: 13px;
+   padding-bottom: 18px;
+ }
+
+ .trip-setup-amount {
+   text-align: center;
+   padding: 18px 0 6px;
+ }
+
+ .trip-setup-amount-label {
+   color: #0033cc;
+   font-weight: 800;
+   margin-bottom: 10px;
+ }
+
+ .trip-setup-amount-box {
+   display: inline-flex;
+   align-items: baseline;
+   justify-content: center;
+   gap: 8px;
+   min-width: 280px;
+   background: #e8edff;
+   border: 1px solid #93c5fd;
+   border-radius: 14px;
+   padding: 18px 18px;
+ }
+
+ .trip-setup-amount-value {
+   font-size: 48px;
+   line-height: 1;
+   color: #0033cc;
+   font-weight: 900;
+   letter-spacing: 1px;
+ }
+
+ .trip-setup-amount-input {
+   width: 180px;
+   font-size: 48px;
+   line-height: 1;
+   color: #0033cc;
+   font-weight: 900;
+   letter-spacing: 1px;
+   border: none;
+   background: transparent;
+   outline: none;
+   text-align: center;
+ }
+
+ .trip-setup-amount-currency {
+   color: #0033cc;
+   font-weight: 800;
+   font-size: 14px;
+ }
+
+ .trip-setup-change-amount {
+   display: block;
+   width: fit-content;
+   margin: 10px auto 0;
+   background: #fef08a;
+   border: none;
+   color: #000;
+   font-weight: 700;
+   padding: 8px 14px;
+   border-radius: 3px;
+   cursor: pointer;
+ }
+
+ .trip-setup-actions {
+   display: grid;
+   grid-template-columns: 1.1fr 1fr 1fr;
+   gap: 12px;
+   width: 78%;
+   margin: 10px auto 0;
+ }
+
+ .trip-setup-btn {
+   border: none;
+   border-radius: 6px;
+   padding: 14px 12px;
+   font-weight: 800;
+   cursor: pointer;
+ }
+
+ .trip-setup-btn.primary {
+   background: #0033cc;
+   color: #ffffff;
+ }
+
+ .trip-setup-btn.secondary {
+   background: #e8edff;
+   color: #6b7cff;
+ }
+
+ .trip-setup-btn.tertiary {
+   background: #e8edff;
+   color: #6b7cff;
+ }
+
+ .trip-setup-btn:disabled {
+   opacity: 0.6;
+   cursor: not-allowed;
+ }
+
+ .trip-setup-cancel {
+   width: 78%;
+   margin: 14px auto 16px;
+   display: block;
+   background: #ffe2e2;
+   color: #fca5a5;
+   border: none;
+   border-radius: 6px;
+   padding: 14px 12px;
+   font-weight: 800;
+   cursor: pointer;
+ }
+
+ .trip-setup-hidden-fields {
+   display: none;
+ }
