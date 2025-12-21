@@ -281,13 +281,7 @@ const Riders = () => {
                 selected={selected} 
                 setSelected={handleItemClick} 
               />
-              <Item 
-                title="Earnings" 
-                to="/rider/earning" 
-                icon={<ImportContactsIcon />} 
-                selected={selected} 
-                setSelected={handleItemClick} 
-              />
+              
             </SubMenu>
 
             <Item 
