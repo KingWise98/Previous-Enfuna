@@ -1008,7 +1008,7 @@ const Statements = () => {
       <div className="cashflow-analysis animate-fade-in">
         <div className="section-header">
           <div>
-            <h3>Cashflow Analysis</h3>
+            <h3>Cashflow</h3>
             <p className="section-subtitle">Track cash inflows and outflows with detailed breakdowns</p>
           </div>
         </div>
@@ -1890,19 +1890,19 @@ const Statements = () => {
           
           <button className={`nav-btn ${activeView === 'expenses' ? 'active' : ''}`} onClick={() => setActiveView('expenses')}>
             <CreditCard size={16} />
-            <span>Expense Ledger</span>
+            <span>Expenses</span>
             <ChevronRight size={14} className="nav-chevron" />
           </button>
           
           <button className={`nav-btn ${activeView === 'wallet' ? 'active' : ''}`} onClick={() => setActiveView('wallet')}>
             <Wallet size={16} />
-            <span>Wallet Statement</span>
+            <span>Wallet</span>
             <ChevronRight size={14} className="nav-chevron" />
           </button>
           
           <button className={`nav-btn ${activeView === 'cashflow' ? 'active' : ''}`} onClick={() => setActiveView('cashflow')}>
             <Activity size={16} />
-            <span>Cashflow Analysis</span>
+            <span>Cashflow</span>
             <ChevronRight size={14} className="nav-chevron" />
           </button>
           
@@ -1920,19 +1920,19 @@ const Statements = () => {
           
           <button className={`nav-btn ${activeView === 'activity' ? 'active' : ''}`} onClick={() => setActiveView('activity')}>
             <History size={16} />
-            <span>Activity Tracking</span>
+            <span>Activity</span>
             <ChevronRight size={14} className="nav-chevron" />
           </button>
           
           <button className={`nav-btn ${activeView === 'performance' ? 'active' : ''}`} onClick={() => setActiveView('performance')}>
             <Target size={16} />
-            <span>Performance Analytics</span>
+            <span>Performance</span>
             <ChevronRight size={14} className="nav-chevron" />
           </button>
           
           <button className={`nav-btn ${activeView === 'trends' ? 'active' : ''}`} onClick={() => setActiveView('trends')}>
             <TrendUp size={16} />
-            <span>Trends & Year-End</span>
+            <span>Trends</span>
             <ChevronRight size={14} className="nav-chevron" />
           </button>
         </div>

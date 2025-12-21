@@ -43,7 +43,7 @@ body {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   color: var(--dark);
   line-height: 1.5;
-  font-size: 14px;
+  font-size: 12px;
   min-height: 100vh;
 }
 
@@ -166,7 +166,7 @@ body {
 .header-title h1 {
   font-size: 24px;
   font-weight: 700;
-  color: var(--dark);
+  color: white;
   margin-bottom: 4px;
 }
 
