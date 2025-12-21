@@ -29,7 +29,7 @@ export default function Trips() {
     paymentMethod: "All Status",
     route: "All Routes",
   })
-
+  
   // Mock data
   const [trips, setTrips] = useState([
     {
@@ -229,7 +229,10 @@ export default function Trips() {
             <h2 className="section-title">Quick Actions</h2>
             <button className="complete-profile-btn">Complete Profile</button>
             <div className="action-buttons">
-              <button className="action-btn primary" onClick={() => setTripStatus("setup")}>
+              <button
+                className="action-btn primary"
+                onClick={() => setTripStatus("setup")}
+              >
                 Start Trip
               </button>
               <button className="action-btn">Start Delivery</button>
@@ -252,7 +255,10 @@ export default function Trips() {
             <div className="motorcycle-icon">🏍️</div>
             <h2 className="ready-title">Ready to Ride?</h2>
             <p className="ready-subtitle">Start A New Trip And Start Earning</p>
-            <button className="start-trip-btn" onClick={() => setTripStatus("setup")}>
+            <button
+              className="start-trip-btn"
+              onClick={() => setTripStatus("setup")}
+            >
               START NEW TRIP →
             </button>
           </div>
@@ -263,7 +269,10 @@ export default function Trips() {
                 <h2 className="section-title">Trip History</h2>
                 <p className="section-subtitle">View completed trip summary</p>
               </div>
-              <button className="view-detailed-btn" onClick={() => setCurrentView("history")}>
+              <button
+                className="view-detailed-btn"
+                onClick={() => setCurrentView("history")}
+              >
                 View Detailed Trip History
               </button>
             </div>
@@ -286,31 +295,53 @@ export default function Trips() {
                 </div>
                 <div className="trip-preview-bottom">
                   <span className="trip-amount">{trip.amount} UGX</span>
-                  <span className={`trip-payment-badge ${trip.paymentMethod.toLowerCase().replace(" ", "-")}`}>
+                  <span
+                    className={`trip-payment-badge ${trip.paymentMethod
+                      .toLowerCase()
+                      .replace(" ", "-")}`}
+                  >
                     {trip.paymentMethod}
                   </span>
-                  {trip.manualOverride && <span className="manual-override-badge">Manual Override</span>}
+                  {trip.manualOverride && (
+                    <span className="manual-override-badge">
+                      Manual Override
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
- 
+
       {/* Trip Setup */}
       {tripStatus === "setup" && (
-        <div className="trip-setup-overlay" role="dialog" aria-modal="true" onClick={closeSetup}>
-          <div className="trip-setup-modal" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="trip-setup-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={closeSetup}
+        >
+          <div
+            className="trip-setup-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="trip-setup-modal-header">
               <div className="trip-setup-header">New Trip</div>
-              <button className="trip-setup-close" onClick={closeSetup} aria-label="Close">
+              <button
+                className="trip-setup-close"
+                onClick={closeSetup}
+                aria-label="Close"
+              >
                 ×
               </button>
             </div>
 
             <div className="trip-setup-content">
               <h2 className="form-title">Trip Setup Form</h2>
-              <p className="form-subtitle">Configure your trip details and start your journey</p>
+              <p className="form-subtitle">
+                Configure your trip details and start your journey
+              </p>
 
               <div className="location-inputs">
                 <div className="input-group">
@@ -318,12 +349,19 @@ export default function Trips() {
                   <input
                     type="text"
                     value={currentTrip.pickup}
-                    onChange={(e) => setCurrentTrip({ ...currentTrip, pickup: e.target.value })}
+                    onChange={(e) =>
+                      setCurrentTrip({ ...currentTrip, pickup: e.target.value })
+                    }
                     placeholder="Mukono"
                   />
                   <div className="suggestions">
                     {popularPickups.map((loc) => (
-                      <button key={loc} onClick={() => setCurrentTrip({ ...currentTrip, pickup: loc })}>
+                      <button
+                        key={loc}
+                        onClick={() =>
+                          setCurrentTrip({ ...currentTrip, pickup: loc })
+                        }
+                      >
                         {loc}
                       </button>
                     ))}
@@ -337,12 +375,22 @@ export default function Trips() {
                   <input
                     type="text"
                     value={currentTrip.destination}
-                    onChange={(e) => setCurrentTrip({ ...currentTrip, destination: e.target.value })}
+                    onChange={(e) =>
+                      setCurrentTrip({
+                        ...currentTrip,
+                        destination: e.target.value,
+                      })
+                    }
                     placeholder="Kampala"
                   />
                   <div className="suggestions">
                     {popularDestinations.map((loc) => (
-                      <button key={loc} onClick={() => setCurrentTrip({ ...currentTrip, destination: loc })}>
+                      <button
+                        key={loc}
+                        onClick={() =>
+                          setCurrentTrip({ ...currentTrip, destination: loc })
+                        }
+                      >
                         {loc}
                       </button>
                     ))}
@@ -363,10 +411,10 @@ export default function Trips() {
                         onChange={(e) => setAmountDraft(e.target.value)}
                         onBlur={commitAmount}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter") commitAmount()
+                          if (e.key === "Enter") commitAmount();
                           if (e.key === "Escape") {
-                            setIsEditingAmount(false)
-                            setAmountDraft(String(currentTrip.amount ?? ""))
+                            setIsEditingAmount(false);
+                            setAmountDraft(String(currentTrip.amount ?? ""));
                           }
                         }}
                         autoFocus
@@ -376,7 +424,9 @@ export default function Trips() {
                     </>
                   ) : (
                     <>
-                      <span className="amount-value">{currentTrip.amount.toLocaleString()}</span>
+                      <span className="amount-value">
+                        {currentTrip.amount.toLocaleString()}
+                      </span>
                       <span className="amount-currency">UGX</span>
                     </>
                   )}
@@ -385,10 +435,10 @@ export default function Trips() {
                   className="change-amount-btn"
                   onClick={() => {
                     if (isEditingAmount) {
-                      commitAmount()
-                      return
+                      commitAmount();
+                      return;
                     }
-                    beginEditAmount()
+                    beginEditAmount();
                   }}
                 >
                   {isEditingAmount ? "Save Amount" : "Change Amount"}
@@ -400,10 +450,12 @@ export default function Trips() {
                   START TRIP
                 </button>
                 <button
-                  className={`btn-secondary${canSaveTrip ? "" : " is-disabled"}`}
+                  className={`btn-secondary${
+                    canSaveTrip ? "" : " is-disabled"
+                  }`}
                   onClick={() => {
-                    if (!canSaveTrip) return
-                    saveTrip()
+                    if (!canSaveTrip) return;
+                    saveTrip();
                   }}
                   disabled={!canSaveTrip}
                 >
@@ -411,7 +463,14 @@ export default function Trips() {
                 </button>
                 <button
                   className="btn-secondary"
-                  onClick={() => setCurrentTrip({ ...currentTrip, pickup: "", destination: "", amount: 2000 })}
+                  onClick={() =>
+                    setCurrentTrip({
+                      ...currentTrip,
+                      pickup: "",
+                      destination: "",
+                      amount: 2000,
+                    })
+                  }
                 >
                   CLEAR FORM
                 </button>
@@ -438,11 +497,15 @@ export default function Trips() {
           <div className="trip-stats">
             <div className="stat-card">
               <div className="stat-label">Duration</div>
-              <div className="stat-value">{formatDuration(currentTrip.duration)}</div>
+              <div className="stat-value">
+                {formatDuration(currentTrip.duration)}
+              </div>
             </div>
             <div className="stat-card">
               <div className="stat-label">Distance</div>
-              <div className="stat-value">{currentTrip.distance.toFixed(1)} km</div>
+              <div className="stat-value">
+                {currentTrip.distance.toFixed(1)} km
+              </div>
             </div>
           </div>
 
@@ -475,9 +538,9 @@ export default function Trips() {
                     type="text"
                     value={stop.location}
                     onChange={(e) => {
-                      const newStops = [...currentTrip.stops]
-                      newStops[index].location = e.target.value
-                      setCurrentTrip({ ...currentTrip, stops: newStops })
+                      const newStops = [...currentTrip.stops];
+                      newStops[index].location = e.target.value;
+                      setCurrentTrip({ ...currentTrip, stops: newStops });
                     }}
                     placeholder="Seeta"
                   />
@@ -489,9 +552,9 @@ export default function Trips() {
                       type="number"
                       value={stop.amount}
                       onChange={(e) => {
-                        const newStops = [...currentTrip.stops]
-                        newStops[index].amount = Number(e.target.value)
-                        setCurrentTrip({ ...currentTrip, stops: newStops })
+                        const newStops = [...currentTrip.stops];
+                        newStops[index].amount = Number(e.target.value);
+                        setCurrentTrip({ ...currentTrip, stops: newStops });
                       }}
                     />
                     <span>UGX</span>
@@ -505,14 +568,19 @@ export default function Trips() {
             <label>Trip Notes (Optional)</label>
             <textarea
               value={currentTrip.notes}
-              onChange={(e) => setCurrentTrip({ ...currentTrip, notes: e.target.value })}
+              onChange={(e) =>
+                setCurrentTrip({ ...currentTrip, notes: e.target.value })
+              }
               placeholder="Delivery instructions, Multistop info etc..."
             />
           </div>
 
           <div className="active-trip-actions">
             {currentTrip.stops.length > 0 && (
-              <button className="btn-remove" onClick={() => removeStop(currentTrip.stops.length - 1)}>
+              <button
+                className="btn-remove"
+                onClick={() => removeStop(currentTrip.stops.length - 1)}
+              >
                 - Remove Stop
               </button>
             )}
@@ -533,7 +601,9 @@ export default function Trips() {
             <span className="trip-ended-badge">Trip Ended</span>
           </div>
 
-          <p className="review-subtitle">Review and finalize trip details before payment</p>
+          <p className="review-subtitle">
+            Review and finalize trip details before payment
+          </p>
 
           <div className="trip-summary-box">
             <h3>Trip Summary</h3>
@@ -558,12 +628,18 @@ export default function Trips() {
           <div className="total-amount-section">
             <h3>Total Amount</h3>
             <div className="amount-card">
-              <span className="total-amount">{currentTrip.amount.toLocaleString()}</span>
+              <span className="total-amount">
+                {currentTrip.amount.toLocaleString()}
+              </span>
               <span className="currency">UGX</span>
               <button className="edit-amount-btn">Edit</button>
             </div>
             <label className="manual-override-checkbox">
-              <input type="checkbox" checked={manualOverride} onChange={(e) => setManualOverride(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={manualOverride}
+                onChange={(e) => setManualOverride(e.target.checked)}
+              />
               Manual Amount Override
             </label>
           </div>
@@ -588,39 +664,67 @@ export default function Trips() {
             <div className="payment-content">
               <label>Enter Cash Amount</label>
               <div className="cash-amount-input">
-                <input type="text" value={currentTrip.amount.toLocaleString()} readOnly />
+                <input
+                  type="text"
+                  value={currentTrip.amount.toLocaleString()}
+                  readOnly
+                />
                 <span>UGX</span>
               </div>
 
               <label>Select Payment Method</label>
               <div className="payment-methods">
                 <button
-                  className={`payment-method-btn ${selectedPaymentMethod === "Cash" ? "selected" : ""}`}
+                  className={`payment-method-btn ${
+                    selectedPaymentMethod === "Cash" ? "selected" : ""
+                  }`}
                   onClick={() => setSelectedPaymentMethod("Cash")}
                 >
                   <div className="payment-icon cash">CASH</div>
                 </button>
                 <button
-                  className={`payment-method-btn ${selectedPaymentMethod === "MTN MoMo" ? "selected" : ""}`}
+                  className={`payment-method-btn ${
+                    selectedPaymentMethod === "MTN MoMo" ? "selected" : ""
+                  }`}
                   onClick={() => setSelectedPaymentMethod("MTN MoMo")}
                 >
-                  <img src="./assets/mtn.png" alt="MTN MoMo" className="payment-logo" />
-                  {selectedPaymentMethod === "MTN MoMo" && <span className="checkmark">✓</span>}
+                  <img
+                    src="./assets/mtn.png"
+                    alt="MTN MoMo"
+                    className="payment-logo"
+                  />
+                  {selectedPaymentMethod === "MTN MoMo" && (
+                    <span className="checkmark">✓</span>
+                  )}
                 </button>
                 <button
-                  className={`payment-method-btn ${selectedPaymentMethod === "Airtel Money" ? "selected" : ""}`}
+                  className={`payment-method-btn ${
+                    selectedPaymentMethod === "Airtel Money" ? "selected" : ""
+                  }`}
                   onClick={() => setSelectedPaymentMethod("Airtel Money")}
                 >
-                  <img src="./assets/airtel.png" alt="Airtel" className="payment-logo" />
+                  <img
+                    src="./assets/airtel.png"
+                    alt="Airtel"
+                    className="payment-logo"
+                  />
                 </button>
                 <button
-                  className={`payment-method-btn ${selectedPaymentMethod === "Visa" ? "selected" : ""}`}
+                  className={`payment-method-btn ${
+                    selectedPaymentMethod === "Visa" ? "selected" : ""
+                  }`}
                   onClick={() => setSelectedPaymentMethod("Visa")}
                 >
-                  <img src="./assets/visa.png" alt="Visa" className="payment-logo" />
+                  <img
+                    src="./assets/visa.png"
+                    alt="Visa"
+                    className="payment-logo"
+                  />
                 </button>
                 <button
-                  className={`payment-method-btn ${selectedPaymentMethod === "QR Code" ? "selected" : ""}`}
+                  className={`payment-method-btn ${
+                    selectedPaymentMethod === "QR Code" ? "selected" : ""
+                  }`}
                   onClick={() => setSelectedPaymentMethod("QR Code")}
                 >
                   <div className="payment-icon">
@@ -629,7 +733,9 @@ export default function Trips() {
                   </div>
                 </button>
                 <button
-                  className={`payment-method-btn ${selectedPaymentMethod === "Split Payment" ? "selected" : ""}`}
+                  className={`payment-method-btn ${
+                    selectedPaymentMethod === "Split Payment" ? "selected" : ""
+                  }`}
                   onClick={() => setSelectedPaymentMethod("Split Payment")}
                 >
                   <div className="payment-icon">
@@ -640,10 +746,16 @@ export default function Trips() {
               </div>
 
               <div className="payment-actions">
-                <button className="btn-cancel-payment" onClick={() => setTripStatus("ended")}>
+                <button
+                  className="btn-cancel-payment"
+                  onClick={() => setTripStatus("ended")}
+                >
                   Cancel
                 </button>
-                <button className="btn-continue-payment" onClick={completePayment}>
+                <button
+                  className="btn-continue-payment"
+                  onClick={completePayment}
+                >
                   Continue
                 </button>
               </div>
@@ -658,7 +770,10 @@ export default function Trips() {
           <div className="history-header">
             <div>
               <h1>Trip History Dashboard</h1>
-              <p>View Real-time trip analytics, all completed trips and their history details</p>
+              <p>
+                View Real-time trip analytics, all completed trips and their
+                history details
+              </p>
             </div>
             <div className="history-header-actions">
               <button className="export-btn">📥 Export</button>
@@ -671,39 +786,47 @@ export default function Trips() {
             </div>
           </div>
 
-          <div className="stats-cards">
-            <div className="stat-card blue">
-              <div className="stat-icon">🚗</div>
-              <div className="stat-info">
-                <div className="stat-label">Total Trips</div>
-                <div className="stat-number">10</div>
-                <div className="stat-change positive">+12 from yesterday</div>
-              </div>
-            </div>
-            <div className="stat-card dark">
-              <div className="stat-icon">💰</div>
-              <div className="stat-info">
-                <div className="stat-label">Total Money</div>
-                <div className="stat-number">
-                  10,000 <span className="currency-small">UGX</span>
+          <div className="stats-panel">
+            <div className="stats-cards">
+              <div className="stat-card blue">
+                <div className="stat-icon">🚗</div>
+                <div className="stat-info">
+                  <div className="stat-label">Total Trips</div>
+                  <div className="stat-number">10</div>
+                  <div className="stat-change positive">+12 from yesterday</div>
                 </div>
-                <div className="stat-change positive">+6k Up from yesterday</div>
               </div>
-            </div>
-            <div className="stat-card olive">
-              <div className="stat-icon">✓</div>
-              <div className="stat-info">
-                <div className="stat-label">Completed Trips</div>
-                <div className="stat-number">20</div>
-                <div className="stat-change positive">+40% Up from yesterday</div>
+              <div className="stat-card dark">
+                <div className="stat-icon">💰</div>
+                <div className="stat-info">
+                  <div className="stat-label">Total Money</div>
+                  <div className="stat-number">
+                    10,000 <span className="currency-small">UGX</span>
+                  </div>
+                  <div className="stat-change positive">
+                    +6k Up from yesterday
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="stat-card cream">
-              <div className="stat-icon">⚠</div>
-              <div className="stat-info">
-                <div className="stat-label">Cancellation Rate</div>
-                <div className="stat-number">10.2%</div>
-                <div className="stat-change negative">-2% less from yesterday</div>
+              <div className="stat-card olive">
+                <div className="stat-icon">✓</div>
+                <div className="stat-info">
+                  <div className="stat-label">Completed Trips</div>
+                  <div className="stat-number">20</div>
+                  <div className="stat-change positive">
+                    +40% Up from yesterday
+                  </div>
+                </div>
+              </div>
+              <div className="stat-card cream">
+                <div className="stat-icon">⚠</div>
+                <div className="stat-info">
+                  <div className="stat-label">Cancellation Rate</div>
+                  <div className="stat-number">10.2%</div>
+                  <div className="stat-change negative">
+                    -2% less from yesterday
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -723,7 +846,12 @@ export default function Trips() {
 
               <div className="filter-group">
                 <label>Trip status</label>
-                <select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}>
+                <select
+                  value={filters.status}
+                  onChange={(e) =>
+                    setFilters({ ...filters, status: e.target.value })
+                  }
+                >
                   <option>All Status</option>
                   <option>Completed</option>
                   <option>Cancelled</option>
@@ -733,7 +861,12 @@ export default function Trips() {
 
               <div className="filter-group">
                 <label>Trip Type</label>
-                <select value={filters.tripType} onChange={(e) => setFilters({ ...filters, tripType: e.target.value })}>
+                <select
+                  value={filters.tripType}
+                  onChange={(e) =>
+                    setFilters({ ...filters, tripType: e.target.value })
+                  }
+                >
                   <option>Normal Trip</option>
                   <option>Quick Trip</option>
                   <option>Delivery</option>
@@ -744,7 +877,9 @@ export default function Trips() {
                 <label>Payment Method</label>
                 <select
                   value={filters.paymentMethod}
-                  onChange={(e) => setFilters({ ...filters, paymentMethod: e.target.value })}
+                  onChange={(e) =>
+                    setFilters({ ...filters, paymentMethod: e.target.value })
+                  }
                 >
                   <option>All Status</option>
                   <option>Cash</option>
@@ -756,7 +891,12 @@ export default function Trips() {
 
               <div className="filter-group">
                 <label>Routes</label>
-                <select value={filters.route} onChange={(e) => setFilters({ ...filters, route: e.target.value })}>
+                <select
+                  value={filters.route}
+                  onChange={(e) =>
+                    setFilters({ ...filters, route: e.target.value })
+                  }
+                >
                   <option>All Routes</option>
                   <option>Mukono - Kampala</option>
                   <option>Kireka - Banda</option>
@@ -765,7 +905,12 @@ export default function Trips() {
 
               <div className="filter-group">
                 <label>Amount Range: UGX 0 - UGX 3,000</label>
-                <input type="range" min="0" max="10000" className="range-slider" />
+                <input
+                  type="range"
+                  min="0"
+                  max="10000"
+                  className="range-slider"
+                />
               </div>
 
               <div className="filter-group">
@@ -799,35 +944,61 @@ export default function Trips() {
                   </tr>
                 </thead>
                 <tbody>
-                  {trips.map((trip) => (
-                    <tr key={trip.id}>
-                      <td className="trip-id">{trip.id}</td>
-                      <td>
-                        <div className="route-cell">{trip.route}</div>
-                        <div className="date-cell">{trip.date}</div>
-                      </td>
-                      <td>
-                        <div className="distance-cell">{trip.distance}</div>
-                        <div className="duration-cell">{trip.duration}</div>
-                      </td>
-                      <td className="amount-cell">UGX {trip.amount.toLocaleString()}</td>
-                      <td className="override-cell">{trip.manualOverride ? "YES" : "NO"}</td>
-                      <td>
-                        <span className={`payment-badge ${trip.paymentMethod.toLowerCase().replace(" ", "-")}`}>
-                          {trip.paymentMethod}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`status-badge ${trip.status.toLowerCase()}`}>{trip.status}</span>
-                      </td>
-                      <td>
-                        <button className="action-icon-btn">👁️</button>
+                  {trips.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" style={{ textAlign: "center" }}>
+                        No trips match the filters.
                       </td>
                     </tr>
-                  ))}
+                    ) : (
+                    trips.map((trip) => (
+                      <tr key={trip.id}>
+                        <td className="trip-id">{trip.id}</td>
+                        <td>
+                          <div className="route-cell">{trip.route}</div>
+                          <div className="date-cell">{trip.date}</div>
+                        </td>
+                        <td>
+                          <div className="distance-cell">{trip.distance}</div>
+                          <div className="duration-cell">{trip.duration}</div>
+                        </td>
+                        <td className="amount-cell">
+                          UGX {trip.amount.toLocaleString()}
+                        </td>
+                        <td className="override-cell">
+                          {trip.manualOverride ? "YES" : "NO"}
+                        </td>
+                        <td>
+                          <span
+                            className={`payment-badge ${trip.paymentMethod
+                              .toLowerCase()
+                              .replace(" ", "-")}`}
+                          >
+                            {trip.paymentMethod}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={`status-badge ${trip.status.toLowerCase()}`}
+                          >
+                            {trip.status}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            className="action-icon-btn"
+                            onClick={() =>
+                              alert(`Viewing details for ${trip.id}`)
+                            }
+                          >
+                            👁️
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
-
               <div className="pagination">
                 <span>Showing 8 trips</span>
                 <div className="pagination-btns">
@@ -838,7 +1009,10 @@ export default function Trips() {
             </div>
           </div>
 
-          <button className="back-to-dashboard-btn" onClick={() => setCurrentView("dashboard")}>
+          <button
+            className="back-to-dashboard-btn"
+            onClick={() => setCurrentView("dashboard")}
+          >
             ← Back to Dashboard
           </button>
         </div>
@@ -850,7 +1024,9 @@ export default function Trips() {
           <div className="success-modal">
             <h2>Hello Moses!</h2>
             <div className="success-icon">✓</div>
-            <p>Your trip has been saved successfully, under Pending transactions</p>
+            <p>
+              Your trip has been saved successfully, under Pending transactions
+            </p>
             <p className="modal-instruction">
               To retrieve saved trip and receive money,
               <br />
@@ -943,9 +1119,9 @@ export default function Trips() {
             <button
               className="close-receipt-btn"
               onClick={() => {
-                setShowModal(false)
-                setTripStatus("idle")
-                setCurrentView("dashboard")
+                setShowModal(false);
+                setTripStatus("idle");
+                setCurrentView("dashboard");
                 setCurrentTrip({
                   pickup: "",
                   destination: "",
@@ -955,7 +1131,7 @@ export default function Trips() {
                   distance: 0,
                   stops: [],
                   notes: "",
-                })
+                });
               }}
             >
               Close
@@ -964,5 +1140,5 @@ export default function Trips() {
         </div>
       )}
     </div>
-  )
+  );
 }
