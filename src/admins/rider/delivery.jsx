@@ -1,7 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import "./d.css"
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
+import * as XLSX from 'xlsx'
 
 const Deliveries = () => {
   const [currentView, setCurrentView] = useState("dashboard")
@@ -27,6 +30,10 @@ const Deliveries = () => {
   const [deliveryNotes, setDeliveryNotes] = useState("")
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [showReceipt, setShowReceipt] = useState(false)
+  const [showMultipleDelivery, setShowMultipleDelivery] = useState(false)
+  const [uploadedFile, setUploadedFile] = useState(null)
+  const [receiptData, setReceiptData] = useState(null)
 
   // History filters
   const [searchQuery, setSearchQuery] = useState("")
@@ -39,6 +46,35 @@ const Deliveries = () => {
   const [sortBy, setSortBy] = useState("date")
   const [currentPage, setCurrentPage] = useState(1)
   const [analyticsView, setAnalyticsView] = useState("daily")
+  const [analyticsData, setAnalyticsData] = useState({
+    daily: {
+      totalDeliveries: 25,
+      totalRevenue: 40000,
+      completedDeliveries: 22,
+      failedDeliveries: 3,
+      revenueChange: "+2.5%",
+      completedChange: "+20.5%",
+      failedChange: "-2.5%",
+    },
+    weekly: {
+      totalDeliveries: 125,
+      totalRevenue: 180000,
+      completedDeliveries: 102,
+      failedDeliveries: 23,
+      revenueChange: "+12.5%",
+      completedChange: "+15.5%",
+      failedChange: "-5.5%",
+    },
+    monthly: {
+      totalDeliveries: 450,
+      totalRevenue: 750000,
+      completedDeliveries: 385,
+      failedDeliveries: 65,
+      revenueChange: "+25.5%",
+      completedChange: "+30.5%",
+      failedChange: "-8.5%",
+    }
+  })
 
   // Sample delivery history data
   const [deliveryHistory] = useState([
@@ -100,16 +136,45 @@ const Deliveries = () => {
     },
   ])
 
-  // Analytics data
-  const analyticsData = {
-    totalDeliveries: 125,
-    totalRevenue: 120000,
-    completedDeliveries: 102,
-    failedDeliveries: 23,
-    revenueChange: "+2.5%",
-    completedChange: "+20.5%",
-    failedChange: "-2.5%",
-  }
+  // Chart data
+  const [chartData] = useState({
+    deliverySummary: [
+      { day: "Mon", completed: 45, failed: 12 },
+      { day: "Tue", completed: 52, failed: 8 },
+      { day: "Wed", completed: 48, failed: 10 },
+      { day: "Thu", completed: 55, failed: 5 },
+      { day: "Fri", completed: 60, failed: 15 },
+      { day: "Sat", completed: 40, failed: 20 },
+      { day: "Sun", completed: 35, failed: 5 }
+    ],
+    revenueBreakdown: [
+      { type: "Same-Day", amount: 25000, color: "#3b82f6", percentage: 40 },
+      { type: "Express", amount: 15000, color: "#fbbf24", percentage: 25 },
+      { type: "Bulk", amount: 10000, color: "#ef4444", percentage: 15 },
+      { type: "Standard", amount: 5000, color: "#10b981", percentage: 20 }
+    ],
+    paymentMethods: [
+      { method: "Cash", trend: [150, 120, 80, 90, 60, 70, 50, 45, 40], color: "#3b82f6" },
+      { method: "MTN MoMo", trend: [180, 160, 150, 145, 140, 135, 130, 125, 120], color: "#fbbf24" },
+      { method: "Airtel Money", trend: [190, 185, 175, 165, 160, 155, 150, 145, 140], color: "#ef4444" },
+      { method: "Visa", trend: [195, 193, 190, 188, 185, 183, 180, 178, 175], color: "#1e293b" }
+    ]
+  })
+
+  const receiptRef = useRef(null)
+
+  // Handle body scrolling when modals are open
+  useEffect(() => {
+    if (showPaymentModal || showSuccessModal || showReceipt || showMultipleDelivery) {
+      document.body.classList.add('modal-open')
+    } else {
+      document.body.classList.remove('modal-open')
+    }
+    
+    return () => {
+      document.body.classList.remove('modal-open')
+    }
+  }, [showPaymentModal, showSuccessModal, showReceipt, showMultipleDelivery])
 
   // Timer for active delivery
   useEffect(() => {
@@ -138,7 +203,7 @@ const Deliveries = () => {
 
     setActiveDelivery({
       ...deliveryData,
-      id: `DLV-${Date.now()}`,
+      id: `DLV-${Date.now().toString().slice(-6)}`,
       startTime: new Date(),
     })
     setTimer(0)
@@ -160,34 +225,141 @@ const Deliveries = () => {
       alert("Please select a payment method")
       return
     }
+    
+    // Generate receipt
+    const receipt = {
+      id: activeDelivery?.id || `REC-${Date.now().toString().slice(-6)}`,
+      amount: paymentAmount,
+      paymentMethod: selectedPaymentMethod,
+      date: new Date().toLocaleDateString(),
+      time: new Date().toLocaleTimeString(),
+      customerName: activeDelivery?.customerName || deliveryData.customerName,
+      customerPhone: activeDelivery?.customerPhone || deliveryData.customerPhone,
+      deliveryType: activeDelivery?.deliveryType || deliveryData.deliveryType,
+      recipientCode: recipientCode,
+    }
+    
+    setReceiptData(receipt)
     setShowPaymentModal(false)
     setShowSuccessModal(true)
   }
 
   const handlePaymentSuccess = () => {
     setShowSuccessModal(false)
-    setCurrentView("dashboard")
-    // Reset state
-    setActiveDelivery(null)
-    setTimer(0)
-    setDistance(0)
-    setDeliveryData({
-      customerName: "",
-      customerPhone: "",
-      packageDescription: "",
-      packageWeight: "",
-      deliveryType: "same-day",
-      pickupAddress: "",
-      dropoffAddress: "",
-      recipientName: "",
-      recipientPhone: "",
-      estimatedPrice: 3000,
-    })
+    setShowReceipt(true)
   }
 
   const generateRecipientCode = () => {
     const code = Math.floor(100000 + Math.random() * 900000).toString()
     setRecipientCode(code)
+  }
+
+  // Export functionality
+  const exportToPDF = async () => {
+    if (receiptRef.current) {
+      const canvas = await html2canvas(receiptRef.current)
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const imgWidth = 210
+      const pageHeight = 297
+      const imgHeight = canvas.height * imgWidth / canvas.width
+      let heightLeft = imgHeight
+      let position = 0
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+      }
+
+      pdf.save(`receipt-${receiptData.id}.pdf`)
+    }
+  }
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredDeliveries)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Deliveries")
+    XLSX.writeFile(workbook, `deliveries-${new Date().toISOString().split('T')[0]}.xlsx`)
+  }
+
+  const exportToCSV = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredDeliveries)
+    const csv = XLSX.utils.sheet_to_csv(worksheet)
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `deliveries-${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+  }
+
+  // Share functionality
+  const shareReceipt = async () => {
+    if (receiptRef.current && navigator.share) {
+      try {
+        const canvas = await html2canvas(receiptRef.current)
+        canvas.toBlob(async (blob) => {
+          const file = new File([blob], `receipt-${receiptData.id}.png`, { type: 'image/png' })
+          
+          await navigator.share({
+            files: [file],
+            title: 'Delivery Receipt',
+            text: `Receipt for delivery ${receiptData.id} - Amount: UGX ${receiptData.amount.toLocaleString()}`
+          })
+        })
+      } catch (err) {
+        console.error('Error sharing:', err)
+        alert('Sharing failed. You can download the PDF instead.')
+      }
+    } else {
+      exportToPDF()
+    }
+  }
+
+  // Multiple delivery functionality
+  const handleAddMultiple = () => {
+    setShowMultipleDelivery(true)
+  }
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0]
+    if (file) {
+      setUploadedFile(file)
+      
+      // Preview CSV/Excel file
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const data = e.target.result
+        const workbook = XLSX.read(data, { type: 'binary' })
+        const firstSheet = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[firstSheet]
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+        
+        console.log("Uploaded file data:", jsonData.slice(0, 5))
+      }
+      reader.readAsBinaryString(file)
+    }
+  }
+
+  const removeUploadedFile = () => {
+    setUploadedFile(null)
+  }
+
+  const processMultipleDeliveries = () => {
+    if (!uploadedFile) {
+      alert("Please upload a file first")
+      return
+    }
+    
+    // Process the uploaded file
+    alert(`Processing ${uploadedFile.name} with multiple deliveries...`)
+    setShowMultipleDelivery(false)
+    setUploadedFile(null)
   }
 
   // Filter deliveries
@@ -208,6 +380,12 @@ const Deliveries = () => {
     return matchesSearch && matchesStatus && matchesType && matchesPayment && matchesRoute && matchesAmount
   })
 
+  const currentAnalytics = analyticsData[analyticsView]
+
+  // Find max value for bar chart scaling
+  const maxDeliveryValue = Math.max(...chartData.deliverySummary.map(d => d.completed + d.failed))
+
+  // Dashboard render function
   const renderDashboard = () => (
     <div className="deliveries-dashboard">
       <div className="deliveries-header">
@@ -216,16 +394,20 @@ const Deliveries = () => {
           <p>Manage and track all your deliveries</p>
         </div>
         <button className="btn-analytics" onClick={() => setCurrentView("analytics")}>
-          View Analytics and Performance
+          <span>📊</span> View Analytics
         </button>
       </div>
 
       <div className="quick-actions-delivery">
         <button className="btn-primary-delivery" onClick={() => setCurrentView("new-delivery")}>
-          Start New Delivery
+          <span>🚚</span> Start New Delivery
         </button>
-        <button className="btn-secondary-delivery">Receive Money</button>
-        <button className="btn-secondary-delivery">View Analytics</button>
+        <button className="btn-secondary-delivery" onClick={handleReceiveMoney}>
+          <span>💰</span> Receive Money
+        </button>
+        <button className="btn-secondary-delivery" onClick={() => setCurrentView("history")}>
+          <span>📋</span> View History
+        </button>
       </div>
 
       <div className="wallet-balance-delivery">
@@ -250,33 +432,33 @@ const Deliveries = () => {
           <div className="stat-info">
             <span className="stat-label">Total Deliveries</span>
             <span className="stat-value">125</span>
-            <span className="stat-change positive">+12.5%</span>
+            <span className="stat-change positive">↑ +12.5%</span>
           </div>
         </div>
-        <div className="stat-card-delivery dark">
+        <div className="stat-card-delivery">
           <div className="stat-icon">💰</div>
           <div className="stat-info">
             <span className="stat-label">Total Revenue</span>
             <span className="stat-value">
               40,000 <small>UGX</small>
             </span>
-            <span className="stat-change positive">+2.5%</span>
+            <span className="stat-change positive">↑ +2.5%</span>
           </div>
         </div>
-        <div className="stat-card-delivery green">
+        <div className="stat-card-delivery">
           <div className="stat-icon">✓</div>
           <div className="stat-info">
-            <span className="stat-label">Completed Deliveries</span>
+            <span className="stat-label">Completed</span>
             <span className="stat-value">102</span>
-            <span className="stat-change positive">+20.5%</span>
+            <span className="stat-change positive">↑ +20.5%</span>
           </div>
         </div>
-        <div className="stat-card-delivery warning">
+        <div className="stat-card-delivery">
           <div className="stat-icon">⚠</div>
           <div className="stat-info">
-            <span className="stat-label">Failed Deliveries</span>
+            <span className="stat-label">Failed</span>
             <span className="stat-value">23</span>
-            <span className="stat-change negative">-2.5%</span>
+            <span className="stat-change negative">↓ -2.5%</span>
           </div>
         </div>
       </div>
@@ -286,7 +468,7 @@ const Deliveries = () => {
         <h2>Ready to Deliver?</h2>
         <p>Start A New Delivery And Start Earning</p>
         <button className="btn-start-delivery" onClick={() => setCurrentView("new-delivery")}>
-          Start New Delivery →
+          <span>Start New Delivery</span> →
         </button>
       </div>
 
@@ -294,10 +476,10 @@ const Deliveries = () => {
         <div className="activity-header">
           <div>
             <h3>Delivery Activity</h3>
-            <p>View Delivery summary</p>
+            <p>Recent delivery summary</p>
           </div>
           <button className="btn-view-history" onClick={() => setCurrentView("history")}>
-            View Delivery History
+            View Full History
           </button>
         </div>
 
@@ -305,20 +487,13 @@ const Deliveries = () => {
           {deliveryHistory.slice(0, 3).map((delivery) => (
             <div key={delivery.id} className="activity-item">
               <div className="activity-route">
-                <span className="route-label">Route(Pickup & Destination)</span>
+                <span className="route-label">Route</span>
                 <span className="route-value">{delivery.route}</span>
               </div>
               <div className="activity-recipient">
                 <span className="recipient-label">Recipient</span>
                 <span className="recipient-value">{delivery.customerName}</span>
                 <span className="recipient-phone">{delivery.customerPhone}</span>
-              </div>
-              <div className="activity-description">
-                <span className="desc-label">Description</span>
-                <span className="desc-value">Package Delivered To Recipient</span>
-                <span className="desc-date">
-                  {delivery.date} {delivery.time}
-                </span>
               </div>
               <div className="activity-status">
                 <span className="status-label">Status</span>
@@ -353,7 +528,7 @@ const Deliveries = () => {
             </div>
           </div>
           <div className="form-group">
-            <label>Customer Name</label>
+            <label>Customer Name *</label>
             <input
               type="text"
               placeholder="Sengendo Mark"
@@ -362,7 +537,7 @@ const Deliveries = () => {
             />
           </div>
           <div className="form-group">
-            <label>Phone Number</label>
+            <label>Phone Number *</label>
             <div className="phone-input">
               <span className="phone-prefix">+256</span>
               <input
@@ -403,10 +578,10 @@ const Deliveries = () => {
             />
           </div>
           <div className="form-group">
-            <label>Weight</label>
+            <label>Weight (kg)</label>
             <input
               type="text"
-              placeholder="2.5 Kg"
+              placeholder="2.5"
               value={deliveryData.packageWeight}
               onChange={(e) => setDeliveryData({ ...deliveryData, packageWeight: e.target.value })}
             />
@@ -415,23 +590,23 @@ const Deliveries = () => {
 
         <div className="form-section">
           <div className="section-header-delivery">
-            <span className="section-icon">🚚</span>
+            <span className="section-icon">📍</span>
             <div>
-              <h3>Pickup and Dropoff Locations</h3>
-              <p>Specify Pickup and Destination Addresses</p>
+              <h3>Pickup & Dropoff</h3>
+              <p>Specify addresses</p>
             </div>
           </div>
           <div className="form-group">
-            <label>Pickup Address</label>
+            <label>Pickup Address *</label>
             <input
               type="text"
-              placeholder="Pioneer Mall, Opp. Centenary Bank, Kampala"
+              placeholder="Pioneer Mall, Kampala"
               value={deliveryData.pickupAddress}
               onChange={(e) => setDeliveryData({ ...deliveryData, pickupAddress: e.target.value })}
             />
           </div>
           <div className="form-group">
-            <label>Dropoff Address</label>
+            <label>Dropoff Address *</label>
             <input
               type="text"
               placeholder="UCU campus, Mukono"
@@ -445,12 +620,12 @@ const Deliveries = () => {
           <div className="section-header-delivery">
             <span className="section-icon">👤</span>
             <div>
-              <h3>Receipient Information</h3>
-              <p>Enter Receipient Details</p>
+              <h3>Recipient Information</h3>
+              <p>Enter recipient details</p>
             </div>
           </div>
           <div className="form-group">
-            <label>Receipient Name</label>
+            <label>Recipient Name</label>
             <input
               type="text"
               placeholder="Magezi Wise"
@@ -480,14 +655,21 @@ const Deliveries = () => {
           <p>Set delivery rate</p>
         </div>
         <div className="pricing-display">
-          <span className="price-label">Estimated Price</span>
-          <span className="price-value">
-            {deliveryData.estimatedPrice.toLocaleString()} <small>UGX</small>
-          </span>
+          <span className="price-label">Estimated Price (UGX)</span>
+          <div className="price-value">
+            <input
+              type="number"
+              value={deliveryData.estimatedPrice}
+              onChange={(e) => setDeliveryData({ ...deliveryData, estimatedPrice: parseInt(e.target.value) || 0 })}
+              min="0"
+            />
+          </div>
         </div>
       </div>
 
-      <button className="btn-add-multiple">+ Add Multiple Delivery</button>
+      <button className="btn-add-multiple" onClick={handleAddMultiple}>
+        <span>+</span> Add Multiple Deliveries
+      </button>
 
       <div className="form-actions-delivery">
         <button className="btn-cancel-delivery" onClick={() => setCurrentView("dashboard")}>
@@ -497,7 +679,7 @@ const Deliveries = () => {
           Receive Money
         </button>
         <button className="btn-start-delivery-action" onClick={handleStartDelivery}>
-          Start
+          Start Delivery
         </button>
       </div>
     </div>
@@ -529,7 +711,7 @@ const Deliveries = () => {
         <div className="metric-card">
           <span className="metric-label">Delivery Price</span>
           <span className="metric-value-large">
-            {activeDelivery?.estimatedPrice.toLocaleString()} <small>UGX</small>
+            {activeDelivery?.estimatedPrice?.toLocaleString()} <small>UGX</small>
           </span>
         </div>
       </div>
@@ -560,7 +742,7 @@ const Deliveries = () => {
           </div>
           <div className="detail-row">
             <span className="detail-label">Weight</span>
-            <span className="detail-value">{activeDelivery?.packageWeight}</span>
+            <span className="detail-value">{activeDelivery?.packageWeight} kg</span>
           </div>
           <div className="detail-row">
             <span className="detail-label">Delivery Type</span>
@@ -594,7 +776,7 @@ const Deliveries = () => {
         </div>
         <div className="complete-metric">
           <span className="complete-metric-label">Total Delivery Price</span>
-          <span className="complete-metric-value">{activeDelivery?.estimatedPrice.toLocaleString()} UGX</span>
+          <span className="complete-metric-value">{activeDelivery?.estimatedPrice?.toLocaleString()} UGX</span>
         </div>
       </div>
 
@@ -612,7 +794,7 @@ const Deliveries = () => {
               <span className="code-time">Code Captured at {new Date().toLocaleTimeString()}</span>
             </div>
           )}
-          <button className="btn-change-number">Change Receipient Number</button>
+          <button className="btn-change-number">Change Recipient Number</button>
         </div>
       </div>
 
@@ -645,8 +827,25 @@ const Deliveries = () => {
           <p>Manage and view all your deliveries</p>
         </div>
         <div className="history-header-actions">
-          <button className="btn-export">📥 Export</button>
-          <button className="btn-share">🔗 Share</button>
+          <div className="export-dropdown">
+            <button className="btn-export">
+              📥 Export
+            </button>
+            <div className="export-options">
+              <div className="export-option" onClick={exportToPDF}>
+                <span>📄</span> Export as PDF
+              </div>
+              <div className="export-option" onClick={exportToExcel}>
+                <span>📊</span> Export as Excel
+              </div>
+              <div className="export-option" onClick={exportToCSV}>
+                <span>📑</span> Export as CSV
+              </div>
+            </div>
+          </div>
+          <button className="btn-share" onClick={() => alert("Share functionality - would share via social media")}>
+            🔗 Share
+          </button>
           <button className="btn-analytics" onClick={() => setCurrentView("analytics")}>
             View Analytics and Performance
           </button>
@@ -716,14 +915,17 @@ const Deliveries = () => {
               <label>
                 Amount Range: UGX {minAmount} - UGX {maxAmount.toLocaleString()}
               </label>
-              <input
-                type="range"
-                min="0"
-                max="15000"
-                value={maxAmount}
-                onChange={(e) => setMaxAmount(Number(e.target.value))}
-                className="range-slider"
-              />
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <input
+                  type="range"
+                  min="0"
+                  max="15000"
+                  value={maxAmount}
+                  onChange={(e) => setMaxAmount(Number(e.target.value))}
+                  className="range-slider"
+                />
+                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{maxAmount} UGX</span>
+              </div>
             </div>
 
             <div className="filter-group">
@@ -733,7 +935,7 @@ const Deliveries = () => {
                 <option value="amount">Amount</option>
                 <option value="distance">Distance</option>
               </select>
-              <select>
+              <select style={{ marginTop: '0.5rem' }}>
                 <option value="newest">Newest</option>
                 <option value="oldest">Oldest</option>
               </select>
@@ -824,7 +1026,9 @@ const Deliveries = () => {
                       </span>
                     </td>
                     <td>
-                      <button className="btn-view-details">👁 View</button>
+                      <button className="btn-view-details" onClick={() => alert(`View details for ${delivery.id}`)}>
+                        👁 View
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -835,8 +1039,17 @@ const Deliveries = () => {
           <div className="pagination">
             <span>Showing {filteredDeliveries.length} deliveries</span>
             <div className="pagination-controls">
-              <button disabled={currentPage === 1}>Previous</button>
-              <button>Next</button>
+              <button 
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              >
+                Previous
+              </button>
+              <button 
+                onClick={() => setCurrentPage(prev => prev + 1)}
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>
@@ -849,7 +1062,7 @@ const Deliveries = () => {
       <div className="analytics-header">
         <div>
           <h1>Delivery Analytics and Performance</h1>
-          <p>Real-time Delivery performance analytics</p>
+          <p>Real-time delivery performance analytics</p>
         </div>
       </div>
 
@@ -877,36 +1090,36 @@ const Deliveries = () => {
       <div className="analytics-stats-grid">
         <div className="analytics-stat-card">
           <div className="stat-icon-analytics">🚚</div>
-          <span className="change-indicator positive">{analyticsData.revenueChange}</span>
+          <span className="change-indicator positive">{currentAnalytics.revenueChange}</span>
           <div>
             <span className="stat-label-analytics">Total Deliveries</span>
-            <span className="stat-value-analytics">{analyticsData.totalDeliveries}</span>
+            <span className="stat-value-analytics">{currentAnalytics.totalDeliveries}</span>
           </div>
         </div>
         <div className="analytics-stat-card">
-          <div className="stat-icon-analytics">📊</div>
-          <span className="change-indicator positive">{analyticsData.revenueChange}</span>
+          <div className="stat-icon-analytics">💰</div>
+          <span className="change-indicator positive">{currentAnalytics.revenueChange}</span>
           <div>
             <span className="stat-label-analytics">Total Revenue</span>
             <span className="stat-value-analytics">
-              {analyticsData.totalRevenue.toLocaleString()} <small>UGX</small>
+              {currentAnalytics.totalRevenue.toLocaleString()} <small>UGX</small>
             </span>
           </div>
         </div>
         <div className="analytics-stat-card">
           <div className="stat-icon-analytics">✅</div>
-          <span className="change-indicator positive">{analyticsData.completedChange}</span>
+          <span className="change-indicator positive">{currentAnalytics.completedChange}</span>
           <div>
-            <span className="stat-label-analytics">Completed Deliveries</span>
-            <span className="stat-value-analytics">{analyticsData.completedDeliveries}</span>
+            <span className="stat-label-analytics">Completed</span>
+            <span className="stat-value-analytics">{currentAnalytics.completedDeliveries}</span>
           </div>
         </div>
         <div className="analytics-stat-card">
           <div className="stat-icon-analytics">⚠️</div>
-          <span className="change-indicator negative">{analyticsData.failedChange}</span>
+          <span className="change-indicator negative">{currentAnalytics.failedChange}</span>
           <div>
-            <span className="stat-label-analytics">Failed Deliveries</span>
-            <span className="stat-value-analytics">{analyticsData.failedDeliveries}</span>
+            <span className="stat-label-analytics">Failed</span>
+            <span className="stat-value-analytics">{currentAnalytics.failedDeliveries}</span>
           </div>
         </div>
       </div>
@@ -914,23 +1127,39 @@ const Deliveries = () => {
       <div className="analytics-charts-grid">
         <div className="chart-card">
           <h3>Delivery Summary</h3>
-          <p>Today's completed vs failed deliveries</p>
+          <p>Completed vs failed deliveries</p>
           <div className="bar-chart-placeholder">
             <div className="chart-bars">
-              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <div key={day} className="bar-group">
-                  <div className="bar bar-failed" style={{ height: `${Math.random() * 100 + 50}px` }}></div>
-                  <div className="bar bar-completed" style={{ height: `${Math.random() * 150 + 100}px` }}></div>
-                  <span className="bar-label">{day}</span>
+              {chartData.deliverySummary.map((data, i) => (
+                <div 
+                  key={data.day} 
+                  className="bar-group"
+                  data-tooltip={`${data.day}: ${data.completed} completed, ${data.failed} failed`}
+                >
+                  <div 
+                    className="bar bar-completed" 
+                    style={{ 
+                      height: `${(data.completed / maxDeliveryValue) * 150}px`,
+                      background: `linear-gradient(to top, #10b981 0%, #34d399 100%)`
+                    }}
+                  ></div>
+                  <div 
+                    className="bar bar-failed" 
+                    style={{ 
+                      height: `${(data.failed / maxDeliveryValue) * 150}px`,
+                      background: `linear-gradient(to top, #ef4444 0%, #fca5a5 100%)`
+                    }}
+                  ></div>
+                  <span className="bar-label">{data.day}</span>
                 </div>
               ))}
             </div>
             <div className="chart-legend">
               <span>
-                <span className="legend-color failed"></span> Failed
+                <span className="legend-color completed"></span> Completed Deliveries
               </span>
               <span>
-                <span className="legend-color completed"></span> Completed
+                <span className="legend-color failed"></span> Failed Deliveries
               </span>
             </div>
           </div>
@@ -938,86 +1167,45 @@ const Deliveries = () => {
 
         <div className="chart-card">
           <h3>Revenue By Delivery Type</h3>
-          <p>Total Revenue Breakdown</p>
+          <p>Total revenue breakdown</p>
           <div className="pie-chart-section">
             <div className="pie-chart-placeholder">
               <svg viewBox="0 0 100 100" className="pie-chart">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="none"
-                  stroke="#FEF08A"
-                  strokeWidth="20"
-                  strokeDasharray="100.53 151.32"
-                  transform="rotate(-90 50 50)"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="none"
-                  stroke="#EF4444"
-                  strokeWidth="20"
-                  strokeDasharray="50.26 201.06"
-                  strokeDashoffset="-100.53"
-                  transform="rotate(-90 50 50)"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="none"
-                  stroke="#0033CC"
-                  strokeWidth="20"
-                  strokeDasharray="50.26 201.06"
-                  strokeDashoffset="-150.79"
-                  transform="rotate(-90 50 50)"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="none"
-                  stroke="#7C3AED"
-                  strokeWidth="20"
-                  strokeDasharray="50.26 201.06"
-                  strokeDashoffset="-201.06"
-                  transform="rotate(-90 50 50)"
-                />
+                {chartData.revenueBreakdown.reduce((acc, item, index, array) => {
+                  const previousPercentage = array.slice(0, index).reduce((sum, i) => sum + i.percentage, 0)
+                  const circumference = 251.2 // 2 * π * 40
+                  const strokeDasharray = `${(item.percentage / 100) * circumference} ${circumference}`
+                  const strokeDashoffset = `-${(previousPercentage / 100) * circumference}`
+                  
+                  acc.push(
+                    <circle 
+                      key={item.type}
+                      cx="50" 
+                      cy="50" 
+                      r="40" 
+                      fill="none" 
+                      stroke={item.color}
+                      strokeWidth="20" 
+                      strokeDasharray={strokeDasharray}
+                      strokeDashoffset={strokeDashoffset}
+                      transform="rotate(-90 50 50)"
+                    />
+                  )
+                  return acc
+                }, [])}
               </svg>
-              <div className="pie-labels">
-                <span className="pie-label" style={{ top: "10%", left: "60%" }}>
-                  20% Express
-                </span>
-                <span className="pie-label" style={{ top: "45%", right: "5%" }}>
-                  20% Standard
-                </span>
-                <span className="pie-label" style={{ bottom: "10%", right: "20%" }}>
-                  20% Bulk
-                </span>
-                <span className="pie-label" style={{ top: "40%", left: "5%" }}>
-                  40% Same-Day
-                </span>
+              <div className="chart-center">
+                <span className="chart-center-value">UGX</span>
+                <span className="chart-center-label">60,000</span>
               </div>
             </div>
             <div className="revenue-breakdown">
-              <div className="revenue-item">
-                <span className="revenue-type">Same-Day</span>
-                <span className="revenue-amount">UGX 25,000</span>
-              </div>
-              <div className="revenue-item">
-                <span className="revenue-type">Bulk</span>
-                <span className="revenue-amount">UGX 5,000</span>
-              </div>
-              <div className="revenue-item">
-                <span className="revenue-type">Standard</span>
-                <span className="revenue-amount">UGX 15,000</span>
-              </div>
-              <div className="revenue-item">
-                <span className="revenue-type">Express</span>
-                <span className="revenue-amount">UGX 10,000</span>
-              </div>
+              {chartData.revenueBreakdown.map((item, index) => (
+                <div key={item.type} className="revenue-item">
+                  <span className="revenue-type">{item.type}</span>
+                  <span className="revenue-amount">UGX {item.amount.toLocaleString()}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -1025,81 +1213,39 @@ const Deliveries = () => {
 
       <div className="analytics-charts-grid">
         <div className="chart-card wide">
-          <h3>Peak Delivery Hours</h3>
-          <p>Delivery Volume by Hour</p>
-          <div className="heatmap-placeholder">
-            <div className="heatmap-gradient"></div>
-            <div className="heatmap-legend">
-              <span>
-                <span className="legend-dot morning"></span> Morning
-              </span>
-              <span>
-                <span className="legend-dot afternoon"></span> Afternoon
-              </span>
-              <span>
-                <span className="legend-dot evening"></span> Evening
-              </span>
-            </div>
-            <div className="peak-stats">
-              <div className="peak-stat">
-                <span className="peak-label">Peak Hour</span>
-                <span className="peak-value">12PM</span>
-                <span className="peak-sublabel">49 Deliveries Made</span>
-              </div>
-              <div className="peak-stat">
-                <span className="peak-label">Slowest Hour</span>
-                <span className="peak-value">8AM</span>
-                <span className="peak-sublabel">9 Deliveries Made</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="chart-card wide">
           <h3>Payment Method Trends</h3>
+          <p>Payment preferences over time</p>
           <div className="line-chart-placeholder">
             <svg viewBox="0 0 400 200" className="line-chart">
-              <polyline
-                points="0,150 50,120 100,80 150,90 200,60 250,70 300,50 350,45 400,40"
-                fill="none"
-                stroke="#0033CC"
-                strokeWidth="3"
-              />
-              <polyline
-                points="0,180 50,160 100,150 150,145 200,140 250,135 300,130 350,125 400,120"
-                fill="none"
-                stroke="#FEF08A"
-                strokeWidth="3"
-              />
-              <polyline
-                points="0,190 50,185 100,175 150,165 200,160 250,155 300,150 350,145 400,140"
-                fill="none"
-                stroke="#EF4444"
-                strokeWidth="3"
-              />
-              <polyline
-                points="0,195 50,193 100,190 150,188 200,185 250,183 300,180 350,178 400,175"
-                fill="none"
-                stroke="#000000"
-                strokeWidth="3"
-              />
+              {chartData.paymentMethods.map((method, index) => {
+                const points = method.trend.map((value, i) => {
+                  const x = (i * 400) / (method.trend.length - 1)
+                  const y = 200 - ((value / 200) * 160)
+                  return `${x},${y}`
+                }).join(" ")
+                
+                return (
+                  <polyline 
+                    key={method.method}
+                    points={points}
+                    fill="none"
+                    stroke={method.color}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                )
+              })}
             </svg>
             <div className="chart-legend">
-              <span>
-                <span className="legend-line cash"></span> Cash
-              </span>
-              <span>
-                <span className="legend-line momo"></span> MTN MoMo
-              </span>
-              <span>
-                <span className="legend-line split"></span> Split Pay
-              </span>
-              <span>
-                <span className="legend-line qr"></span> QR Code
-              </span>
+              {chartData.paymentMethods.map((method) => (
+                <span key={method.method}>
+                  <span className={`legend-line ${method.method.toLowerCase().replace(" ", "-")}`}></span> 
+                  {method.method}
+                </span>
+              ))}
             </div>
           </div>
-
           <div className="payment-cards-grid">
             <div className="payment-card-analytics cash-card">
               <span className="payment-card-label">Cash</span>
@@ -1115,15 +1261,15 @@ const Deliveries = () => {
               </span>
               <span className="payment-card-change positive">+22.5%</span>
             </div>
-            <div className="payment-card-analytics split-card">
-              <span className="payment-card-label">Split Pay</span>
+            <div className="payment-card-analytics airtel-card">
+              <span className="payment-card-label">Airtel Money</span>
               <span className="payment-card-amount">
-                15,000 <small>UGX</small>
+                75,000 <small>UGX</small>
               </span>
-              <span className="payment-card-change negative">-2.5%</span>
+              <span className="payment-card-change positive">+8.5%</span>
             </div>
-            <div className="payment-card-analytics qr-card">
-              <span className="payment-card-label">QR Code</span>
+            <div className="payment-card-analytics visa-card">
+              <span className="payment-card-label">Visa/Card</span>
               <span className="payment-card-amount">
                 40,000 <small>UGX</small>
               </span>
@@ -1139,22 +1285,26 @@ const Deliveries = () => {
     </div>
   )
 
+  // Payment modal with all options and images
   const renderPaymentModal = () => (
     <div className={`payment-modal-overlay ${showPaymentModal ? "active" : ""}`}>
       <div className="payment-modal">
+        <button className="modal-close" onClick={() => setShowPaymentModal(false)}>×</button>
         <div className="payment-modal-header">
-          <h2>Receive Money</h2>
+          <h2>Receive Payment</h2>
+          <p>Select payment method and enter amount</p>
         </div>
 
         <div className="payment-modal-content">
           <div className="payment-amount-section">
-            <label>Enter Cash Amount</label>
+            <label>Enter Amount (UGX)</label>
             <div className="amount-input-display">
               <input
                 type="number"
                 value={paymentAmount}
                 onChange={(e) => setPaymentAmount(Number(e.target.value))}
                 className="amount-input-large"
+                min="0"
               />
               <span className="currency-label">UGX</span>
             </div>
@@ -1167,44 +1317,55 @@ const Deliveries = () => {
                 className={`payment-method-option ${selectedPaymentMethod === "cash" ? "selected" : ""}`}
                 onClick={() => setSelectedPaymentMethod("cash")}
               >
-                <div className="payment-method-box">CASH</div>
+                <div className="payment-method-logo cash">
+                  💵
+                </div>
+                <span className="payment-method-name">Cash</span>
               </div>
               <div
                 className={`payment-method-option ${selectedPaymentMethod === "momo" ? "selected" : ""}`}
                 onClick={() => setSelectedPaymentMethod("momo")}
               >
-                <img src="./assets/momo.png" alt="MTN MoMo" className="payment-logo" />
-                {selectedPaymentMethod === "momo" && <span className="checkmark">✓</span>}
+                <div className="payment-method-logo momo">
+                  <span>MTN</span>
+                </div>
+                <span className="payment-method-name">MTN MoMo</span>
               </div>
               <div
                 className={`payment-method-option ${selectedPaymentMethod === "airtel" ? "selected" : ""}`}
                 onClick={() => setSelectedPaymentMethod("airtel")}
               >
-                <img src="./assets/airtel.png" alt="Airtel Money" className="payment-logo" />
+                <div className="payment-method-logo airtel">
+                  <span>Airtel</span>
+                </div>
+                <span className="payment-method-name">Airtel Money</span>
               </div>
               <div
                 className={`payment-method-option ${selectedPaymentMethod === "visa" ? "selected" : ""}`}
                 onClick={() => setSelectedPaymentMethod("visa")}
               >
-                <img src="./assets/visa.png" alt="Visa" className="payment-logo" />
+                <div className="payment-method-logo visa">
+                  <span>VISA</span>
+                </div>
+                <span className="payment-method-name">Visa</span>
               </div>
               <div
                 className={`payment-method-option ${selectedPaymentMethod === "qr" ? "selected" : ""}`}
                 onClick={() => setSelectedPaymentMethod("qr")}
               >
-                <div className="qr-code-box">
-                  <div className="qr-placeholder">⊞</div>
-                  <span>QR Code</span>
+                <div className="payment-method-logo qr">
+                  <span>QR</span>
                 </div>
+                <span className="payment-method-name">QR Code</span>
               </div>
               <div
                 className={`payment-method-option ${selectedPaymentMethod === "split" ? "selected" : ""}`}
                 onClick={() => setSelectedPaymentMethod("split")}
               >
-                <div className="split-payment-box">
-                  <div className="split-icon">⊚⊚</div>
-                  <span>Split Payment</span>
+                <div className="payment-method-logo split">
+                  🔀
                 </div>
+                <span className="payment-method-name">Split Pay</span>
               </div>
             </div>
           </div>
@@ -1222,23 +1383,245 @@ const Deliveries = () => {
     </div>
   )
 
+  // Multiple delivery modal
+  const renderMultipleDeliveryModal = () => (
+    <div className={`multiple-delivery-modal-overlay ${showMultipleDelivery ? "active" : ""}`}>
+      <div className="multiple-delivery-modal">
+        <button className="modal-close" onClick={() => setShowMultipleDelivery(false)}>×</button>
+        <div className="multiple-delivery-header">
+          <h2>Add Multiple Deliveries</h2>
+        </div>
+        
+        <div className="multiple-delivery-content">
+          <div className={`upload-section ${uploadedFile ? 'active' : ''}`}>
+            <div className="upload-icon">📁</div>
+            <h3>Upload Delivery File</h3>
+            <p>Upload CSV or Excel file containing multiple delivery information</p>
+            <input
+              type="file"
+              id="file-upload"
+              accept=".csv,.xlsx,.xls"
+              onChange={handleFileUpload}
+              style={{ display: 'none' }}
+            />
+            <label htmlFor="file-upload" className="btn-upload">
+              Choose File
+            </label>
+            <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#64748b' }}>
+              Supported formats: CSV, Excel (.xlsx, .xls)
+            </p>
+          </div>
+
+          {uploadedFile && (
+            <div className="upload-file-info">
+              <span className="file-name">{uploadedFile.name}</span>
+              <span className="file-size">({Math.round(uploadedFile.size / 1024)} KB)</span>
+              <button className="btn-remove-file" onClick={removeUploadedFile}>
+                Remove
+              </button>
+            </div>
+          )}
+
+          <div className="preview-section">
+            <h3>File Format Requirements</h3>
+            <table className="preview-table">
+              <thead>
+                <tr>
+                  <th>Column</th>
+                  <th>Description</th>
+                  <th>Example</th>
+                  <th>Required</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>customerName</td>
+                  <td>Customer full name</td>
+                  <td>John Doe</td>
+                  <td>✓</td>
+                </tr>
+                <tr>
+                  <td>customerPhone</td>
+                  <td>Customer phone number</td>
+                  <td>0789123456</td>
+                  <td>✓</td>
+                </tr>
+                <tr>
+                  <td>packageDescription</td>
+                  <td>Package details</td>
+                  <td>Electronics</td>
+                  <td>✓</td>
+                </tr>
+                <tr>
+                  <td>pickupAddress</td>
+                  <td>Pickup location</td>
+                  <td>Kampala Road</td>
+                  <td>✓</td>
+                </tr>
+                <tr>
+                  <td>dropoffAddress</td>
+                  <td>Delivery destination</td>
+                  <td>Banda Road</td>
+                  <td>✓</td>
+                </tr>
+                <tr>
+                  <td>estimatedPrice</td>
+                  <td>Delivery fee (UGX)</td>
+                  <td>5000</td>
+                  <td>✓</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="multiple-delivery-actions">
+            <button 
+              className="btn-cancel-multiple" 
+              onClick={() => {
+                setShowMultipleDelivery(false)
+                setUploadedFile(null)
+              }}
+            >
+              Cancel
+            </button>
+            <button 
+              className="btn-process-multiple" 
+              onClick={processMultipleDeliveries}
+              disabled={!uploadedFile}
+            >
+              Process Deliveries
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Success modal with receipt
   const renderSuccessModal = () => (
     <div className={`success-modal-overlay ${showSuccessModal ? "active" : ""}`}>
       <div className="success-modal">
-        <h2>Delivery</h2>
+        <button className="modal-close" onClick={() => setShowSuccessModal(false)}>×</button>
+        <h2>Delivery Complete</h2>
         <div className="success-icon">✓</div>
         <h3>Payment Successful</h3>
         <div className="success-amount">UGX {paymentAmount.toLocaleString()}</div>
-        {selectedPaymentMethod === "momo" && (
-          <img src="./assets/momo.png" alt="MTN MoMo" className="success-payment-logo" />
-        )}
-        <p>Payment received successfully</p>
+        <p>Payment received via {selectedPaymentMethod}</p>
         <div className="success-actions">
           <button className="btn-done" onClick={handlePaymentSuccess}>
-            Done
+            View Receipt
           </button>
-          <button className="btn-start-delivery-success" onClick={handlePaymentSuccess}>
-            Start Delivery
+          <button className="btn-start-delivery-success" onClick={() => {
+            setShowSuccessModal(false)
+            setCurrentView("dashboard")
+            setActiveDelivery(null)
+          }}>
+            New Delivery
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Receipt display
+  const renderReceipt = () => (
+    <div className="success-modal-overlay active">
+      <div className="success-modal" style={{ maxWidth: '500px' }}>
+        <button className="modal-close" onClick={() => {
+          setShowReceipt(false)
+          setCurrentView("dashboard")
+          setActiveDelivery(null)
+          setDeliveryData({
+            customerName: "",
+            customerPhone: "",
+            packageDescription: "",
+            packageWeight: "",
+            deliveryType: "same-day",
+            pickupAddress: "",
+            dropoffAddress: "",
+            recipientName: "",
+            recipientPhone: "",
+            estimatedPrice: 3000,
+          })
+        }}>×</button>
+        
+        <div ref={receiptRef} style={{ textAlign: 'left', padding: '1rem', background: 'white' }}>
+          <h2 style={{ textAlign: 'center', color: '#1e40af', marginBottom: '1rem' }}>Delivery Receipt</h2>
+          
+          <div style={{ marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              <span style={{ fontWeight: '600' }}>Receipt ID:</span>
+              <span>{receiptData?.id}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              <span style={{ fontWeight: '600' }}>Date:</span>
+              <span>{receiptData?.date} {receiptData?.time}</span>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '1rem' }}>
+            <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: '#1e293b' }}>Customer Details</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+              <span>Name:</span>
+              <span>{receiptData?.customerName}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+              <span>Phone:</span>
+              <span>{receiptData?.customerPhone}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Delivery Type:</span>
+              <span>{receiptData?.deliveryType}</span>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '1rem', borderTop: '1px solid #e2e8f0', paddingTop: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              <span style={{ fontWeight: '600' }}>Payment Method:</span>
+              <span style={{ fontWeight: '600' }}>{receiptData?.paymentMethod}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              <span style={{ fontWeight: '600' }}>Amount:</span>
+              <span style={{ fontWeight: '600' }}>UGX {receiptData?.amount?.toLocaleString()}</span>
+            </div>
+            {receiptData?.recipientCode && (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontWeight: '600' }}>Recipient Code:</span>
+                <span style={{ fontWeight: '600', fontFamily: 'monospace' }}>{receiptData?.recipientCode}</span>
+              </div>
+            )}
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '1.5rem', paddingTop: '1rem', borderTop: '2px dashed #cbd5e1' }}>
+            <p style={{ fontSize: '0.875rem', color: '#64748b' }}>Thank you for using our delivery service!</p>
+          </div>
+        </div>
+
+        <div className="receipt-actions">
+          <button className="btn-generate-pdf" onClick={exportToPDF}>
+            <span>📄</span> Save as PDF
+          </button>
+          <button className="btn-share-receipt" onClick={shareReceipt}>
+            <span>📤</span> Share Receipt
+          </button>
+          <button className="btn-done" onClick={() => {
+            setShowReceipt(false)
+            setCurrentView("dashboard")
+            setActiveDelivery(null)
+            setDeliveryData({
+              customerName: "",
+              customerPhone: "",
+              packageDescription: "",
+              packageWeight: "",
+              deliveryType: "same-day",
+              pickupAddress: "",
+              dropoffAddress: "",
+              recipientName: "",
+              recipientPhone: "",
+              estimatedPrice: 3000,
+            })
+          }}>
+            Done
           </button>
         </div>
       </div>
@@ -1254,7 +1637,9 @@ const Deliveries = () => {
       {currentView === "history" && renderHistory()}
       {currentView === "analytics" && renderAnalytics()}
       {renderPaymentModal()}
-      {renderSuccessModal()}
+      {renderMultipleDeliveryModal()}
+      {showSuccessModal && renderSuccessModal()}
+      {showReceipt && renderReceipt()}
     </div>
   )
 }
