@@ -297,7 +297,7 @@ const Riders = () => {
               to="/rider/support" 
               icon={<GroupAddIcon />} 
               selected={selected} 
-              setSelected={PersonAddIcon} 
+              setSelected={handleItemClick} 
             />
 
             <Item 
