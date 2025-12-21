@@ -1803,9 +1803,7 @@ const Statements = () => {
       <header className="dashboard-header">
         <div className="header-main">
           <div className="header-title">
-            <div className="title-icon">
-              <FileBarChart size={24} />
-            </div>
+            
             <div>
               <h1>Financials & Reports</h1>
               <p className="header-subtitle">Complete financial tracking and insights dashboard</p>
