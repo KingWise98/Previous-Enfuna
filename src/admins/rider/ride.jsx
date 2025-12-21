@@ -16,6 +16,8 @@ export default function Trips() {
     stops: [],
     notes: "",
   })
+  const [isEditingAmount, setIsEditingAmount] = useState(false)
+  const [amountDraft, setAmountDraft] = useState(String(2000))
   const [showModal, setShowModal] = useState(false)
   const [modalType, setModalType] = useState("")
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("MTN MoMo")
@@ -184,6 +186,30 @@ export default function Trips() {
     }))
   }
 
+  const canSaveTrip = Boolean(currentTrip.pickup && currentTrip.destination)
+
+  const closeSetup = () => {
+    setIsEditingAmount(false)
+    setTripStatus("idle")
+  }
+
+  const beginEditAmount = () => {
+    setAmountDraft(String(currentTrip.amount ?? ""))
+    setIsEditingAmount(true)
+  }
+
+  const commitAmount = () => {
+    const normalized = String(amountDraft).replace(/,/g, "").trim()
+    const parsed = Number(normalized)
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      setAmountDraft(String(currentTrip.amount ?? ""))
+      setIsEditingAmount(false)
+      return
+    }
+    setCurrentTrip({ ...currentTrip, amount: parsed })
+    setIsEditingAmount(false)
+  }
+
   return (
     <div className="trips-container">
       {/* Dashboard View */}
@@ -270,89 +296,131 @@ export default function Trips() {
           </div>
         </div>
       )}
-
+ 
       {/* Trip Setup */}
       {tripStatus === "setup" && (
-        <div className="trip-setup">
-          <div className="trip-setup-header">New Trip</div>
+        <div className="trip-setup-overlay" role="dialog" aria-modal="true" onClick={closeSetup}>
+          <div className="trip-setup-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="trip-setup-modal-header">
+              <div className="trip-setup-header">New Trip</div>
+              <button className="trip-setup-close" onClick={closeSetup} aria-label="Close">
+                ×
+              </button>
+            </div>
 
-          <div className="trip-setup-content">
-            <h2 className="form-title">Trip Setup Form</h2>
-            <p className="form-subtitle">Configure your trip details and start your journey</p>
+            <div className="trip-setup-content">
+              <h2 className="form-title">Trip Setup Form</h2>
+              <p className="form-subtitle">Configure your trip details and start your journey</p>
 
-            <div className="location-inputs">
-              <div className="input-group">
-                <label>Enter Pickup Location</label>
-                <input
-                  type="text"
-                  value={currentTrip.pickup}
-                  onChange={(e) => setCurrentTrip({ ...currentTrip, pickup: e.target.value })}
-                  placeholder="Mukono"
-                />
-                <div className="suggestions">
-                  {popularPickups.map((loc) => (
-                    <button key={loc} onClick={() => setCurrentTrip({ ...currentTrip, pickup: loc })}>
-                      {loc}
-                    </button>
-                  ))}
+              <div className="location-inputs">
+                <div className="input-group">
+                  <label>Enter Pickup Location</label>
+                  <input
+                    type="text"
+                    value={currentTrip.pickup}
+                    onChange={(e) => setCurrentTrip({ ...currentTrip, pickup: e.target.value })}
+                    placeholder="Mukono"
+                  />
+                  <div className="suggestions">
+                    {popularPickups.map((loc) => (
+                      <button key={loc} onClick={() => setCurrentTrip({ ...currentTrip, pickup: loc })}>
+                        {loc}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="location-divider">TO</div>
+
+                <div className="input-group">
+                  <label>Enter Destination</label>
+                  <input
+                    type="text"
+                    value={currentTrip.destination}
+                    onChange={(e) => setCurrentTrip({ ...currentTrip, destination: e.target.value })}
+                    placeholder="Kampala"
+                  />
+                  <div className="suggestions">
+                    {popularDestinations.map((loc) => (
+                      <button key={loc} onClick={() => setCurrentTrip({ ...currentTrip, destination: loc })}>
+                        {loc}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="location-divider">TO</div>
-
-              <div className="input-group">
-                <label>Enter Destination</label>
-                <input
-                  type="text"
-                  value={currentTrip.destination}
-                  onChange={(e) => setCurrentTrip({ ...currentTrip, destination: e.target.value })}
-                  placeholder="Kampala"
-                />
-                <div className="suggestions">
-                  {popularDestinations.map((loc) => (
-                    <button key={loc} onClick={() => setCurrentTrip({ ...currentTrip, destination: loc })}>
-                      {loc}
-                    </button>
-                  ))}
+              <div className="amount-section">
+                <label>Enter Amount</label>
+                <div className="amount-display">
+                  {isEditingAmount ? (
+                    <>
+                      <input
+                        className="amount-input-inline"
+                        type="text"
+                        inputMode="numeric"
+                        value={amountDraft}
+                        onChange={(e) => setAmountDraft(e.target.value)}
+                        onBlur={commitAmount}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") commitAmount()
+                          if (e.key === "Escape") {
+                            setIsEditingAmount(false)
+                            setAmountDraft(String(currentTrip.amount ?? ""))
+                          }
+                        }}
+                        autoFocus
+                        aria-label="Trip amount"
+                      />
+                      <span className="amount-currency">UGX</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="amount-value">{currentTrip.amount.toLocaleString()}</span>
+                      <span className="amount-currency">UGX</span>
+                    </>
+                  )}
                 </div>
+                <button
+                  className="change-amount-btn"
+                  onClick={() => {
+                    if (isEditingAmount) {
+                      commitAmount()
+                      return
+                    }
+                    beginEditAmount()
+                  }}
+                >
+                  {isEditingAmount ? "Save Amount" : "Change Amount"}
+                </button>
               </div>
-            </div>
 
-            <div className="amount-section">
-              <label>Enter Amount</label>
-              <div className="amount-display">
-                <span className="amount-value">{currentTrip.amount.toLocaleString()}</span>
-                <span className="amount-currency">UGX</span>
+              <div className="trip-actions">
+                <button className="btn-primary" onClick={startTrip}>
+                  START TRIP
+                </button>
+                <button
+                  className={`btn-secondary${canSaveTrip ? "" : " is-disabled"}`}
+                  onClick={() => {
+                    if (!canSaveTrip) return
+                    saveTrip()
+                  }}
+                  disabled={!canSaveTrip}
+                >
+                  SAVE TRIP
+                </button>
+                <button
+                  className="btn-secondary"
+                  onClick={() => setCurrentTrip({ ...currentTrip, pickup: "", destination: "", amount: 2000 })}
+                >
+                  CLEAR FORM
+                </button>
               </div>
-              <button
-                className="change-amount-btn"
-                onClick={() => {
-                  const newAmount = prompt("Enter new amount:", currentTrip.amount)
-                  if (newAmount) setCurrentTrip({ ...currentTrip, amount: Number(newAmount) })
-                }}
-              >
-                Change Amount
+
+              <button className="btn-cancel" onClick={closeSetup}>
+                CANCEL TRIP
               </button>
             </div>
-
-            <div className="trip-actions">
-              <button className="btn-primary" onClick={startTrip}>
-                START TRIP
-              </button>
-              <button className="btn-secondary" onClick={saveTrip}>
-                SAVE TRIP
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={() => setCurrentTrip({ ...currentTrip, pickup: "", destination: "", amount: 2000 })}
-              >
-                CLEAR FORM
-              </button>
-            </div>
-
-            <button className="btn-cancel" onClick={() => setTripStatus("idle")}>
-              CANCEL TRIP
-            </button>
           </div>
         </div>
       )}
