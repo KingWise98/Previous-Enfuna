@@ -8,7 +8,7 @@ export default function ExpenseManagement() {
   const [showAddExpense, setShowAddExpense] = useState(false)
   const [addExpenseStep, setAddExpenseStep] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
-  const [filterCategory, setFilterCategory] = useState("All Categories")
+  const [filterCategory, setFilterCategory] = useState("All")
   const [filterStatus, setFilterStatus] = useState("All")
 
   // Form state
@@ -34,37 +34,37 @@ export default function ExpenseManagement() {
     {
       id: 1,
       date: "2025-12-05",
-      time: "17:46 AM",
+      time: "17:46",
       category: "Fuel",
       description: "Petrol refill at shell",
-      amount: "UGX 10,000",
+      amount: "10,000",
       receipt: "Yes",
     },
     {
       id: 2,
       date: "2025-12-05",
-      time: "08:20 AM",
+      time: "08:20",
       category: "Repairs",
       description: "Petrol refill at shell",
-      amount: "UGX 20,000",
+      amount: "20,000",
       receipt: "Yes",
     },
     {
       id: 3,
       date: "2025-12-05",
-      time: "07:21 AM",
+      time: "07:21",
       category: "Airtime",
       description: "Petrol refill at shell",
-      amount: "UGX 2,000",
+      amount: "2,000",
       receipt: "No",
     },
     {
       id: 4,
       date: "2025-12-05",
-      time: "12:21 AM",
+      time: "12:21",
       category: "Fuel",
       description: "Petrol refill at shell",
-      amount: "UGX 10,000",
+      amount: "10,000",
       receipt: "Yes",
     },
   ]
@@ -116,12 +116,12 @@ export default function ExpenseManagement() {
 
   return (
     <div className="expense-container">
-      {/* Header */}
+      {/* Compact Header */}
       <header className="expense-header">
         <div className="expense-header-content">
           <div>
             <h1 className="expense-title">EXPENSE DASHBOARD</h1>
-            <p className="expense-subtitle">Track and Manage your expenses Efficiently</p>
+            <p className="expense-subtitle">Track and Manage expenses</p>
           </div>
           <div className="expense-user-profile">
             <span className="expense-user-name">Moses. K</span>
@@ -130,112 +130,92 @@ export default function ExpenseManagement() {
         </div>
       </header>
 
-      {/* Stats Cards */}
-      <div className="expense-stats-grid">
-        <div className="expense-stat-card expense-stat-card-blue">
-          <div className="expense-stat-header">
-            <span className="expense-stat-label">Weekly Expenses</span>
-            <span className="expense-stat-change expense-stat-positive">+2</span>
+      {/* Compact Stats Grid - All cards in one line */}
+      <div className="compact-stats-grid">
+        <div className="compact-stat-card stat-blue">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Weekly</span>
+            <span className="compact-stat-change positive">+2</span>
           </div>
-          <div className="expense-stat-value">
-            18,000 <span className="expense-stat-currency">UGX</span>
+          <div className="compact-stat-value">
+            18,000<span className="compact-stat-currency">UGX</span>
           </div>
         </div>
 
-        <div className="expense-stat-card expense-stat-card-yellow">
-          <div className="expense-stat-header">
-            <span className="expense-stat-label">Fuel Expenses</span>
-            <span className="expense-stat-change expense-stat-negative">+8.5%</span>
+        <div className="compact-stat-card stat-yellow">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Fuel</span>
+            <span className="compact-stat-change negative">+8.5%</span>
           </div>
-          <div className="expense-stat-value">
-            75,000 <span className="expense-stat-currency">UGX</span>
+          <div className="compact-stat-value">
+            75,000<span className="compact-stat-currency">UGX</span>
           </div>
-          <div className="expense-stat-badge">Top Category</div>
+          <div className="compact-stat-badge">Top</div>
         </div>
 
-        <div className="expense-stat-card expense-stat-card-green">
-          <div className="expense-stat-header">
-            <span className="expense-stat-label">Monthly Expenses</span>
-            <span className="expense-stat-change expense-stat-negative">+20.5%</span>
+        <div className="compact-stat-card stat-green">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Monthly</span>
+            <span className="compact-stat-change negative">+20.5%</span>
           </div>
-          <div className="expense-stat-value">
-            430,000 <span className="expense-stat-currency">UGX</span>
+          <div className="compact-stat-value">
+            430,000<span className="compact-stat-currency">UGX</span>
           </div>
-          <div className="expense-stat-subtext">Overal Monthly Expenses</div>
         </div>
-      </div>
 
-      {/* Today's Expenses Banner */}
-      <div className="expense-today-banner">
-        <div className="expense-today-content">
-          <span className="expense-today-label">
-            Today's Expenses <span className="expense-dropdown-icon">▼</span>
-          </span>
-          <div className="expense-today-amount">
-            <span className="expense-today-currency">UGX</span>
-            <span className="expense-today-value">125,000</span>
+        <div className="compact-stat-card stat-purple">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Today</span>
+            <span className="compact-stat-change positive">+12.5%</span>
+          </div>
+          <div className="compact-stat-value">
+            125,000<span className="compact-stat-currency">UGX</span>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="expense-quick-actions">
-        <h2 className="expense-section-title">Quick Actions</h2>
-        <div className="expense-action-buttons">
-          <button className="expense-action-btn expense-action-btn-primary" onClick={handleAddExpense}>
-            Add New Expense
-          </button>
-          <button className="expense-action-btn expense-action-btn-secondary">Scan Receipt</button>
-          <button className="expense-action-btn expense-action-btn-secondary">Export Report</button>
-        </div>
+      {/* Compact Action Buttons */}
+      <div className="compact-action-bar">
+        <button className="compact-btn btn-primary" onClick={handleAddExpense}>
+          Add Expense
+        </button>
+        <button className="compact-btn btn-secondary">Scan Receipt</button>
+        <button className="compact-btn btn-secondary">Export</button>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="expense-content-grid">
-        {/* Expense Activity */}
-        <div className="expense-activity-section">
-          <div className="expense-activity-header">
-            <h2 className="expense-section-title">Expense Activity</h2>
-            <button className="expense-refresh-btn">Refresh</button>
+      {/* Compact Content Grid */}
+      <div className="compact-content-grid">
+        {/* Compact Table Section */}
+        <div className="compact-table-section">
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">Recent Expenses</h2>
+            <div className="compact-filters">
+              <input
+                type="text"
+                placeholder="Search..."
+                className="compact-search-input"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <select
+                className="compact-filter-select"
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+              >
+                <option>All</option>
+                {expenseCategories.map((cat) => (
+                  <option key={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="expense-filters">
-            <input
-              type="text"
-              placeholder="Search Expenses"
-              className="expense-search-input"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <select
-              className="expense-category-filter"
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-            >
-              <option>All Categories</option>
-              {expenseCategories.map((cat) => (
-                <option key={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="expense-action-bar">
-            <button className="expense-export-btn">
-              <span className="expense-icon">⬇</span> Export
-            </button>
-            <button className="expense-share-btn">
-              <span className="expense-icon">⎋</span> Share
-            </button>
-          </div>
-
-          {/* Table */}
-          <div className="expense-table-wrapper">
-            <table className="expense-table">
+          <div className="compact-table-wrapper">
+            <table className="compact-table">
               <thead>
                 <tr>
-                  <th>Date & Time</th>
+                  <th>Date</th>
                   <th>Category</th>
-                  <th>Description</th>
                   <th>Amount</th>
                   <th>Receipt</th>
                   <th>Action</th>
@@ -245,29 +225,24 @@ export default function ExpenseManagement() {
                 {expenseData.map((expense) => (
                   <tr key={expense.id}>
                     <td>
-                      <div className="expense-date-cell">
-                        <div>{expense.date}</div>
-                        <div className="expense-time">{expense.time}</div>
+                      <div className="compact-date-cell">
+                        <div className="compact-date">{expense.date}</div>
+                        <div className="compact-time">{expense.time}</div>
                       </div>
                     </td>
                     <td>
-                      <span className="expense-category-badge">{expense.category}</span>
+                      <span className="compact-category-badge">{expense.category}</span>
                     </td>
-                    <td className="expense-description">{expense.description}</td>
-                    <td className="expense-amount">{expense.amount}</td>
+                    <td className="compact-amount">UGX {expense.amount}</td>
                     <td>
-                      <span
-                        className={`expense-receipt-status ${
-                          expense.receipt === "Yes" ? "expense-receipt-yes" : "expense-receipt-no"
-                        }`}
-                      >
+                      <span className={`compact-receipt ${expense.receipt === "Yes" ? "yes" : "no"}`}>
                         {expense.receipt}
                       </span>
                     </td>
                     <td>
-                      <div className="expense-action-cell">
-                        <button className="expense-delete-btn">Delete</button>
-                        <button className="expense-view-btn">View</button>
+                      <div className="compact-action-buttons">
+                        <button className="compact-action-btn view">View</button>
+                        <button className="compact-action-btn delete">Delete</button>
                       </div>
                     </td>
                   </tr>
@@ -277,30 +252,26 @@ export default function ExpenseManagement() {
           </div>
         </div>
 
-        {/* Expense Breakdown */}
-        <div className="expense-breakdown-section">
-          <h2 className="expense-section-title">Expense BreakDown</h2>
-          <p className="expense-breakdown-subtitle">Usage Breakdown Today</p>
+        {/* Compact Breakdown Section */}
+        <div className="compact-breakdown-section">
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">Breakdown</h2>
+            <p className="compact-section-subtitle">Today's usage</p>
+          </div>
 
-          <div className="expense-breakdown-list">
+          <div className="compact-breakdown-list">
             {expenseBreakdown.map((item, index) => (
-              <div key={index} className="expense-breakdown-item">
-                <div className="expense-breakdown-info">
-                  <span className="expense-breakdown-name">{item.name}</span>
-                  <span className="expense-breakdown-percentage">{item.percentage}%</span>
+              <div key={index} className="compact-breakdown-item">
+                <div className="compact-breakdown-info">
+                  <span className="compact-breakdown-name">{item.name}</span>
+                  <span className="compact-breakdown-percentage">{item.percentage}%</span>
                 </div>
-                <div className="expense-breakdown-bar-wrapper">
+                <div className="compact-progress-bar">
                   <div
-                    className="expense-breakdown-bar"
+                    className="compact-progress-fill"
                     style={{
                       width: `${item.percentage}%`,
                       backgroundColor: item.color,
-                    }}
-                  />
-                  <div
-                    className="expense-breakdown-bar-bg"
-                    style={{
-                      backgroundColor: `${item.color}33`,
                     }}
                   />
                 </div>
@@ -310,51 +281,35 @@ export default function ExpenseManagement() {
         </div>
       </div>
 
-      {/* Add Expense Modal */}
+      {/* Compact Add Expense Modal */}
       {showAddExpense && (
-        <div className="expense-modal-overlay">
-          <div className="expense-modal">
+        <div className="compact-modal-overlay">
+          <div className="compact-modal">
             {/* Modal Header */}
-            <div className={`expense-modal-header ${addExpenseStep === 3 ? "expense-modal-header-olive" : ""}`}>
-              <h2>ADD NEW EXPENSE</h2>
-              {addExpenseStep === 3 && <span className="expense-modal-step-label">Review & Save</span>}
-              {addExpenseStep === 2 && <span className="expense-modal-step-label">Details & Receipt</span>}
-              {addExpenseStep === 1 && <span className="expense-modal-step-label">Catagory & Amount</span>}
-            </div>
-
-            {/* Progress Indicator */}
-            <div className="expense-progress-steps">
-              <div className={`expense-progress-step ${addExpenseStep >= 1 ? "expense-progress-active" : ""}`}>
-                <div className="expense-progress-circle">1</div>
-                <span>Catagory & Amount</span>
-              </div>
-              <div className="expense-progress-line" />
-              <div className={`expense-progress-step ${addExpenseStep >= 2 ? "expense-progress-active" : ""}`}>
-                <div className="expense-progress-circle">2</div>
-                <span>Details & Receipt</span>
-              </div>
-              <div className="expense-progress-line" />
-              <div className={`expense-progress-step ${addExpenseStep >= 3 ? "expense-progress-active" : ""}`}>
-                <div className="expense-progress-circle">3</div>
-                <span>Review & Save</span>
+            <div className="compact-modal-header">
+              <h2>ADD EXPENSE</h2>
+              <div className="compact-modal-steps">
+                <span className="compact-step active">1</span>
+                <span className="compact-step-divider"></span>
+                <span className={`compact-step ${addExpenseStep >= 2 ? "active" : ""}`}>2</span>
+                <span className="compact-step-divider"></span>
+                <span className={`compact-step ${addExpenseStep >= 3 ? "active" : ""}`}>3</span>
               </div>
             </div>
 
-            {/* Step Content */}
-            <div className="expense-modal-content">
-              {/* Step 1: Category & Amount */}
+            {/* Modal Content */}
+            <div className="compact-modal-content">
+              {/* Step 1 */}
               {addExpenseStep === 1 && (
-                <div className="expense-step-content">
-                  <div className="expense-step-highlight">What Did You Spend On</div>
-
-                  <div className="expense-form-section">
-                    <h3 className="expense-form-label">Expense Catagory</h3>
-                    <div className="expense-category-grid">
+                <div className="compact-step-content">
+                  <div className="compact-form-group">
+                    <label className="compact-form-label">Category</label>
+                    <div className="compact-category-grid">
                       {expenseCategories.map((category) => (
                         <button
                           key={category}
-                          className={`expense-category-btn ${
-                            selectedCategory === category ? "expense-category-selected" : ""
+                          className={`compact-category-btn ${
+                            selectedCategory === category ? "selected" : ""
                           }`}
                           onClick={() => setSelectedCategory(category)}
                         >
@@ -364,22 +319,22 @@ export default function ExpenseManagement() {
                     </div>
                   </div>
 
-                  <div className="expense-form-row">
-                    <div className="expense-form-group">
-                      <label className="expense-form-label">Enter Amount</label>
+                  <div className="compact-form-row">
+                    <div className="compact-form-group">
+                      <label className="compact-form-label">Amount</label>
                       <input
                         type="text"
-                        className="expense-form-input expense-amount-input"
+                        className="compact-form-input"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         placeholder="10,000"
                       />
                     </div>
-                    <div className="expense-form-group">
-                      <label className="expense-form-label">Date</label>
+                    <div className="compact-form-group">
+                      <label className="compact-form-label">Date</label>
                       <input
                         type="text"
-                        className="expense-form-input"
+                        className="compact-form-input"
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
                       />
@@ -388,100 +343,86 @@ export default function ExpenseManagement() {
                 </div>
               )}
 
-              {/* Step 2: Details & Receipt */}
+              {/* Step 2 */}
               {addExpenseStep === 2 && (
-                <div className="expense-step-content">
-                  <div className="expense-step-highlight">Details & Report</div>
-
-                  <div className="expense-form-section">
-                    <h3 className="expense-form-label">Attach Receipt</h3>
-                    <div className="expense-upload-area">
+                <div className="compact-step-content">
+                  <div className="compact-form-group">
+                    <label className="compact-form-label">Receipt</label>
+                    <div className="compact-upload-area">
                       <input
                         type="file"
-                        id="receipt-upload"
-                        className="expense-file-input"
+                        id="compact-receipt-upload"
+                        className="compact-file-input"
                         onChange={handleFileUpload}
                         accept="image/*,.pdf"
                       />
-                      <label htmlFor="receipt-upload" className="expense-upload-label">
-                        <div className="expense-upload-icon">📤</div>
-                        <div className="expense-upload-text">Drag and Drop or Click to Upload</div>
-                        <div className="expense-upload-subtext">Max File Size 10MB</div>
+                      <label htmlFor="compact-receipt-upload" className="compact-upload-label">
+                        <div className="compact-upload-icon">📤</div>
+                        <div className="compact-upload-text">Upload</div>
                       </label>
                     </div>
                   </div>
 
-                  <div className="expense-form-section">
-                    <h3 className="expense-form-label">Add Details(Optional)</h3>
+                  <div className="compact-form-group">
+                    <label className="compact-form-label">Details (Optional)</label>
                     <textarea
-                      className="expense-form-textarea"
+                      className="compact-form-textarea"
                       placeholder="Description"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
+                      rows="3"
                     />
                   </div>
 
-                  <div className="expense-form-row">
-                    <div className="expense-form-group">
-                      <label className="expense-form-label">Motorbike Details</label>
+                  <div className="compact-form-row">
+                    <div className="compact-form-group">
+                      <label className="compact-form-label">Bike</label>
                       <input
                         type="text"
-                        className="expense-form-input"
+                        className="compact-form-input"
                         value={motorbikeDetails}
                         onChange={(e) => setMotorbikeDetails(e.target.value)}
                       />
                     </div>
-                    <div className="expense-form-group">
-                      <label className="expense-form-label">Payment Method</label>
+                    <div className="compact-form-group">
+                      <label className="compact-form-label">Payment</label>
                       <select
-                        className="expense-form-input"
+                        className="compact-form-input"
                         value={paymentMethod}
                         onChange={(e) => setPaymentMethod(e.target.value)}
                       >
                         <option>MTN MoMo</option>
                         <option>Airtel Money</option>
                         <option>Cash</option>
-                        <option>Card Payment</option>
+                        <option>Card</option>
                       </select>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Step 3: Review & Save */}
+              {/* Step 3 */}
               {addExpenseStep === 3 && (
-                <div className="expense-step-content">
-                  <div className="expense-step-highlight">Review Expense</div>
-
-                  <div className="expense-review-card">
-                    <div className="expense-review-row">
-                      <div className="expense-review-group">
-                        <label className="expense-review-label">Catagory</label>
-                        <div className="expense-review-value">{selectedCategory || "Fuel"}</div>
+                <div className="compact-step-content">
+                  <div className="compact-review-card">
+                    <div className="compact-review-row">
+                      <div className="compact-review-group">
+                        <span className="compact-review-label">Category</span>
+                        <span className="compact-review-value">{selectedCategory || "Fuel"}</span>
                       </div>
-                      <div className="expense-review-group">
-                        <label className="expense-review-label">Amount</label>
-                        <div className="expense-review-value">UGX {amount || "10,000"}</div>
+                      <div className="compact-review-group">
+                        <span className="compact-review-label">Amount</span>
+                        <span className="compact-review-value">UGX {amount || "10,000"}</span>
                       </div>
                     </div>
-
-                    <div className="expense-review-row">
-                      <div className="expense-review-group">
-                        <label className="expense-review-label">Description</label>
-                        <div className="expense-review-value">{description || "No Description Provided"}</div>
+                    <div className="compact-review-row">
+                      <div className="compact-review-group">
+                        <span className="compact-review-label">Payment</span>
+                        <span className="compact-review-value">{paymentMethod}</span>
                       </div>
-                      <div className="expense-review-group">
-                        <label className="expense-review-label">Payment Method</label>
-                        <div className="expense-review-value">{paymentMethod}</div>
-                      </div>
-                    </div>
-
-                    <div className="expense-review-row">
-                      <div className="expense-review-group expense-review-full">
-                        <label className="expense-review-label">Date & Time</label>
-                        <div className="expense-review-value">
-                          {date} <span className="expense-review-time">10:30 AM</span>
-                        </div>
+                      <div className="compact-review-group">
+                        <span className="compact-review-label">Date</span>
+                        <span className="compact-review-value">{date}</span>
                       </div>
                     </div>
                   </div>
@@ -490,23 +431,23 @@ export default function ExpenseManagement() {
             </div>
 
             {/* Modal Actions */}
-            <div className="expense-modal-actions">
+            <div className="compact-modal-actions">
               {addExpenseStep < 3 ? (
                 <>
-                  <button className="expense-modal-btn expense-modal-btn-secondary" onClick={handleBack}>
+                  <button className="compact-modal-btn btn-secondary" onClick={handleBack}>
                     Back
                   </button>
-                  <button className="expense-modal-btn expense-modal-btn-primary" onClick={handleContinue}>
+                  <button className="compact-modal-btn btn-primary" onClick={handleContinue}>
                     Continue
                   </button>
                 </>
               ) : (
                 <>
-                  <button className="expense-modal-btn expense-modal-btn-secondary" onClick={handleCancel}>
+                  <button className="compact-modal-btn btn-secondary" onClick={handleCancel}>
                     Cancel
                   </button>
-                  <button className="expense-modal-btn expense-modal-btn-primary" onClick={handleSaveExpense}>
-                    Save Expense
+                  <button className="compact-modal-btn btn-primary" onClick={handleSaveExpense}>
+                    Save
                   </button>
                 </>
               )}

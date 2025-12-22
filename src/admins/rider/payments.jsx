@@ -31,7 +31,7 @@ export default function PaymentsApp() {
   const [disputeTab, setDisputeTab] = useState("file")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  // Stats data
+  // Stats data - simplified for compact display
   const dashboardStats = [
     {
       label: "Total Collections Today",
@@ -44,16 +44,16 @@ export default function PaymentsApp() {
     },
     { label: "Pending Payments", value: "18", change: "+2", trend: "warning", icon: Clock, color: "yellow" },
     { label: "Pending Reconciliations", value: "23", change: "+20.5%", trend: "up", icon: AlertCircle, color: "green" },
-    { label: "Success Rate", value: "98.2%", change: "+20.5%", trend: "up", icon: CheckCircle, color: "green" },
+    { label: "Success Rate", value: "98.2%", change: "+20.5%", trend: "up", icon: CheckCircle, color: "purple" },
   ]
 
   const paymentMethodsData = [
-    { name: "MTN MoMo", percentage: 82, transactions: "1240 Transactions", color: "payment-mtn" },
-    { name: "Airtel Money", percentage: 2, transactions: "10 Transactions", color: "payment-airtel" },
-    { name: "Cash", percentage: 50, transactions: "460 Transactions", color: "payment-cash" },
-    { name: "QR Code", percentage: 12, transactions: "60 Transactions", color: "payment-qr" },
-    { name: "Split Payment", percentage: 12, transactions: "60 Transactions", color: "payment-split" },
-    { name: "Card Payment", percentage: 1, transactions: "2 Transactions", color: "payment-card" },
+    { name: "MTN MoMo", percentage: 82, transactions: "1240", color: "payment-mtn" },
+    { name: "Airtel Money", percentage: 2, transactions: "10", color: "payment-airtel" },
+    { name: "Cash", percentage: 50, transactions: "460", color: "payment-cash" },
+    { name: "QR Code", percentage: 12, transactions: "60", color: "payment-qr" },
+    { name: "Split Payment", percentage: 12, transactions: "60", color: "payment-split" },
+    { name: "Card Payment", percentage: 1, transactions: "2", color: "payment-card" },
   ]
 
   const recentTransactionsData = [
@@ -117,56 +117,50 @@ export default function PaymentsApp() {
   const paymentsHistoryData = [
     {
       description: "Quick Trip",
-      date: "03-12-2025 09.30 AM",
+      date: "03-12-2025",
       txnId: "QT6730000",
       amount: "2,500",
       method: "Cash",
-      methodDate: "03-12-2025 09.30 AM",
       status: "Completed",
     },
     {
       description: "Quick Trip",
-      date: "03-12-2025 09.30 AM",
+      date: "03-12-2025",
       txnId: "QT6730000",
       amount: "2,500",
       method: "MTN MoMO",
-      methodDate: "03-12-2025 09.30 AM",
       status: "Completed",
     },
     {
       description: "Quick Trip",
-      date: "03-12-2025 09.30 AM",
+      date: "03-12-2025",
       txnId: "QT6730000",
       amount: "2,500",
       method: "QR Code",
-      methodDate: "03-12-2025 09.30 AM",
       status: "Failed",
     },
     {
       description: "Quick Trip",
-      date: "03-12-2025 09.30 AM",
+      date: "03-12-2025",
       txnId: "QT6730000",
       amount: "2,500",
       method: "MTN MoMo",
-      methodDate: "03-12-2025 09.30 AM",
       status: "Completed",
     },
     {
       description: "Quick Trip",
-      date: "03-12-2025 09.30 AM",
+      date: "03-12-2025",
       txnId: "QT6730000",
       amount: "2,500",
       method: "Airtel Money",
-      methodDate: "03-12-2025 09.30 AM",
       status: "Pending",
     },
     {
       description: "Quick Trip",
-      date: "03-12-2025 09.30 AM",
+      date: "03-12-2025",
       txnId: "QT6730000",
       amount: "2,500",
       method: "Cash",
-      methodDate: "03-12-2025 09.30 AM",
       status: "Completed",
     },
   ]
@@ -219,12 +213,12 @@ export default function PaymentsApp() {
   ]
 
   const chartData = [
-    { day: "Sunday", failed: 200, completed: 650 },
-    { day: "Monday", failed: 300, completed: 250 },
-    { day: "Tuesday", failed: 200, completed: 500 },
+    { day: "Sun", failed: 200, completed: 650 },
+    { day: "Mon", failed: 300, completed: 250 },
+    { day: "Tue", failed: 200, completed: 500 },
     { day: "Wed", failed: 180, completed: 700 },
-    { day: "Thursday", failed: 250, completed: 680 },
-    { day: "Friday", failed: 220, completed: 580 },
+    { day: "Thu", failed: 250, completed: 680 },
+    { day: "Fri", failed: 220, completed: 580 },
   ]
 
   // Render functions for each view
@@ -233,10 +227,9 @@ export default function PaymentsApp() {
       <header className="payments-header">
         <div className="payments-header-content">
           <div className="payments-header-left">
-            
             <div>
               <h1 className="payments-title">PAYMENT DASHBOARD</h1>
-              <p className="payments-subtitle">Real-Time payment overview and analytics</p>
+              <p className="payments-subtitle">Real-Time payment overview</p>
             </div>
           </div>
           <div className="payments-header-right">
@@ -252,87 +245,86 @@ export default function PaymentsApp() {
       </header>
 
       <main className="payments-main">
-        {/* Stats Grid */}
-        <div className="stats-grid">
+        {/* Compact Stats Grid - All on one line */}
+        <div className="compact-stats-grid">
           {dashboardStats.map((stat, index) => (
-            <div key={index} className={`stat-card stat-card-${stat.color}`}>
-              <div className="stat-header">
-                <span className="stat-label">{stat.label}</span>
-                <div className={`stat-icon stat-icon-${stat.color}`}>
-                  <stat.icon className="icon" />
-                </div>
+            <div key={index} className={`compact-stat-card compact-stat-${stat.color}`}>
+              <div className="compact-stat-icon">
+                <stat.icon className="icon" />
               </div>
-              <div className="stat-content">
-                <div className="stat-value">
+              <div className="compact-stat-content">
+                <span className="compact-stat-label">{stat.label}</span>
+                <div className="compact-stat-value">
                   {stat.value}
-                  {stat.currency && <span className="stat-currency">{stat.currency}</span>}
+                  {stat.currency && <span className="compact-stat-currency">{stat.currency}</span>}
                 </div>
-                <div className={`stat-change stat-change-${stat.trend}`}>{stat.change}</div>
+                <div className={`compact-stat-change ${stat.trend}`}>{stat.change}</div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Action Buttons */}
-        <div className="action-buttons">
-          <button className="btn btn-primary" onClick={() => setCurrentView("pending")}>
+        {/* Compact Action Buttons */}
+        <div className="compact-action-buttons">
+          <button className="btn btn-compact btn-blue" onClick={() => setCurrentView("pending")}>
             Pending Payments
           </button>
-          <button className="btn btn-yellow">Receive Money</button>
-          <button className="btn btn-dark" onClick={() => setCurrentView("disputes")}>
+          <button className="btn btn-compact btn-yellow">Receive Money</button>
+          <button className="btn btn-compact btn-dark" onClick={() => setCurrentView("disputes")}>
             File Dispute
           </button>
-          <button className="btn btn-navy" onClick={() => setCurrentView("analytics")}>
-            View Analytics
+          <button className="btn btn-compact btn-navy" onClick={() => setCurrentView("analytics")}>
+            Analytics
           </button>
         </div>
 
-        {/* Payment Methods & Recent Transactions */}
-        <div className="content-grid">
-          <div className="card">
-            <div className="card-header">
-              <h2 className="card-title">Payment Methods</h2>
-              <p className="card-subtitle">Usage Breakdown Today</p>
+        {/* Payment Methods & Recent Transactions - Compact */}
+        <div className="compact-content-grid">
+          <div className="compact-card">
+            <div className="compact-card-header">
+              <h2 className="compact-card-title">Payment Methods</h2>
+              <p className="compact-card-subtitle">Today's Breakdown</p>
             </div>
-            <div className="payment-methods">
+            <div className="compact-payment-methods">
               {paymentMethodsData.map((method, index) => (
-                <div key={index} className="payment-method">
-                  <div className="payment-method-header">
-                    <span className="payment-method-name">{method.name}</span>
-                    <span className="payment-method-percentage">{method.percentage}%</span>
+                <div key={index} className="compact-payment-method">
+                  <div className="compact-payment-header">
+                    <span className="compact-payment-name">{method.name}</span>
+                    <span className="compact-payment-percentage">{method.percentage}%</span>
                   </div>
-                  <div className="progress-bar">
-                    <div className={`progress-fill ${method.color}`} style={{ width: `${method.percentage}%` }}></div>
+                  <div className="compact-progress-bar">
+                    <div className={`compact-progress-fill ${method.color}`} style={{ width: `${method.percentage}%` }}></div>
                   </div>
-                  <p className="payment-method-transactions">{method.transactions}</p>
+                  <span className="compact-payment-transactions">{method.transactions} txn</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="card">
-            <div className="card-header">
-              <h2 className="card-title">Recent Transactions</h2>
-              <p className="card-subtitle">Latest Payment activity</p>
+          <div className="compact-card">
+            <div className="compact-card-header">
+              <h2 className="compact-card-title">Recent Transactions</h2>
+              <p className="compact-card-subtitle">Latest Payments</p>
             </div>
-            <div className="transactions-list">
+            <div className="compact-transactions">
               {recentTransactionsData.map((transaction, index) => (
-                <div key={index} className="transaction-item">
-                  <div className="transaction-info">
-                    <h3 className="transaction-type">{transaction.type}</h3>
-                    <p className="transaction-details">
-                      {transaction.method} <span className="transaction-time">{transaction.time}</span>
-                    </p>
+                <div key={index} className="compact-transaction">
+                  <div className="compact-transaction-info">
+                    <div className="compact-transaction-type">{transaction.type}</div>
+                    <div className="compact-transaction-method">{transaction.method}</div>
+                    <div className="compact-transaction-time">{transaction.time}</div>
                   </div>
-                  <div className="transaction-amount">UGX {transaction.amount}</div>
-                  <span className={`status-badge status-${transaction.status.toLowerCase()}`}>
-                    {transaction.status}
-                  </span>
+                  <div className="compact-transaction-right">
+                    <span className="compact-transaction-amount">UGX {transaction.amount}</span>
+                    <span className={`compact-status status-${transaction.status.toLowerCase()}`}>
+                      {transaction.status}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
-            <button className="btn btn-primary btn-full" onClick={() => setCurrentView("history")}>
-              View All Transactions
+            <button className="btn btn-compact btn-blue btn-full" onClick={() => setCurrentView("history")}>
+              View All
             </button>
           </div>
         </div>
@@ -350,20 +342,11 @@ export default function PaymentsApp() {
             </button>
             <div>
               <h1 className="payments-title">Payment Analytics</h1>
-              <p className="payments-subtitle">Real-time Payment performance analytics</p>
+              <p className="payments-subtitle">Real-time performance</p>
             </div>
           </div>
           <div className="payments-header-right">
-            <button className="btn-icon">
-              <Download />
-            </button>
-            <button className="btn-icon">
-              <Share2 />
-            </button>
-            <button className="btn-icon">
-              <Cloud />
-            </button>
-            <div className="user-badge">
+            <div className="compact-user-badge">
               <span className="user-name">Moses. K</span>
               <div className="user-avatar">MK</div>
             </div>
@@ -373,18 +356,18 @@ export default function PaymentsApp() {
 
       <main className="payments-main">
         {/* Time Period Tabs */}
-        <div className="tab-buttons">
-          <button className={`tab-btn ${activeTab === "daily" ? "active" : ""}`} onClick={() => setActiveTab("daily")}>
+        <div className="compact-tab-buttons">
+          <button className={`compact-tab-btn ${activeTab === "daily" ? "active" : ""}`} onClick={() => setActiveTab("daily")}>
             Daily
           </button>
           <button
-            className={`tab-btn ${activeTab === "weekly" ? "active" : ""}`}
+            className={`compact-tab-btn ${activeTab === "weekly" ? "active" : ""}`}
             onClick={() => setActiveTab("weekly")}
           >
             Weekly
           </button>
           <button
-            className={`tab-btn ${activeTab === "monthly" ? "active" : ""}`}
+            className={`compact-tab-btn ${activeTab === "monthly" ? "active" : ""}`}
             onClick={() => setActiveTab("monthly")}
           >
             Monthly
@@ -392,101 +375,66 @@ export default function PaymentsApp() {
         </div>
 
         {/* Analytics Cards */}
-        <div className="analytics-cards">
+        <div className="compact-analytics-cards">
           {analyticsCards.map((card, index) => (
-            <div key={index} className="card analytics-card">
-              <div className="analytics-card-header">
-                <span className="analytics-label">{card.label}</span>
-                <span className={`analytics-change ${card.trend === "up" ? "positive" : "negative"}`}>
+            <div key={index} className="compact-analytics-card">
+              <div className="compact-analytics-header">
+                <span className="compact-analytics-label">{card.label}</span>
+                <span className={`compact-analytics-change ${card.trend === "up" ? "positive" : "negative"}`}>
+                  {card.trend === "up" ? <TrendingUp className="trend-icon" /> : <TrendingDown className="trend-icon" />}
                   {card.change}
-                  {card.trend === "up" ? (
-                    <TrendingUp className="trend-icon" />
-                  ) : (
-                    <TrendingDown className="trend-icon" />
-                  )}
                 </span>
               </div>
-              <div className="analytics-amount">{card.amount}</div>
-              {card.currency && <div className="analytics-currency">{card.currency}</div>}
+              <div className="compact-analytics-amount">{card.amount}</div>
             </div>
           ))}
         </div>
 
         {/* Charts */}
-        <div className="content-grid">
-          <div className="card">
-            <div className="card-header">
-              <h2 className="card-title">Payment Summary</h2>
-              <p className="card-subtitle">Today's completed Vs failed Payments</p>
+        <div className="compact-content-grid">
+          <div className="compact-card">
+            <div className="compact-card-header">
+              <h2 className="compact-card-title">Payment Summary</h2>
+              <p className="compact-card-subtitle">Completed vs Failed</p>
             </div>
-            <div className="chart-container">
+            <div className="compact-chart-container">
               {chartData.map((data, index) => (
-                <div key={index} className="chart-bar-group">
-                  <div className="chart-bars">
+                <div key={index} className="compact-chart-bar-group">
+                  <div className="compact-chart-bars">
                     <div
-                      className="chart-bar chart-bar-completed"
-                      style={{ height: `${(data.completed / 700) * 200}px` }}
+                      className="compact-chart-bar completed"
+                      style={{ height: `${(data.completed / 700) * 100}px` }}
                     ></div>
                     <div
-                      className="chart-bar chart-bar-failed"
-                      style={{ height: `${(data.failed / 700) * 200}px` }}
+                      className="compact-chart-bar failed"
+                      style={{ height: `${(data.failed / 700) * 100}px` }}
                     ></div>
                   </div>
-                  <span className="chart-label">{data.day}</span>
-                </div>
-              ))}
-            </div>
-            <div className="chart-legend">
-              <div className="legend-item">
-                <div className="legend-color legend-failed"></div>
-                <span>Failed</span>
-              </div>
-              <div className="legend-item">
-                <div className="legend-color legend-completed"></div>
-                <span>Completed</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="card-header">
-              <h2 className="card-title">Payment Methods</h2>
-              <p className="card-subtitle">Payment Breakdown Today</p>
-            </div>
-            <div className="payment-methods">
-              {paymentMethodsData.map((method, index) => (
-                <div key={index} className="payment-method">
-                  <div className="payment-method-header">
-                    <span className="payment-method-name">{method.name}</span>
-                    <span className="payment-method-percentage">{method.percentage}%</span>
-                  </div>
-                  <div className="progress-bar">
-                    <div className={`progress-fill ${method.color}`} style={{ width: `${method.percentage}%` }}></div>
-                  </div>
-                  <p className="payment-method-transactions">{method.transactions}</p>
+                  <span className="compact-chart-label">{data.day}</span>
                 </div>
               ))}
             </div>
           </div>
-        </div>
 
-        {/* Conversion Funnel */}
-        <div className="card">
-          <h2 className="card-title">Referral Conversion Funnel</h2>
-          <div className="funnel-container">
-            {conversionFunnelData.map((item, index) => (
-              <div key={index} className="funnel-item">
-                <div className="funnel-header">
-                  <span className="funnel-stage">{item.stage}</span>
-                  <span className="funnel-value">
-                    {item.value} ({item.percentage}%)
-                  </span>
+          <div className="compact-card">
+            <div className="compact-card-header">
+              <h2 className="compact-card-title">Payment Methods</h2>
+              <p className="compact-card-subtitle">Usage Today</p>
+            </div>
+            <div className="compact-payment-methods">
+              {paymentMethodsData.slice(0, 4).map((method, index) => (
+                <div key={index} className="compact-payment-method">
+                  <div className="compact-payment-header">
+                    <span className="compact-payment-name">{method.name}</span>
+                    <span className="compact-payment-percentage">{method.percentage}%</span>
+                  </div>
+                  <div className="compact-progress-bar">
+                    <div className={`compact-progress-fill ${method.color}`} style={{ width: `${method.percentage}%` }}></div>
+                  </div>
+                  <span className="compact-payment-transactions">{method.transactions} txn</span>
                 </div>
-                <div className="progress-bar">
-                  <div className="progress-fill progress-fill-blue" style={{ width: `${item.percentage}%` }}></div>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </main>
@@ -503,64 +451,63 @@ export default function PaymentsApp() {
             </button>
             <div>
               <h1 className="payments-title">Pending Payments</h1>
-              <p className="payments-subtitle">Track and Manage Payments awaiting Completion</p>
+              <p className="payments-subtitle">Track and Manage</p>
             </div>
           </div>
-          <button className="btn btn-light" onClick={() => setCurrentView("dashboard")}>
-            Back To Dashboard
+          <button className="btn btn-compact btn-light" onClick={() => setCurrentView("dashboard")}>
+            Back
           </button>
         </div>
       </header>
 
       <main className="payments-main">
-        {/* Stats */}
-        <div className="pending-stats">
-          <div className="card stat-card-border">
-            <div className="stat-label">Pending Payments</div>
-            <div className="stat-value">5</div>
-            <div className="stat-detail">awaiting processing</div>
+        {/* Compact Stats */}
+        <div className="compact-pending-stats">
+          <div className="compact-stat-card">
+            <div className="compact-stat-label">Pending</div>
+            <div className="compact-stat-value">5</div>
+            <div className="compact-stat-detail">payments</div>
           </div>
-          <div className="card stat-card-yellow">
-            <div className="stat-label">Total Amount</div>
-            <div className="stat-value">96,000</div>
-            <div className="stat-detail">in 8 transactions</div>
+          <div className="compact-stat-card">
+            <div className="compact-stat-label">Amount</div>
+            <div className="compact-stat-value">96,000</div>
+            <div className="compact-stat-detail">UGX</div>
           </div>
-          <div className="card stat-card-dark">
-            <div className="stat-label">Average Time</div>
-            <div className="stat-value">2h : 25m</div>
-            <div className="stat-detail">to complete</div>
+          <div className="compact-stat-card">
+            <div className="compact-stat-label">Avg Time</div>
+            <div className="compact-stat-value">2h 25m</div>
+            <div className="compact-stat-detail">to complete</div>
           </div>
         </div>
 
         {/* Search & Filters */}
-        <div className="card">
-          <h2 className="card-title">Search</h2>
-          <div className="search-filter-container">
-            <div className="search-input-wrapper">
+        <div className="compact-card">
+          <div className="compact-search-filter">
+            <div className="compact-search-input">
               <Search className="search-icon" />
               <input
                 type="text"
-                placeholder="Search By: Customer, ID, Phone number etc..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="search-input"
               />
             </div>
-            <div className="filter-buttons">
+            <div className="compact-filter-buttons">
               <button
-                className={`filter-btn ${activeFilter === "all" ? "active" : ""}`}
+                className={`compact-filter-btn ${activeFilter === "all" ? "active" : ""}`}
                 onClick={() => setActiveFilter("all")}
               >
-                All (8)
+                All
               </button>
               <button
-                className={`filter-btn ${activeFilter === "pending" ? "active" : ""}`}
+                className={`compact-filter-btn ${activeFilter === "pending" ? "active" : ""}`}
                 onClick={() => setActiveFilter("pending")}
               >
                 Pending
               </button>
               <button
-                className={`filter-btn ${activeFilter === "processing" ? "active" : ""}`}
+                className={`compact-filter-btn ${activeFilter === "processing" ? "active" : ""}`}
                 onClick={() => setActiveFilter("processing")}
               >
                 Processing
@@ -570,30 +517,24 @@ export default function PaymentsApp() {
         </div>
 
         {/* Payments List */}
-        <div className="payments-list">
+        <div className="compact-payments-list">
           {pendingPaymentsData.map((payment, index) => (
-            <div key={index} className="card payment-card">
-              <div className="payment-card-grid">
-                <div className="payment-info-section">
-                  <h3 className="payment-type">{payment.type}</h3>
-                  <p className="payment-id">ID: {payment.id}</p>
+            <div key={index} className="compact-payment-card">
+              <div className="compact-payment-info">
+                <div className="compact-payment-left">
+                  <div className="compact-payment-type">{payment.type}</div>
+                  <div className="compact-payment-method">{payment.method}</div>
+                  <div className="compact-payment-ref">Ref: {payment.ref}</div>
                 </div>
-                <div className="payment-info-section">
-                  <h4 className="payment-method">{payment.method}</h4>
-                  <p className="payment-ref">Ref: {payment.ref}</p>
-                </div>
-                <div className="payment-info-section">
-                  <h4 className="payment-amount">UGX: {payment.amount}</h4>
-                  <p className="payment-date">
-                    {payment.date} <span>{payment.time}</span>
-                  </p>
+                <div className="compact-payment-right">
+                  <div className="compact-payment-amount">UGX {payment.amount}</div>
+                  <div className="compact-payment-time">{payment.time}</div>
+                  <span className={`compact-status status-${payment.statusColor}`}>{payment.status}</span>
                 </div>
               </div>
-              <div className="payment-actions">
-                <span className={`status-badge status-${payment.statusColor}`}>{payment.status}</span>
-                <span className="payment-time">{payment.time}</span>
-                <button className="btn btn-outline">View Details</button>
-                <button className="btn btn-primary">
+              <div className="compact-payment-actions">
+                <button className="btn btn-compact btn-outline">Details</button>
+                <button className="btn btn-compact btn-blue">
                   <RefreshCw className="btn-icon-left" />
                   Retry
                 </button>
@@ -614,101 +555,91 @@ export default function PaymentsApp() {
               <ArrowLeft />
             </button>
             <div>
-              <h1 className="payments-title">Disputes Management</h1>
-              <p className="payments-subtitle">File and Track Payment Disputes</p>
+              <h1 className="payments-title">Disputes</h1>
+              <p className="payments-subtitle">File and Track</p>
             </div>
           </div>
-          <button className="btn btn-light" onClick={() => setCurrentView("dashboard")}>
-            Back To Dashboard
+          <button className="btn btn-compact btn-light" onClick={() => setCurrentView("dashboard")}>
+            Back
           </button>
         </div>
       </header>
 
       <main className="payments-main">
         {/* Tabs */}
-        <div className="tab-buttons">
-          <button className={`tab-btn ${disputeTab === "file" ? "active" : ""}`} onClick={() => setDisputeTab("file")}>
-            File a Dispute
+        <div className="compact-tab-buttons">
+          <button className={`compact-tab-btn ${disputeTab === "file" ? "active" : ""}`} onClick={() => setDisputeTab("file")}>
+            File
           </button>
           <button
-            className={`tab-btn ${disputeTab === "track" ? "active" : ""}`}
+            className={`compact-tab-btn ${disputeTab === "track" ? "active" : ""}`}
             onClick={() => setDisputeTab("track")}
           >
-            Track A Dispute
+            Track
           </button>
         </div>
 
         {disputeTab === "file" ? (
-          <div className="card">
-            <div className="dispute-header">
-              <h2 className="dispute-title">File a Dispute</h2>
-              <p className="dispute-subtitle">Report an Issue with a transaction</p>
+          <div className="compact-card">
+            <div className="compact-dispute-header">
+              <h2 className="compact-dispute-title">File a Dispute</h2>
+              <p className="compact-dispute-subtitle">Report transaction issue</p>
             </div>
 
-            <div className="form-container">
-              <div className="form-group">
-                <label className="form-label">Select Transaction</label>
+            <div className="compact-form">
+              <div className="compact-form-group">
                 <select
-                  className="form-select"
+                  className="compact-form-select"
                   value={selectedTransaction}
                   onChange={(e) => setSelectedTransaction(e.target.value)}
                 >
-                  <option value="">Select a transaction</option>
+                  <option value="">Select transaction</option>
                   <option value="txn1">TXN-9000900 - UGX 67,000</option>
                   <option value="txn2">TXN-9000901 - UGX 2,000</option>
                 </select>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Dispute Reason</label>
+              <div className="compact-form-group">
                 <select
-                  className="form-select"
+                  className="compact-form-select"
                   value={disputeReason}
                   onChange={(e) => setDisputeReason(e.target.value)}
                 >
-                  <option value="">Dispute a reason</option>
+                  <option value="">Select reason</option>
                   <option value="amount">Amount Incorrect</option>
                   <option value="duplicate">Duplicate Charge</option>
-                  <option value="unauthorized">Unauthorized Transaction</option>
+                  <option value="unauthorized">Unauthorized</option>
                 </select>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Attach Evidence</label>
-                <div className="upload-area">
-                  <Upload className="upload-icon" />
-                  <p className="upload-text">Drag and Drop or Click to Upload</p>
-                  <p className="upload-subtext">Max File Size 10MB</p>
-                </div>
+              <div className="compact-upload">
+                <Upload className="upload-icon" />
+                <p className="upload-text">Upload Evidence</p>
+                <p className="upload-subtext">Max 10MB</p>
               </div>
 
-              <div className="form-actions">
-                <button className="btn btn-outline">Cancel</button>
-                <button className="btn btn-primary">Submit Dispute</button>
+              <div className="compact-form-actions">
+                <button className="btn btn-compact btn-outline">Cancel</button>
+                <button className="btn btn-compact btn-blue">Submit</button>
               </div>
             </div>
           </div>
         ) : (
           <>
-            <div className="dispute-track-header">
-              <h2 className="dispute-title">Track a Dispute</h2>
-              <p className="dispute-subtitle">Track an issue with a transaction</p>
+            <div className="compact-dispute-header">
+              <h2 className="compact-dispute-title">Track Disputes</h2>
+              <p className="compact-dispute-subtitle">Monitor ongoing issues</p>
             </div>
 
-            <div className="disputes-list">
+            <div className="compact-disputes-list">
               {disputesData.map((dispute, index) => (
-                <div key={index} className="card dispute-card">
-                  <div className="dispute-content">
-                    <div className="dispute-info">
-                      <h3 className="dispute-id">{dispute.id}</h3>
-                      <p className="dispute-reason">{dispute.reason}</p>
-                      <p className="dispute-filed">Filed: {dispute.filed}</p>
-                      <p className="dispute-notes">
-                        <strong>Admin Notes:</strong> {dispute.notes}
-                      </p>
-                    </div>
-                    <span className={`status-badge status-${dispute.statusColor}`}>{dispute.status}</span>
+                <div key={index} className="compact-dispute-card">
+                  <div className="compact-dispute-info">
+                    <div className="compact-dispute-id">{dispute.id}</div>
+                    <div className="compact-dispute-reason">{dispute.reason}</div>
+                    <div className="compact-dispute-filed">Filed: {dispute.filed}</div>
                   </div>
+                  <span className={`compact-status status-${dispute.statusColor}`}>{dispute.status}</span>
                 </div>
               ))}
             </div>
@@ -728,58 +659,45 @@ export default function PaymentsApp() {
             </button>
             <div>
               <h1 className="payments-title">Payment History</h1>
-              <p className="payments-subtitle">Manage and view all your deliveries</p>
+              <p className="payments-subtitle">View all transactions</p>
             </div>
           </div>
-          <div className="payments-header-right">
-            <button className="btn btn-light">View Analytics</button>
-            <button className="btn-icon">
-              <Download />
-            </button>
-            <button className="btn-icon">
-              <Share2 />
-            </button>
-            <button className="btn-icon">
-              <Cloud />
-            </button>
-            <div className="user-badge">
-              <span className="user-name">Moses. K</span>
-              <div className="user-avatar">MK</div>
-            </div>
+          <div className="compact-user-badge">
+            <span className="user-name">Moses. K</span>
+            <div className="user-avatar">MK</div>
           </div>
         </div>
       </header>
 
       <main className="payments-main">
         {/* Search & Filters */}
-        <div className="card">
-          <h2 className="card-title">Search History</h2>
-          <div className="search-filter-container">
-            <div className="search-input-wrapper">
+        <div className="compact-card">
+          <div className="compact-search-filter">
+            <div className="compact-search-input">
               <Search className="search-icon" />
               <input
                 type="text"
-                placeholder="Search By: Description, ID, Status etc..."
+                placeholder="Search history..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="search-input"
               />
             </div>
-            <div className="filter-buttons">
+            <div className="compact-filter-buttons">
               <button
-                className={`filter-btn ${activeFilter === "all" ? "active" : ""}`}
+                className={`compact-filter-btn ${activeFilter === "all" ? "active" : ""}`}
                 onClick={() => setActiveFilter("all")}
               >
-                All (8)
+                All
               </button>
               <button
-                className={`filter-btn ${activeFilter === "pending" ? "active" : ""}`}
+                className={`compact-filter-btn ${activeFilter === "pending" ? "active" : ""}`}
                 onClick={() => setActiveFilter("pending")}
               >
                 Pending
               </button>
               <button
-                className={`filter-btn ${activeFilter === "completed" ? "active" : ""}`}
+                className={`compact-filter-btn ${activeFilter === "completed" ? "active" : ""}`}
                 onClick={() => setActiveFilter("completed")}
               >
                 Completed
@@ -788,88 +706,41 @@ export default function PaymentsApp() {
           </div>
         </div>
 
-        {/* Desktop Table */}
-        <div className="card history-table-desktop">
-          <table className="history-table">
-            <thead>
-              <tr>
-                <th>Description</th>
-                <th>Transaction ID</th>
-                <th>Amount</th>
-                <th>Payment Method</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paymentsHistoryData.map((payment, index) => (
-                <tr key={index}>
-                  <td>
-                    <div className="table-description">{payment.description}</div>
-                    <div className="table-date">{payment.date}</div>
-                  </td>
-                  <td className="table-txn-id">{payment.txnId}</td>
-                  <td className="table-amount">UGX {payment.amount}</td>
-                  <td>
-                    <div className="table-method">{payment.method}</div>
-                    <div className="table-date">{payment.methodDate}</div>
-                  </td>
-                  <td>
-                    <span className={`status-badge status-${payment.status.toLowerCase()}`}>{payment.status}</span>
-                  </td>
-                  <td>
-                    <button className="btn btn-outline btn-sm">View Details</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Cards */}
-        <div className="history-cards-mobile">
+        {/* History List */}
+        <div className="compact-history-list">
           {paymentsHistoryData.map((payment, index) => (
-            <div key={index} className="card history-card-mobile">
-              <div className="history-card-header">
-                <div>
-                  <h3 className="history-card-title">{payment.description}</h3>
-                  <p className="history-card-date">{payment.date}</p>
+            <div key={index} className="compact-history-card">
+              <div className="compact-history-info">
+                <div className="compact-history-left">
+                  <div className="compact-history-description">{payment.description}</div>
+                  <div className="compact-history-date">{payment.date}</div>
+                  <div className="compact-history-txn">{payment.txnId}</div>
                 </div>
-                <span className={`status-badge status-${payment.status.toLowerCase()}`}>{payment.status}</span>
-              </div>
-              <div className="history-card-details">
-                <div className="history-detail">
-                  <span className="detail-label">Transaction ID:</span>
-                  <p className="detail-value">{payment.txnId}</p>
-                </div>
-                <div className="history-detail">
-                  <span className="detail-label">Amount:</span>
-                  <p className="detail-value">UGX {payment.amount}</p>
-                </div>
-                <div className="history-detail history-detail-full">
-                  <span className="detail-label">Payment Method:</span>
-                  <p className="detail-value">{payment.method}</p>
+                <div className="compact-history-right">
+                  <div className="compact-history-amount">UGX {payment.amount}</div>
+                  <div className="compact-history-method">{payment.method}</div>
+                  <span className={`compact-status status-${payment.status.toLowerCase()}`}>
+                    {payment.status}
+                  </span>
                 </div>
               </div>
-              <button className="btn btn-outline btn-full">View Details</button>
+              <button className="btn btn-compact btn-outline">Details</button>
             </div>
           ))}
         </div>
 
         {/* Pagination */}
-        <div className="card pagination-card">
-          <div className="pagination">
-            <span className="pagination-info">Showing 8 Payments</span>
-            <div className="pagination-buttons">
-              <button className="btn btn-icon-text">
-                <ChevronLeft />
-                Previous
-              </button>
-              <button className="btn btn-icon-text">
-                Next
-                <ChevronRight />
-              </button>
-            </div>
+        <div className="compact-pagination">
+          <span className="pagination-info">Showing 6 payments</span>
+          <div className="pagination-buttons">
+            <button className="btn btn-compact btn-outline">
+              <ChevronLeft />
+              Prev
+            </button>
+            <button className="btn btn-compact btn-outline">
+              Next
+              <ChevronRight />
+            </button>
           </div>
         </div>
       </main>
