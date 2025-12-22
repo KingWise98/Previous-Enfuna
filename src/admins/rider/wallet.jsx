@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
-import './wallet.css';
+"use client"
+
+import { useState, useEffect, useRef } from "react"
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
+import * as XLSX from 'xlsx'
 
 const Wallet = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [withdrawalStep, setWithdrawalStep] = useState('method');
+  const [currentView, setCurrentView] = useState("dashboard")
+  const [withdrawalStep, setWithdrawalStep] = useState('method')
   const [withdrawalData, setWithdrawalData] = useState({
     amount: '',
     method: 'mtn',
@@ -11,10 +15,18 @@ const Wallet = () => {
     netAmount: 0,
     phoneNumber: '0789 009 765',
     accountName: 'Sengendo Mark',
-    autoWithdrawal: true
-  });
-  const [ledgerFilter, setLedgerFilter] = useState('all');
-  const [disputesFilter, setDisputesFilter] = useState('all');
+    autoWithdrawal: true,
+    processingTime: 'Instant (0-3 minutes)'
+  })
+  const [ledgerFilter, setLedgerFilter] = useState('all')
+  const [disputesFilter, setDisputesFilter] = useState('all')
+  const [searchQuery, setSearchQuery] = useState("")
+  const [showQR, setShowQR] = useState(false)
+  const [showWithdrawalSuccess, setShowWithdrawalSuccess] = useState(false)
+  const [showReceipt, setShowReceipt] = useState(false)
+  const [receiptData, setReceiptData] = useState(null)
+  
+  const receiptRef = useRef(null)
 
   // Dashboard Data
   const [walletData, setWalletData] = useState({
@@ -27,10 +39,10 @@ const Wallet = () => {
     totalInflow: 315900,
     totalOutflow: 35000,
     netBalance: 215900
-  });
+  })
 
   // Ledger Data
-  const [transactions, setTransactions] = useState([
+  const [transactions] = useState([
     {
       id: 1,
       type: 'trip-earnings',
@@ -94,7 +106,7 @@ const Wallet = () => {
       amount: 12500,
       isPositive: true
     }
-  ]);
+  ])
 
   // Withdrawal History
   const [withdrawals, setWithdrawals] = useState([
@@ -130,10 +142,10 @@ const Wallet = () => {
       status: 'success',
       time: 'Today, 10:21 AM'
     }
-  ]);
+  ])
 
   // Disputes Data
-  const [disputes, setDisputes] = useState([
+  const [disputes] = useState([
     {
       id: 1,
       title: 'Trip Amount Under Review',
@@ -177,10 +189,10 @@ const Wallet = () => {
       status: 'pending',
       amount: 2300
     }
-  ]);
+  ])
 
   // Settlement Data
-  const [settlements, setSettlements] = useState([
+  const [settlements] = useState([
     {
       id: 1,
       amount: 12500,
@@ -211,26 +223,39 @@ const Wallet = () => {
       batch: 'STL - 55221',
       status: 'completed'
     }
-  ]);
+  ])
+
+  // Handle body scrolling when modals are open
+  useEffect(() => {
+    if (showQR || showWithdrawalSuccess || showReceipt) {
+      document.body.classList.add('modal-open')
+    } else {
+      document.body.classList.remove('modal-open')
+    }
+    
+    return () => {
+      document.body.classList.remove('modal-open')
+    }
+  }, [showQR, showWithdrawalSuccess, showReceipt])
 
   const handleWithdrawalMethodSelect = (method) => {
-    let fee = 0;
-    let processingTime = 'Instant (0-5 minutes)';
+    let fee = 0
+    let processingTime = 'Instant (0-5 minutes)'
     
     switch(method) {
       case 'mtn':
       case 'airtel':
-        fee = 0;
-        processingTime = 'Instant (0-3 minutes)';
-        break;
+        fee = 0
+        processingTime = 'Instant (0-3 minutes)'
+        break
       case 'bank':
-        fee = 2000;
-        processingTime = '1-24 hours';
-        break;
+        fee = 2000
+        processingTime = '1-24 hours'
+        break
       case 'agent':
-        fee = 500;
-        processingTime = 'Instant';
-        break;
+        fee = 500
+        processingTime = 'Instant'
+        break
     }
     
     setWithdrawalData({
@@ -238,27 +263,27 @@ const Wallet = () => {
       method,
       fee,
       processingTime
-    });
-  };
+    })
+  }
 
   const handleAmountChange = (amount) => {
-    const numericAmount = parseFloat(amount) || 0;
-    const netAmount = numericAmount - withdrawalData.fee;
+    const numericAmount = parseFloat(amount) || 0
+    const netAmount = numericAmount - withdrawalData.fee
     
     setWithdrawalData({
       ...withdrawalData,
       amount: amount,
       netAmount: netAmount > 0 ? netAmount : 0
-    });
-  };
+    })
+  }
 
   const handleWithdrawalSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault()
     
     if (withdrawalStep === 'method') {
-      setWithdrawalStep('amount');
+      setWithdrawalStep('amount')
     } else if (withdrawalStep === 'amount') {
-      setWithdrawalStep('confirm');
+      setWithdrawalStep('confirm')
     } else if (withdrawalStep === 'confirm') {
       // Process withdrawal
       const newWithdrawal = {
@@ -270,35 +295,39 @@ const Wallet = () => {
         reference: `WDL - ${Math.floor(100000 + Math.random() * 900000)}`,
         status: 'success',
         time: 'Just now'
-      };
+      }
       
-      setWithdrawals([newWithdrawal, ...withdrawals]);
+      setWithdrawals([newWithdrawal, ...withdrawals])
       
       // Update wallet balance
       setWalletData({
         ...walletData,
         available: walletData.available - newWithdrawal.amount,
         totalBalance: walletData.totalBalance - newWithdrawal.amount
-      });
+      })
       
-      // Add to transactions
-      const newTransaction = {
-        id: transactions.length + 1,
-        type: 'withdrawal',
-        title: `Withdrawal to ${newWithdrawal.method}`,
-        time: 'Just now',
-        reference: newWithdrawal.reference,
+      // Generate receipt
+      const receipt = {
+        id: newWithdrawal.reference,
         amount: newWithdrawal.amount,
-        isPositive: false
-      };
+        method: newWithdrawal.method,
+        fee: withdrawalData.fee,
+        netAmount: withdrawalData.netAmount,
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString(),
+        accountName: withdrawalData.accountName,
+        phoneNumber: withdrawalData.phoneNumber,
+        processingTime: withdrawalData.processingTime
+      }
       
-      setTransactions([newTransaction, ...transactions]);
-      setWithdrawalStep('success');
+      setReceiptData(receipt)
+      setWithdrawalStep('success')
+      setShowWithdrawalSuccess(true)
     }
-  };
+  }
 
   const resetWithdrawal = () => {
-    setWithdrawalStep('method');
+    setWithdrawalStep('method')
     setWithdrawalData({
       amount: '',
       method: 'mtn',
@@ -306,964 +335,2009 @@ const Wallet = () => {
       netAmount: 0,
       phoneNumber: '0789 009 765',
       accountName: 'Sengendo Mark',
-      autoWithdrawal: true
-    });
-  };
-
-  const filteredTransactions = transactions.filter(transaction => {
-    if (ledgerFilter === 'all') return true;
-    if (ledgerFilter === 'earnings') return transaction.isPositive;
-    if (ledgerFilter === 'deductions') return !transaction.isPositive && transaction.type !== 'withdrawal';
-    if (ledgerFilter === 'withdrawals') return transaction.type === 'withdrawal';
-    if (ledgerFilter === 'settlements') return transaction.type === 'settlement';
-    return true;
-  });
-
-  const filteredDisputes = disputes.filter(dispute => {
-    if (disputesFilter === 'all') return true;
-    if (disputesFilter === 'pending') return dispute.status === 'pending';
-    if (disputesFilter === 'resolved') return dispute.status === 'resolved';
-    return true;
-  });
+      autoWithdrawal: true,
+      processingTime: 'Instant (0-3 minutes)'
+    })
+    setShowWithdrawalSuccess(false)
+  }
 
   const getStatusBadgeClass = (status) => {
     switch(status.toLowerCase()) {
       case 'success':
       case 'completed':
       case 'resolved':
-        return 'status-badge success';
+        return 'status-badge success'
       case 'pending':
-        return 'status-badge pending';
+        return 'status-badge pending'
       case 'failed':
-        return 'status-badge failed';
+        return 'status-badge failed'
       default:
-        return 'status-badge';
+        return 'status-badge'
     }
-  };
-
-  const getMethodIcon = (method) => {
-    switch(method.toLowerCase()) {
-      case 'mtn momo': return '📱';
-      case 'airtel money': return '📲';
-      case 'bank account': return '🏦';
-      case 'enfuna agent': return '👤';
-      default: return '💳';
-    }
-  };
+  }
 
   const getTransactionIcon = (type) => {
     switch(type) {
-      case 'trip-earnings': return '🚗';
-      case 'delivery-earnings': return '📦';
-      case 'commission': return '📊';
-      case 'withdrawal': return '💰';
-      case 'bonus': return '🎁';
-      case 'penalty': return '⚠️';
-      case 'settlement': return '🏦';
-      default: return '📝';
+      case 'trip-earnings': return '🚗'
+      case 'delivery-earnings': return '📦'
+      case 'commission': return '📊'
+      case 'withdrawal': return '💰'
+      case 'bonus': return '🎁'
+      case 'penalty': return '⚠️'
+      case 'settlement': return '🏦'
+      default: return '📝'
     }
-  };
+  }
 
-  return (
-    <div className="wallet-container">
-      <header className="wallet-header">
-        <h1>WALLET DASHBOARD</h1>
-        <p>Manage your earnings and withdrawals</p>
+  const getMethodIcon = (method) => {
+    switch(method.toLowerCase()) {
+      case 'mtn momo': return '📱'
+      case 'airtel money': return '📲'
+      case 'bank account': return '🏦'
+      case 'enfuna agent': return '👤'
+      default: return '💳'
+    }
+  }
+
+  // Filter transactions
+  const filteredTransactions = transactions.filter(transaction => {
+    if (ledgerFilter === 'all') return true
+    if (ledgerFilter === 'earnings') return transaction.isPositive
+    if (ledgerFilter === 'deductions') return !transaction.isPositive && transaction.type !== 'withdrawal'
+    if (ledgerFilter === 'withdrawals') return transaction.type === 'withdrawal'
+    if (ledgerFilter === 'settlements') return transaction.type === 'settlement'
+    return true
+  })
+
+  // Filter disputes
+  const filteredDisputes = disputes.filter(dispute => {
+    if (disputesFilter === 'all') return true
+    if (disputesFilter === 'pending') return dispute.status === 'pending'
+    if (disputesFilter === 'resolved') return dispute.status === 'resolved'
+    return true
+  })
+
+  // Filter settlements
+  const filteredSettlements = settlements.filter(settlement => {
+    if (!searchQuery) return true
+    return settlement.reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           settlement.batch.toLowerCase().includes(searchQuery.toLowerCase())
+  })
+
+  // Export functionality
+  const exportToPDF = async () => {
+    if (receiptRef.current) {
+      const canvas = await html2canvas(receiptRef.current)
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const imgWidth = 210
+      const pageHeight = 297
+      const imgHeight = canvas.height * imgWidth / canvas.width
+      let heightLeft = imgHeight
+      let position = 0
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+      }
+
+      pdf.save(`withdrawal-receipt-${receiptData?.id}.pdf`)
+    }
+  }
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredTransactions)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions")
+    XLSX.writeFile(workbook, `wallet-transactions-${new Date().toISOString().split('T')[0]}.xlsx`)
+  }
+
+  const exportSettlementsToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredSettlements)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Settlements")
+    XLSX.writeFile(workbook, `settlements-${new Date().toISOString().split('T')[0]}.xlsx`)
+  }
+
+  const exportToCSV = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredTransactions)
+    const csv = XLSX.utils.sheet_to_csv(worksheet)
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `wallet-transactions-${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+  }
+
+  // Share functionality
+  const shareReceipt = async () => {
+    if (receiptRef.current && navigator.share) {
+      try {
+        const canvas = await html2canvas(receiptRef.current)
+        canvas.toBlob(async (blob) => {
+          const file = new File([blob], `withdrawal-${receiptData.id}.png`, { type: 'image/png' })
+          
+          await navigator.share({
+            files: [file],
+            title: 'Withdrawal Receipt',
+            text: `Receipt for withdrawal ${receiptData.id} - Amount: UGX ${receiptData.amount.toLocaleString()}`
+          })
+        })
+      } catch (err) {
+        console.error('Error sharing:', err)
+        alert('Sharing failed. You can download the PDF instead.')
+      }
+    } else {
+      exportToPDF()
+    }
+  }
+
+  const renderDashboard = () => (
+    <div className="expense-container">
+      {/* Compact Header */}
+      <header className="expense-header">
+        <div className="expense-header-content">
+          <div>
+            <h1 className="expense-title">WALLET DASHBOARD</h1>
+            <p className="expense-subtitle">Manage your earnings and withdrawals</p>
+          </div>
+          <div className="expense-user-profile">
+            <span className="expense-user-name">Wallet</span>
+            <div className="expense-user-badge" style={{ background: '#10b981' }}>💳</div>
+          </div>
+        </div>
       </header>
 
-      <nav className="wallet-nav">
+      {/* Total Balance Card */}
+      <div className="compact-section" style={{ margin: '0 0.75rem 1rem', background: 'linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)', color: 'white', textAlign: 'center' }}>
+        <h2 className="compact-section-title" style={{ color: 'white', fontSize: '1rem' }}>Total Wallet Balance</h2>
+        <div className="compact-stat-value" style={{ fontSize: '2.5rem', color: 'white' }}>
+          UGX {walletData.totalBalance.toLocaleString()}
+        </div>
+      </div>
+
+      {/* Balance Breakdown */}
+      <div className="compact-stats-grid">
+        <div className="compact-stat-card stat-green">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Available</span>
+            <span className="compact-stat-change positive">+12.5%</span>
+          </div>
+          <div className="compact-stat-value">
+            UGX {walletData.available.toLocaleString()}
+          </div>
+        </div>
+
+        <div className="compact-stat-card stat-yellow">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Pending</span>
+            <span className="compact-stat-change positive">↑ +20.5%</span>
+          </div>
+          <div className="compact-stat-value">
+            UGX {walletData.pending.toLocaleString()}
+          </div>
+        </div>
+
+        <div className="compact-stat-card stat-purple">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Held</span>
+            <span className="compact-stat-change negative">↓ -2.5%</span>
+          </div>
+          <div className="compact-stat-value">
+            UGX {walletData.held.toLocaleString()}
+          </div>
+        </div>
+      </div>
+
+      {/* Compact Action Bar */}
+      <div className="compact-action-bar">
         <button 
-          className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
-          onClick={() => setActiveTab('dashboard')}
+          className="compact-btn btn-primary" 
+          onClick={() => {
+            setCurrentView("withdraw")
+            setWithdrawalStep("method")
+          }}
         >
-          Dashboard
+          Withdraw Money
         </button>
         <button 
-          className={`nav-btn ${activeTab === 'withdraw' ? 'active' : ''}`}
-          onClick={() => setActiveTab('withdraw')}
+          className="compact-btn btn-secondary" 
+          onClick={() => setCurrentView("ledger")}
         >
-          Withdraw
+          View Ledger
         </button>
         <button 
-          className={`nav-btn ${activeTab === 'ledger' ? 'active' : ''}`}
-          onClick={() => setActiveTab('ledger')}
-        >
-          Ledger
-        </button>
-        <button 
-          className={`nav-btn ${activeTab === 'settlements' ? 'active' : ''}`}
-          onClick={() => setActiveTab('settlements')}
+          className="compact-btn btn-secondary" 
+          onClick={() => setCurrentView("settlements")}
         >
           Settlements
         </button>
         <button 
-          className={`nav-btn ${activeTab === 'disputes' ? 'active' : ''}`}
-          onClick={() => setActiveTab('disputes')}
+          className="compact-btn btn-secondary" 
+          onClick={() => setCurrentView("disputes")}
         >
           Disputes
         </button>
-      </nav>
+      </div>
 
-      <main className="wallet-content">
-        {activeTab === 'dashboard' && (
-          <div className="dashboard-view">
-            {/* Balance Overview */}
-            <div className="balance-overview">
-              <div className="total-balance-card">
-                <h2>Total Wallet Balance</h2>
-                <p className="total-amount">UGX {walletData.totalBalance.toLocaleString()}</p>
-                <div className="balance-breakdown">
-                  <div className="balance-item">
-                    <span className="balance-label">Available</span>
-                    <span className="balance-value">UGX {walletData.available.toLocaleString()}</span>
-                  </div>
-                  <div className="balance-item">
-                    <span className="balance-label">Pending</span>
-                    <span className="balance-value">UGX {walletData.pending.toLocaleString()}</span>
-                  </div>
-                  <div className="balance-item">
-                    <span className="balance-label">Held</span>
-                    <span className="balance-value">UGX {walletData.held.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
+      {/* Today's Stats */}
+      <div className="compact-content-grid">
+        {/* Today's Earnings */}
+        <div className="compact-table-section">
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">Today's Earnings</h2>
+            <p className="compact-section-subtitle">Your earnings for today</p>
+          </div>
 
-              <div className="dashboard-stats">
-                <div className="stat-card">
-                  <div className="stat-header">
-                    <h3>Settlement</h3>
-                    <span className="stat-time">Today 6 PM</span>
-                  </div>
-                  <p className="stat-amount">UGX {walletData.todayEarnings.toLocaleString()}</p>
-                  <p className="stat-subtitle">#12 from yesterday</p>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-header">
-                    <h3>Today's Earnings</h3>
-                  </div>
-                  <p className="stat-amount">UGX {walletData.todayEarnings.toLocaleString()}</p>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-header">
-                    <h3>Pending Payouts</h3>
-                  </div>
-                  <p className="stat-amount">UGX {walletData.pendingPayouts.toLocaleString()}</p>
-                  <p className="stat-subtitle">2 Processing in 2 days</p>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-header">
-                    <h3>Reconciliation</h3>
-                  </div>
-                  <button className="reconcile-btn">View Report</button>
-                </div>
-              </div>
+          <div className="compact-stat-card" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white' }}>
+            <div className="compact-stat-header">
+              <span className="compact-stat-label" style={{ color: 'white' }}>Amount</span>
             </div>
-
-            {/* Financial Overview */}
-            <div className="financial-overview">
-              <div className="overview-card">
-                <h3>Total Inflow</h3>
-                <p className="overview-amount">UGX {walletData.totalInflow.toLocaleString()}</p>
-                <p className="overview-subtitle">Earnings this Month</p>
-              </div>
-              <div className="overview-card">
-                <h3>Total Outflow</h3>
-                <p className="overview-amount">UGX {walletData.totalOutflow.toLocaleString()}</p>
-                <p className="overview-subtitle">Deductions & Withdrawals</p>
-              </div>
-              <div className="overview-card highlight">
-                <h3>Net Balance</h3>
-                <p className="overview-amount">UGX {walletData.netBalance.toLocaleString()}</p>
-                <p className="overview-subtitle">Available for Withdrawal</p>
-              </div>
+            <div className="compact-stat-value" style={{ fontSize: '1.5rem', color: 'white' }}>
+              UGX {walletData.todayEarnings.toLocaleString()}
             </div>
-
-            {/* Quick Actions */}
-            <div className="quick-actions-section">
-              <h3>Quick Actions</h3>
-              <p className="section-subtitle">Manage your wallet with one click</p>
-              <div className="action-cards">
-                <button className="action-card" onClick={() => setActiveTab('withdraw')}>
-                  <div className="action-icon">💰</div>
-                  <h4>Withdraw</h4>
-                  <p>Request instant payout</p>
-                </button>
-                <button className="action-card" onClick={() => setActiveTab('ledger')}>
-                  <div className="action-icon">📊</div>
-                  <h4>View Ledger</h4>
-                  <p>See all transactions</p>
-                </button>
-                <div className="action-card">
-                  <div className="action-icon">🔗</div>
-                  <h4>Quick Links</h4>
-                  <div className="quick-links">
-                    <button onClick={() => setActiveTab('settlements')}>Settlements</button>
-                    <button onClick={() => setActiveTab('disputes')}>Disputes</button>
-                    <button>View Analytics</button>
-                    <button>View Transaction History</button>
-                    <button>Ledger Statements</button>
-                    <button>Support</button>
-                  </div>
-                </div>
-              </div>
+            <div className="compact-stat-change positive" style={{ color: '#d1fae5' }}>
+              +12 from yesterday
             </div>
+          </div>
+        </div>
 
-            {/* Recent Transactions */}
-            <div className="recent-transactions">
-              <div className="section-header">
-                <h3>Recent Transactions</h3>
-                <button className="view-all-btn" onClick={() => setActiveTab('ledger')}>
-                  View All Transactions
-                </button>
-              </div>
-              <p className="section-subtitle">Your latest wallet activities</p>
-              
-              <div className="transactions-list">
-                {transactions.slice(0, 3).map(transaction => (
-                  <div key={transaction.id} className="transaction-item">
-                    <div className="transaction-icon">
-                      {getTransactionIcon(transaction.type)}
+        {/* Pending Payouts */}
+        <div className="compact-table-section">
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">Pending Payouts</h2>
+            <p className="compact-section-subtitle">Processing payments</p>
+          </div>
+
+          <div className="compact-stat-card" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: 'white' }}>
+            <div className="compact-stat-header">
+              <span className="compact-stat-label" style={{ color: 'white' }}>Amount</span>
+            </div>
+            <div className="compact-stat-value" style={{ fontSize: '1.5rem', color: 'white' }}>
+              UGX {walletData.pendingPayouts.toLocaleString()}
+            </div>
+            <div className="compact-stat-change" style={{ color: '#fef3c7' }}>
+              2 Processing in 2 days
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Transactions */}
+      <div className="compact-table-section" style={{ margin: '0 0.75rem 1rem' }}>
+        <div className="compact-section-header">
+          <h2 className="compact-section-title">Recent Transactions</h2>
+          <p className="compact-section-subtitle">Your latest wallet activities</p>
+        </div>
+
+        <div className="compact-table-wrapper">
+          <table className="compact-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Reference</th>
+                <th>Time</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.slice(0, 4).map((transaction) => (
+                <tr key={transaction.id}>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '0.9rem' }}>{getTransactionIcon(transaction.type)}</span>
+                      <span style={{ fontSize: '0.7rem', fontWeight: '600' }}>{transaction.title}</span>
                     </div>
-                    <div className="transaction-details">
-                      <h4>{transaction.title}</h4>
-                      <p className="transaction-time">{transaction.time}</p>
-                    </div>
-                    <div className={`transaction-amount ${transaction.isPositive ? 'positive' : 'negative'}`}>
+                  </td>
+                  <td style={{ fontSize: '0.65rem', color: '#64748b' }}>{transaction.reference}</td>
+                  <td style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{transaction.time}</td>
+                  <td>
+                    <span className={`compact-status ${transaction.isPositive ? 'completed' : 'cancelled'}`}>
                       {transaction.isPositive ? '+' : '-'} UGX {transaction.amount.toLocaleString()}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'withdraw' && (
-          <div className="withdrawal-view">
-            {withdrawalStep === 'method' && (
-              <>
-                <div className="withdrawal-header">
-                  <h2>Withdrawal</h2>
-                  <p>Manage your payment withdrawals and track their status</p>
-                </div>
-
-                <div className="withdrawal-stats">
-                  <div className="withdrawal-stat-card">
-                    <h3>Current Balance</h3>
-                    <p className="stat-amount">UGX {walletData.available.toLocaleString()}</p>
-                    <p className="stat-subtitle">Available for Withdrawal</p>
-                  </div>
-                  <div className="withdrawal-stat-card">
-                    <h3>Pending</h3>
-                    <p className="stat-amount">UGX {walletData.pending.toLocaleString()}</p>
-                  </div>
-                  <div className="withdrawal-stat-card">
-                    <h3>Held</h3>
-                    <p className="stat-amount">UGX {walletData.held.toLocaleString()}</p>
-                  </div>
-                </div>
-
-                <div className="available-info">
-                  <p>You can withdrawal upto UGX {walletData.available.toLocaleString()} from your available balance.</p>
-                </div>
-
-                <div className="withdrawal-methods">
-                  <h3>Select Withdrawal Method</h3>
-                  <div className="methods-grid">
-                    <button 
-                      className={`method-card ${withdrawalData.method === 'mtn' ? 'selected' : ''}`}
-                      onClick={() => handleWithdrawalMethodSelect('mtn')}
-                    >
-                      <div className="method-header">
-                        <div className="method-icon">📱</div>
-                        <div>
-                          <h4>MTN MoMo</h4>
-                          <p>Instant transfer</p>
-                        </div>
-                      </div>
-                      <div className="method-details">
-                        <div className="fee-info">
-                          <span>Fee:</span>
-                          <span>UGX 0</span>
-                        </div>
-                        <div className="time-info">
-                          <span>Time:</span>
-                          <span>0-3 min</span>
-                        </div>
-                      </div>
-                    </button>
-
-                    <button 
-                      className={`method-card ${withdrawalData.method === 'airtel' ? 'selected' : ''}`}
-                      onClick={() => handleWithdrawalMethodSelect('airtel')}
-                    >
-                      <div className="method-header">
-                        <div className="method-icon">📲</div>
-                        <div>
-                          <h4>Airtel Money</h4>
-                          <p>Instant transfer</p>
-                        </div>
-                      </div>
-                      <div className="method-details">
-                        <div className="fee-info">
-                          <span>Fee:</span>
-                          <span>UGX 0</span>
-                        </div>
-                        <div className="time-info">
-                          <span>Time:</span>
-                          <span>0-3 min</span>
-                        </div>
-                      </div>
-                    </button>
-
-                    <button 
-                      className={`method-card ${withdrawalData.method === 'bank' ? 'selected' : ''}`}
-                      onClick={() => handleWithdrawalMethodSelect('bank')}
-                    >
-                      <div className="method-header">
-                        <div className="method-icon">🏦</div>
-                        <div>
-                          <h4>Bank Account</h4>
-                          <p>Secure Transfer</p>
-                        </div>
-                      </div>
-                      <div className="method-details">
-                        <div className="fee-info">
-                          <span>Fee:</span>
-                          <span>UGX 2,000</span>
-                        </div>
-                        <div className="time-info">
-                          <span>Time:</span>
-                          <span>1-24 hr</span>
-                        </div>
-                      </div>
-                    </button>
-
-                    <button 
-                      className={`method-card ${withdrawalData.method === 'agent' ? 'selected' : ''}`}
-                      onClick={() => handleWithdrawalMethodSelect('agent')}
-                    >
-                      <div className="method-header">
-                        <div className="method-icon">👤</div>
-                        <div>
-                          <h4>Agent Payout</h4>
-                          <p>Immediate Pickup</p>
-                        </div>
-                      </div>
-                      <div className="method-details">
-                        <div className="fee-info">
-                          <span>Fee:</span>
-                          <span>UGX 500</span>
-                        </div>
-                        <div className="time-info">
-                          <span>Time:</span>
-                          <span>Instant</span>
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="withdrawal-actions">
-                  <button className="cancel-btn" onClick={() => setActiveTab('dashboard')}>
-                    Cancel
-                  </button>
-                  <button className="continue-btn" onClick={handleWithdrawalSubmit}>
-                    Continue to Amount
-                  </button>
-                </div>
-              </>
-            )}
-
-            {withdrawalStep === 'amount' && (
-              <>
-                <div className="withdrawal-header">
-                  <h2>Withdrawal</h2>
-                  <p>Enter amount to withdraw</p>
-                </div>
-
-                <div className="withdrawal-stats">
-                  <div className="withdrawal-stat-card">
-                    <h3>Current Balance</h3>
-                    <p className="stat-amount">UGX {walletData.available.toLocaleString()}</p>
-                    <p className="stat-subtitle">Available for Withdrawal</p>
-                  </div>
-                </div>
-
-                <div className="withdrawal-form">
-                  <div className="withdrawal-type">
-                    <h3>Amount to Withdraw</h3>
-                    <div className="type-buttons">
-                      <button 
-                        className={`type-btn ${withdrawalData.autoWithdrawal ? 'active' : ''}`}
-                        onClick={() => setWithdrawalData({...withdrawalData, autoWithdrawal: true})}
-                      >
-                        Auto Withdrawal (free Charge)
-                      </button>
-                      <button 
-                        className={`type-btn ${!withdrawalData.autoWithdrawal ? 'active' : ''}`}
-                        onClick={() => setWithdrawalData({...withdrawalData, autoWithdrawal: false})}
-                      >
-                        Instant Withdrawal (fee Charged)
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="amount-input-group">
-                    <label htmlFor="amount">Amount (UGX)</label>
-                    <div className="amount-input-wrapper">
-                      <input
-                        type="number"
-                        id="amount"
-                        value={withdrawalData.amount}
-                        onChange={(e) => handleAmountChange(e.target.value)}
-                        placeholder="0.00"
-                        min="0"
-                        max={walletData.available}
-                        className="amount-input"
-                      />
-                      <span className="currency">UGX</span>
-                    </div>
-                    <p className="available-info">Available UGX {walletData.available.toLocaleString()}</p>
-                  </div>
-
-                  <div className="fee-info-card">
-                    <div className="fee-item">
-                      <span>Withdrawal Fee:</span>
-                      <span>UGX {withdrawalData.fee.toLocaleString()}</span>
-                    </div>
-                    <div className="fee-item">
-                      <span>Processing Time:</span>
-                      <span>{withdrawalData.processingTime || 'Instant (0-5 minutes)'}</span>
-                    </div>
-                    <div className="fee-item total">
-                      <span>Net Amount:</span>
-                      <span>UGX {withdrawalData.netAmount.toLocaleString()}</span>
-                    </div>
-                  </div>
-
-                  <div className="payout-destination">
-                    <h3>Payout Destination</h3>
-                    <div className="destination-details">
-                      <div className="detail-item">
-                        <span>MTN Number</span>
-                        <strong>{withdrawalData.phoneNumber}</strong>
-                      </div>
-                      <div className="detail-item">
-                        <span>Receiptient Name (Account Name)</span>
-                        <strong>{withdrawalData.accountName}</strong>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="withdrawal-actions">
-                  <button className="cancel-btn" onClick={() => setWithdrawalStep('method')}>
-                    Back
-                  </button>
-                  <button 
-                    className="continue-btn" 
-                    onClick={handleWithdrawalSubmit}
-                    disabled={!withdrawalData.amount || parseFloat(withdrawalData.amount) > walletData.available}
-                  >
-                    Continue to Confirmation
-                  </button>
-                </div>
-              </>
-            )}
-
-            {withdrawalStep === 'confirm' && (
-              <div className="confirmation-view">
-                <div className="confirmation-header">
-                  <h2>Confirm Withdrawal</h2>
-                </div>
-
-                <div className="confirmation-details">
-                  <table className="confirmation-table">
-                    <tbody>
-                      <tr>
-                        <td>Amount</td>
-                        <td>UGX {parseFloat(withdrawalData.amount).toLocaleString()}</td>
-                      </tr>
-                      <tr>
-                        <td>Fee</td>
-                        <td>UGX {withdrawalData.fee.toLocaleString()}</td>
-                      </tr>
-                      <tr className="total-row">
-                        <td>You'll Receive</td>
-                        <td><strong>UGX {withdrawalData.netAmount.toLocaleString()}</strong></td>
-                      </tr>
-                    </tbody>
-                  </table>
-
-                  <div className="reference-info">
-                    <p>Reference Code</p>
-                    <p className="reference-code">WD - 924890022</p>
-                  </div>
-
-                  <div className="destination-info">
-                    <p>Withdrawing to <strong>MTN MoMo</strong></p>
-                    <p>Receiptient: <strong>{withdrawalData.phoneNumber} ({withdrawalData.accountName})</strong></p>
-                  </div>
-                </div>
-
-                <div className="withdrawal-actions">
-                  <button className="cancel-btn" onClick={() => setWithdrawalStep('amount')}>
-                    Cancel
-                  </button>
-                  <button className="confirm-btn" onClick={handleWithdrawalSubmit}>
-                    Confirm Withdrawal
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {withdrawalStep === 'success' && (
-              <div className="success-view">
-                <div className="success-header">
-                  <h2>Withdrawal Successful</h2>
-                </div>
-
-                <div className="success-content">
-                  <div className="success-amount">
-                    <p>Amount Withdrawn</p>
-                    <h3>UGX {parseFloat(withdrawalData.amount).toLocaleString()}</h3>
-                  </div>
-
-                  <div className="success-details">
-                    <p>To MTN MoMo</p>
-                    <p className="reference-code">WD - 924890022</p>
-                    <p>Receiptent: <strong>{withdrawalData.phoneNumber} ({withdrawalData.accountName})</strong></p>
-                  </div>
-
-                  <div className="success-note">
-                    <p>You can track your withdrawal status in your transaction history. Processing typically takes 1-24 hours depending on the method.</p>
-                  </div>
-                </div>
-
-                <div className="withdrawal-actions">
-                  <button className="dashboard-btn" onClick={() => {
-                    resetWithdrawal();
-                    setActiveTab('dashboard');
-                  }}>
-                    Return to Dashboard
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {withdrawalStep === 'history' && (
-              <div className="withdrawal-history">
-                <div className="history-header">
-                  <h2>Recent Withdrawals</h2>
-                </div>
-
-                <div className="withdrawal-stats">
-                  <div className="withdrawal-stat-card">
-                    <h3>Total Withdrawn</h3>
-                    <p className="stat-amount">+12.5%</p>
-                  </div>
-                  <div className="withdrawal-stat-card">
-                    <h3>Pending</h3>
-                    <p className="stat-amount">UGX 20,000</p>
-                    <p className="stat-subtitle">1 request</p>
-                  </div>
-                  <div className="withdrawal-stat-card">
-                    <h3>Failed</h3>
-                    <p className="stat-amount">UGX 12,000</p>
-                    <p className="stat-subtitle">Retry Needed</p>
-                  </div>
-                  <div className="withdrawal-stat-card">
-                    <h3>Successful</h3>
-                    <p className="stat-amount">UGX 25,000</p>
-                    <p className="stat-subtitle">last 24hrs</p>
-                  </div>
-                </div>
-
-                <div className="withdrawals-list">
-                  {withdrawals.map(withdrawal => (
-                    <div key={withdrawal.id} className="withdrawal-item">
-                      <div className="withdrawal-info">
-                        <div className="withdrawal-icon">
-                          {getMethodIcon(withdrawal.method)}
-                        </div>
-                        <div className="withdrawal-details">
-                          <h4>UGX {withdrawal.amount.toLocaleString()}</h4>
-                          <p>{withdrawal.method}</p>
-                          <p className="withdrawal-reference">{withdrawal.reference}</p>
-                        </div>
-                      </div>
-                      <div className="withdrawal-status">
-                        <span className={getStatusBadgeClass(withdrawal.status)}>
-                          {withdrawal.status}
-                        </span>
-                        <p className="withdrawal-time">{withdrawal.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'ledger' && (
-          <div className="ledger-view">
-            <div className="ledger-header">
-              <h2>Ledger Statements</h2>
-              <p>Manage your earnings and withdrawals</p>
-            </div>
-
-            <div className="balance-summary">
-              <div className="total-balance">
-                <p>Total Wallet Balance</p>
-                <h2>UGX {walletData.totalBalance.toLocaleString()}</h2>
-              </div>
-              <div className="balance-breakdown-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Available</th>
-                      <th>Pending</th>
-                      <th>Held</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><strong>UGX {walletData.available.toLocaleString()}</strong></td>
-                      <td><strong>UGX {walletData.pending.toLocaleString()}</strong></td>
-                      <td><strong>UGX {walletData.held.toLocaleString()}</strong></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="ledger-filters">
-              <div className="filter-buttons">
-                <button 
-                  className={`filter-btn ${ledgerFilter === 'all' ? 'active' : ''}`}
-                  onClick={() => setLedgerFilter('all')}
-                >
-                  All
-                </button>
-                <button 
-                  className={`filter-btn ${ledgerFilter === 'earnings' ? 'active' : ''}`}
-                  onClick={() => setLedgerFilter('earnings')}
-                >
-                  Earnings
-                </button>
-                <button 
-                  className={`filter-btn ${ledgerFilter === 'deductions' ? 'active' : ''}`}
-                  onClick={() => setLedgerFilter('deductions')}
-                >
-                  Deductions
-                </button>
-                <button 
-                  className={`filter-btn ${ledgerFilter === 'withdrawals' ? 'active' : ''}`}
-                  onClick={() => setLedgerFilter('withdrawals')}
-                >
-                  Withdrawals
-                </button>
-                <button 
-                  className={`filter-btn ${ledgerFilter === 'settlements' ? 'active' : ''}`}
-                  onClick={() => setLedgerFilter('settlements')}
-                >
-                  Settlements
-                </button>
-              </div>
-              
-              <div className="search-filter">
-                <select className="filter-select">
-                  <option>Trip ID</option>
-                  <option>Reference</option>
-                  <option>Date</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="transactions-count">
-              <p>{filteredTransactions.length} transactions found</p>
-            </div>
-
-            <div className="ledger-transactions">
-              {filteredTransactions.map(transaction => (
-                <div key={transaction.id} className="ledger-transaction">
-                  <div className="transaction-icon">
-                    {getTransactionIcon(transaction.type)}
-                  </div>
-                  <div className="transaction-info">
-                    <h4>{transaction.title}</h4>
-                    <p className="transaction-time">{transaction.time} • {transaction.reference}</p>
-                  </div>
-                  <div className={`transaction-amount ${transaction.isPositive ? 'positive' : 'negative'}`}>
-                    {transaction.isPositive ? '+' : '-'} UGX {transaction.amount.toLocaleString()}
-                  </div>
-                </div>
+                    </span>
+                  </td>
+                </tr>
               ))}
-            </div>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-            <div className="export-actions">
-              <button className="export-btn">
-                EXPORT CSV
-              </button>
-              <button className="download-btn">
-                DOWNLOAD
-              </button>
+      {/* Quick Actions */}
+      <div className="compact-content-grid">
+        <div className="compact-table-section">
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">Quick Actions</h2>
+            <p className="compact-section-subtitle">Manage your wallet</p>
+          </div>
+
+          <div className="compact-breakdown-list">
+            <button 
+              className="compact-stat-item" 
+              style={{ cursor: 'pointer' }}
+              onClick={() => {
+                setCurrentView("withdraw")
+                setWithdrawalStep("method")
+              }}
+            >
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Withdraw Funds</span>
+                <span className="compact-stat-value">💸</span>
+              </div>
+            </button>
+            
+            <button 
+              className="compact-stat-item" 
+              style={{ cursor: 'pointer' }}
+              onClick={() => setCurrentView("ledger")}
+            >
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">View Full Ledger</span>
+                <span className="compact-stat-value">📊</span>
+              </div>
+            </button>
+            
+            <button 
+              className="compact-stat-item" 
+              style={{ cursor: 'pointer' }}
+              onClick={() => setCurrentView("settlements")}
+            >
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Settlement Report</span>
+                <span className="compact-stat-value">🏦</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Financial Overview */}
+        <div className="compact-breakdown-section">
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">Financial Overview</h2>
+            <p className="compact-section-subtitle">This month's summary</p>
+          </div>
+
+          <div className="compact-breakdown-list">
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Total Inflow</span>
+                <span className="compact-stat-value" style={{ color: '#10b981' }}>UGX {walletData.totalInflow.toLocaleString()}</span>
+              </div>
+            </div>
+            
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Total Outflow</span>
+                <span className="compact-stat-value" style={{ color: '#ef4444' }}>UGX {walletData.totalOutflow.toLocaleString()}</span>
+              </div>
+            </div>
+            
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Net Balance</span>
+                <span className="compact-stat-value" style={{ color: '#3b82f6' }}>UGX {walletData.netBalance.toLocaleString()}</span>
+              </div>
             </div>
           </div>
-        )}
+        </div>
+      </div>
+    </div>
+  )
 
-        {activeTab === 'settlements' && (
-          <div className="settlements-view">
-            <div className="settlements-header">
-              <h2>Ledger Settlements</h2>
-              <p>Manage your earnings and withdrawals</p>
-            </div>
+  const renderWithdraw = () => (
+    <div className="expense-container">
+      {/* Compact Header */}
+      <header className="expense-header">
+        <div className="expense-header-content">
+          <div>
+            <h1 className="expense-title">WITHDRAW FUNDS</h1>
+            <p className="expense-subtitle">Withdraw your earnings instantly</p>
+          </div>
+          <div className="expense-user-profile">
+            <span className="expense-user-name">Withdraw</span>
+            <div className="expense-user-badge" style={{ background: '#f59e0b' }}>💰</div>
+          </div>
+        </div>
+      </header>
 
-            <div className="settlement-overview">
-              <div className="total-balance-card">
-                <h2>Total Wallet Balance</h2>
-                <p className="total-amount">UGX {walletData.totalBalance.toLocaleString()}</p>
-                <div className="balance-breakdown-table">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Available</th>
-                        <th>Pending</th>
-                        <th>Held</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td><strong>UGX {walletData.available.toLocaleString()}</strong></td>
-                        <td><strong>UGX {walletData.pending.toLocaleString()}</strong></td>
-                        <td><strong>UGX {walletData.held.toLocaleString()}</strong></td>
-                      </tr>
-                    </tbody>
-                  </table>
+      {/* Balance Summary */}
+      <div className="compact-section" style={{ margin: '0 0.75rem 1rem', background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)', color: 'white', textAlign: 'center' }}>
+        <h2 className="compact-section-title" style={{ color: 'white', fontSize: '1rem' }}>Available Balance</h2>
+        <div className="compact-stat-value" style={{ fontSize: '2.5rem', color: 'white' }}>
+          UGX {walletData.available.toLocaleString()}
+        </div>
+        <p style={{ fontSize: '0.75rem', color: '#dbeafe' }}>Available for withdrawal</p>
+      </div>
+
+      {/* Withdrawal Steps */}
+      {withdrawalStep === 'method' && (
+        <>
+          <div className="compact-content-grid">
+            <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
+              <div className="compact-section-header">
+                <h2 className="compact-section-title">Select Withdrawal Method</h2>
+                <p className="compact-section-subtitle">Choose your preferred payout method</p>
+              </div>
+
+              <div className="compact-modal-content">
+                <div className="compact-category-grid">
+                  <button
+                    type="button"
+                    className={`compact-category-btn ${withdrawalData.method === 'mtn' ? 'selected' : ''}`}
+                    onClick={() => handleWithdrawalMethodSelect('mtn')}
+                  >
+                    <div style={{ fontSize: '1.5rem' }}>📱</div>
+                    <div style={{ fontSize: '0.8rem', fontWeight: '600' }}>MTN MoMo</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Instant transfer</div>
+                  </button>
+                  <button
+                    type="button"
+                    className={`compact-category-btn ${withdrawalData.method === 'airtel' ? 'selected' : ''}`}
+                    onClick={() => handleWithdrawalMethodSelect('airtel')}
+                  >
+                    <div style={{ fontSize: '1.5rem' }}>📲</div>
+                    <div style={{ fontSize: '0.8rem', fontWeight: '600' }}>Airtel Money</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Instant transfer</div>
+                  </button>
+                  <button
+                    type="button"
+                    className={`compact-category-btn ${withdrawalData.method === 'bank' ? 'selected' : ''}`}
+                    onClick={() => handleWithdrawalMethodSelect('bank')}
+                  >
+                    <div style={{ fontSize: '1.5rem' }}>🏦</div>
+                    <div style={{ fontSize: '0.8rem', fontWeight: '600' }}>Bank Account</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Secure Transfer</div>
+                  </button>
+                  <button
+                    type="button"
+                    className={`compact-category-btn ${withdrawalData.method === 'agent' ? 'selected' : ''}`}
+                    onClick={() => handleWithdrawalMethodSelect('agent')}
+                  >
+                    <div style={{ fontSize: '1.5rem' }}>👤</div>
+                    <div style={{ fontSize: '0.8rem', fontWeight: '600' }}>Agent Payout</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Immediate Pickup</div>
+                  </button>
                 </div>
               </div>
 
-              <div className="settlement-stats">
-                <div className="settlement-stat">
-                  <h3>Total Settled</h3>
-                  <p className="stat-amount">1,280,000</p>
-                  <p className="stat-subtitle">Last 30 days</p>
-                </div>
-                <div className="settlement-stat">
-                  <h3>Pending</h3>
-                  <p className="stat-amount">UGX 20,000</p>
-                  <p className="stat-subtitle">Next Settlement</p>
-                </div>
-                <div className="settlement-stat">
-                  <h3>Deductions</h3>
-                  <p className="stat-amount">UGX 12,000</p>
-                  <p className="stat-subtitle">Applied</p>
-                </div>
+              <div className="compact-modal-actions">
+                <button 
+                  className="compact-modal-btn btn-secondary" 
+                  onClick={() => setCurrentView("dashboard")}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="compact-modal-btn btn-primary"
+                  onClick={handleWithdrawalSubmit}
+                >
+                  Continue to Amount
+                </button>
               </div>
-            </div>
-
-            <div className="next-cycle">
-              <div className="cycle-header">
-                <h3>Next Cycle</h3>
-                <span className="cycle-tag">Auto Settlement</span>
-              </div>
-              <p className="cycle-time">Today 10:00 PM</p>
-            </div>
-
-            <div className="settlement-details">
-              <div className="settlement-card">
-                <h3>Pending Settlement</h3>
-                <p className="settlement-amount">UGX 34,000</p>
-                <p className="settlement-subtitle">Includes 3 Quick Trips, 1 Delivery</p>
-                <p className="settlement-time">Scheduled For Today, 10:00 PM</p>
-              </div>
-
-              <div className="settlement-card">
-                <h3>Auto Deductions</h3>
-                <div className="deductions-list">
-                  <div className="deduction-item">
-                    <span>Commission Fees</span>
-                    <span>UGX 8,500</span>
-                  </div>
-                  <div className="deduction-item">
-                    <span>Penalty Fees</span>
-                    <span>UGX 2,000</span>
-                  </div>
-                  <div className="deduction-item">
-                    <span>Manual Adjustment</span>
-                    <span>UGX 2,000</span>
-                  </div>
-                </div>
-                <div className="batch-info">
-                  <span>BATCH ID</span>
-                  <strong># STL - 99221</strong>
-                </div>
-                <div className="total-deductions">
-                  <span>Total</span>
-                  <strong>UGX 12,500</strong>
-                </div>
-              </div>
-            </div>
-
-            <div className="settlement-history">
-              <h3>Settlement History</h3>
-              <div className="history-list">
-                {settlements.map(settlement => (
-                  <div key={settlement.id} className="history-item">
-                    <div className="history-amount">
-                      <h4>UGX {settlement.amount.toLocaleString()}</h4>
-                      <p className="deduction-amount">Deductions: UGX {settlement.deductions.toLocaleString()}</p>
-                    </div>
-                    <div className="history-details">
-                      <p className="history-type">{settlement.type}</p>
-                      <p className="history-time">{settlement.time}</p>
-                      <p className="history-reference">Ref: {settlement.reference}</p>
-                      <p className="history-batch">Batch: {settlement.batch}</p>
-                    </div>
-                    <div className="history-status">
-                      <span className={getStatusBadgeClass(settlement.status)}>
-                        {settlement.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="export-actions">
-              <button className="export-btn">
-                EXPORT CSV
-              </button>
-              <button className="download-btn">
-                DOWNLOAD
-              </button>
             </div>
           </div>
-        )}
+        </>
+      )}
 
-        {activeTab === 'disputes' && (
-          <div className="disputes-view">
-            <div className="disputes-header">
-              <h2>Disputed Transactions</h2>
-              <p>Manage and track all held and disputed amounts</p>
-            </div>
+      {withdrawalStep === 'amount' && (
+        <>
+          <div className="compact-content-grid">
+            <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
+              <div className="compact-section-header">
+                <h2 className="compact-section-title">Enter Withdrawal Amount</h2>
+                <p className="compact-section-subtitle">Enter the amount you want to withdraw</p>
+              </div>
 
-            <div className="disputes-stats">
-              <div className="dispute-stat-card">
-                <h3>Total Held Amount</h3>
-                <p className="stat-amount">UGX 12,400</p>
-                <p className="stat-subtitle">4 disputes</p>
-              </div>
-              <div className="dispute-stat-card">
-                <h3>Pending Review</h3>
-                <p className="stat-amount">UGX 5,400</p>
-                <p className="stat-subtitle">2 active disputes</p>
-              </div>
-              <div className="dispute-stat-card">
-                <h3>Received this month</h3>
-                <p className="stat-amount">2</p>
-                <p className="stat-subtitle">Disputes Cleared</p>
-              </div>
-            </div>
+              <div className="compact-modal-content">
+                <div className="compact-form-group">
+                  <label className="compact-form-label">Amount (UGX)</label>
+                  <input
+                    type="number"
+                    className="compact-form-input"
+                    value={withdrawalData.amount}
+                    onChange={(e) => handleAmountChange(e.target.value)}
+                    placeholder="0"
+                    min="0"
+                    max={walletData.available}
+                  />
+                  <p className="compact-form-hint">Available: UGX {walletData.available.toLocaleString()}</p>
+                </div>
 
-            <div className="disputes-filters">
-              <div className="filter-buttons">
-                <button 
-                  className={`filter-btn ${disputesFilter === 'all' ? 'active' : ''}`}
-                  onClick={() => setDisputesFilter('all')}
-                >
-                  All
-                </button>
-                <button 
-                  className={`filter-btn ${disputesFilter === 'pending' ? 'active' : ''}`}
-                  onClick={() => setDisputesFilter('pending')}
-                >
-                  Pending
-                </button>
-                <button 
-                  className={`filter-btn ${disputesFilter === 'resolved' ? 'active' : ''}`}
-                  onClick={() => setDisputesFilter('resolved')}
-                >
-                  Resolved
-                </button>
-              </div>
-              
-              <div className="search-filter">
-                <select className="filter-select">
-                  <option>Date</option>
-                  <option>Type</option>
-                  <option>Trip ID</option>
-                </select>
-              </div>
-            </div>
+                <div className="compact-form-group">
+                  <label className="compact-form-label">Withdrawal Type</label>
+                  <div className="compact-form-radio-group">
+                    <label className="compact-form-radio">
+                      <input
+                        type="radio"
+                        name="withdrawalType"
+                        checked={withdrawalData.autoWithdrawal}
+                        onChange={() => setWithdrawalData({...withdrawalData, autoWithdrawal: true})}
+                      />
+                      <span>Auto Withdrawal (No Fee)</span>
+                    </label>
+                    <label className="compact-form-radio">
+                      <input
+                        type="radio"
+                        name="withdrawalType"
+                        checked={!withdrawalData.autoWithdrawal}
+                        onChange={() => setWithdrawalData({...withdrawalData, autoWithdrawal: false})}
+                      />
+                      <span>Instant Withdrawal (Fee: UGX {withdrawalData.fee})</span>
+                    </label>
+                  </div>
+                </div>
 
-            <div className="disputes-count">
-              <p>{filteredDisputes.length} Disputes found</p>
-            </div>
+                <div className="compact-fee-summary">
+                  <div className="compact-fee-row">
+                    <span>Amount:</span>
+                    <span>UGX {(parseFloat(withdrawalData.amount) || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="compact-fee-row">
+                    <span>Fee:</span>
+                    <span>UGX {withdrawalData.fee.toLocaleString()}</span>
+                  </div>
+                  <div className="compact-fee-row total">
+                    <span>You'll Receive:</span>
+                    <span>UGX {withdrawalData.netAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="compact-fee-row">
+                    <span>Processing Time:</span>
+                    <span>{withdrawalData.processingTime}</span>
+                  </div>
+                </div>
 
-            <div className="disputes-list">
-              {filteredDisputes.map(dispute => (
-                <div key={dispute.id} className="dispute-card">
-                  <div className="dispute-header">
+                <div className="compact-form-group">
+                  <label className="compact-form-label">Destination Details</label>
+                  <div className="compact-destination-info">
                     <div>
-                      <h3>{dispute.title}</h3>
-                      <p className="dispute-description">{dispute.description}</p>
+                      <span className="compact-detail-label">Phone Number:</span>
+                      <span className="compact-detail-value">{withdrawalData.phoneNumber}</span>
                     </div>
-                    <div className="dispute-amount">
-                      {dispute.amount > 0 && (
-                        <span className="amount-negative">-UGX {dispute.amount.toLocaleString()}</span>
-                      )}
-                      <span className={getStatusBadgeClass(dispute.status)}>
+                    <div>
+                      <span className="compact-detail-label">Account Name:</span>
+                      <span className="compact-detail-value">{withdrawalData.accountName}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="compact-modal-actions">
+                <button 
+                  className="compact-modal-btn btn-secondary" 
+                  onClick={() => setWithdrawalStep('method')}
+                >
+                  Back
+                </button>
+                <button 
+                  className="compact-modal-btn btn-primary"
+                  onClick={handleWithdrawalSubmit}
+                  disabled={!withdrawalData.amount || parseFloat(withdrawalData.amount) > walletData.available}
+                >
+                  Continue to Confirmation
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {withdrawalStep === 'confirm' && (
+        <>
+          <div className="compact-content-grid">
+            <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
+              <div className="compact-section-header">
+                <h2 className="compact-section-title">Confirm Withdrawal</h2>
+                <p className="compact-section-subtitle">Review details before confirming</p>
+              </div>
+
+              <div className="compact-modal-content">
+                <div className="compact-confirmation-card">
+                  <div className="compact-confirmation-row">
+                    <span>Method:</span>
+                    <span style={{ fontWeight: '600' }}>
+                      {withdrawalData.method === 'mtn' ? 'MTN MoMo' : 
+                       withdrawalData.method === 'airtel' ? 'Airtel Money' :
+                       withdrawalData.method === 'bank' ? 'Bank Account' : 'Agent Payout'}
+                    </span>
+                  </div>
+                  <div className="compact-confirmation-row">
+                    <span>Amount:</span>
+                    <span style={{ fontWeight: '600' }}>UGX {(parseFloat(withdrawalData.amount) || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="compact-confirmation-row">
+                    <span>Fee:</span>
+                    <span>UGX {withdrawalData.fee.toLocaleString()}</span>
+                  </div>
+                  <div className="compact-confirmation-row total">
+                    <span>Net Amount:</span>
+                    <span style={{ fontWeight: '700', color: '#059669' }}>UGX {withdrawalData.netAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="compact-confirmation-row">
+                    <span>Processing Time:</span>
+                    <span>{withdrawalData.processingTime}</span>
+                  </div>
+                  <div className="compact-confirmation-row">
+                    <span>Destination:</span>
+                    <span>{withdrawalData.phoneNumber} ({withdrawalData.accountName})</span>
+                  </div>
+                </div>
+
+                <div className="compact-form-group">
+                  <label className="compact-form-label">Reference Code</label>
+                  <div className="compact-reference-code">WD-{Date.now().toString().slice(-8)}</div>
+                </div>
+              </div>
+
+              <div className="compact-modal-actions">
+                <button 
+                  className="compact-modal-btn btn-secondary" 
+                  onClick={() => setWithdrawalStep('amount')}
+                >
+                  Back
+                </button>
+                <button 
+                  className="compact-modal-btn btn-primary"
+                  onClick={handleWithdrawalSubmit}
+                >
+                  Confirm Withdrawal
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Withdrawal History */}
+      <div className="compact-table-section" style={{ margin: '0 0.75rem 1rem' }}>
+        <div className="compact-section-header">
+          <h2 className="compact-section-title">Recent Withdrawals</h2>
+          <p className="compact-section-subtitle">Your recent withdrawal history</p>
+        </div>
+
+        <div className="compact-table-wrapper">
+          <table className="compact-table">
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Reference</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {withdrawals.slice(0, 3).map((withdrawal) => (
+                <tr key={withdrawal.id}>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '0.9rem' }}>{getMethodIcon(withdrawal.method)}</span>
+                      <span style={{ fontSize: '0.7rem', fontWeight: '600' }}>{withdrawal.method}</span>
+                    </div>
+                  </td>
+                  <td style={{ fontSize: '0.7rem', fontWeight: '600' }}>UGX {withdrawal.amount.toLocaleString()}</td>
+                  <td style={{ fontSize: '0.65rem', color: '#64748b' }}>{withdrawal.reference}</td>
+                  <td>
+                    <span className={`compact-status ${withdrawal.status}`}>
+                      {withdrawal.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderLedger = () => (
+    <div className="expense-container">
+      {/* Compact Header */}
+      <header className="expense-header">
+        <div className="expense-header-content">
+          <div>
+            <h1 className="expense-title">LEDGER STATEMENTS</h1>
+            <p className="expense-subtitle">View all your wallet transactions</p>
+          </div>
+          <div className="expense-user-profile">
+            <span className="expense-user-name">Ledger</span>
+            <div className="expense-user-badge" style={{ background: '#8b5cf6' }}>📊</div>
+          </div>
+        </div>
+      </header>
+
+      {/* Total Balance */}
+      <div className="compact-section" style={{ margin: '0 0.75rem 1rem', background: 'linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)', color: 'white', textAlign: 'center' }}>
+        <h2 className="compact-section-title" style={{ color: 'white', fontSize: '1rem' }}>Total Wallet Balance</h2>
+        <div className="compact-stat-value" style={{ fontSize: '2.5rem', color: 'white' }}>
+          UGX {walletData.totalBalance.toLocaleString()}
+        </div>
+      </div>
+
+      {/* Balance Breakdown */}
+      <div className="compact-stats-grid">
+        <div className="compact-stat-card stat-green">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Available</span>
+          </div>
+          <div className="compact-stat-value">
+            UGX {walletData.available.toLocaleString()}
+          </div>
+        </div>
+
+        <div className="compact-stat-card stat-yellow">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Pending</span>
+          </div>
+          <div className="compact-stat-value">
+            UGX {walletData.pending.toLocaleString()}
+          </div>
+        </div>
+
+        <div className="compact-stat-card stat-purple">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Held</span>
+          </div>
+          <div className="compact-stat-value">
+            UGX {walletData.held.toLocaleString()}
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="compact-action-bar">
+        <button 
+          className={`compact-btn ${ledgerFilter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setLedgerFilter('all')}
+        >
+          All
+        </button>
+        <button 
+          className={`compact-btn ${ledgerFilter === 'earnings' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setLedgerFilter('earnings')}
+        >
+          Earnings
+        </button>
+        <button 
+          className={`compact-btn ${ledgerFilter === 'deductions' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setLedgerFilter('deductions')}
+        >
+          Deductions
+        </button>
+        <button 
+          className={`compact-btn ${ledgerFilter === 'withdrawals' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setLedgerFilter('withdrawals')}
+        >
+          Withdrawals
+        </button>
+      </div>
+
+      {/* Transaction Count */}
+      <div style={{ padding: '0 0.75rem', marginBottom: '0.5rem' }}>
+        <p style={{ fontSize: '0.75rem', color: '#64748b' }}>
+          {filteredTransactions.length} transactions found
+        </p>
+      </div>
+
+      {/* Transactions List */}
+      <div className="compact-content-grid">
+        <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">All Transactions</h2>
+            <p className="compact-section-subtitle">Complete transaction history</p>
+          </div>
+
+          <div className="compact-table-wrapper">
+            <table className="compact-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Description</th>
+                  <th>Time</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTransactions.map((transaction) => (
+                  <tr key={transaction.id}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.9rem' }}>{getTransactionIcon(transaction.type)}</span>
+                        <span style={{ fontSize: '0.65rem' }}>{transaction.type.replace('-', ' ')}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.7rem', fontWeight: '600' }}>{transaction.title}</div>
+                      <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{transaction.reference}</div>
+                    </td>
+                    <td style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{transaction.time}</td>
+                    <td>
+                      <span className={`compact-status ${transaction.isPositive ? 'completed' : 'cancelled'}`}>
+                        {transaction.isPositive ? '+' : '-'} UGX {transaction.amount.toLocaleString()}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="compact-modal-actions">
+            <button 
+              className="compact-modal-btn btn-secondary"
+              onClick={() => setCurrentView("dashboard")}
+            >
+              Back to Dashboard
+            </button>
+            <button 
+              className="compact-modal-btn btn-secondary"
+              onClick={exportToExcel}
+            >
+              Export to Excel
+            </button>
+            <button 
+              className="compact-modal-btn btn-primary"
+              onClick={() => setCurrentView("settlements")}
+            >
+              View Settlements
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderSettlements = () => (
+    <div className="expense-container">
+      {/* Compact Header */}
+      <header className="expense-header">
+        <div className="expense-header-content">
+          <div>
+            <h1 className="expense-title">SETTLEMENTS</h1>
+            <p className="expense-subtitle">View and manage settlement reports</p>
+          </div>
+          <div className="expense-user-profile">
+            <span className="expense-user-name">Settlements</span>
+            <div className="expense-user-badge" style={{ background: '#8b5cf6' }}>🏦</div>
+          </div>
+        </div>
+      </header>
+
+      {/* Search */}
+      <div style={{ padding: '0 0.75rem', marginBottom: '1rem' }}>
+        <input
+          type="text"
+          placeholder="Search settlements..."
+          className="compact-search-input"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ width: '100%' }}
+        />
+      </div>
+
+      {/* Next Cycle */}
+      <div className="compact-section" style={{ margin: '0 0.75rem 1rem', background: '#fffbeb', border: '1px solid #fde68a', textAlign: 'center' }}>
+        <h2 className="compact-section-title" style={{ color: '#92400e' }}>Next Settlement Cycle</h2>
+        <div className="compact-stat-value" style={{ fontSize: '1.5rem', color: '#92400e' }}>
+          Today 10:00 PM
+        </div>
+        <p style={{ fontSize: '0.75rem', color: '#d97706' }}>Auto Settlement • UGX 34,000 pending</p>
+      </div>
+
+      {/* Settlement Stats */}
+      <div className="compact-stats-grid">
+        <div className="compact-stat-card stat-blue">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Total Settled</span>
+          </div>
+          <div className="compact-stat-value">
+            1,280,000
+          </div>
+          <div className="compact-stat-change" style={{ fontSize: '0.65rem' }}>Last 30 days</div>
+        </div>
+
+        <div className="compact-stat-card stat-yellow">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Pending</span>
+          </div>
+          <div className="compact-stat-value">
+            UGX 20,000
+          </div>
+          <div className="compact-stat-change" style={{ fontSize: '0.65rem' }}>Next Settlement</div>
+        </div>
+
+        <div className="compact-stat-card stat-purple">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Deductions</span>
+          </div>
+          <div className="compact-stat-value">
+            UGX 12,000
+          </div>
+          <div className="compact-stat-change" style={{ fontSize: '0.65rem' }}>Applied</div>
+        </div>
+      </div>
+
+      {/* Settlement Details */}
+      <div className="compact-content-grid">
+        {/* Pending Settlement */}
+        <div className="compact-table-section">
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">Pending Settlement</h2>
+            <p className="compact-section-subtitle">Today, 10:00 PM</p>
+          </div>
+
+          <div className="compact-delivery-details">
+            <div className="compact-detail-row">
+              <span className="compact-detail-label">Amount</span>
+              <span className="compact-detail-value">UGX 34,000</span>
+            </div>
+            <div className="compact-detail-row">
+              <span className="compact-detail-label">Includes</span>
+              <span className="compact-detail-value">3 Trips, 1 Delivery</span>
+            </div>
+            <div className="compact-detail-row">
+              <span className="compact-detail-label">Batch ID</span>
+              <span className="compact-detail-value">STL-99221</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Auto Deductions */}
+        <div className="compact-table-section">
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">Auto Deductions</h2>
+            <p className="compact-section-subtitle">Applied this cycle</p>
+          </div>
+
+          <div className="compact-delivery-details">
+            <div className="compact-detail-row">
+              <span className="compact-detail-label">Commission Fees</span>
+              <span className="compact-detail-value">UGX 8,500</span>
+            </div>
+            <div className="compact-detail-row">
+              <span className="compact-detail-label">Penalty Fees</span>
+              <span className="compact-detail-value">UGX 2,000</span>
+            </div>
+            <div className="compact-detail-row">
+              <span className="compact-detail-label">Adjustment</span>
+              <span className="compact-detail-value">UGX 2,000</span>
+            </div>
+            <div className="compact-detail-row total">
+              <span className="compact-detail-label">Total</span>
+              <span className="compact-detail-value">UGX 12,500</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Settlement History */}
+      <div className="compact-table-section" style={{ margin: '0 0.75rem 1rem' }}>
+        <div className="compact-section-header">
+          <h2 className="compact-section-title">Settlement History</h2>
+          <p className="compact-section-subtitle">Past settlement records</p>
+        </div>
+
+        <div className="compact-table-wrapper">
+          <table className="compact-table">
+            <thead>
+              <tr>
+                <th>Amount</th>
+                <th>Deductions</th>
+                <th>Type</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSettlements.map((settlement) => (
+                <tr key={settlement.id}>
+                  <td style={{ fontSize: '0.7rem', fontWeight: '600' }}>UGX {settlement.amount.toLocaleString()}</td>
+                  <td style={{ fontSize: '0.65rem', color: '#64748b' }}>UGX {settlement.deductions.toLocaleString()}</td>
+                  <td style={{ fontSize: '0.65rem' }}>{settlement.type}</td>
+                  <td>
+                    <span className={`compact-status ${settlement.status}`}>
+                      {settlement.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="compact-modal-actions" style={{ padding: '0 0.75rem' }}>
+        <button 
+          className="compact-modal-btn btn-secondary"
+          onClick={() => setCurrentView("dashboard")}
+        >
+          Back to Dashboard
+        </button>
+        <button 
+          className="compact-modal-btn btn-primary"
+          onClick={exportSettlementsToExcel}
+        >
+          Export Settlements
+        </button>
+      </div>
+    </div>
+  )
+
+  const renderDisputes = () => (
+    <div className="expense-container">
+      {/* Compact Header */}
+      <header className="expense-header">
+        <div className="expense-header-content">
+          <div>
+            <h1 className="expense-title">DISPUTED TRANSACTIONS</h1>
+            <p className="expense-subtitle">Manage and track all held amounts</p>
+          </div>
+          <div className="expense-user-profile">
+            <span className="expense-user-name">Disputes</span>
+            <div className="expense-user-badge" style={{ background: '#ef4444' }}>⚠️</div>
+          </div>
+        </div>
+      </header>
+
+      {/* Dispute Stats */}
+      <div className="compact-stats-grid">
+        <div className="compact-stat-card stat-blue">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Total Held</span>
+          </div>
+          <div className="compact-stat-value">
+            UGX 12,400
+          </div>
+          <div className="compact-stat-change" style={{ fontSize: '0.65rem' }}>4 disputes</div>
+        </div>
+
+        <div className="compact-stat-card stat-yellow">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Pending Review</span>
+          </div>
+          <div className="compact-stat-value">
+            UGX 5,400
+          </div>
+          <div className="compact-stat-change" style={{ fontSize: '0.65rem' }}>2 active disputes</div>
+        </div>
+
+        <div className="compact-stat-card stat-green">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Resolved</span>
+          </div>
+          <div className="compact-stat-value">
+            2
+          </div>
+          <div className="compact-stat-change" style={{ fontSize: '0.65rem' }}>This month</div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="compact-action-bar">
+        <button 
+          className={`compact-btn ${disputesFilter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setDisputesFilter('all')}
+        >
+          All
+        </button>
+        <button 
+          className={`compact-btn ${disputesFilter === 'pending' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setDisputesFilter('pending')}
+        >
+          Pending
+        </button>
+        <button 
+          className={`compact-btn ${disputesFilter === 'resolved' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setDisputesFilter('resolved')}
+        >
+          Resolved
+        </button>
+      </div>
+
+      {/* Dispute Count */}
+      <div style={{ padding: '0 0.75rem', marginBottom: '0.5rem' }}>
+        <p style={{ fontSize: '0.75rem', color: '#64748b' }}>
+          {filteredDisputes.length} disputes found
+        </p>
+      </div>
+
+      {/* Disputes List */}
+      <div className="compact-content-grid">
+        <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">All Disputes</h2>
+            <p className="compact-section-subtitle">Review and manage transaction disputes</p>
+          </div>
+
+          <div className="compact-table-wrapper">
+            <div className="compact-disputes-list">
+              {filteredDisputes.map((dispute) => (
+                <div key={dispute.id} className="compact-dispute-card">
+                  <div className="compact-dispute-header">
+                    <h3 style={{ fontSize: '0.8rem', marginBottom: '0.25rem' }}>{dispute.title}</h3>
+                    <p style={{ fontSize: '0.65rem', color: '#64748b', marginBottom: '0.5rem' }}>{dispute.description}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span className={`compact-status ${dispute.status}`}>
                         {dispute.status}
                       </span>
+                      {dispute.amount > 0 && (
+                        <span style={{ fontSize: '0.7rem', fontWeight: '600', color: '#dc2626' }}>
+                          -UGX {dispute.amount.toLocaleString()}
+                        </span>
+                      )}
                     </div>
                   </div>
-
-                  <div className="dispute-details">
-                    <div className="detail-row">
-                      <span className="detail-label">Dispute ID:</span>
-                      <span className="detail-value">{dispute.disputeId}</span>
+                  
+                  <div className="compact-delivery-details" style={{ marginTop: '0.5rem' }}>
+                    <div className="compact-detail-row">
+                      <span className="compact-detail-label">Dispute ID</span>
+                      <span className="compact-detail-value">{dispute.disputeId}</span>
                     </div>
-                    <div className="detail-row">
-                      <span className="detail-label">Opened:</span>
-                      <span className="detail-value">{dispute.opened}</span>
+                    <div className="compact-detail-row">
+                      <span className="compact-detail-label">Opened</span>
+                      <span className="compact-detail-value">{dispute.opened}</span>
                     </div>
-                    <div className="detail-row">
-                      <span className="detail-label">Reason:</span>
-                      <span className="detail-value">{dispute.reason}</span>
+                    <div className="compact-detail-row">
+                      <span className="compact-detail-label">Reason</span>
+                      <span className="compact-detail-value">{dispute.reason}</span>
                     </div>
                     {dispute.details && (
-                      <div className="detail-row">
-                        <span className="detail-label">Description:</span>
-                        <span className="detail-value">{dispute.details}</span>
+                      <div className="compact-detail-row">
+                        <span className="compact-detail-label">Details</span>
+                        <span className="compact-detail-value">{dispute.details}</span>
                       </div>
                     )}
                     {dispute.resolution && (
-                      <div className="detail-row">
-                        <span className="detail-label">Resolution:</span>
-                        <span className="detail-value resolved">{dispute.resolution}</span>
+                      <div className="compact-detail-row">
+                        <span className="compact-detail-label">Resolution</span>
+                        <span className="compact-detail-value" style={{ color: '#059669' }}>{dispute.resolution}</span>
                       </div>
                     )}
                   </div>
 
-                  <div className="dispute-actions">
-                    {dispute.status === 'pending' && (
-                      <>
-                        <button className="support-btn">Contact Support</button>
-                        <button className="upload-btn">Upload Proof</button>
-                      </>
-                    )}
-                  </div>
+                  {dispute.status === 'pending' && (
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+                      <button className="compact-btn btn-secondary" style={{ flex: 1, fontSize: '0.7rem', padding: '0.375rem' }}>
+                        Contact Support
+                      </button>
+                      <button className="compact-btn btn-primary" style={{ flex: 1, fontSize: '0.7rem', padding: '0.375rem' }}>
+                        Upload Proof
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
-        )}
-      </main>
-    </div>
-  );
-};
 
-export default Wallet;
+          <div className="compact-modal-actions">
+            <button 
+              className="compact-modal-btn btn-secondary"
+              onClick={() => setCurrentView("dashboard")}
+            >
+              Back to Dashboard
+            </button>
+            <button 
+              className="compact-modal-btn btn-primary"
+              onClick={() => setCurrentView("ledger")}
+            >
+              View Ledger
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  // QR Code Modal
+  const renderQRModal = () => (
+    <div className={`compact-modal-overlay ${showQR ? "active" : ""}`}>
+      <div className="compact-modal">
+        <div className="compact-modal-header">
+          <h2>SCAN QR CODE</h2>
+          <button 
+            className="compact-modal-close"
+            onClick={() => setShowQR(false)}
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="compact-modal-content" style={{ textAlign: 'center' }}>
+          <div className="compact-qr-display">
+            <div className="compact-qr-placeholder">
+              [QR Code Display]
+            </div>
+            <div className="compact-qr-instruction">
+              Scan this QR code with your mobile money app to complete payment
+            </div>
+          </div>
+          
+          <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#64748b' }}>
+            Amount: UGX {withdrawalData.amount.toLocaleString()}
+          </div>
+        </div>
+
+        <div className="compact-modal-actions">
+          <button 
+            className="compact-modal-btn btn-secondary"
+            onClick={() => setShowQR(false)}
+          >
+            Cancel
+          </button>
+          <button 
+            className="compact-modal-btn btn-primary"
+            onClick={() => {
+              setShowQR(false)
+              setWithdrawalStep('confirm')
+            }}
+          >
+            Payment Completed
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Withdrawal Success Modal
+  const renderWithdrawalSuccess = () => (
+    <div className={`compact-modal-overlay ${showWithdrawalSuccess ? "active" : ""}`}>
+      <div className="compact-modal">
+        <div className="compact-modal-header">
+          <h2>WITHDRAWAL SUCCESSFUL</h2>
+          <button 
+            className="compact-modal-close"
+            onClick={() => {
+              setShowWithdrawalSuccess(false)
+              setShowReceipt(true)
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="compact-modal-content" style={{ textAlign: 'center' }}>
+          <div className="success-icon" style={{ fontSize: '3rem', color: '#10b981', marginBottom: '1rem' }}>✓</div>
+          <h3>Withdrawal Processed</h3>
+          <div className="compact-stat-value" style={{ fontSize: '2rem', margin: '1rem 0' }}>
+            UGX {(parseFloat(withdrawalData.amount) || 0).toLocaleString()}
+          </div>
+          <p>Your withdrawal to {withdrawalData.method === 'mtn' ? 'MTN MoMo' : 
+                               withdrawalData.method === 'airtel' ? 'Airtel Money' :
+                               withdrawalData.method === 'bank' ? 'Bank Account' : 'Agent Payout'} has been initiated.</p>
+          <div className="compact-split-summary">
+            <div>Fee: UGX {withdrawalData.fee.toLocaleString()}</div>
+            <div>Net Amount: UGX {withdrawalData.netAmount.toLocaleString()}</div>
+            <div>Processing Time: {withdrawalData.processingTime}</div>
+          </div>
+        </div>
+
+        <div className="compact-modal-actions">
+          <button 
+            className="compact-modal-btn btn-secondary"
+            onClick={() => {
+              setShowWithdrawalSuccess(false)
+              resetWithdrawal()
+              setCurrentView("dashboard")
+            }}
+          >
+            Back to Dashboard
+          </button>
+          <button 
+            className="compact-modal-btn btn-primary"
+            onClick={() => {
+              setShowWithdrawalSuccess(false)
+              setShowReceipt(true)
+            }}
+          >
+            View Receipt
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Receipt Display
+  const renderReceipt = () => (
+    <div className="compact-modal-overlay active">
+      <div className="compact-modal">
+        <div className="compact-modal-header">
+          <h2>WITHDRAWAL RECEIPT</h2>
+          <button 
+            className="compact-modal-close"
+            onClick={() => {
+              setShowReceipt(false)
+              resetWithdrawal()
+              setCurrentView("dashboard")
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="compact-modal-content">
+          <div ref={receiptRef} style={{ textAlign: 'left', padding: '1rem', background: 'white', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+            <h2 style={{ textAlign: 'center', color: '#1e40af', marginBottom: '1rem' }}>Withdrawal Receipt</h2>
+            
+            <div style={{ marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <span style={{ fontWeight: '600' }}>Receipt ID:</span>
+                <span>{receiptData?.id || `WD-${Date.now().toString().slice(-8)}`}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <span style={{ fontWeight: '600' }}>Date:</span>
+                <span>{receiptData?.date} {receiptData?.time}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontWeight: '600' }}>Method:</span>
+                <span>{withdrawalData.method === 'mtn' ? 'MTN MoMo' : 
+                       withdrawalData.method === 'airtel' ? 'Airtel Money' :
+                       withdrawalData.method === 'bank' ? 'Bank Account' : 'Agent Payout'}</span>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: '#1e293b' }}>Transaction Details</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                <span>Withdrawal Amount:</span>
+                <span>UGX {(parseFloat(withdrawalData.amount) || 0).toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                <span>Processing Fee:</span>
+                <span>UGX {withdrawalData.fee.toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                <span>Net Amount:</span>
+                <span>UGX {withdrawalData.netAmount.toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Processing Time:</span>
+                <span>{withdrawalData.processingTime}</span>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: '#1e293b' }}>Destination Details</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                <span>Phone Number:</span>
+                <span>{withdrawalData.phoneNumber}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Account Name:</span>
+                <span>{withdrawalData.accountName}</span>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1rem', borderTop: '1px solid #e2e8f0', paddingTop: '0.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <span style={{ fontWeight: '600' }}>Status:</span>
+                <span style={{ fontWeight: '600', color: '#10b981' }}>Processing</span>
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: '1.5rem', paddingTop: '1rem', borderTop: '2px dashed #cbd5e1' }}>
+              <p style={{ fontSize: '0.875rem', color: '#64748b' }}>Thank you for using our wallet service!</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="compact-modal-actions">
+          <button 
+            className="compact-modal-btn btn-secondary"
+            onClick={exportToPDF}
+          >
+            Save as PDF
+          </button>
+          <button 
+            className="compact-modal-btn btn-secondary"
+            onClick={shareReceipt}
+          >
+            Share Receipt
+          </button>
+          <button 
+            className="compact-modal-btn btn-primary"
+            onClick={() => {
+              setShowReceipt(false)
+              resetWithdrawal()
+              setCurrentView("dashboard")
+            }}
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <>
+      {currentView === "dashboard" && renderDashboard()}
+      {currentView === "withdraw" && renderWithdraw()}
+      {currentView === "ledger" && renderLedger()}
+      {currentView === "settlements" && renderSettlements()}
+      {currentView === "disputes" && renderDisputes()}
+      
+      {/* Modals */}
+      {showQR && renderQRModal()}
+      {showWithdrawalSuccess && renderWithdrawalSuccess()}
+      {showReceipt && renderReceipt()}
+      
+      <style jsx>{`
+        /* Wallet Specific Styles */
+        .compact-stat-card {
+          background: white;
+          border-radius: 6px;
+          padding: 0.75rem;
+          border: 1px solid #e2e8f0;
+          text-align: left;
+          position: relative;
+          min-height: 80px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+
+        .stat-blue {
+          border-left: 4px solid #3b82f6;
+        }
+
+        .stat-green {
+          border-left: 4px solid #10b981;
+        }
+
+        .stat-yellow {
+          border-left: 4px solid #f59e0b;
+        }
+
+        .stat-purple {
+          border-left: 4px solid #8b5cf6;
+        }
+
+        .compact-stat-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 0.5rem;
+        }
+
+        .compact-stat-label {
+          font-size: 0.65rem;
+          color: #64748b;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .compact-stat-change {
+          font-size: 0.6rem;
+          font-weight: 600;
+          padding: 0.125rem 0.375rem;
+          border-radius: 10px;
+        }
+
+        .compact-stat-change.positive {
+          background: #d1fae5;
+          color: #059669;
+        }
+
+        .compact-stat-change.negative {
+          background: #fee2e2;
+          color: #dc2626;
+        }
+
+        .compact-stat-value {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #1e293b;
+          line-height: 1;
+        }
+
+        .compact-stat-currency {
+          font-size: 0.75rem;
+          color: #64748b;
+          margin-left: 0.125rem;
+        }
+
+        .compact-section {
+          background: white;
+          border-radius: 6px;
+          padding: 1rem;
+          border: 1px solid #e2e8f0;
+          text-align: center;
+        }
+
+        .compact-section-title {
+          font-size: 1rem;
+          color: #1e293b;
+          font-weight: 700;
+          margin-bottom: 0.25rem;
+        }
+
+        .compact-section-subtitle {
+          font-size: 0.75rem;
+          color: #64748b;
+          margin-bottom: 0.5rem;
+        }
+
+        .compact-content-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.75rem;
+          margin: 0 0.75rem 1rem;
+        }
+
+        .compact-table-section {
+          background: white;
+          border-radius: 6px;
+          padding: 1rem;
+          border: 1px solid #e2e8f0;
+        }
+
+        .compact-table-section .compact-section-header {
+          margin-bottom: 1rem;
+        }
+
+        .compact-table-wrapper {
+          overflow-x: auto;
+          border-radius: 4px;
+          border: 1px solid #e2e8f0;
+        }
+
+        .compact-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.7rem;
+        }
+
+        .compact-table th {
+          background: #f8fafc;
+          padding: 0.5rem;
+          text-align: left;
+          font-weight: 600;
+          color: #64748b;
+          border-bottom: 1px solid #e2e8f0;
+          font-size: 0.65rem;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .compact-table td {
+          padding: 0.5rem;
+          border-bottom: 1px solid #f1f5f9;
+          vertical-align: middle;
+        }
+
+        .compact-table tbody tr:hover {
+          background: #f8fafc;
+        }
+
+        .compact-status {
+          display: inline-block;
+          padding: 0.125rem 0.375rem;
+          border-radius: 3px;
+          font-size: 0.65rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .compact-status.completed,
+        .compact-status.success,
+        .compact-status.resolved {
+          background: #d1fae5;
+          color: #059669;
+          border: 1px solid #a7f3d0;
+        }
+
+        .compact-status.pending {
+          background: #fef3c7;
+          color: #d97706;
+          border: 1px solid #fde68a;
+        }
+
+        .compact-status.cancelled,
+        .compact-status.failed {
+          background: #fee2e2;
+          color: #dc2626;
+          border: 1px solid #fecaca;
+        }
+
+        .compact-breakdown-section {
+          background: white;
+          border-radius: 6px;
+          padding: 1rem;
+          border: 1px solid #e2e8f0;
+        }
+
+        .compact-breakdown-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .compact-stat-item {
+          padding: 0.75rem;
+          background: #f8fafc;
+          border-radius: 4px;
+          border: 1px solid #e2e8f0;
+          text-align: left;
+          transition: all 0.2s;
+        }
+
+        .compact-stat-item:hover {
+          background: #eff6ff;
+          border-color: #dbeafe;
+          transform: translateY(-1px);
+        }
+
+        .compact-stat-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .compact-stat-name {
+          font-weight: 600;
+          color: #1e293b;
+          font-size: 0.7rem;
+        }
+
+        .compact-stat-value {
+          font-weight: 700;
+          color: #3b82f6;
+          font-size: 0.75rem;
+        }
+
+        .compact-delivery-details {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .compact-detail-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.5rem;
+          background: #f8fafc;
+          border-radius: 4px;
+          border: 1px solid #e2e8f0;
+          font-size: 0.7rem;
+        }
+
+        .compact-detail-row.total {
+          background: #eff6ff;
+          border-color: #dbeafe;
+          font-weight: 600;
+        }
+
+        .compact-detail-label {
+          color: #64748b;
+          font-weight: 500;
+        }
+
+        .compact-detail-value {
+          color: #1e293b;
+          font-weight: 600;
+          text-align: right;
+        }
+
+        /* Withdrawal Specific */
+        .compact-form-radio-group {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .compact-form-radio {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          cursor: pointer;
+          font-size: 0.75rem;
+        }
+
+        .compact-form-radio input {
+          width: 1rem;
+          height: 1rem;
+        }
+
+        .compact-fee-summary {
+          background: #f8fafc;
+          padding: 1rem;
+          border-radius: 4px;
+          border: 1px solid #e2e8f0;
+          margin: 1rem 0;
+        }
+
+        .compact-fee-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.375rem 0;
+          font-size: 0.75rem;
+        }
+
+        .compact-fee-row.total {
+          border-top: 1px dashed #cbd5e1;
+          margin-top: 0.5rem;
+          padding-top: 0.75rem;
+          font-weight: 700;
+          color: #1e40af;
+        }
+
+        .compact-destination-info {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          background: #f8fafc;
+          padding: 1rem;
+          border-radius: 4px;
+          border: 1px solid #e2e8f0;
+        }
+
+        .compact-confirmation-card {
+          background: #f8fafc;
+          padding: 1rem;
+          border-radius: 4px;
+          border: 1px solid #e2e8f0;
+          margin-bottom: 1rem;
+        }
+
+        .compact-confirmation-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.5rem 0;
+          font-size: 0.75rem;
+          border-bottom: 1px solid #e2e8f0;
+        }
+
+        .compact-confirmation-row:last-child {
+          border-bottom: none;
+        }
+
+        .compact-reference-code {
+          background: #1e293b;
+          color: white;
+          padding: 0.75rem;
+          border-radius: 4px;
+          text-align: center;
+          font-family: 'Courier New', monospace;
+          font-size: 1rem;
+          letter-spacing: 1px;
+          margin: 0.5rem 0;
+        }
+
+        /* Disputes Specific */
+        .compact-disputes-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .compact-dispute-card {
+          background: white;
+          border-radius: 6px;
+          padding: 1rem;
+          border: 1px solid #e2e8f0;
+          transition: all 0.2s;
+        }
+
+        .compact-dispute-card:hover {
+          border-color: #93c5fd;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .compact-dispute-header {
+          margin-bottom: 0.75rem;
+        }
+
+        /* Modal Styles */
+        .compact-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 1rem;
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.3s;
+        }
+
+        .compact-modal-overlay.active {
+          opacity: 1;
+          visibility: visible;
+        }
+
+        .compact-modal {
+          background: white;
+          border-radius: 8px;
+          width: 100%;
+          max-width: 500px;
+          max-height: 90vh;
+          overflow-y: auto;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .compact-modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1.25rem 1.5rem;
+          border-bottom: 1px solid #e2e8f0;
+          position: relative;
+        }
+
+        .compact-modal-header h2 {
+          font-size: 1.25rem;
+          color: #1e293b;
+          font-weight: 700;
+          margin: 0;
+        }
+
+        .compact-modal-close {
+          background: none;
+          border: none;
+          font-size: 1.5rem;
+          color: #64748b;
+          cursor: pointer;
+          padding: 0;
+          line-height: 1;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 4px;
+          transition: all 0.2s;
+        }
+
+        .compact-modal-close:hover {
+          background: #f1f5f9;
+          color: #475569;
+        }
+
+        .compact-modal-content {
+          padding: 1.5rem;
+        }
+
+        .compact-modal-actions {
+          display: flex;
+          gap: 0.75rem;
+          padding: 1.25rem 1.5rem;
+          border-top: 1px solid #e2e8f0;
+          background: #f8fafc;
+          border-radius: 0 0 8px 8px;
+        }
+
+        .compact-modal-btn {
+          flex: 1;
+          padding: 0.75rem 1rem;
+          border-radius: 6px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-size: 0.875rem;
+          border: none;
+        }
+
+        .compact-modal-btn.btn-primary {
+          background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+          color: white;
+          box-shadow: 0 1px 3px rgba(30, 64, 175, 0.1);
+        }
+
+        .compact-modal-btn.btn-primary:hover {
+          background: linear-gradient(135deg, #1e3a8a 0%, #1e1b4b 100%);
+          transform: translateY(-1px);
+          box-shadow: 0 2px 5px rgba(30, 64, 175, 0.15);
+        }
+
+        .compact-modal-btn.btn-secondary {
+          background: white;
+          color: #64748b;
+          border: 1px solid #e2e8f0;
+        }
+
+        .compact-modal-btn.btn-secondary:hover {
+          background: #f1f5f9;
+          border-color: #cbd5e1;
+          transform: translateY(-1px);
+        }
+
+        .compact-qr-display {
+          text-align: center;
+          margin: 1rem 0;
+        }
+
+        .compact-qr-placeholder {
+          width: 200px;
+          height: 200px;
+          margin: 0 auto 1rem;
+          background: linear-gradient(45deg, #f3f4f6 25%, #e5e7eb 25%, #e5e7eb 50%, #f3f4f6 50%, #f3f4f6 75%, #e5e7eb 75%);
+          background-size: 20px 20px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748b;
+          font-size: 0.875rem;
+          border: 2px dashed #d1d5db;
+        }
+
+        .compact-qr-instruction {
+          font-size: 0.875rem;
+          color: #475569;
+          margin-top: 0.5rem;
+          line-height: 1.5;
+        }
+
+        .compact-split-summary {
+          background: #f0f9ff;
+          padding: 1rem;
+          border-radius: 6px;
+          margin-top: 1rem;
+          font-size: 0.875rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+          .compact-content-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .compact-stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          
+          .compact-action-bar {
+            flex-wrap: wrap;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .compact-stats-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .compact-table {
+            font-size: 0.65rem;
+          }
+          
+          .compact-modal {
+            padding: 0;
+          }
+          
+          .compact-modal-header {
+            padding: 1rem;
+          }
+          
+          .compact-modal-content {
+            padding: 1rem;
+          }
+          
+          .compact-modal-actions {
+            padding: 1rem;
+            flex-direction: column;
+          }
+        }
+      `}</style>
+    </>
+  )
+}
+
+export default Wallet
