@@ -1,43 +1,7 @@
+"use client"
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Typography,
-  Button,
-  Grid,
-  Card,
-  CardContent,
-  TextField,
-  InputAdornment,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Chip,
-  Avatar,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  Divider,
-  useTheme,
-  useMediaQuery,
-  AppBar,
-  Toolbar,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  ListItemSecondaryAction
-} from '@mui/material';
 import {
   Search,
   Add,
@@ -55,12 +19,12 @@ import {
   Star,
   Loyalty,
   CameraAlt,
-  ArrowBack
+  ArrowBack,
+  MoreVert,
+  Visibility
 } from '@mui/icons-material';
 
 const ContactsPage = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   
   const [contacts, setContacts] = useState([]);
@@ -72,6 +36,7 @@ const ContactsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  const [showActionMenu, setShowActionMenu] = useState(null);
 
   // Mock data for demonstration
   useEffect(() => {
@@ -90,7 +55,48 @@ const ContactsPage = () => {
         status: "vip",
         avatar: ""
       },
-     
+      {
+        id: 2,
+        name: "Sarah Johnson",
+        type: "supplier",
+        phone: "+256 701 234 567",
+        email: "sarah@supply.com",
+        location: "Entebbe, Uganda",
+        business: "Auto Parts Ltd",
+        loyaltyPoints: 0,
+        lastPurchase: null,
+        totalSpent: 0,
+        status: "active",
+        avatar: ""
+      },
+      {
+        id: 3,
+        name: "James Opio",
+        type: "employee",
+        phone: "+256 777 888 999",
+        email: "james@company.com",
+        location: "Kampala, Uganda",
+        business: "",
+        loyaltyPoints: 0,
+        lastPurchase: null,
+        totalSpent: 0,
+        status: "active",
+        avatar: ""
+      },
+      {
+        id: 4,
+        name: "Maria Nakato",
+        type: "customer",
+        phone: "+256 755 123 456",
+        email: "maria@email.com",
+        location: "Jinja, Uganda",
+        business: "Nakato's Restaurant",
+        loyaltyPoints: 850,
+        lastPurchase: "2024-01-10",
+        totalSpent: 280000,
+        status: "active",
+        avatar: ""
+      },
     ];
 
     setContacts(mockContacts);
@@ -211,644 +217,681 @@ const ContactsPage = () => {
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'customer': return '#0025DD';
-      case 'supplier': return '#FFEC01';
-      case 'employee': return '#10B981';
-      default: return '#6B7280';
+      case 'customer': return '#3b82f6';
+      case 'supplier': return '#f59e0b';
+      case 'employee': return '#10b981';
+      default: return '#64748b';
+    }
+  };
+
+  const getTypeBackgroundColor = (type) => {
+    switch (type) {
+      case 'customer': return '#dbeafe';
+      case 'supplier': return '#fef3c7';
+      case 'employee': return '#d1fae5';
+      default: return '#f1f5f9';
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'vip': return '#FFEC01';
-      case 'active': return '#10B981';
-      case 'inactive': return '#EF4444';
-      default: return '#6B7280';
+      case 'vip': return '#f59e0b';
+      case 'active': return '#10b981';
+      case 'inactive': return '#ef4444';
+      default: return '#64748b';
     }
   };
 
-  // Mobile Contact List View
-  const MobileContactList = () => (
-    <List>
-      {filteredContacts.map((contact) => (
-        <Card key={contact.id} sx={{ mb: 2, border: `1px solid #e2e8f0` }}>
-          <CardContent sx={{ p: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar 
-                  src={contact.avatar} 
-                  sx={{ 
-                    width: 50, 
-                    height: 50,
-                    backgroundColor: getTypeColor(contact.type)
-                  }}
-                >
-                  {contact.name.charAt(0)}
-                </Avatar>
-                <Box>
-                  <Typography variant="h6" fontWeight="bold">
-                    {contact.name}
-                  </Typography>
-                  <Chip
-                    label={contact.type}
-                    size="small"
-                    sx={{
-                      backgroundColor: `${getTypeColor(contact.type)}20`,
-                      color: getTypeColor(contact.type),
-                      fontWeight: 'bold'
-                    }}
-                  />
-                </Box>
-              </Box>
-              <Chip
-                label={contact.status === 'vip' ? 'VIP' : contact.status}
-                size="small"
-                sx={{
-                  backgroundColor: `${getStatusColor(contact.status)}20`,
-                  color: getStatusColor(contact.status),
-                  fontWeight: 'bold'
-                }}
-              />
-            </Box>
-
-            <Box sx={{ mb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Phone sx={{ fontSize: 16, color: '#0025DD' }} />
-                <Typography variant="body2">{contact.phone}</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Email sx={{ fontSize: 16, color: '#0025DD' }} />
-                <Typography variant="body2">{contact.email}</Typography>
-              </Box>
-              {contact.business && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Business sx={{ fontSize: 16, color: '#0025DD' }} />
-                  <Typography variant="body2">{contact.business}</Typography>
-                </Box>
-              )}
-            </Box>
-
-            {contact.type === 'customer' && (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Loyalty Points
-                  </Typography>
-                  <Typography variant="body2" fontWeight="bold" color="#0025DD">
-                    {contact.loyaltyPoints} pts
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Total Spent
-                  </Typography>
-                  <Typography variant="body2" fontWeight="bold" color="#10B981">
-                    {formatCurrency(contact.totalSpent)}
-                  </Typography>
-                </Box>
-              </Box>
-            )}
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Button
-                size="small"
-                sx={{ color: '#0025DD' }}
-                onClick={() => handleOpenViewDialog(contact)}
-              >
-                View
-              </Button>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <IconButton 
-                  size="small" 
-                  onClick={() => handleOpenEditDialog(contact)}
-                  sx={{ color: '#0025DD' }}
-                >
-                  <Edit />
-                </IconButton>
-                <IconButton 
-                  size="small" 
-                  onClick={() => handleDeleteContact(contact.id)}
-                  sx={{ color: '#EF4444' }}
-                >
-                  <Delete />
-                </IconButton>
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-      ))}
-    </List>
-  );
-
-  // Desktop Table View
-  const DesktopContactTable = () => (
-    <Card sx={{ 
-      borderRadius: 3,
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-      border: '1px solid #e2e8f0'
-    }}>
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Contact</TableCell>
-              <TableCell>Type</TableCell>
-              <TableCell>Contact Info</TableCell>
-              <TableCell>Business</TableCell>
-              <TableCell>Loyalty</TableCell>
-              <TableCell>Last Purchase</TableCell>
-              <TableCell>Total Spent</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredContacts.map((contact) => (
-              <TableRow key={contact.id} hover>
-                <TableCell>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <Avatar 
-                      src={contact.avatar} 
-                      sx={{ backgroundColor: getTypeColor(contact.type) }}
-                    >
-                      {contact.name.charAt(0)}
-                    </Avatar>
-                    <Typography fontWeight="bold">{contact.name}</Typography>
-                  </Box>
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={contact.type}
-                    sx={{
-                      backgroundColor: `${getTypeColor(contact.type)}20`,
-                      color: getTypeColor(contact.type),
-                      fontWeight: 'bold'
-                    }}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Box display="flex" flexDirection="column">
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Phone fontSize="small" sx={{ color: '#0025DD' }} />
-                      <Typography variant="body2">{contact.phone}</Typography>
-                    </Box>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Email fontSize="small" sx={{ color: '#0025DD' }} />
-                      <Typography variant="body2">{contact.email}</Typography>
-                    </Box>
-                  </Box>
-                </TableCell>
-                <TableCell>
-                  {contact.business || '-'}
-                </TableCell>
-                <TableCell>
-                  {contact.type === 'customer' ? (
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Loyalty sx={{ color: '#0025DD' }} />
-                      <Typography>{contact.loyaltyPoints} pts</Typography>
-                    </Box>
-                  ) : '-'}
-                </TableCell>
-                <TableCell>
-                  {contact.lastPurchase || '-'}
-                </TableCell>
-                <TableCell>
-                  {contact.type === 'customer' ? (
-                    <Typography fontWeight="bold" color="#10B981">
-                      {formatCurrency(contact.totalSpent)}
-                    </Typography>
-                  ) : '-'}
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={contact.status === 'vip' ? 'VIP' : contact.status}
-                    sx={{
-                      backgroundColor: `${getStatusColor(contact.status)}20`,
-                      color: getStatusColor(contact.status),
-                      fontWeight: 'bold'
-                    }}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Box display="flex" gap={1}>
-                    <IconButton 
-                      size="small" 
-                      onClick={() => handleOpenViewDialog(contact)}
-                      sx={{ color: '#0025DD' }}
-                    >
-                      <Person />
-                    </IconButton>
-                    <IconButton 
-                      size="small" 
-                      onClick={() => handleOpenEditDialog(contact)}
-                      sx={{ color: '#0025DD' }}
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton 
-                      size="small" 
-                      onClick={() => handleDeleteContact(contact.id)}
-                      sx={{ color: '#EF4444' }}
-                    >
-                      <Delete />
-                    </IconButton>
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Card>
-  );
+  const toggleActionMenu = (id) => {
+    setShowActionMenu(showActionMenu === id ? null : id);
+  };
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
-      backgroundColor: '#f8fafc'
-    }}>
-      {/* Header */}
-      <AppBar 
-        position="static" 
-        sx={{ 
-          backgroundColor: '#0025DD',
-          background: 'linear-gradient(135deg, #0025DD 0%, #001FB8 100%)',
-          boxShadow: 'none'
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            edge="start"
-            sx={{ color: 'white', mr: 2 }}
-            onClick={() => navigate(-1)}
-          >
-            <ArrowBack />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-            Contacts
-          </Typography>
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: '#FFEC01',
-              color: '#000',
-              fontWeight: 'bold',
-              '&:hover': {
-                backgroundColor: '#E6D401'
-              }
-            }}
-            startIcon={<Add />}
-            onClick={handleOpenAddDialog}
-          >
-            Add Contact
-          </Button>
-        </Toolbar>
-      </AppBar>
+    <div className="expense-container">
+      {/* Compact Header */}
+      <header className="expense-header">
+        <div className="expense-header-content">
+          <div>
+            <h1 className="expense-title">CONTACTS MANAGEMENT</h1>
+            <p className="expense-subtitle">Manage your customers, suppliers, and employees</p>
+          </div>
+          <div className="expense-user-profile">
+            <span className="expense-user-name">Admin User</span>
+            <div className="expense-user-badge">AU</div>
+          </div>
+        </div>
+      </header>
 
-      {/* Main Content */}
-      <Box sx={{ p: isMobile ? 2 : 3 }}>
-        {/* Search and Filter Bar */}
-        <Card sx={{ 
-          mb: 3,
-          borderRadius: 3,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #e2e8f0'
-        }}>
-          <CardContent>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={6}>
-                <TextField
-                  variant="outlined"
-                  placeholder="Search contacts..."
-                  size="small"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Search />
-                      </InputAdornment>
-                    ),
+      {/* Compact Stats Grid */}
+      <div className="compact-stats-grid">
+        <div className="compact-stat-card stat-blue">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Total Contacts</span>
+            <span className="compact-stat-change positive">+4</span>
+          </div>
+          <div className="compact-stat-value">
+            {contacts.length}
+          </div>
+        </div>
+
+        <div className="compact-stat-card stat-yellow">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">VIP Customers</span>
+            <span className="compact-stat-change positive">+1</span>
+          </div>
+          <div className="compact-stat-value">
+            {contacts.filter(c => c.status === 'vip').length}
+          </div>
+        </div>
+
+        <div className="compact-stat-card stat-green">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Active</span>
+            <span className="compact-stat-change positive">+3</span>
+          </div>
+          <div className="compact-stat-value">
+            {contacts.filter(c => c.status === 'active').length}
+          </div>
+        </div>
+
+        <div className="compact-stat-card stat-purple">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Customers</span>
+            <span className="compact-stat-change positive">+2</span>
+          </div>
+          <div className="compact-stat-value">
+            {contacts.filter(c => c.type === 'customer').length}
+          </div>
+        </div>
+      </div>
+
+      {/* Compact Action Bar */}
+      <div className="compact-action-bar">
+        <button className="compact-btn btn-primary" onClick={handleOpenAddDialog}>
+          <Add style={{ fontSize: '0.7rem', marginRight: '0.25rem' }} />
+          Add Contact
+        </button>
+        <button className="compact-btn btn-secondary">
+          Import Contacts
+        </button>
+        <button className="compact-btn btn-secondary">
+          Export
+        </button>
+      </div>
+
+      {/* Compact Content Grid */}
+      <div className="compact-content-grid">
+        {/* Compact Table Section */}
+        <div className="compact-table-section">
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">All Contacts</h2>
+            <div className="compact-filters">
+              <input
+                type="text"
+                placeholder="Search contacts..."
+                className="compact-search-input"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <select
+                className="compact-filter-select"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              >
+                <option value="all">All Contacts</option>
+                <option value="customer">Customers</option>
+                <option value="supplier">Suppliers</option>
+                <option value="employee">Employees</option>
+                <option value="vip">VIP</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <button 
+                className="compact-btn btn-secondary"
+                style={{ minWidth: 'auto', padding: '0.375rem' }}
+                onClick={() => { setSearchTerm(''); setFilter('all'); }}
+              >
+                <Refresh style={{ fontSize: '0.7rem' }} />
+              </button>
+            </div>
+          </div>
+
+          <div className="compact-table-wrapper">
+            <table className="compact-table">
+              <thead>
+                <tr>
+                  <th>Contact</th>
+                  <th>Type</th>
+                  <th>Contact Info</th>
+                  <th>Business</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredContacts.map((contact) => (
+                  <tr key={contact.id}>
+                    <td>
+                      <div className="compact-contact-cell">
+                        <div className="compact-contact-avatar" style={{ 
+                          backgroundColor: getTypeColor(contact.type),
+                          color: 'white',
+                          fontSize: '0.7rem'
+                        }}>
+                          {contact.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="compact-contact-name">{contact.name}</div>
+                          {contact.type === 'customer' && (
+                            <div className="compact-loyalty-points">
+                              <Loyalty style={{ fontSize: '0.6rem', marginRight: '0.125rem' }} />
+                              {contact.loyaltyPoints} pts
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span 
+                        className="compact-type-badge"
+                        style={{
+                          backgroundColor: getTypeBackgroundColor(contact.type),
+                          color: getTypeColor(contact.type),
+                          borderColor: getTypeColor(contact.type)
+                        }}
+                      >
+                        {contact.type}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="compact-contact-info">
+                        <div className="compact-contact-phone">
+                          <Phone style={{ fontSize: '0.7rem', marginRight: '0.25rem' }} />
+                          {contact.phone}
+                        </div>
+                        <div className="compact-contact-email">
+                          <Email style={{ fontSize: '0.7rem', marginRight: '0.25rem' }} />
+                          {contact.email}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="compact-business">
+                      {contact.business || '-'}
+                    </td>
+                    <td>
+                      <span 
+                        className={`compact-status-badge ${contact.status}`}
+                        style={{
+                          backgroundColor: contact.status === 'vip' ? '#fef3c7' : 
+                                         contact.status === 'active' ? '#d1fae5' :
+                                         contact.status === 'inactive' ? '#fee2e2' : '#f1f5f9',
+                          color: getStatusColor(contact.status)
+                        }}
+                      >
+                        {contact.status === 'vip' ? 'VIP' : contact.status}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="compact-action-buttons">
+                        <button 
+                          className="compact-action-btn view"
+                          onClick={() => handleOpenViewDialog(contact)}
+                        >
+                          <Visibility style={{ fontSize: '0.7rem' }} />
+                        </button>
+                        <button 
+                          className="compact-action-btn edit"
+                          onClick={() => handleOpenEditDialog(contact)}
+                        >
+                          <Edit style={{ fontSize: '0.7rem' }} />
+                        </button>
+                        <button 
+                          className="compact-action-btn delete"
+                          onClick={() => handleDeleteContact(contact.id)}
+                        >
+                          <Delete style={{ fontSize: '0.7rem' }} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Compact Contact Details Sidebar */}
+        <div className="compact-breakdown-section">
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">Quick Stats</h2>
+            <p className="compact-section-subtitle">Contact Overview</p>
+          </div>
+
+          <div className="compact-breakdown-list">
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Total Contacts</span>
+                <span className="compact-stat-value">{contacts.length}</span>
+              </div>
+            </div>
+            
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Customers</span>
+                <span className="compact-stat-value">{contacts.filter(c => c.type === 'customer').length}</span>
+              </div>
+              <div className="compact-progress-bar">
+                <div
+                  className="compact-progress-fill"
+                  style={{
+                    width: `${(contacts.filter(c => c.type === 'customer').length / contacts.length) * 100}%`,
+                    backgroundColor: '#3b82f6'
                   }}
-                  fullWidth
                 />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Filter</InputLabel>
-                  <Select
-                    value={filter}
-                    label="Filter"
-                    onChange={(e) => setFilter(e.target.value)}
-                  >
-                    <MenuItem value="all">All Contacts</MenuItem>
-                    <MenuItem value="customer">Customers</MenuItem>
-                    <MenuItem value="supplier">Suppliers</MenuItem>
-                    <MenuItem value="employee">Employees</MenuItem>
-                    <MenuItem value="vip">VIP Customers</MenuItem>
-                    <MenuItem value="inactive">Inactive</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={2}>
-                <Box display="flex" justifyContent={isMobile ? 'flex-start' : 'flex-end'}>
-                  <IconButton 
-                    onClick={() => { setSearchTerm(''); setFilter('all'); }}
-                    sx={{ color: '#0025DD' }}
-                  >
-                    <Refresh />
-                  </IconButton>
-                </Box>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-
-        {/* Loading State */}
-        {isLoading ? (
-          <Box display="flex" justifyContent="center" p={4}>
-            <Typography>Loading contacts...</Typography>
-          </Box>
-        ) : filteredContacts.length === 0 ? (
-          <Card sx={{ 
-            textAlign: 'center', 
-            p: 4,
-            borderRadius: 3,
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e2e8f0'
-          }}>
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              {contacts.length === 0 ? 'No contacts found' : 'No matching contacts found'}
-            </Typography>
-            <Button 
-              variant="contained"
-              sx={{
-                backgroundColor: '#0025DD',
-                mt: 2
-              }}
-              startIcon={<Add />}
-              onClick={handleOpenAddDialog}
-            >
-              Add Your First Contact
-            </Button>
-          </Card>
-        ) : (
-          /* Contacts List/Table */
-          isMobile ? <MobileContactList /> : <DesktopContactTable />
-        )}
-      </Box>
+              </div>
+            </div>
+            
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Suppliers</span>
+                <span className="compact-stat-value">{contacts.filter(c => c.type === 'supplier').length}</span>
+              </div>
+              <div className="compact-progress-bar">
+                <div
+                  className="compact-progress-fill"
+                  style={{
+                    width: `${(contacts.filter(c => c.type === 'supplier').length / contacts.length) * 100}%`,
+                    backgroundColor: '#f59e0b'
+                  }}
+                />
+              </div>
+            </div>
+            
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Employees</span>
+                <span className="compact-stat-value">{contacts.filter(c => c.type === 'employee').length}</span>
+              </div>
+              <div className="compact-progress-bar">
+                <div
+                  className="compact-progress-fill"
+                  style={{
+                    width: `${(contacts.filter(c => c.type === 'employee').length / contacts.length) * 100}%`,
+                    backgroundColor: '#10b981'
+                  }}
+                />
+              </div>
+            </div>
+            
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">VIP Members</span>
+                <span className="compact-stat-value">{contacts.filter(c => c.status === 'vip').length}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Contact Dialog */}
-      <Dialog 
-        open={openDialog} 
-        onClose={handleCloseDialog} 
-        maxWidth="sm" 
-        fullWidth
-        fullScreen={isMobile}
-      >
-        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6" fontWeight="bold">
-              {editMode ? (currentContact?.id > contacts.length ? 'Add New Contact' : 'Edit Contact') : 'Contact Details'}
-            </Typography>
-            <IconButton onClick={handleCloseDialog} sx={{ color: 'white' }}>
-              <Close />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent dividers sx={{ p: 3 }}>
-          {currentContact && (
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Box display="flex" justifyContent="center" mb={2} position="relative">
-                  <Avatar 
-                    src={previewImage || currentContact.avatar} 
-                    sx={{ 
-                      width: 100, 
-                      height: 100,
-                      backgroundColor: getTypeColor(currentContact.type)
-                    }}
-                  >
-                    {currentContact.name?.charAt(0)}
-                  </Avatar>
-                  {editMode && (
-                    <>
-                      <input
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        id="avatar-upload"
-                        type="file"
-                        onChange={handleFileChange}
-                      />
-                      <label htmlFor="avatar-upload">
-                        <IconButton 
-                          sx={{
-                            position: 'absolute',
-                            bottom: 0,
-                            right: 'calc(50% - 70px)',
-                            backgroundColor: '#0025DD',
-                            color: 'white',
-                            '&:hover': {
-                              backgroundColor: '#001FB8'
-                            }
-                          }}
-                          component="span"
-                        >
-                          <CameraAlt />
-                        </IconButton>
-                      </label>
-                    </>
-                  )}
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Full Name"
-                  fullWidth
-                  value={currentContact.name || ''}
-                  onChange={(e) => setCurrentContact({...currentContact, name: e.target.value})}
-                  disabled={!editMode}
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Contact Type</InputLabel>
-                  <Select
-                    value={currentContact.type || 'customer'}
-                    label="Contact Type"
-                    onChange={(e) => setCurrentContact({...currentContact, type: e.target.value})}
-                    disabled={!editMode}
-                  >
-                    <MenuItem value="customer">Customer</MenuItem>
-                    <MenuItem value="supplier">Supplier</MenuItem>
-                    <MenuItem value="employee">Employee</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
+      {openDialog && currentContact && (
+        <div className="compact-modal-overlay">
+          <div className="compact-modal">
+            {/* Modal Header */}
+            <div className="compact-modal-header">
+              <h2>
+                {editMode ? (currentContact.id > contacts.length ? 'ADD CONTACT' : 'EDIT CONTACT') : 'CONTACT DETAILS'}
+              </h2>
+              <div className="compact-modal-steps">
+                <span className="compact-step active">1</span>
+                <span className="compact-step-divider"></span>
+                <span className={`compact-step ${editMode ? "active" : ""}`}>2</span>
+                <span className="compact-step-divider"></span>
+                <span className="compact-step">3</span>
+              </div>
+            </div>
 
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Phone Number"
-                  fullWidth
-                  value={currentContact.phone || ''}
-                  onChange={(e) => setCurrentContact({...currentContact, phone: e.target.value})}
-                  disabled={!editMode}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Phone sx={{ color: '#0025DD' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Email"
-                  fullWidth
-                  value={currentContact.email || ''}
-                  onChange={(e) => setCurrentContact({...currentContact, email: e.target.value})}
-                  disabled={!editMode}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Email sx={{ color: '#0025DD' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  label="Location"
-                  fullWidth
-                  value={currentContact.location || ''}
-                  onChange={(e) => setCurrentContact({...currentContact, location: e.target.value})}
-                  disabled={!editMode}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationOn sx={{ color: '#0025DD' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  label="Business Name"
-                  fullWidth
-                  value={currentContact.business || ''}
-                  onChange={(e) => setCurrentContact({...currentContact, business: e.target.value})}
-                  disabled={!editMode}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Business sx={{ color: '#0025DD' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              
-              {currentContact.type === 'customer' && (
-                <>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      label="Loyalty Points"
-                      fullWidth
-                      type="number"
-                      value={currentContact.loyaltyPoints || 0}
-                      onChange={(e) => setCurrentContact({...currentContact, loyaltyPoints: parseInt(e.target.value) || 0})}
+            {/* Modal Content */}
+            <div className="compact-modal-content">
+              <div className="compact-step-content">
+                {/* Profile Picture Section */}
+                <div className="compact-form-group" style={{ textAlign: 'center' }}>
+                  <div className="compact-upload-area" style={{ border: 'none', padding: '0' }}>
+                    <div className="compact-contact-avatar-large" style={{ 
+                      backgroundColor: getTypeColor(currentContact.type),
+                      color: 'white',
+                      fontSize: '1.5rem',
+                      margin: '0 auto 1rem'
+                    }}>
+                      {currentContact.name?.charAt(0) || '?'}
+                    </div>
+                    {editMode && (
+                      <>
+                        <input
+                          accept="image/*"
+                          id="contact-avatar-upload"
+                          className="compact-file-input"
+                          type="file"
+                          onChange={handleFileChange}
+                        />
+                        <label htmlFor="contact-avatar-upload" className="compact-upload-label" style={{ cursor: 'pointer' }}>
+                          <div className="compact-upload-icon">
+                            <CameraAlt />
+                          </div>
+                          <div className="compact-upload-text">Change Photo</div>
+                        </label>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="compact-form-row">
+                  <div className="compact-form-group">
+                    <label className="compact-form-label">Full Name</label>
+                    <input
+                      type="text"
+                      className="compact-form-input"
+                      value={currentContact.name || ''}
+                      onChange={(e) => setCurrentContact({...currentContact, name: e.target.value})}
                       disabled={!editMode}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <Loyalty sx={{ color: '#0025DD' }} />
-                          </InputAdornment>
-                        ),
-                      }}
+                      placeholder="Enter full name"
                     />
-                  </Grid>
-                  
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Status</InputLabel>
-                      <Select
-                        value={currentContact.status || 'active'}
-                        label="Status"
-                        onChange={(e) => setCurrentContact({...currentContact, status: e.target.value})}
+                  </div>
+                  <div className="compact-form-group">
+                    <label className="compact-form-label">Contact Type</label>
+                    <select
+                      className="compact-form-input"
+                      value={currentContact.type || 'customer'}
+                      onChange={(e) => setCurrentContact({...currentContact, type: e.target.value})}
+                      disabled={!editMode}
+                    >
+                      <option value="customer">Customer</option>
+                      <option value="supplier">Supplier</option>
+                      <option value="employee">Employee</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="compact-form-row">
+                  <div className="compact-form-group">
+                    <label className="compact-form-label">Phone Number</label>
+                    <div className="compact-input-with-icon">
+                      <Phone style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }} />
+                      <input
+                        type="text"
+                        className="compact-form-input"
+                        style={{ paddingLeft: '2rem' }}
+                        value={currentContact.phone || ''}
+                        onChange={(e) => setCurrentContact({...currentContact, phone: e.target.value})}
                         disabled={!editMode}
-                      >
-                        <MenuItem value="active">Active</MenuItem>
-                        <MenuItem value="vip">VIP</MenuItem>
-                        <MenuItem value="inactive">Inactive</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
+                        placeholder="+256 XXX XXX XXX"
+                      />
+                    </div>
+                  </div>
+                  <div className="compact-form-group">
+                    <label className="compact-form-label">Email</label>
+                    <div className="compact-input-with-icon">
+                      <Email style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }} />
+                      <input
+                        type="email"
+                        className="compact-form-input"
+                        style={{ paddingLeft: '2rem' }}
+                        value={currentContact.email || ''}
+                        onChange={(e) => setCurrentContact({...currentContact, email: e.target.value})}
+                        disabled={!editMode}
+                        placeholder="email@example.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="compact-form-group">
+                  <label className="compact-form-label">Location</label>
+                  <div className="compact-input-with-icon">
+                    <LocationOn style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }} />
+                    <input
+                      type="text"
+                      className="compact-form-input"
+                      style={{ paddingLeft: '2rem' }}
+                      value={currentContact.location || ''}
+                      onChange={(e) => setCurrentContact({...currentContact, location: e.target.value})}
+                      disabled={!editMode}
+                      placeholder="City, Country"
+                    />
+                  </div>
+                </div>
+
+                <div className="compact-form-group">
+                  <label className="compact-form-label">Business Name</label>
+                  <div className="compact-input-with-icon">
+                    <Business style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }} />
+                    <input
+                      type="text"
+                      className="compact-form-input"
+                      style={{ paddingLeft: '2rem' }}
+                      value={currentContact.business || ''}
+                      onChange={(e) => setCurrentContact({...currentContact, business: e.target.value})}
+                      disabled={!editMode}
+                      placeholder="Business name (optional)"
+                    />
+                  </div>
+                </div>
+
+                {currentContact.type === 'customer' && (
+                  <>
+                    <div className="compact-form-row">
+                      <div className="compact-form-group">
+                        <label className="compact-form-label">Loyalty Points</label>
+                        <div className="compact-input-with-icon">
+                          <Loyalty style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }} />
+                          <input
+                            type="number"
+                            className="compact-form-input"
+                            style={{ paddingLeft: '2rem' }}
+                            value={currentContact.loyaltyPoints || 0}
+                            onChange={(e) => setCurrentContact({...currentContact, loyaltyPoints: parseInt(e.target.value) || 0})}
+                            disabled={!editMode}
+                          />
+                        </div>
+                      </div>
+                      <div className="compact-form-group">
+                        <label className="compact-form-label">Status</label>
+                        <select
+                          className="compact-form-input"
+                          value={currentContact.status || 'active'}
+                          onChange={(e) => setCurrentContact({...currentContact, status: e.target.value})}
+                          disabled={!editMode}
+                        >
+                          <option value="active">Active</option>
+                          <option value="vip">VIP</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {!editMode && currentContact.type === 'customer' && currentContact.totalSpent > 0 && (
+                  <div className="compact-review-card">
+                    <div className="compact-review-row">
+                      <div className="compact-review-group">
+                        <span className="compact-review-label">Total Spent</span>
+                        <span className="compact-review-value" style={{ color: '#10b981' }}>
+                          {formatCurrency(currentContact.totalSpent)}
+                        </span>
+                      </div>
+                      <div className="compact-review-group">
+                        <span className="compact-review-label">Loyalty Points</span>
+                        <span className="compact-review-value">{currentContact.loyaltyPoints} pts</span>
+                      </div>
+                    </div>
+                    <div className="compact-review-row">
+                      <div className="compact-review-group">
+                        <span className="compact-review-label">Last Purchase</span>
+                        <span className="compact-review-value">{currentContact.lastPurchase}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="compact-modal-actions">
+              {editMode ? (
+                <>
+                  <button className="compact-modal-btn btn-secondary" onClick={handleCloseDialog}>
+                    Cancel
+                  </button>
+                  <button className="compact-modal-btn btn-primary" onClick={handleSaveContact}>
+                    Save Contact
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="compact-modal-btn btn-secondary" onClick={handleCloseDialog}>
+                    Close
+                  </button>
+                  <button className="compact-modal-btn btn-primary" onClick={() => handleOpenEditDialog(currentContact)}>
+                    Edit Contact
+                  </button>
                 </>
               )}
-              
-              {!editMode && currentContact.type === 'customer' && (
-                <Grid item xs={12}>
-                  <Card variant="outlined" sx={{ borderColor: '#0025DD20' }}>
-                    <CardContent>
-                      <Typography variant="h6" gutterBottom color="#0025DD">
-                        Purchase History
-                      </Typography>
-                      <Box display="flex" justifyContent="space-between" mb={1}>
-                        <Typography>Last Purchase:</Typography>
-                        <Typography fontWeight="bold">
-                          {currentContact.lastPurchase || 'No purchases yet'}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" justifyContent="space-between">
-                        <Typography>Total Spent:</Typography>
-                        <Typography fontWeight="bold" color="#10B981">
-                          {formatCurrency(currentContact.totalSpent || 0)}
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              )}
-            </Grid>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          {editMode && (
-            <>
-              <Button 
-                onClick={handleCloseDialog}
-                sx={{ color: '#0025DD' }}
-              >
-                Cancel
-              </Button>
-              <Button 
-                variant="contained"
-                sx={{
-                  backgroundColor: '#0025DD',
-                  '&:hover': {
-                    backgroundColor: '#001FB8'
-                  }
-                }}
-                onClick={handleSaveContact}
-                startIcon={<CheckCircle />}
-              >
-                Save Contact
-              </Button>
-            </>
-          )}
-        </DialogActions>
-      </Dialog>
-    </Box>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        /* Additional CSS for Contacts specific styles */
+        .compact-contact-cell {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+        
+        .compact-contact-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 600;
+          flex-shrink: 0;
+        }
+        
+        .compact-contact-avatar-large {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 600;
+        }
+        
+        .compact-contact-name {
+          font-weight: 600;
+          color: #1e293b;
+          font-size: 0.7rem;
+        }
+        
+        .compact-loyalty-points {
+          font-size: 0.6rem;
+          color: #64748b;
+          display: flex;
+          align-items: center;
+          margin-top: 0.125rem;
+        }
+        
+        .compact-type-badge {
+          display: inline-block;
+          padding: 0.125rem 0.375rem;
+          border-radius: 3px;
+          font-size: 0.65rem;
+          font-weight: 600;
+          border: 1px solid;
+          text-transform: capitalize;
+        }
+        
+        .compact-contact-info {
+          display: flex;
+          flex-direction: column;
+          gap: 0.125rem;
+        }
+        
+        .compact-contact-phone,
+        .compact-contact-email {
+          display: flex;
+          align-items: center;
+          font-size: 0.7rem;
+          color: #475569;
+        }
+        
+        .compact-business {
+          font-size: 0.7rem;
+          color: #475569;
+          max-width: 150px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        
+        .compact-status-badge {
+          display: inline-block;
+          padding: 0.125rem 0.375rem;
+          border-radius: 3px;
+          font-size: 0.65rem;
+          font-weight: 600;
+          text-transform: capitalize;
+        }
+        
+        .compact-stat-item {
+          padding: 0.5rem;
+          background: #f8fafc;
+          border-radius: 4px;
+          border: 1px solid #e2e8f0;
+        }
+        
+        .compact-stat-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.25rem;
+        }
+        
+        .compact-stat-name {
+          font-weight: 600;
+          color: #1e293b;
+          font-size: 0.7rem;
+        }
+        
+        .compact-stat-value {
+          font-weight: 700;
+          color: #3b82f6;
+          font-size: 0.75rem;
+        }
+        
+        .compact-input-with-icon {
+          position: relative;
+        }
+        
+        .compact-action-btn.edit {
+          background: #dbeafe;
+          color: #1e40af;
+        }
+        
+        .compact-action-btn.view {
+          background: #f0f9ff;
+          color: #0ea5e9;
+        }
+        
+        .compact-action-btn.delete {
+          background: #fee2e2;
+          color: #dc2626;
+        }
+      `}</style>
+    </div>
   );
 };
 

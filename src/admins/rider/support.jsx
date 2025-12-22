@@ -1,5 +1,6 @@
+"use client"
+
 import React, { useState } from 'react';
-import './support.css';
 
 const Support = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -122,9 +123,9 @@ const Support = () => {
 
   const getStatusBadgeClass = (status) => {
     switch (status.toLowerCase()) {
-      case 'resolved': return 'status-badge resolved';
-      case 'in progress': return 'status-badge in-progress';
-      default: return 'status-badge open';
+      case 'resolved': return 'status-resolved';
+      case 'in progress': return 'status-in-progress';
+      default: return 'status-open';
     }
   };
 
@@ -135,328 +136,804 @@ const Support = () => {
   };
 
   return (
-    <div className="support-container">
-      <header className="support-header">
-        <h1>SUPPORT AND DISPUTES</h1>
-        <p>Manage your tickets, track disputes and get help from our support team</p>
+    <div className="expense-container">
+      {/* Compact Header */}
+      <header className="expense-header">
+        <div className="expense-header-content">
+          <div>
+            <h1 className="expense-title">SUPPORT AND DISPUTES</h1>
+            <p className="expense-subtitle">Manage tickets, track disputes and get help from support team</p>
+          </div>
+          <div className="expense-user-profile">
+            <span className="expense-user-name">User Support</span>
+            <div className="expense-user-badge">US</div>
+          </div>
+        </div>
       </header>
 
-      <nav className="support-nav">
+      {/* Compact Stats Grid */}
+      <div className="compact-stats-grid">
+        <div className="compact-stat-card stat-blue">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Total Disputes</span>
+            <span className="compact-stat-change positive">+4</span>
+          </div>
+          <div className="compact-stat-value">
+            {disputeStats.total}
+          </div>
+        </div>
+
+        <div className="compact-stat-card stat-yellow">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Active</span>
+            <span className="compact-stat-change negative">+{disputeStats.active}</span>
+          </div>
+          <div className="compact-stat-value">
+            {disputeStats.active}
+          </div>
+        </div>
+
+        <div className="compact-stat-card stat-green">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Resolved</span>
+            <span className="compact-stat-change positive">+{disputeStats.resolved}</span>
+          </div>
+          <div className="compact-stat-value">
+            {disputeStats.resolved}
+          </div>
+        </div>
+
+        <div className="compact-stat-card stat-purple">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Response Time</span>
+            <span className="compact-stat-change positive">+2.5h</span>
+          </div>
+          <div className="compact-stat-value">
+            4.2<span className="compact-stat-currency">HRS</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Compact Navigation Bar */}
+      <div className="compact-action-bar">
         <button 
-          className={`nav-btn ${activeTab === 'overview' ? 'active' : ''}`}
+          className={`compact-btn ${activeTab === 'overview' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveTab('overview')}
         >
           Overview
         </button>
         <button 
-          className={`nav-btn ${activeTab === 'disputes' ? 'active' : ''}`}
+          className={`compact-btn ${activeTab === 'disputes' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveTab('disputes')}
         >
           Disputes
         </button>
         <button 
-          className={`nav-btn ${activeTab === 'chat' ? 'active' : ''}`}
+          className={`compact-btn ${activeTab === 'chat' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveTab('chat')}
         >
           Live Chat
         </button>
         <button 
-          className={`nav-btn ${activeTab === 'ticket' ? 'active' : ''}`}
+          className={`compact-btn ${activeTab === 'ticket' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveTab('ticket')}
         >
           Submit Ticket
         </button>
-      </nav>
+      </div>
 
-      <main className="support-content">
-        {activeTab === 'overview' && (
-          <div className="overview-container">
-            <div className="disputes-overview">
-              <h2>Disputes</h2>
-              <div className="dispute-stats">
-                <div className="stat-card">
-                  <h3>Active disputes</h3>
-                  <p className="stat-number">{disputeStats.active}</p>
+      {/* Main Content Area */}
+      <div className="compact-content-grid">
+        {/* Left Panel - Dynamic Content */}
+        <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
+          {activeTab === 'overview' && (
+            <div className="support-overview">
+              <div className="compact-section-header">
+                <h2 className="compact-section-title">Support Overview</h2>
+                <p className="compact-section-subtitle">Your support metrics and recent activities</p>
+              </div>
+
+              {/* Dispute Categories */}
+              <div className="compact-breakdown-list" style={{ marginBottom: '1rem' }}>
+                <div className="compact-breakdown-item">
+                  <div className="compact-breakdown-info">
+                    <span className="compact-breakdown-name">Trip Disputes</span>
+                    <span className="compact-breakdown-percentage">
+                      {allDisputes.filter(d => d.category === 'trip' && d.status !== 'Resolved').length} active
+                    </span>
+                  </div>
+                  <div className="compact-progress-bar">
+                    <div
+                      className="compact-progress-fill"
+                      style={{
+                        width: `${(allDisputes.filter(d => d.category === 'trip').length / allDisputes.length) * 100}%`,
+                        backgroundColor: '#3b82f6'
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="stat-card">
-                  <h3>Total Disputes</h3>
-                  <p className="stat-number">{disputeStats.total}</p>
+                <div className="compact-breakdown-item">
+                  <div className="compact-breakdown-info">
+                    <span className="compact-breakdown-name">Delivery Issues</span>
+                    <span className="compact-breakdown-percentage">
+                      {allDisputes.filter(d => d.category === 'delivery' && d.status !== 'Resolved').length} active
+                    </span>
+                  </div>
+                  <div className="compact-progress-bar">
+                    <div
+                      className="compact-progress-fill"
+                      style={{
+                        width: `${(allDisputes.filter(d => d.category === 'delivery').length / allDisputes.length) * 100}%`,
+                        backgroundColor: '#f59e0b'
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="stat-card">
-                  <h3>Resolved</h3>
-                  <p className="stat-number">{disputeStats.resolved}</p>
+                <div className="compact-breakdown-item">
+                  <div className="compact-breakdown-info">
+                    <span className="compact-breakdown-name">Payment Issues</span>
+                    <span className="compact-breakdown-percentage">
+                      {allDisputes.filter(d => d.category === 'payment' && d.status !== 'Resolved').length} active
+                    </span>
+                  </div>
+                  <div className="compact-progress-bar">
+                    <div
+                      className="compact-progress-fill"
+                      style={{
+                        width: `${(allDisputes.filter(d => d.category === 'payment').length / allDisputes.length) * 100}%`,
+                        backgroundColor: '#10b981'
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="dispute-categories">
-                <div className="category-section">
-                  <h3>Trips Disputes</h3>
-                  <p>Active disputes: {allDisputes.filter(d => d.category === 'trip' && d.status !== 'Resolved').length}</p>
-                </div>
-                <div className="category-section">
-                  <h3>Delivery Disputes</h3>
-                  <p>Active disputes: {allDisputes.filter(d => d.category === 'delivery' && d.status !== 'Resolved').length}</p>
-                </div>
-                <div className="category-section">
-                  <h3>Payment Disputes</h3>
-                  <p>Active disputes: {allDisputes.filter(d => d.category === 'payment' && d.status !== 'Resolved').length}</p>
-                </div>
-                <div className="category-section">
-                  <h3>Wallet Disputes</h3>
-                  <p>Active disputes: {allDisputes.filter(d => d.category === 'wallet' && d.status !== 'Resolved').length}</p>
-                </div>
+              {/* Recent Disputes */}
+              <div className="compact-table-wrapper">
+                <table className="compact-table">
+                  <thead>
+                    <tr>
+                      <th>Dispute</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allDisputes.slice(0, 4).map(dispute => (
+                      <tr key={dispute.id}>
+                        <td>
+                          <div className="compact-dispute-cell">
+                            <div className="compact-dispute-title">{dispute.title}</div>
+                            <div className="compact-dispute-desc">{dispute.description}</div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="compact-type-badge">{dispute.type}</span>
+                        </td>
+                        <td>
+                          <span className={`compact-status ${getStatusBadgeClass(dispute.status)}`}>
+                            {dispute.status}
+                          </span>
+                        </td>
+                        <td className="compact-date">{dispute.created}</td>
+                        <td>
+                          <div className="compact-action-buttons">
+                            <button className="compact-action-btn view">View</button>
+                            <button className="compact-action-btn edit">Update</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
+          )}
 
-            <div className="recent-disputes">
-              <h2>Recent Disputes</h2>
-              <p>Your latest support tickets and their statuses</p>
-              
-              <div className="dispute-cards">
-                {allDisputes.slice(0, 4).map(dispute => (
-                  <div key={dispute.id} className="dispute-card">
-                    <div className="dispute-card-header">
-                      <h4>{dispute.title}</h4>
-                      <span className={getStatusBadgeClass(dispute.status)}>
-                        {dispute.status}
-                      </span>
+          {activeTab === 'disputes' && (
+            <div className="all-disputes">
+              <div className="compact-section-header">
+                <h2 className="compact-section-title">All Disputes</h2>
+                <div className="compact-filters">
+                  <input
+                    type="text"
+                    placeholder="Search disputes..."
+                    className="compact-search-input"
+                  />
+                  <select className="compact-filter-select">
+                    <option>All Status</option>
+                    <option>Open</option>
+                    <option>In Progress</option>
+                    <option>Resolved</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="compact-table-wrapper">
+                <table className="compact-table">
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Created</th>
+                      <th>Updated</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allDisputes.map(dispute => (
+                      <tr key={dispute.id}>
+                        <td>
+                          <div className="compact-dispute-cell">
+                            <div className="compact-dispute-title">{dispute.title}</div>
+                            <div className="compact-dispute-desc">{dispute.description}</div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="compact-type-badge">{dispute.type}</span>
+                        </td>
+                        <td>
+                          <span className={`compact-status ${getStatusBadgeClass(dispute.status)}`}>
+                            {dispute.status}
+                          </span>
+                        </td>
+                        <td className="compact-date">{dispute.created}</td>
+                        <td className="compact-date">{dispute.updated}</td>
+                        <td>
+                          <div className="compact-action-buttons">
+                            <button className="compact-action-btn view">View</button>
+                            <button className="compact-action-btn comment">Comment</button>
+                            <button className="compact-action-btn upload">Upload</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'chat' && (
+            <div className="live-chat">
+              <div className="compact-section-header">
+                <h2 className="compact-section-title">Live Support Chat</h2>
+                <div className="online-indicator">
+                  <span className="online-dot"></span>
+                  <span>Support Team Online</span>
+                </div>
+              </div>
+
+              <div className="chat-messages-container">
+                {liveChatMessages.map(message => (
+                  <div 
+                    key={message.id} 
+                    className={`chat-message ${message.sender === 'user' ? 'user-message' : 'support-message'}`}
+                  >
+                    <div className="message-content">
+                      {message.type === 'file' ? (
+                        <div className="file-message">
+                          <div className="file-icon">📎</div>
+                          <div>
+                            <div className="file-name">{message.filename}</div>
+                            <div className="file-size">PDF Document</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="message-text">{message.text}</div>
+                      )}
                     </div>
-                    <p className="dispute-description">{dispute.description}</p>
-                    <div className="dispute-card-footer">
-                      <span className="dispute-date">{dispute.created}</span>
-                      <span className="dispute-type">{dispute.type}</span>
-                    </div>
-                    <div className="dispute-tags">
-                      <span className="dispute-tag">Report Trip Issue</span>
-                      <span className="dispute-tag">Delivery Problem</span>
-                      <span className="dispute-tag">Payment Dispute</span>
-                      <span className="dispute-tag">Wallet Issue</span>
-                    </div>
+                    <div className="message-time">{message.time}</div>
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-        )}
 
-        {activeTab === 'disputes' && (
-          <div className="all-disputes">
-            <div className="disputes-header">
-              <h2>All Disputes</h2>
-              <p>Track and manage your support tickets</p>
-            </div>
-            
-            <div className="search-bar">
-              <input 
-                type="text" 
-                placeholder="Search Disputes..." 
-                className="search-input"
-              />
-            </div>
-
-            <div className="disputes-list">
-              {allDisputes.map(dispute => (
-                <div key={dispute.id} className="dispute-item">
-                  <div className="dispute-item-header">
-                    <div>
-                      <h3>{dispute.title}</h3>
-                      <p className="dispute-subtitle">{dispute.description}</p>
-                    </div>
-                    <span className={getStatusBadgeClass(dispute.status)}>
-                      {dispute.status}
-                    </span>
-                  </div>
-                  
-                  <div className="dispute-details">
-                    <div className="detail-item">
-                      <span className="detail-label">Created:</span>
-                      <span className="detail-value">{dispute.created}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Updated:</span>
-                      <span className="detail-value">{dispute.updated}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Dispute ID:</span>
-                      <span className="detail-value dispute-id">{dispute.type}</span>
-                    </div>
-                  </div>
-
-                  <div className="dispute-actions">
-                    <button className="action-btn view-btn">View Details</button>
-                    <button className="action-btn comment-btn">Add Comment</button>
-                    <button className="action-btn upload-btn">Upload Document</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'chat' && (
-          <div className="live-chat">
-            <div className="chat-header">
-              <h2>Live Support Chat</h2>
-              <p>Chat with our support team in real-time</p>
-              <div className="online-indicator">
-                <span className="online-dot"></span>
-                <span>Online</span>
-              </div>
-            </div>
-
-            <div className="chat-messages">
-              {liveChatMessages.map(message => (
-                <div 
-                  key={message.id} 
-                  className={`message ${message.sender === 'user' ? 'user-message' : 'support-message'}`}
-                >
-                  <div className="message-content">
-                    {message.type === 'file' ? (
-                      <div className="file-message">
-                        <div className="file-icon">📎</div>
-                        <div>
-                          <p className="file-name">{message.filename}</p>
-                          <p className="file-size">PDF Document</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <p>{message.text}</p>
-                    )}
-                  </div>
-                  <span className="message-time">{message.time}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="chat-input-area">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Type your Message..."
-                className="chat-input"
-              />
-              <button onClick={handleSendMessage} className="send-btn">
-                Send
-              </button>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'ticket' && (
-          <div className="submit-ticket">
-            <div className="ticket-header">
-              <h2>Submit New Ticket</h2>
-              <p>Create a new support ticket or dispute</p>
-            </div>
-
-            <form onSubmit={handleSubmitTicket} className="ticket-form">
-              <div className="form-group">
-                <label>Dispute Type</label>
-                <div className="dispute-type-buttons">
-                  <button
-                    type="button"
-                    className={`type-btn ${ticketForm.disputeType === 'trip' ? 'active' : ''}`}
-                    onClick={() => setTicketForm({...ticketForm, disputeType: 'trip'})}
-                  >
-                    Trip
-                  </button>
-                  <button
-                    type="button"
-                    className={`type-btn ${ticketForm.disputeType === 'delivery' ? 'active' : ''}`}
-                    onClick={() => setTicketForm({...ticketForm, disputeType: 'delivery'})}
-                  >
-                    Delivery
-                  </button>
-                  <button
-                    type="button"
-                    className={`type-btn ${ticketForm.disputeType === 'payments' ? 'active' : ''}`}
-                    onClick={() => setTicketForm({...ticketForm, disputeType: 'payments'})}
-                  >
-                    Payments
-                  </button>
-                  <button
-                    type="button"
-                    className={`type-btn ${ticketForm.disputeType === 'wallet' ? 'active' : ''}`}
-                    onClick={() => setTicketForm({...ticketForm, disputeType: 'wallet'})}
-                  >
-                    Wallet
-                  </button>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="title">Title</label>
+              <div className="chat-input-container">
                 <input
                   type="text"
-                  id="title"
-                  value={ticketForm.title}
-                  onChange={(e) => setTicketForm({...ticketForm, title: e.target.value})}
-                  placeholder="Brief Description of your issue"
-                  required
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  placeholder="Type your message..."
+                  className="chat-input"
                 />
+                <button onClick={handleSendMessage} className="compact-btn btn-primary">
+                  Send
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'ticket' && (
+            <div className="submit-ticket">
+              <div className="compact-section-header">
+                <h2 className="compact-section-title">Submit New Ticket</h2>
+                <p className="compact-section-subtitle">Create a new support ticket or dispute</p>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="description">Description</label>
-                <textarea
-                  id="description"
-                  value={ticketForm.description}
-                  onChange={(e) => setTicketForm({...ticketForm, description: e.target.value})}
-                  placeholder="Provide Detailed information about your issue"
-                  rows="6"
-                  required
-                />
-              </div>
+              <form onSubmit={handleSubmitTicket} className="ticket-form">
+                <div className="compact-form-group">
+                  <label className="compact-form-label">Dispute Type</label>
+                  <div className="compact-type-buttons">
+                    <button
+                      type="button"
+                      className={`compact-type-btn ${ticketForm.disputeType === 'trip' ? 'active' : ''}`}
+                      onClick={() => setTicketForm({...ticketForm, disputeType: 'trip'})}
+                    >
+                      Trip
+                    </button>
+                    <button
+                      type="button"
+                      className={`compact-type-btn ${ticketForm.disputeType === 'delivery' ? 'active' : ''}`}
+                      onClick={() => setTicketForm({...ticketForm, disputeType: 'delivery'})}
+                    >
+                      Delivery
+                    </button>
+                    <button
+                      type="button"
+                      className={`compact-type-btn ${ticketForm.disputeType === 'payment' ? 'active' : ''}`}
+                      onClick={() => setTicketForm({...ticketForm, disputeType: 'payment'})}
+                    >
+                      Payments
+                    </button>
+                    <button
+                      type="button"
+                      className={`compact-type-btn ${ticketForm.disputeType === 'wallet' ? 'active' : ''}`}
+                      onClick={() => setTicketForm({...ticketForm, disputeType: 'wallet'})}
+                    >
+                      Wallet
+                    </button>
+                  </div>
+                </div>
 
-              <div className="form-group">
-                <label>Attachments</label>
-                <div className="file-upload-area">
-                  <div className="upload-box">
-                    <p>Click to upload or drag and drop</p>
-                    <p className="upload-subtext">Screenshots, receipts or supporting documents</p>
+                <div className="compact-form-group">
+                  <label className="compact-form-label">Title</label>
+                  <input
+                    type="text"
+                    className="compact-form-input"
+                    value={ticketForm.title}
+                    onChange={(e) => setTicketForm({...ticketForm, title: e.target.value})}
+                    placeholder="Brief description of your issue"
+                    required
+                  />
+                </div>
+
+                <div className="compact-form-group">
+                  <label className="compact-form-label">Description</label>
+                  <textarea
+                    className="compact-form-textarea"
+                    value={ticketForm.description}
+                    onChange={(e) => setTicketForm({...ticketForm, description: e.target.value})}
+                    placeholder="Provide detailed information about your issue"
+                    rows="4"
+                    required
+                  />
+                </div>
+
+                <div className="compact-form-group">
+                  <label className="compact-form-label">Attachments</label>
+                  <div className="compact-upload-area">
                     <input
                       type="file"
                       multiple
                       onChange={handleFileUpload}
-                      className="file-input"
-                      id="file-upload"
+                      className="compact-file-input"
+                      id="ticket-file-upload"
                     />
-                    <label htmlFor="file-upload" className="file-upload-btn">
-                      Choose Files
+                    <label htmlFor="ticket-file-upload" className="compact-upload-label">
+                      <div className="compact-upload-icon">📤</div>
+                      <div className="compact-upload-text">Click to upload or drag and drop</div>
+                      <div className="compact-upload-subtext">Screenshots, receipts or supporting documents</div>
                     </label>
                   </div>
                   
                   {ticketForm.attachments.length > 0 && (
-                    <div className="attachments-list">
+                    <div className="compact-attachments-list">
                       {ticketForm.attachments.map((file, index) => (
-                        <div key={index} className="attachment-item">
-                          <span className="attachment-name">{file.name}</span>
-                          <span className="attachment-size">{file.size}</span>
+                        <div key={index} className="compact-attachment-item">
+                          <span className="compact-attachment-name">{file.name}</span>
+                          <span className="compact-attachment-size">{file.size}</span>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
-              </div>
 
-              <div className="form-actions">
-                <button type="submit" className="submit-btn">
-                  Submit Ticket
-                </button>
-                <button 
-                  type="button" 
-                  className="cancel-btn"
-                  onClick={() => setActiveTab('overview')}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+                <div className="compact-modal-actions">
+                  <button 
+                    type="button" 
+                    className="compact-modal-btn btn-secondary"
+                    onClick={() => setActiveTab('overview')}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="compact-modal-btn btn-primary">
+                    Submit Ticket
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+
+        {/* Right Panel - Stats & Quick Actions */}
+        <div className="compact-breakdown-section">
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">Quick Stats</h2>
+            <p className="compact-section-subtitle">Support metrics</p>
           </div>
-        )}
-      </main>
+
+          <div className="compact-breakdown-list">
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Active Disputes</span>
+                <span className="compact-stat-value">{disputeStats.active}</span>
+              </div>
+              <div className="compact-progress-bar">
+                <div
+                  className="compact-progress-fill"
+                  style={{
+                    width: `${(disputeStats.active / disputeStats.total) * 100}%`,
+                    backgroundColor: '#ef4444'
+                  }}
+                />
+              </div>
+            </div>
+            
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Resolved</span>
+                <span className="compact-stat-value">{disputeStats.resolved}</span>
+              </div>
+              <div className="compact-progress-bar">
+                <div
+                  className="compact-progress-fill"
+                  style={{
+                    width: `${(disputeStats.resolved / disputeStats.total) * 100}%`,
+                    backgroundColor: '#10b981'
+                  }}
+                />
+              </div>
+            </div>
+            
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Avg Response Time</span>
+                <span className="compact-stat-value">4.2 hrs</span>
+              </div>
+            </div>
+            
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Satisfaction Rate</span>
+                <span className="compact-stat-value">92%</span>
+              </div>
+              <div className="compact-progress-bar">
+                <div
+                  className="compact-progress-fill"
+                  style={{
+                    width: '92%',
+                    backgroundColor: '#f59e0b'
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="compact-section-header" style={{ marginTop: '1rem' }}>
+            <h2 className="compact-section-title">Quick Actions</h2>
+          </div>
+
+          <div className="compact-quick-actions">
+            <button className="compact-action-btn btn-primary" onClick={() => setActiveTab('ticket')}>
+              New Ticket
+            </button>
+            <button className="compact-action-btn btn-secondary" onClick={() => setActiveTab('chat')}>
+              Live Chat
+            </button>
+            <button className="compact-action-btn btn-secondary">
+              View FAQ
+            </button>
+            <button className="compact-action-btn btn-secondary">
+              Contact Support
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        /* Support Specific Styles */
+        .support-overview,
+        .all-disputes,
+        .live-chat,
+        .submit-ticket {
+          height: 100%;
+        }
+
+        .compact-dispute-cell {
+          display: flex;
+          flex-direction: column;
+          gap: 0.125rem;
+        }
+
+        .compact-dispute-title {
+          font-weight: 600;
+          color: #1e293b;
+          font-size: 0.7rem;
+        }
+
+        .compact-dispute-desc {
+          color: #64748b;
+          font-size: 0.65rem;
+          line-height: 1.2;
+        }
+
+        .compact-type-badge {
+          display: inline-block;
+          padding: 0.125rem 0.375rem;
+          border-radius: 3px;
+          font-size: 0.65rem;
+          font-weight: 600;
+          background: #eff6ff;
+          color: #1e40af;
+          border: 1px solid #dbeafe;
+        }
+
+        .compact-status {
+          display: inline-block;
+          padding: 0.125rem 0.375rem;
+          border-radius: 3px;
+          font-size: 0.65rem;
+          font-weight: 600;
+        }
+
+        .status-resolved {
+          background: #d1fae5;
+          color: #059669;
+          border: 1px solid #a7f3d0;
+        }
+
+        .status-in-progress {
+          background: #fef3c7;
+          color: #d97706;
+          border: 1px solid #fde68a;
+        }
+
+        .status-open {
+          background: #fee2e2;
+          color: #dc2626;
+          border: 1px solid #fecaca;
+        }
+
+        .compact-stat-item {
+          padding: 0.5rem;
+          background: #f8fafc;
+          border-radius: 4px;
+          border: 1px solid #e2e8f0;
+          margin-bottom: 0.5rem;
+        }
+
+        .compact-stat-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.25rem;
+        }
+
+        .compact-stat-name {
+          font-weight: 600;
+          color: #1e293b;
+          font-size: 0.7rem;
+        }
+
+        .compact-stat-value {
+          font-weight: 700;
+          color: #3b82f6;
+          font-size: 0.75rem;
+        }
+
+        /* Live Chat Styles */
+        .chat-messages-container {
+          height: 300px;
+          overflow-y: auto;
+          border: 1px solid #e2e8f0;
+          border-radius: 4px;
+          padding: 1rem;
+          margin-bottom: 1rem;
+          background: #f8fafc;
+        }
+
+        .chat-message {
+          margin-bottom: 0.75rem;
+          max-width: 80%;
+        }
+
+        .user-message {
+          margin-left: auto;
+        }
+
+        .user-message .message-content {
+          background: #3b82f6;
+          color: white;
+          padding: 0.5rem 0.75rem;
+          border-radius: 6px 6px 0 6px;
+        }
+
+        .support-message .message-content {
+          background: white;
+          color: #1e293b;
+          padding: 0.5rem 0.75rem;
+          border-radius: 6px 6px 6px 0;
+          border: 1px solid #e2e8f0;
+        }
+
+        .message-text {
+          font-size: 0.7rem;
+          line-height: 1.2;
+        }
+
+        .message-time {
+          font-size: 0.6rem;
+          color: #94a3b8;
+          margin-top: 0.125rem;
+          text-align: right;
+        }
+
+        .user-message .message-time {
+          text-align: right;
+        }
+
+        .support-message .message-time {
+          text-align: left;
+        }
+
+        .file-message {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .file-icon {
+          font-size: 1rem;
+        }
+
+        .file-name {
+          font-weight: 600;
+          font-size: 0.7rem;
+        }
+
+        .file-size {
+          font-size: 0.6rem;
+          color: #94a3b8;
+        }
+
+        .chat-input-container {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .chat-input {
+          flex: 1;
+          padding: 0.5rem;
+          border: 1px solid #cbd5e1;
+          border-radius: 4px;
+          font-size: 0.7rem;
+          font-family: 'Poppins', sans-serif;
+        }
+
+        /* Submit Ticket Styles */
+        .compact-type-buttons {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+        }
+
+        .compact-type-btn {
+          padding: 0.5rem;
+          border: 1px solid #cbd5e1;
+          border-radius: 4px;
+          background: white;
+          color: #64748b;
+          font-weight: 500;
+          font-size: 0.7rem;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .compact-type-btn:hover {
+          border-color: #3b82f6;
+          color: #1e40af;
+          background: #eff6ff;
+        }
+
+        .compact-type-btn.active {
+          background: #3b82f6;
+          color: white;
+          border-color: #3b82f6;
+        }
+
+        .compact-attachments-list {
+          margin-top: 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .compact-attachment-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.5rem;
+          background: #f1f5f9;
+          border: 1px solid #e2e8f0;
+          border-radius: 4px;
+        }
+
+        .compact-attachment-name {
+          font-size: 0.7rem;
+          color: #475569;
+          font-weight: 500;
+        }
+
+        .compact-attachment-size {
+          font-size: 0.65rem;
+          color: #94a3b8;
+        }
+
+        /* Quick Actions */
+        .compact-quick-actions {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.5rem;
+          margin-top: 1rem;
+        }
+
+        .compact-quick-actions .compact-action-btn {
+          width: 100%;
+          justify-content: center;
+        }
+
+        .online-indicator {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.7rem;
+          color: #10b981;
+          font-weight: 600;
+        }
+
+        .online-dot {
+          width: 6px;
+          height: 6px;
+          background: #10b981;
+          border-radius: 50%;
+          animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+          .compact-content-grid > .compact-table-section {
+            grid-column: span 1;
+          }
+          
+          .compact-type-buttons {
+            grid-template-columns: 1fr;
+          }
+          
+          .chat-message {
+            max-width: 90%;
+          }
+        }
+      `}</style>
     </div>
   );
 };
