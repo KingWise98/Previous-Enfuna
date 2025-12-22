@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import Admin from "./admins/admin";
-import Topbar from "./scenes/global/Topbar";
+
 import Sidebar from "./scenes/global/Sidebar";
 import {  Box, Typography } from "@mui/material";
 
@@ -361,7 +361,7 @@ function App() {
 
           <main className="content">
             {/* Render Topbar only if user is logged in */}
-            {userRole && <Topbar setIsSidebar={setIsSidebar} onLogout={handleLogout} />}
+         
 
             <Routes>
               {/* Default route to Login */}

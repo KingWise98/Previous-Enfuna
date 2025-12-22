@@ -233,7 +233,7 @@ export default function PaymentsApp() {
       <header className="payments-header">
         <div className="payments-header-content">
           <div className="payments-header-left">
-            <img src="/logo.png" alt="Enfuna" className="payments-logo" />
+            
             <div>
               <h1 className="payments-title">PAYMENT DASHBOARD</h1>
               <p className="payments-subtitle">Real-Time payment overview and analytics</p>

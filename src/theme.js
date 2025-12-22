@@ -91,9 +91,9 @@ export const tokens = (mode) => ({
           400: "#5e33d8",
           500: "#3700bd",
           600: "#4a22c4",
-700: "#5e44cb",
-800: "#725ed2",
-900: "#8679d9"
+          700: "#5e44cb",
+          800: "#725ed2",
+          900: "#8679d9"
         },
         redAccent: {
           100: "#2c100f",
@@ -163,31 +163,49 @@ export const themeSettings = (mode) => {
           }),
     },
     typography: {
-      fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+      fontFamily: "'Poppins', 'Roboto', 'Helvetica', 'Arial', sans-serif",
       fontSize: 12,
       h1: {
-        fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+        fontFamily: "'Poppins', 'Roboto', 'Helvetica', 'Arial', sans-serif",
         fontSize: 40,
+        fontWeight: 600,
       },
       h2: {
-        fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+        fontFamily: "'Poppins', 'Roboto', 'Helvetica', 'Arial', sans-serif",
         fontSize: 32,
+        fontWeight: 600,
       },
       h3: {
-        fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+        fontFamily: "'Poppins', 'Roboto', 'Helvetica', 'Arial', sans-serif",
         fontSize: 24,
+        fontWeight: 600,
       },
       h4: {
-        fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+        fontFamily: "'Poppins', 'Roboto', 'Helvetica', 'Arial', sans-serif",
         fontSize: 20,
+        fontWeight: 600,
       },
       h5: {
-        fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+        fontFamily: "'Poppins', 'Roboto', 'Helvetica', 'Arial', sans-serif",
         fontSize: 16,
+        fontWeight: 500,
       },
       h6: {
-        fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+        fontFamily: "'Poppins', 'Roboto', 'Helvetica', 'Arial', sans-serif",
         fontSize: 14,
+        fontWeight: 500,
+      },
+      body1: {
+        fontFamily: "'Poppins', 'Roboto', 'Helvetica', 'Arial', sans-serif",
+        fontSize: 14,
+      },
+      body2: {
+        fontFamily: "'Poppins', 'Roboto', 'Helvetica', 'Arial', sans-serif",
+        fontSize: 12,
+      },
+      button: {
+        fontFamily: "'Poppins', 'Roboto', 'Helvetica', 'Arial', sans-serif",
+        fontWeight: 500,
       },
     },
   };
@@ -199,7 +217,8 @@ export const ColorModeContext = createContext({
 });
 
 export const useMode = () => {
-  const [mode, setMode] = useState("dark");
+  // Light mode loads first
+  const [mode, setMode] = useState("light");
 
   const colorMode = useMemo(
     () => ({
