@@ -217,7 +217,7 @@ const ContactsPage = () => {
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'customer': return '#0033cc';
+      case 'customer': return '#3b82f6';
       case 'supplier': return '#f59e0b';
       case 'employee': return '#10b981';
       default: return '#64748b';
@@ -226,409 +226,380 @@ const ContactsPage = () => {
 
   const getTypeBackgroundColor = (type) => {
     switch (type) {
-      case 'customer': return '#e3f2fd';
-      case 'supplier': return '#fff9c4';
+      case 'customer': return '#dbeafe';
+      case 'supplier': return '#fef3c7';
       case 'employee': return '#d1fae5';
-      default: return '#f5f5f5';
+      default: return '#f1f5f9';
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'vip': return '#f59e0b';
-      case 'active': return '#2e7d32';
-      case 'inactive': return '#c62828';
+      case 'active': return '#10b981';
+      case 'inactive': return '#ef4444';
       default: return '#64748b';
     }
   };
 
-  const getStatusBackgroundColor = (status) => {
-    switch (status) {
-      case 'vip': return '#fff9c4';
-      case 'active': return '#e8f5e9';
-      case 'inactive': return '#ffebee';
-      default: return '#f5f5f5';
-    }
+  const toggleActionMenu = (id) => {
+    setShowActionMenu(showActionMenu === id ? null : id);
   };
 
   return (
-    <div className="rider-agent-container">
-      {/* Dashboard Header */}
-      <div className="dashboard-header">
-        <h2 className="dashboard-title">Contacts Management</h2>
-      </div>
+    <div className="expense-container">
+      {/* Compact Header */}
+      <header className="expense-header">
+        <div className="expense-header-content">
+          <div>
+            <h1 className="expense-title">CONTACTS MANAGEMENT</h1>
+            <p className="expense-subtitle">Manage your customers, suppliers, and employees</p>
+          </div>
+          <div className="expense-user-profile">
+            <span className="expense-user-name">Admin User</span>
+            <div className="expense-user-badge">AU</div>
+          </div>
+        </div>
+      </header>
 
-      {/* Tab Navigation */}
-      <div className="tab-navigation">
-        <button className="tab-btn active">
-          All Contacts
-        </button>
-        <button className="tab-btn">
-          Customers
-        </button>
-        <button className="tab-btn">
-          Suppliers
-        </button>
-        <button className="tab-btn">
-          Employees
-        </button>
-        <button className="tab-btn">
-          VIP
-        </button>
-      </div>
-
-      <div className="tab-content">
-        {/* Stats Grid */}
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-label">Total Contacts</div>
-            <p className="stat-value">{contacts.length}</p>
+      {/* Compact Stats Grid */}
+      <div className="compact-stats-grid">
+        <div className="compact-stat-card stat-blue">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Total Contacts</span>
+            <span className="compact-stat-change positive">+4</span>
           </div>
-          <div className="stat-card">
-            <div className="stat-label">Customers</div>
-            <p className="stat-value">{contacts.filter(c => c.type === 'customer').length}</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Suppliers</div>
-            <p className="stat-value">{contacts.filter(c => c.type === 'supplier').length}</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Employees</div>
-            <p className="stat-value">{contacts.filter(c => c.type === 'employee').length}</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">VIP Members</div>
-            <p className="stat-value">{contacts.filter(c => c.status === 'vip').length}</p>
+          <div className="compact-stat-value">
+            {contacts.length}
           </div>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="alerts-section">
-          {/* Search and Filter Section */}
-          <div className="referral-alerts">
-            <div className="alerts-title">Manage Contacts</div>
-            
-            {/* Action Bar */}
-            <div className="promo-input-section" style={{ marginBottom: '16px' }}>
-              <div className="share-input-group">
-                <input
-                  type="text"
-                  placeholder="Search contacts..."
-                  className="share-input"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <select
-                  className="share-input"
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  style={{ minWidth: '140px' }}
-                >
-                  <option value="all">All Contacts</option>
-                  <option value="customer">Customers</option>
-                  <option value="supplier">Suppliers</option>
-                  <option value="employee">Employees</option>
-                  <option value="vip">VIP</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-                <button 
-                  className="share-btn"
-                  onClick={() => handleOpenAddDialog()}
-                  style={{ background: '#0033cc' }}
-                >
-                  <Add style={{ fontSize: '14px', marginRight: '4px' }} />
-                  Add Contact
-                </button>
-                <button 
-                  className="share-btn"
-                  onClick={() => { setSearchTerm(''); setFilter('all'); }}
-                  style={{ background: '#f5f5f5', color: '#0033cc', border: '1px solid #0033cc' }}
-                >
-                  <Refresh style={{ fontSize: '14px' }} />
-                </button>
-              </div>
-            </div>
+        <div className="compact-stat-card stat-yellow">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">VIP Customers</span>
+            <span className="compact-stat-change positive">+1</span>
+          </div>
+          <div className="compact-stat-value">
+            {contacts.filter(c => c.status === 'vip').length}
+          </div>
+        </div>
 
-            {/* Contacts Table */}
-            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              {filteredContacts.map((contact) => (
-                <div key={contact.id} className="alert-item">
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                      <div style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        background: getTypeBackgroundColor(contact.type),
-                        color: getTypeColor(contact.type),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: '600',
-                        fontSize: '14px'
-                      }}>
-                        {contact.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                          <h4 className="alert-type" style={{ margin: 0 }}>{contact.name}</h4>
-                          <span className="status-badge" style={{
-                            background: getTypeBackgroundColor(contact.type),
-                            color: getTypeColor(contact.type),
-                            border: `1px solid ${getTypeColor(contact.type)}`,
-                            padding: '2px 8px',
-                            fontSize: '10px',
-                            textTransform: 'uppercase'
-                          }}>
-                            {contact.type}
-                          </span>
-                          {contact.status === 'vip' && (
-                            <span className="status-badge" style={{
-                              background: '#fff9c4',
-                              color: '#f59e0b',
-                              border: '1px solid #fde047',
-                              padding: '2px 8px',
-                              fontSize: '10px',
-                              textTransform: 'uppercase'
-                            }}>
-                              VIP
-                            </span>
+        <div className="compact-stat-card stat-green">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Active</span>
+            <span className="compact-stat-change positive">+3</span>
+          </div>
+          <div className="compact-stat-value">
+            {contacts.filter(c => c.status === 'active').length}
+          </div>
+        </div>
+
+        <div className="compact-stat-card stat-purple">
+          <div className="compact-stat-header">
+            <span className="compact-stat-label">Customers</span>
+            <span className="compact-stat-change positive">+2</span>
+          </div>
+          <div className="compact-stat-value">
+            {contacts.filter(c => c.type === 'customer').length}
+          </div>
+        </div>
+      </div>
+
+      {/* Compact Action Bar */}
+      <div className="compact-action-bar">
+        <button className="compact-btn btn-primary" onClick={handleOpenAddDialog}>
+          <Add style={{ fontSize: '0.7rem', marginRight: '0.25rem' }} />
+          Add Contact
+        </button>
+        <button className="compact-btn btn-secondary">
+          Import Contacts
+        </button>
+        <button className="compact-btn btn-secondary">
+          Export
+        </button>
+      </div>
+
+      {/* Compact Content Grid */}
+      <div className="compact-content-grid">
+        {/* Compact Table Section */}
+        <div className="compact-table-section">
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">All Contacts</h2>
+            <div className="compact-filters">
+              <input
+                type="text"
+                placeholder="Search contacts..."
+                className="compact-search-input"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <select
+                className="compact-filter-select"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              >
+                <option value="all">All Contacts</option>
+                <option value="customer">Customers</option>
+                <option value="supplier">Suppliers</option>
+                <option value="employee">Employees</option>
+                <option value="vip">VIP</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <button 
+                className="compact-btn btn-secondary"
+                style={{ minWidth: 'auto', padding: '0.375rem' }}
+                onClick={() => { setSearchTerm(''); setFilter('all'); }}
+              >
+                <Refresh style={{ fontSize: '0.7rem' }} />
+              </button>
+            </div>
+          </div>
+
+          <div className="compact-table-wrapper">
+            <table className="compact-table">
+              <thead>
+                <tr>
+                  <th>Contact</th>
+                  <th>Type</th>
+                  <th>Contact Info</th>
+                  <th>Business</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredContacts.map((contact) => (
+                  <tr key={contact.id}>
+                    <td>
+                      <div className="compact-contact-cell">
+                        <div className="compact-contact-avatar" style={{ 
+                          backgroundColor: getTypeColor(contact.type),
+                          color: 'white',
+                          fontSize: '0.7rem'
+                        }}>
+                          {contact.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="compact-contact-name">{contact.name}</div>
+                          {contact.type === 'customer' && (
+                            <div className="compact-loyalty-points">
+                              <Loyalty style={{ fontSize: '0.6rem', marginRight: '0.125rem' }} />
+                              {contact.loyaltyPoints} pts
+                            </div>
                           )}
                         </div>
-                        <p className="alert-message" style={{ marginBottom: '4px' }}>
-                          <Phone style={{ fontSize: '12px', marginRight: '4px' }} />
-                          {contact.phone}
-                        </p>
-                        <p className="alert-message" style={{ margin: 0 }}>
-                          <Email style={{ fontSize: '12px', marginRight: '4px' }} />
-                          {contact.email}
-                        </p>
                       </div>
-                    </div>
-                    {contact.business && (
-                      <p className="alert-message" style={{ margin: '4px 0 0 0' }}>
-                        <Business style={{ fontSize: '12px', marginRight: '4px' }} />
-                        {contact.business}
-                      </p>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <button 
-                      className="share-btn"
-                      onClick={() => handleOpenViewDialog(contact)}
-                      style={{ 
-                        background: '#f5f5f5', 
-                        color: '#0033cc',
-                        padding: '6px 12px',
-                        fontSize: '12px'
-                      }}
-                    >
-                      <Visibility style={{ fontSize: '12px', marginRight: '4px' }} />
-                      View
-                    </button>
-                    <button 
-                      className="share-btn"
-                      onClick={() => handleOpenEditDialog(contact)}
-                      style={{ 
-                        background: '#e3f2fd', 
-                        color: '#0033cc',
-                        padding: '6px 12px',
-                        fontSize: '12px'
-                      }}
-                    >
-                      <Edit style={{ fontSize: '12px', marginRight: '4px' }} />
-                      Edit
-                    </button>
-                    <button 
-                      className="share-btn"
-                      onClick={() => handleDeleteContact(contact.id)}
-                      style={{ 
-                        background: '#ffebee', 
-                        color: '#c62828',
-                        padding: '6px 12px',
-                        fontSize: '12px'
-                      }}
-                    >
-                      <Delete style={{ fontSize: '12px', marginRight: '4px' }} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                    </td>
+                    <td>
+                      <span 
+                        className="compact-type-badge"
+                        style={{
+                          backgroundColor: getTypeBackgroundColor(contact.type),
+                          color: getTypeColor(contact.type),
+                          borderColor: getTypeColor(contact.type)
+                        }}
+                      >
+                        {contact.type}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="compact-contact-info">
+                        <div className="compact-contact-phone">
+                          <Phone style={{ fontSize: '0.7rem', marginRight: '0.25rem' }} />
+                          {contact.phone}
+                        </div>
+                        <div className="compact-contact-email">
+                          <Email style={{ fontSize: '0.7rem', marginRight: '0.25rem' }} />
+                          {contact.email}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="compact-business">
+                      {contact.business || '-'}
+                    </td>
+                    <td>
+                      <span 
+                        className={`compact-status-badge ${contact.status}`}
+                        style={{
+                          backgroundColor: contact.status === 'vip' ? '#fef3c7' : 
+                                         contact.status === 'active' ? '#d1fae5' :
+                                         contact.status === 'inactive' ? '#fee2e2' : '#f1f5f9',
+                          color: getStatusColor(contact.status)
+                        }}
+                      >
+                        {contact.status === 'vip' ? 'VIP' : contact.status}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="compact-action-buttons">
+                        <button 
+                          className="compact-action-btn view"
+                          onClick={() => handleOpenViewDialog(contact)}
+                        >
+                          <Visibility style={{ fontSize: '0.7rem' }} />
+                        </button>
+                        <button 
+                          className="compact-action-btn edit"
+                          onClick={() => handleOpenEditDialog(contact)}
+                        >
+                          <Edit style={{ fontSize: '0.7rem' }} />
+                        </button>
+                        <button 
+                          className="compact-action-btn delete"
+                          onClick={() => handleDeleteContact(contact.id)}
+                        >
+                          <Delete style={{ fontSize: '0.7rem' }} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Compact Contact Details Sidebar */}
+        <div className="compact-breakdown-section">
+          <div className="compact-section-header">
+            <h2 className="compact-section-title">Quick Stats</h2>
+            <p className="compact-section-subtitle">Contact Overview</p>
           </div>
 
-          {/* Quick Stats Section */}
-          <div className="milestone-section">
-            <div className="alerts-title">Quick Stats</div>
+          <div className="compact-breakdown-list">
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Total Contacts</span>
+                <span className="compact-stat-value">{contacts.length}</span>
+              </div>
+            </div>
             
-            <div className="milestone-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Customers</span>
-                <span style={{ color: '#0033cc', fontSize: '16px', fontWeight: '600' }}>
-                  {contacts.filter(c => c.type === 'customer').length}
-                </span>
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Customers</span>
+                <span className="compact-stat-value">{contacts.filter(c => c.type === 'customer').length}</span>
               </div>
-              <div className="milestone-text" style={{ fontSize: '10px' }}>
-                {((contacts.filter(c => c.type === 'customer').length / contacts.length) * 100).toFixed(0)}% of total
-              </div>
-            </div>
-
-            <div className="milestone-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Suppliers</span>
-                <span style={{ color: '#0033cc', fontSize: '16px', fontWeight: '600' }}>
-                  {contacts.filter(c => c.type === 'supplier').length}
-                </span>
-              </div>
-              <div className="milestone-text" style={{ fontSize: '10px' }}>
-                {((contacts.filter(c => c.type === 'supplier').length / contacts.length) * 100).toFixed(0)}% of total
+              <div className="compact-progress-bar">
+                <div
+                  className="compact-progress-fill"
+                  style={{
+                    width: `${(contacts.filter(c => c.type === 'customer').length / contacts.length) * 100}%`,
+                    backgroundColor: '#3b82f6'
+                  }}
+                />
               </div>
             </div>
-
-            <div className="milestone-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Employees</span>
-                <span style={{ color: '#0033cc', fontSize: '16px', fontWeight: '600' }}>
-                  {contacts.filter(c => c.type === 'employee').length}
-                </span>
+            
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Suppliers</span>
+                <span className="compact-stat-value">{contacts.filter(c => c.type === 'supplier').length}</span>
               </div>
-              <div className="milestone-text" style={{ fontSize: '10px' }}>
-                {((contacts.filter(c => c.type === 'employee').length / contacts.length) * 100).toFixed(0)}% of total
-              </div>
-            </div>
-
-            <div className="milestone-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Active Status</span>
-                <span style={{ color: '#0033cc', fontSize: '16px', fontWeight: '600' }}>
-                  {contacts.filter(c => c.status === 'active').length}
-                </span>
-              </div>
-              <div className="milestone-text" style={{ fontSize: '10px' }}>
-                {contacts.filter(c => c.status === 'vip').length} VIP members
+              <div className="compact-progress-bar">
+                <div
+                  className="compact-progress-fill"
+                  style={{
+                    width: `${(contacts.filter(c => c.type === 'supplier').length / contacts.length) * 100}%`,
+                    backgroundColor: '#f59e0b'
+                  }}
+                />
               </div>
             </div>
-
-            <div className="milestone-card" style={{ background: '#e3f2fd', borderColor: '#bbdefb' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Total Loyalty Points</span>
-                <span style={{ color: '#0033cc', fontSize: '20px', fontWeight: '600' }}>
-                  {contacts.reduce((sum, c) => sum + (c.loyaltyPoints || 0), 0)}
-                </span>
+            
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">Employees</span>
+                <span className="compact-stat-value">{contacts.filter(c => c.type === 'employee').length}</span>
               </div>
-              <div className="milestone-text" style={{ fontSize: '10px' }}>
-                Across all customers
+              <div className="compact-progress-bar">
+                <div
+                  className="compact-progress-fill"
+                  style={{
+                    width: `${(contacts.filter(c => c.type === 'employee').length / contacts.length) * 100}%`,
+                    backgroundColor: '#10b981'
+                  }}
+                />
+              </div>
+            </div>
+            
+            <div className="compact-stat-item">
+              <div className="compact-stat-info">
+                <span className="compact-stat-name">VIP Members</span>
+                <span className="compact-stat-value">{contacts.filter(c => c.status === 'vip').length}</span>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Add Contact Button */}
-        <button 
-          className="withdraw-commission-btn"
-          onClick={handleOpenAddDialog}
-          style={{ marginTop: '20px' }}
-        >
-          <Add style={{ fontSize: '14px', marginRight: '8px' }} />
-          Add New Contact
-        </button>
       </div>
 
       {/* Contact Dialog */}
       {openDialog && currentContact && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '12px',
-          animation: 'fadeIn 0.3s ease-in'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '8px',
-            width: '100%',
-            maxWidth: '500px',
-            maxHeight: '90vh',
-            overflow: 'hidden',
-            animation: 'slideUp 0.3s ease-out'
-          }}>
+        <div className="compact-modal-overlay">
+          <div className="compact-modal">
             {/* Modal Header */}
-            <div className="dashboard-header" style={{ borderRadius: '8px 8px 0 0' }}>
-              <h2 className="dashboard-title" style={{ fontSize: '16px' }}>
-                {editMode ? (currentContact.id > contacts.length ? 'Add Contact' : 'Edit Contact') : 'Contact Details'}
+            <div className="compact-modal-header">
+              <h2>
+                {editMode ? (currentContact.id > contacts.length ? 'ADD CONTACT' : 'EDIT CONTACT') : 'CONTACT DETAILS'}
               </h2>
+              <div className="compact-modal-steps">
+                <span className="compact-step active">1</span>
+                <span className="compact-step-divider"></span>
+                <span className={`compact-step ${editMode ? "active" : ""}`}>2</span>
+                <span className="compact-step-divider"></span>
+                <span className="compact-step">3</span>
+              </div>
             </div>
 
             {/* Modal Content */}
-            <div style={{ padding: '20px', overflowY: 'auto', maxHeight: 'calc(90vh - 120px)' }}>
-              {/* Profile Picture Section */}
-              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <div style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '50%',
-                  background: getTypeBackgroundColor(currentContact.type),
-                  color: getTypeColor(currentContact.type),
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: '600',
-                  fontSize: '24px',
-                  margin: '0 auto 12px auto',
-                  border: `2px solid ${getTypeColor(currentContact.type)}`
-                }}>
-                  {currentContact.name?.charAt(0) || '?'}
-                </div>
-                {editMode && (
-                  <div>
-                    <input
-                      accept="image/*"
-                      id="contact-avatar-upload"
-                      style={{ display: 'none' }}
-                      type="file"
-                      onChange={handleFileChange}
-                    />
-                    <label htmlFor="contact-avatar-upload" style={{ 
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      color: '#0033cc',
-                      fontSize: '12px',
-                      fontWeight: '500'
+            <div className="compact-modal-content">
+              <div className="compact-step-content">
+                {/* Profile Picture Section */}
+                <div className="compact-form-group" style={{ textAlign: 'center' }}>
+                  <div className="compact-upload-area" style={{ border: 'none', padding: '0' }}>
+                    <div className="compact-contact-avatar-large" style={{ 
+                      backgroundColor: getTypeColor(currentContact.type),
+                      color: 'white',
+                      fontSize: '1.5rem',
+                      margin: '0 auto 1rem'
                     }}>
-                      <CameraAlt style={{ fontSize: '14px' }} />
-                      Change Photo
-                    </label>
+                      {currentContact.name?.charAt(0) || '?'}
+                    </div>
+                    {editMode && (
+                      <>
+                        <input
+                          accept="image/*"
+                          id="contact-avatar-upload"
+                          className="compact-file-input"
+                          type="file"
+                          onChange={handleFileChange}
+                        />
+                        <label htmlFor="contact-avatar-upload" className="compact-upload-label" style={{ cursor: 'pointer' }}>
+                          <div className="compact-upload-icon">
+                            <CameraAlt />
+                          </div>
+                          <div className="compact-upload-text">Change Photo</div>
+                        </label>
+                      </>
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
 
-              {/* Form Fields */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <label className="status-title" style={{ display: 'block', marginBottom: '8px' }}>Full Name</label>
+                <div className="compact-form-row">
+                  <div className="compact-form-group">
+                    <label className="compact-form-label">Full Name</label>
                     <input
                       type="text"
-                      className="share-input"
+                      className="compact-form-input"
                       value={currentContact.name || ''}
                       onChange={(e) => setCurrentContact({...currentContact, name: e.target.value})}
                       disabled={!editMode}
                       placeholder="Enter full name"
                     />
                   </div>
-                  <div>
-                    <label className="status-title" style={{ display: 'block', marginBottom: '8px' }}>Contact Type</label>
+                  <div className="compact-form-group">
+                    <label className="compact-form-label">Contact Type</label>
                     <select
-                      className="share-input"
+                      className="compact-form-input"
                       value={currentContact.type || 'customer'}
                       onChange={(e) => setCurrentContact({...currentContact, type: e.target.value})}
                       disabled={!editMode}
@@ -640,67 +611,47 @@ const ContactsPage = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="status-title" style={{ display: 'block', marginBottom: '8px' }}>Phone Number</label>
-                  <div style={{ position: 'relative' }}>
-                    <Phone style={{
-                      position: 'absolute',
-                      left: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      fontSize: '14px',
-                      color: '#666'
-                    }} />
-                    <input
-                      type="text"
-                      className="share-input"
-                      style={{ paddingLeft: '36px' }}
-                      value={currentContact.phone || ''}
-                      onChange={(e) => setCurrentContact({...currentContact, phone: e.target.value})}
-                      disabled={!editMode}
-                      placeholder="+256 XXX XXX XXX"
-                    />
+                <div className="compact-form-row">
+                  <div className="compact-form-group">
+                    <label className="compact-form-label">Phone Number</label>
+                    <div className="compact-input-with-icon">
+                      <Phone style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }} />
+                      <input
+                        type="text"
+                        className="compact-form-input"
+                        style={{ paddingLeft: '2rem' }}
+                        value={currentContact.phone || ''}
+                        onChange={(e) => setCurrentContact({...currentContact, phone: e.target.value})}
+                        disabled={!editMode}
+                        placeholder="+256 XXX XXX XXX"
+                      />
+                    </div>
+                  </div>
+                  <div className="compact-form-group">
+                    <label className="compact-form-label">Email</label>
+                    <div className="compact-input-with-icon">
+                      <Email style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }} />
+                      <input
+                        type="email"
+                        className="compact-form-input"
+                        style={{ paddingLeft: '2rem' }}
+                        value={currentContact.email || ''}
+                        onChange={(e) => setCurrentContact({...currentContact, email: e.target.value})}
+                        disabled={!editMode}
+                        placeholder="email@example.com"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="status-title" style={{ display: 'block', marginBottom: '8px' }}>Email</label>
-                  <div style={{ position: 'relative' }}>
-                    <Email style={{
-                      position: 'absolute',
-                      left: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      fontSize: '14px',
-                      color: '#666'
-                    }} />
-                    <input
-                      type="email"
-                      className="share-input"
-                      style={{ paddingLeft: '36px' }}
-                      value={currentContact.email || ''}
-                      onChange={(e) => setCurrentContact({...currentContact, email: e.target.value})}
-                      disabled={!editMode}
-                      placeholder="email@example.com"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="status-title" style={{ display: 'block', marginBottom: '8px' }}>Location</label>
-                  <div style={{ position: 'relative' }}>
-                    <LocationOn style={{
-                      position: 'absolute',
-                      left: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      fontSize: '14px',
-                      color: '#666'
-                    }} />
+                <div className="compact-form-group">
+                  <label className="compact-form-label">Location</label>
+                  <div className="compact-input-with-icon">
+                    <LocationOn style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }} />
                     <input
                       type="text"
-                      className="share-input"
-                      style={{ paddingLeft: '36px' }}
+                      className="compact-form-input"
+                      style={{ paddingLeft: '2rem' }}
                       value={currentContact.location || ''}
                       onChange={(e) => setCurrentContact({...currentContact, location: e.target.value})}
                       disabled={!editMode}
@@ -709,21 +660,14 @@ const ContactsPage = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="status-title" style={{ display: 'block', marginBottom: '8px' }}>Business Name</label>
-                  <div style={{ position: 'relative' }}>
-                    <Business style={{
-                      position: 'absolute',
-                      left: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      fontSize: '14px',
-                      color: '#666'
-                    }} />
+                <div className="compact-form-group">
+                  <label className="compact-form-label">Business Name</label>
+                  <div className="compact-input-with-icon">
+                    <Business style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }} />
                     <input
                       type="text"
-                      className="share-input"
-                      style={{ paddingLeft: '36px' }}
+                      className="compact-form-input"
+                      style={{ paddingLeft: '2rem' }}
                       value={currentContact.business || ''}
                       onChange={(e) => setCurrentContact({...currentContact, business: e.target.value})}
                       disabled={!editMode}
@@ -733,69 +677,58 @@ const ContactsPage = () => {
                 </div>
 
                 {currentContact.type === 'customer' && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div>
-                      <label className="status-title" style={{ display: 'block', marginBottom: '8px' }}>Loyalty Points</label>
-                      <div style={{ position: 'relative' }}>
-                        <Loyalty style={{
-                          position: 'absolute',
-                          left: '12px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          fontSize: '14px',
-                          color: '#666'
-                        }} />
-                        <input
-                          type="number"
-                          className="share-input"
-                          style={{ paddingLeft: '36px' }}
-                          value={currentContact.loyaltyPoints || 0}
-                          onChange={(e) => setCurrentContact({...currentContact, loyaltyPoints: parseInt(e.target.value) || 0})}
+                  <>
+                    <div className="compact-form-row">
+                      <div className="compact-form-group">
+                        <label className="compact-form-label">Loyalty Points</label>
+                        <div className="compact-input-with-icon">
+                          <Loyalty style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }} />
+                          <input
+                            type="number"
+                            className="compact-form-input"
+                            style={{ paddingLeft: '2rem' }}
+                            value={currentContact.loyaltyPoints || 0}
+                            onChange={(e) => setCurrentContact({...currentContact, loyaltyPoints: parseInt(e.target.value) || 0})}
+                            disabled={!editMode}
+                          />
+                        </div>
+                      </div>
+                      <div className="compact-form-group">
+                        <label className="compact-form-label">Status</label>
+                        <select
+                          className="compact-form-input"
+                          value={currentContact.status || 'active'}
+                          onChange={(e) => setCurrentContact({...currentContact, status: e.target.value})}
                           disabled={!editMode}
-                        />
+                        >
+                          <option value="active">Active</option>
+                          <option value="vip">VIP</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
                       </div>
                     </div>
-                    <div>
-                      <label className="status-title" style={{ display: 'block', marginBottom: '8px' }}>Status</label>
-                      <select
-                        className="share-input"
-                        value={currentContact.status || 'active'}
-                        onChange={(e) => setCurrentContact({...currentContact, status: e.target.value})}
-                        disabled={!editMode}
-                      >
-                        <option value="active">Active</option>
-                        <option value="vip">VIP</option>
-                        <option value="inactive">Inactive</option>
-                      </select>
-                    </div>
-                  </div>
+                  </>
                 )}
 
                 {!editMode && currentContact.type === 'customer' && currentContact.totalSpent > 0 && (
-                  <div style={{
-                    background: '#f5f5f5',
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid #e0e0e0',
-                    marginTop: '12px'
-                  }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                      <div>
-                        <div className="stat-label">Total Spent</div>
-                        <div className="stat-value" style={{ fontSize: '16px', color: '#2e7d32' }}>
+                  <div className="compact-review-card">
+                    <div className="compact-review-row">
+                      <div className="compact-review-group">
+                        <span className="compact-review-label">Total Spent</span>
+                        <span className="compact-review-value" style={{ color: '#10b981' }}>
                           {formatCurrency(currentContact.totalSpent)}
-                        </div>
+                        </span>
                       </div>
-                      <div>
-                        <div className="stat-label">Loyalty Points</div>
-                        <div className="stat-value" style={{ fontSize: '16px' }}>
-                          {currentContact.loyaltyPoints} pts
-                        </div>
+                      <div className="compact-review-group">
+                        <span className="compact-review-label">Loyalty Points</span>
+                        <span className="compact-review-value">{currentContact.loyaltyPoints} pts</span>
                       </div>
                     </div>
-                    <div>
-                      <div className="stat-label">Last Purchase</div>
-                      <div style={{ color: '#666', fontSize: '12px' }}>{currentContact.lastPurchase}</div>
+                    <div className="compact-review-row">
+                      <div className="compact-review-group">
+                        <span className="compact-review-label">Last Purchase</span>
+                        <span className="compact-review-value">{currentContact.lastPurchase}</span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -803,46 +736,161 @@ const ContactsPage = () => {
             </div>
 
             {/* Modal Actions */}
-            <div style={{ 
-              padding: '16px 20px', 
-              background: '#f5f5f5', 
-              borderTop: '1px solid #e0e0e0',
-              display: 'flex',
-              gap: '12px',
-              justifyContent: 'flex-end'
-            }}>
-              <button 
-                className="share-btn"
-                onClick={handleCloseDialog}
-                style={{ 
-                  background: '#f5f5f5', 
-                  color: '#0033cc',
-                  border: '1px solid #0033cc'
-                }}
-              >
-                Cancel
-              </button>
+            <div className="compact-modal-actions">
               {editMode ? (
-                <button 
-                  className="share-btn"
-                  onClick={handleSaveContact}
-                  style={{ background: '#0033cc', color: 'white' }}
-                >
-                  Save Contact
-                </button>
+                <>
+                  <button className="compact-modal-btn btn-secondary" onClick={handleCloseDialog}>
+                    Cancel
+                  </button>
+                  <button className="compact-modal-btn btn-primary" onClick={handleSaveContact}>
+                    Save Contact
+                  </button>
+                </>
               ) : (
-                <button 
-                  className="share-btn"
-                  onClick={() => handleOpenEditDialog(currentContact)}
-                  style={{ background: '#0033cc', color: 'white' }}
-                >
-                  Edit Contact
-                </button>
+                <>
+                  <button className="compact-modal-btn btn-secondary" onClick={handleCloseDialog}>
+                    Close
+                  </button>
+                  <button className="compact-modal-btn btn-primary" onClick={() => handleOpenEditDialog(currentContact)}>
+                    Edit Contact
+                  </button>
+                </>
               )}
             </div>
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        /* Additional CSS for Contacts specific styles */
+        .compact-contact-cell {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+        
+        .compact-contact-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 600;
+          flex-shrink: 0;
+        }
+        
+        .compact-contact-avatar-large {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 600;
+        }
+        
+        .compact-contact-name {
+          font-weight: 600;
+          color: #1e293b;
+          font-size: 0.7rem;
+        }
+        
+        .compact-loyalty-points {
+          font-size: 0.6rem;
+          color: #64748b;
+          display: flex;
+          align-items: center;
+          margin-top: 0.125rem;
+        }
+        
+        .compact-type-badge {
+          display: inline-block;
+          padding: 0.125rem 0.375rem;
+          border-radius: 3px;
+          font-size: 0.65rem;
+          font-weight: 600;
+          border: 1px solid;
+          text-transform: capitalize;
+        }
+        
+        .compact-contact-info {
+          display: flex;
+          flex-direction: column;
+          gap: 0.125rem;
+        }
+        
+        .compact-contact-phone,
+        .compact-contact-email {
+          display: flex;
+          align-items: center;
+          font-size: 0.7rem;
+          color: #475569;
+        }
+        
+        .compact-business {
+          font-size: 0.7rem;
+          color: #475569;
+          max-width: 150px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        
+        .compact-status-badge {
+          display: inline-block;
+          padding: 0.125rem 0.375rem;
+          border-radius: 3px;
+          font-size: 0.65rem;
+          font-weight: 600;
+          text-transform: capitalize;
+        }
+        
+        .compact-stat-item {
+          padding: 0.5rem;
+          background: #f8fafc;
+          border-radius: 4px;
+          border: 1px solid #e2e8f0;
+        }
+        
+        .compact-stat-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.25rem;
+        }
+        
+        .compact-stat-name {
+          font-weight: 600;
+          color: #1e293b;
+          font-size: 0.7rem;
+        }
+        
+        .compact-stat-value {
+          font-weight: 700;
+          color: #3b82f6;
+          font-size: 0.75rem;
+        }
+        
+        .compact-input-with-icon {
+          position: relative;
+        }
+        
+        .compact-action-btn.edit {
+          background: #dbeafe;
+          color: #1e40af;
+        }
+        
+        .compact-action-btn.view {
+          background: #f0f9ff;
+          color: #0ea5e9;
+        }
+        
+        .compact-action-btn.delete {
+          background: #fee2e2;
+          color: #dc2626;
+        }
+      `}</style>
     </div>
   );
 };
