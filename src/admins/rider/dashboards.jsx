@@ -257,7 +257,7 @@ const DashboardPage = () => {
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard' },
-    { id: 'start-trip', label: 'Start Trip' },
+    { id: 'start-trip', label: 'Quick Trip' },
     { id: 'deliveries', label: 'Deliveries' },
     { id: 'receive-money', label: 'Receive Money' },
     { id: 'withdraw-money', label: 'Withdraw Money' },
@@ -271,7 +271,7 @@ const DashboardPage = () => {
         <div className="dashboard-header">
           <h1 className="dashboard-title">
             {currentView === 'dashboard' && 'Dashboard'}
-            {currentView === 'start-trip' && 'Start New Trip'}
+            {currentView === 'start-trip' && 'Start Quick Trip'}
             {currentView === 'active-trip' && 'Active Trip'}
             {currentView === 'complete-trip' && 'Complete Trip'}
             {currentView === 'deliveries' && 'Deliveries'}
