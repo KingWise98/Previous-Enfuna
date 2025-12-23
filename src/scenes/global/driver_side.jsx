@@ -94,7 +94,7 @@ const Driver = () => {
           position: 'fixed',
           top: 16,
           left: 16,
-          zIndex: 9999,
+          zIndex: 1201,
           backgroundColor: '#0025DD',
           color: '#FFEC01',
           '&:hover': {
@@ -116,7 +116,7 @@ const Driver = () => {
             width: '100%',
             height: '100%',
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 9997,
+            zIndex: 1190,
             display: { xs: 'block', md: 'none' },
           }}
           onClick={() => setIsToggled(false)}
@@ -127,7 +127,7 @@ const Driver = () => {
         sx={{
           "& .pro-sidebar": {
             position: { xs: 'fixed', md: 'relative' },
-            zIndex: 9998,
+            zIndex: 1200,
             height: { xs: '100vh', md: 'auto' },
             left: { xs: isToggled ? 0 : '-100%', md: 0 },
             transition: 'left 0.3s ease',
