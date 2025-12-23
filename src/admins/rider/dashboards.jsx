@@ -258,7 +258,7 @@ const DashboardPage = () => {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'start-trip', label: 'Quick Trip' },
-    { id: 'deliveries', label: 'Deliveries' },
+    { id: 'deliveries', label: 'Trip History' },
     { id: 'receive-money', label: 'Receive Money' },
     { id: 'withdraw-money', label: 'Withdraw Money' },
     { id: 'add-expense', label: 'Add Expense' },
