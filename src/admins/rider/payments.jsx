@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import "./payment.css"
 import {
   TrendingUp,
   AlertCircle,
@@ -223,538 +222,753 @@ export default function PaymentsApp() {
 
   // Render functions for each view
   const renderDashboard = () => (
-    <div className="payments-container">
-      <header className="payments-header">
-        <div className="payments-header-content">
-          <div className="payments-header-left">
-            <div>
-              <h1 className="payments-title">PAYMENT DASHBOARD</h1>
-              <p className="payments-subtitle">Real-Time payment overview</p>
-            </div>
-          </div>
-          <div className="payments-header-right">
-            <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X /> : <Menu />}
-            </button>
-            <div className="user-badge">
-              <span className="user-name">Moses. K</span>
-              <div className="user-avatar">MK</div>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="rider-agent-container">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">PAYMENT DASHBOARD</h2>
+      </div>
 
-      <main className="payments-main">
-        {/* Compact Stats Grid - All on one line */}
-        <div className="compact-stats-grid">
-          {dashboardStats.map((stat, index) => (
-            <div key={index} className={`compact-stat-card compact-stat-${stat.color}`}>
-              <div className="compact-stat-icon">
-                <stat.icon className="icon" />
+      {/* Tab Navigation */}
+      <div className="tab-navigation">
+        <button className={`tab-btn ${currentView === "dashboard" ? "active" : ""}`} onClick={() => setCurrentView("dashboard")}>
+          Dashboard
+        </button>
+        <button className={`tab-btn ${currentView === "analytics" ? "active" : ""}`} onClick={() => setCurrentView("analytics")}>
+          Analytics
+        </button>
+        <button className={`tab-btn ${currentView === "pending" ? "active" : ""}`} onClick={() => setCurrentView("pending")}>
+          Pending
+        </button>
+        <button className={`tab-btn ${currentView === "disputes" ? "active" : ""}`} onClick={() => setCurrentView("disputes")}>
+          Disputes
+        </button>
+        <button className={`tab-btn ${currentView === "history" ? "active" : ""}`} onClick={() => setCurrentView("history")}>
+          History
+        </button>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-label">Total Collections Today</div>
+          <p className="stat-value">125,000</p>
+          <div style={{ fontSize: '11px', color: '#2e7d32' }}>+12.5%</div>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-label">Pending Payments</div>
+          <p className="stat-value">18</p>
+          <div style={{ fontSize: '11px', color: '#f59e0b' }}>+2 pending</div>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-label">Pending Reconciliations</div>
+          <p className="stat-value">23</p>
+          <div style={{ fontSize: '11px', color: '#2e7d32' }}>+20.5%</div>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-label">Success Rate</div>
+          <p className="stat-value">98.2%</p>
+          <div style={{ fontSize: '11px', color: '#2e7d32' }}>+20.5%</div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
+        <button className="share-btn" onClick={() => setCurrentView("pending")}>
+          Pending Payments
+        </button>
+        <button className="share-btn" style={{ background: '#fef08a', color: 'black' }}>
+          Receive Money
+        </button>
+        <button className="share-btn" style={{ background: '#f0f4ff', color: '#0033cc' }} onClick={() => setCurrentView("disputes")}>
+          File Dispute
+        </button>
+        <button className="share-btn" onClick={() => setCurrentView("analytics")}>
+          Analytics
+        </button>
+      </div>
+
+      {/* Payment Methods & Recent Transactions */}
+      <div className="alerts-section">
+        {/* Payment Methods */}
+        <div className="referral-alerts">
+          <div className="alerts-title">Payment Methods</div>
+          <div className="track-activity">
+            {paymentMethodsData.map((method, index) => (
+              <div key={index} style={{ marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', fontWeight: '500', color: '#0033cc' }}>{method.name}</div>
+                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#0033cc' }}>{method.percentage}%</div>
+                </div>
+                <div style={{ 
+                  height: '4px', 
+                  background: '#f0f4ff',
+                  borderRadius: '2px',
+                  overflow: 'hidden',
+                  marginBottom: '4px'
+                }}>
+                  <div style={{ 
+                    width: `${method.percentage}%`,
+                    height: '100%',
+                    background: method.name === 'MTN MoMo' ? '#fef08a' : 
+                               method.name === 'Airtel Money' ? '#ffebee' :
+                               method.name === 'Cash' ? '#e3f2fd' :
+                               method.name === 'QR Code' ? '#e8f5e9' :
+                               method.name === 'Split Payment' ? '#f3e5f5' : '#f5f5f5'
+                  }}></div>
+                </div>
+                <div style={{ fontSize: '10px', color: '#666', textAlign: 'right' }}>
+                  {method.transactions} transactions
+                </div>
               </div>
-              <div className="compact-stat-content">
-                <span className="compact-stat-label">{stat.label}</span>
-                <div className="compact-stat-value">
-                  {stat.value}
-                  {stat.currency && <span className="compact-stat-currency">{stat.currency}</span>}
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Transactions */}
+        <div className="milestone-section">
+          <div className="alerts-title">Recent Transactions</div>
+          <div className="ledger-entry" style={{ marginBottom: '8px' }}>
+            {recentTransactionsData.map((transaction, index) => (
+              <div key={index} className="alert-item" style={{ marginBottom: '8px' }}>
+                <div style={{ flex: 1 }}>
+                  <div className="alert-type">{transaction.type}</div>
+                  <div className="alert-message">{transaction.method}</div>
+                  <div className="alert-time">{transaction.time}</div>
                 </div>
-                <div className={`compact-stat-change ${stat.trend}`}>{stat.change}</div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ 
+                    fontSize: '14px', 
+                    fontWeight: '600', 
+                    color: '#0033cc',
+                    marginBottom: '2px'
+                  }}>
+                    UGX {transaction.amount}
+                  </div>
+                  <span className={`status-badge ${transaction.status === 'Completed' ? 'valid' : transaction.status === 'Pending' ? 'pending' : 'invalid'}`}>
+                    {transaction.status}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Compact Action Buttons */}
-        <div className="compact-action-buttons">
-          <button className="btn btn-compact btn-blue" onClick={() => setCurrentView("pending")}>
-            Pending Payments
-          </button>
-          <button className="btn btn-compact btn-yellow">Receive Money</button>
-          <button className="btn btn-compact btn-dark" onClick={() => setCurrentView("disputes")}>
-            File Dispute
-          </button>
-          <button className="btn btn-compact btn-navy" onClick={() => setCurrentView("analytics")}>
-            Analytics
-          </button>
-        </div>
-
-        {/* Payment Methods & Recent Transactions - Compact */}
-        <div className="compact-content-grid">
-          <div className="compact-card">
-            <div className="compact-card-header">
-              <h2 className="compact-card-title">Payment Methods</h2>
-              <p className="compact-card-subtitle">Today's Breakdown</p>
-            </div>
-            <div className="compact-payment-methods">
-              {paymentMethodsData.map((method, index) => (
-                <div key={index} className="compact-payment-method">
-                  <div className="compact-payment-header">
-                    <span className="compact-payment-name">{method.name}</span>
-                    <span className="compact-payment-percentage">{method.percentage}%</span>
-                  </div>
-                  <div className="compact-progress-bar">
-                    <div className={`compact-progress-fill ${method.color}`} style={{ width: `${method.percentage}%` }}></div>
-                  </div>
-                  <span className="compact-payment-transactions">{method.transactions} txn</span>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
-
-          <div className="compact-card">
-            <div className="compact-card-header">
-              <h2 className="compact-card-title">Recent Transactions</h2>
-              <p className="compact-card-subtitle">Latest Payments</p>
-            </div>
-            <div className="compact-transactions">
-              {recentTransactionsData.map((transaction, index) => (
-                <div key={index} className="compact-transaction">
-                  <div className="compact-transaction-info">
-                    <div className="compact-transaction-type">{transaction.type}</div>
-                    <div className="compact-transaction-method">{transaction.method}</div>
-                    <div className="compact-transaction-time">{transaction.time}</div>
-                  </div>
-                  <div className="compact-transaction-right">
-                    <span className="compact-transaction-amount">UGX {transaction.amount}</span>
-                    <span className={`compact-status status-${transaction.status.toLowerCase()}`}>
-                      {transaction.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button className="btn btn-compact btn-blue btn-full" onClick={() => setCurrentView("history")}>
-              View All
-            </button>
-          </div>
+          <button className="activate-code-btn" onClick={() => setCurrentView("history")}>
+            View All Transactions
+          </button>
         </div>
-      </main>
+      </div>
     </div>
   )
 
   const renderAnalytics = () => (
-    <div className="payments-container analytics-view">
-      <header className="payments-header payments-header-blue">
-        <div className="payments-header-content">
-          <div className="payments-header-left">
-            <button className="btn-back" onClick={() => setCurrentView("dashboard")}>
-              <ArrowLeft />
-            </button>
-            <div>
-              <h1 className="payments-title">Payment Analytics</h1>
-              <p className="payments-subtitle">Real-time performance</p>
+    <div className="rider-agent-container">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">PAYMENT ANALYTICS</h2>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="tab-navigation">
+        <button className={`tab-btn ${currentView === "dashboard" ? "active" : ""}`} onClick={() => setCurrentView("dashboard")}>
+          Dashboard
+        </button>
+        <button className={`tab-btn ${currentView === "analytics" ? "active" : ""}`} onClick={() => setCurrentView("analytics")}>
+          Analytics
+        </button>
+        <button className={`tab-btn ${currentView === "pending" ? "active" : ""}`} onClick={() => setCurrentView("pending")}>
+          Pending
+        </button>
+        <button className={`tab-btn ${currentView === "disputes" ? "active" : ""}`} onClick={() => setCurrentView("disputes")}>
+          Disputes
+        </button>
+        <button className={`tab-btn ${currentView === "history" ? "active" : ""}`} onClick={() => setCurrentView("history")}>
+          History
+        </button>
+      </div>
+
+      {/* Time Period Tabs */}
+      <div className="tab-navigation" style={{ marginBottom: '20px' }}>
+        <button className={`tab-btn ${activeTab === "daily" ? "active" : ""}`} onClick={() => setActiveTab("daily")}>
+          Daily
+        </button>
+        <button className={`tab-btn ${activeTab === "weekly" ? "active" : ""}`} onClick={() => setActiveTab("weekly")}>
+          Weekly
+        </button>
+        <button className={`tab-btn ${activeTab === "monthly" ? "active" : ""}`} onClick={() => setActiveTab("monthly")}>
+          Monthly
+        </button>
+      </div>
+
+      {/* Analytics Cards */}
+      <div className="stats-grid">
+        {analyticsCards.map((card, index) => (
+          <div key={index} className="stat-card">
+            <div className="stat-label">{card.label}</div>
+            <p className="stat-value">{card.amount}</p>
+            <div style={{ 
+              fontSize: '11px', 
+              color: card.trend === 'up' ? '#2e7d32' : '#c62828',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '2px'
+            }}>
+              {card.trend === 'up' ? '↑' : '↓'} {card.change}
             </div>
           </div>
-          <div className="payments-header-right">
-            <div className="compact-user-badge">
-              <span className="user-name">Moses. K</span>
-              <div className="user-avatar">MK</div>
-            </div>
-          </div>
-        </div>
-      </header>
+        ))}
+      </div>
 
-      <main className="payments-main">
-        {/* Time Period Tabs */}
-        <div className="compact-tab-buttons">
-          <button className={`compact-tab-btn ${activeTab === "daily" ? "active" : ""}`} onClick={() => setActiveTab("daily")}>
-            Daily
-          </button>
-          <button
-            className={`compact-tab-btn ${activeTab === "weekly" ? "active" : ""}`}
-            onClick={() => setActiveTab("weekly")}
-          >
-            Weekly
-          </button>
-          <button
-            className={`compact-tab-btn ${activeTab === "monthly" ? "active" : ""}`}
-            onClick={() => setActiveTab("monthly")}
-          >
-            Monthly
-          </button>
-        </div>
+      {/* Charts Section */}
+      <div className="alerts-section">
+        {/* Payment Summary Chart */}
+    
 
-        {/* Analytics Cards */}
-        <div className="compact-analytics-cards">
-          {analyticsCards.map((card, index) => (
-            <div key={index} className="compact-analytics-card">
-              <div className="compact-analytics-header">
-                <span className="compact-analytics-label">{card.label}</span>
-                <span className={`compact-analytics-change ${card.trend === "up" ? "positive" : "negative"}`}>
-                  {card.trend === "up" ? <TrendingUp className="trend-icon" /> : <TrendingDown className="trend-icon" />}
-                  {card.change}
-                </span>
+        {/* Payment Methods Usage */}
+        <div className="milestone-section">
+          <div className="alerts-title">Payment Methods Usage</div>
+          <div style={{ marginTop: '12px' }}>
+            {paymentMethodsData.slice(0, 4).map((method, index) => (
+              <div key={index} className="milestone-card" style={{ marginBottom: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <div className="milestone-title">{method.name}</div>
+                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#0033cc' }}>{method.percentage}%</div>
+                </div>
+                <div style={{ 
+                  height: '4px', 
+                  background: '#f0f4ff',
+                  borderRadius: '2px',
+                  overflow: 'hidden',
+                  marginBottom: '4px'
+                }}>
+                  <div style={{ 
+                    width: `${method.percentage}%`,
+                    height: '100%',
+                    background: '#0033cc'
+                  }}></div>
+                </div>
+                <div style={{ fontSize: '10px', color: '#666' }}>
+                  {method.transactions} transactions today
+                </div>
               </div>
-              <div className="compact-analytics-amount">{card.amount}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Charts */}
-        <div className="compact-content-grid">
-          <div className="compact-card">
-            <div className="compact-card-header">
-              <h2 className="compact-card-title">Payment Summary</h2>
-              <p className="compact-card-subtitle">Completed vs Failed</p>
-            </div>
-            <div className="compact-chart-container">
-              {chartData.map((data, index) => (
-                <div key={index} className="compact-chart-bar-group">
-                  <div className="compact-chart-bars">
-                    <div
-                      className="compact-chart-bar completed"
-                      style={{ height: `${(data.completed / 700) * 100}px` }}
-                    ></div>
-                    <div
-                      className="compact-chart-bar failed"
-                      style={{ height: `${(data.failed / 700) * 100}px` }}
-                    ></div>
-                  </div>
-                  <span className="compact-chart-label">{data.day}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="compact-card">
-            <div className="compact-card-header">
-              <h2 className="compact-card-title">Payment Methods</h2>
-              <p className="compact-card-subtitle">Usage Today</p>
-            </div>
-            <div className="compact-payment-methods">
-              {paymentMethodsData.slice(0, 4).map((method, index) => (
-                <div key={index} className="compact-payment-method">
-                  <div className="compact-payment-header">
-                    <span className="compact-payment-name">{method.name}</span>
-                    <span className="compact-payment-percentage">{method.percentage}%</span>
-                  </div>
-                  <div className="compact-progress-bar">
-                    <div className={`compact-progress-fill ${method.color}`} style={{ width: `${method.percentage}%` }}></div>
-                  </div>
-                  <span className="compact-payment-transactions">{method.transactions} txn</span>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 
   const renderPending = () => (
-    <div className="payments-container pending-view">
-      <header className="payments-header payments-header-blue">
-        <div className="payments-header-content">
-          <div className="payments-header-left">
-            <button className="btn-back" onClick={() => setCurrentView("dashboard")}>
-              <ArrowLeft />
+    <div className="rider-agent-container">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">PENDING PAYMENTS</h2>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="tab-navigation">
+        <button className={`tab-btn ${currentView === "dashboard" ? "active" : ""}`} onClick={() => setCurrentView("dashboard")}>
+          Dashboard
+        </button>
+        <button className={`tab-btn ${currentView === "analytics" ? "active" : ""}`} onClick={() => setCurrentView("analytics")}>
+          Analytics
+        </button>
+        <button className={`tab-btn ${currentView === "pending" ? "active" : ""}`} onClick={() => setCurrentView("pending")}>
+          Pending
+        </button>
+        <button className={`tab-btn ${currentView === "disputes" ? "active" : ""}`} onClick={() => setCurrentView("disputes")}>
+          Disputes
+        </button>
+        <button className={`tab-btn ${currentView === "history" ? "active" : ""}`} onClick={() => setCurrentView("history")}>
+          History
+        </button>
+      </div>
+
+      {/* Compact Stats */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-label">Pending</div>
+          <p className="stat-value">5</p>
+          <div style={{ fontSize: '11px', color: '#666' }}>payments</div>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-label">Amount</div>
+          <p className="stat-value">96,000</p>
+          <div style={{ fontSize: '11px', color: '#666' }}>UGX</div>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-label">Avg Time</div>
+          <p className="stat-value">2h 25m</p>
+          <div style={{ fontSize: '11px', color: '#666' }}>to complete</div>
+        </div>
+      </div>
+
+      {/* Search & Filters */}
+      <div className="commission-overview">
+        <div className="section-title">Search & Filter</div>
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ flex: 1, position: 'relative' }}>
+            <input
+              type="text"
+              placeholder="Search..."
+              className="share-input"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ paddingLeft: '36px' }}
+            />
+            <Search style={{ 
+              position: 'absolute', 
+              left: '12px', 
+              top: '50%', 
+              transform: 'translateY(-50%)',
+              width: '16px',
+              height: '16px',
+              color: '#0033cc'
+            }} />
+          </div>
+          <div className="tab-navigation" style={{ width: 'auto' }}>
+            <button 
+              className={`tab-btn ${activeFilter === "all" ? "active" : ""}`}
+              onClick={() => setActiveFilter("all")}
+            >
+              All
             </button>
-            <div>
-              <h1 className="payments-title">Pending Payments</h1>
-              <p className="payments-subtitle">Track and Manage</p>
-            </div>
-          </div>
-          <button className="btn btn-compact btn-light" onClick={() => setCurrentView("dashboard")}>
-            Back
-          </button>
-        </div>
-      </header>
-
-      <main className="payments-main">
-        {/* Compact Stats */}
-        <div className="compact-pending-stats">
-          <div className="compact-stat-card">
-            <div className="compact-stat-label">Pending</div>
-            <div className="compact-stat-value">5</div>
-            <div className="compact-stat-detail">payments</div>
-          </div>
-          <div className="compact-stat-card">
-            <div className="compact-stat-label">Amount</div>
-            <div className="compact-stat-value">96,000</div>
-            <div className="compact-stat-detail">UGX</div>
-          </div>
-          <div className="compact-stat-card">
-            <div className="compact-stat-label">Avg Time</div>
-            <div className="compact-stat-value">2h 25m</div>
-            <div className="compact-stat-detail">to complete</div>
+            <button 
+              className={`tab-btn ${activeFilter === "pending" ? "active" : ""}`}
+              onClick={() => setActiveFilter("pending")}
+            >
+              Pending
+            </button>
+            <button 
+              className={`tab-btn ${activeFilter === "processing" ? "active" : ""}`}
+              onClick={() => setActiveFilter("processing")}
+            >
+              Processing
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* Search & Filters */}
-        <div className="compact-card">
-          <div className="compact-search-filter">
-            <div className="compact-search-input">
-              <Search className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-            </div>
-            <div className="compact-filter-buttons">
-              <button
-                className={`compact-filter-btn ${activeFilter === "all" ? "active" : ""}`}
-                onClick={() => setActiveFilter("all")}
-              >
-                All
-              </button>
-              <button
-                className={`compact-filter-btn ${activeFilter === "pending" ? "active" : ""}`}
-                onClick={() => setActiveFilter("pending")}
-              >
-                Pending
-              </button>
-              <button
-                className={`compact-filter-btn ${activeFilter === "processing" ? "active" : ""}`}
-                onClick={() => setActiveFilter("processing")}
-              >
-                Processing
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Payments List */}
-        <div className="compact-payments-list">
+      {/* Payments List */}
+      <div className="commission-overview">
+        <div className="section-title">Pending Payments</div>
+        <div className="ledger-entry" style={{ marginBottom: '8px' }}>
           {pendingPaymentsData.map((payment, index) => (
-            <div key={index} className="compact-payment-card">
-              <div className="compact-payment-info">
-                <div className="compact-payment-left">
-                  <div className="compact-payment-type">{payment.type}</div>
-                  <div className="compact-payment-method">{payment.method}</div>
-                  <div className="compact-payment-ref">Ref: {payment.ref}</div>
+            <div key={index} className="alert-item" style={{ marginBottom: '8px', padding: '12px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <div className="alert-type">{payment.type}</div>
+                  <span className={`status-badge ${payment.status === 'Pending' ? 'pending' : payment.status === 'Verifying' ? 'pending' : 'pending'}`}>
+                    {payment.status}
+                  </span>
                 </div>
-                <div className="compact-payment-right">
-                  <div className="compact-payment-amount">UGX {payment.amount}</div>
-                  <div className="compact-payment-time">{payment.time}</div>
-                  <span className={`compact-status status-${payment.statusColor}`}>{payment.status}</span>
+                <div className="alert-message">{payment.method} • Ref: {payment.ref}</div>
+                <div className="alert-time">{payment.time}</div>
+                
+                <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#0033cc' }}>
+                    UGX {payment.amount}
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="share-btn" style={{ fontSize: '11px', padding: '6px 12px' }}>
+                      Details
+                    </button>
+                    <button className="share-btn" style={{ 
+                      fontSize: '11px', 
+                      padding: '6px 12px',
+                      background: '#fef08a',
+                      color: 'black'
+                    }}>
+                      Retry
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="compact-payment-actions">
-                <button className="btn btn-compact btn-outline">Details</button>
-                <button className="btn btn-compact btn-blue">
-                  <RefreshCw className="btn-icon-left" />
-                  Retry
-                </button>
               </div>
             </div>
           ))}
         </div>
-      </main>
+      </div>
     </div>
   )
 
   const renderDisputes = () => (
-    <div className="payments-container disputes-view">
-      <header className="payments-header">
-        <div className="payments-header-content">
-          <div className="payments-header-left">
-            <button className="btn-back" onClick={() => setCurrentView("dashboard")}>
-              <ArrowLeft />
-            </button>
-            <div>
-              <h1 className="payments-title">Disputes</h1>
-              <p className="payments-subtitle">File and Track</p>
+    <div className="rider-agent-container">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">DISPUTES</h2>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="tab-navigation">
+        <button className={`tab-btn ${currentView === "dashboard" ? "active" : ""}`} onClick={() => setCurrentView("dashboard")}>
+          Dashboard
+        </button>
+        <button className={`tab-btn ${currentView === "analytics" ? "active" : ""}`} onClick={() => setCurrentView("analytics")}>
+          Analytics
+        </button>
+        <button className={`tab-btn ${currentView === "pending" ? "active" : ""}`} onClick={() => setCurrentView("pending")}>
+          Pending
+        </button>
+        <button className={`tab-btn ${currentView === "disputes" ? "active" : ""}`} onClick={() => setCurrentView("disputes")}>
+          Disputes
+        </button>
+        <button className={`tab-btn ${currentView === "history" ? "active" : ""}`} onClick={() => setCurrentView("history")}>
+          History
+        </button>
+      </div>
+
+      {/* Dispute Tabs */}
+      <div className="tab-navigation" style={{ marginBottom: '20px' }}>
+        <button className={`tab-btn ${disputeTab === "file" ? "active" : ""}`} onClick={() => setDisputeTab("file")}>
+          File
+        </button>
+        <button className={`tab-btn ${disputeTab === "track" ? "active" : ""}`} onClick={() => setDisputeTab("track")}>
+          Track
+        </button>
+      </div>
+
+      {disputeTab === "file" ? (
+        <div className="payout-section">
+          <div className="payout-form">
+            <label className="form-label">Select Transaction</label>
+            <select
+              className="share-input"
+              value={selectedTransaction}
+              onChange={(e) => setSelectedTransaction(e.target.value)}
+              style={{ marginBottom: '16px' }}
+            >
+              <option value="">Select transaction</option>
+              <option value="txn1">TXN-9000900 - UGX 67,000</option>
+              <option value="txn2">TXN-9000901 - UGX 2,000</option>
+            </select>
+
+            <label className="form-label">Select Reason</label>
+            <select
+              className="share-input"
+              value={disputeReason}
+              onChange={(e) => setDisputeReason(e.target.value)}
+              style={{ marginBottom: '16px' }}
+            >
+              <option value="">Select reason</option>
+              <option value="amount">Amount Incorrect</option>
+              <option value="duplicate">Duplicate Charge</option>
+              <option value="unauthorized">Unauthorized</option>
+            </select>
+
+            <label className="form-label">Upload Evidence</label>
+            <div style={{ 
+              border: '2px dashed #0033cc',
+              borderRadius: '6px',
+              padding: '20px',
+              textAlign: 'center',
+              background: '#f0f4ff',
+              cursor: 'pointer',
+              marginBottom: '16px'
+            }}>
+              <Upload style={{ 
+                width: '24px', 
+                height: '24px', 
+                color: '#0033cc', 
+                margin: '0 auto 8px' 
+              }} />
+              <div style={{ fontSize: '12px', fontWeight: '500', color: '#0033cc' }}>
+                Upload Evidence
+              </div>
+              <div style={{ fontSize: '10px', color: '#666', marginTop: '4px' }}>
+                Max 10MB
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+              <button className="activate-code-btn" style={{ background: '#666' }}>
+                Cancel
+              </button>
+              <button className="activate-code-btn">
+                Submit
+              </button>
             </div>
           </div>
-          <button className="btn btn-compact btn-light" onClick={() => setCurrentView("dashboard")}>
-            Back
-          </button>
         </div>
-      </header>
-
-      <main className="payments-main">
-        {/* Tabs */}
-        <div className="compact-tab-buttons">
-          <button className={`compact-tab-btn ${disputeTab === "file" ? "active" : ""}`} onClick={() => setDisputeTab("file")}>
-            File
-          </button>
-          <button
-            className={`compact-tab-btn ${disputeTab === "track" ? "active" : ""}`}
-            onClick={() => setDisputeTab("track")}
-          >
-            Track
-          </button>
-        </div>
-
-        {disputeTab === "file" ? (
-          <div className="compact-card">
-            <div className="compact-dispute-header">
-              <h2 className="compact-dispute-title">File a Dispute</h2>
-              <p className="compact-dispute-subtitle">Report transaction issue</p>
-            </div>
-
-            <div className="compact-form">
-              <div className="compact-form-group">
-                <select
-                  className="compact-form-select"
-                  value={selectedTransaction}
-                  onChange={(e) => setSelectedTransaction(e.target.value)}
-                >
-                  <option value="">Select transaction</option>
-                  <option value="txn1">TXN-9000900 - UGX 67,000</option>
-                  <option value="txn2">TXN-9000901 - UGX 2,000</option>
-                </select>
-              </div>
-
-              <div className="compact-form-group">
-                <select
-                  className="compact-form-select"
-                  value={disputeReason}
-                  onChange={(e) => setDisputeReason(e.target.value)}
-                >
-                  <option value="">Select reason</option>
-                  <option value="amount">Amount Incorrect</option>
-                  <option value="duplicate">Duplicate Charge</option>
-                  <option value="unauthorized">Unauthorized</option>
-                </select>
-              </div>
-
-              <div className="compact-upload">
-                <Upload className="upload-icon" />
-                <p className="upload-text">Upload Evidence</p>
-                <p className="upload-subtext">Max 10MB</p>
-              </div>
-
-              <div className="compact-form-actions">
-                <button className="btn btn-compact btn-outline">Cancel</button>
-                <button className="btn btn-compact btn-blue">Submit</button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="compact-dispute-header">
-              <h2 className="compact-dispute-title">Track Disputes</h2>
-              <p className="compact-dispute-subtitle">Monitor ongoing issues</p>
-            </div>
-
-            <div className="compact-disputes-list">
-              {disputesData.map((dispute, index) => (
-                <div key={index} className="compact-dispute-card">
-                  <div className="compact-dispute-info">
-                    <div className="compact-dispute-id">{dispute.id}</div>
-                    <div className="compact-dispute-reason">{dispute.reason}</div>
-                    <div className="compact-dispute-filed">Filed: {dispute.filed}</div>
+      ) : (
+        <div className="commission-overview">
+          <div className="section-title">Track Disputes</div>
+          <div className="ledger-entry" style={{ marginBottom: '8px' }}>
+            {disputesData.map((dispute, index) => (
+              <div key={index} className="alert-item" style={{ marginBottom: '8px', padding: '12px' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <div className="alert-type">{dispute.id}</div>
+                    <span className={`status-badge ${dispute.status === 'Resolved' ? 'valid' : dispute.status === 'Under Review' ? 'pending' : 'invalid'}`}>
+                      {dispute.status}
+                    </span>
                   </div>
-                  <span className={`compact-status status-${dispute.statusColor}`}>{dispute.status}</span>
+                  <div className="alert-message">{dispute.reason}</div>
+                  <div className="alert-time">Filed: {dispute.filed}</div>
+                  {dispute.notes && (
+                    <div style={{ 
+                      fontSize: '11px', 
+                      color: '#666', 
+                      marginTop: '4px',
+                      padding: '8px',
+                      background: '#f8f9fa',
+                      borderRadius: '4px',
+                      borderLeft: '3px solid #0033cc'
+                    }}>
+                      {dispute.notes}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </>
-        )}
-      </main>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 
   const renderHistory = () => (
-    <div className="payments-container history-view">
-      <header className="payments-header payments-header-navy">
-        <div className="payments-header-content">
-          <div className="payments-header-left">
-            <button className="btn-back" onClick={() => setCurrentView("dashboard")}>
-              <ArrowLeft />
+    <div className="rider-agent-container">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">PAYMENT HISTORY</h2>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="tab-navigation">
+        <button className={`tab-btn ${currentView === "dashboard" ? "active" : ""}`} onClick={() => setCurrentView("dashboard")}>
+          Dashboard
+        </button>
+        <button className={`tab-btn ${currentView === "analytics" ? "active" : ""}`} onClick={() => setCurrentView("analytics")}>
+          Analytics
+        </button>
+        <button className={`tab-btn ${currentView === "pending" ? "active" : ""}`} onClick={() => setCurrentView("pending")}>
+          Pending
+        </button>
+        <button className={`tab-btn ${currentView === "disputes" ? "active" : ""}`} onClick={() => setCurrentView("disputes")}>
+          Disputes
+        </button>
+        <button className={`tab-btn ${currentView === "history" ? "active" : ""}`} onClick={() => setCurrentView("history")}>
+          History
+        </button>
+      </div>
+
+      {/* Search & Filters */}
+      <div className="commission-overview">
+        <div className="section-title">Search & Filter</div>
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ flex: 1, position: 'relative' }}>
+            <input
+              type="text"
+              placeholder="Search history..."
+              className="share-input"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ paddingLeft: '36px' }}
+            />
+            <Search style={{ 
+              position: 'absolute', 
+              left: '12px', 
+              top: '50%', 
+              transform: 'translateY(-50%)',
+              width: '16px',
+              height: '16px',
+              color: '#0033cc'
+            }} />
+          </div>
+          <div className="tab-navigation" style={{ width: 'auto' }}>
+            <button 
+              className={`tab-btn ${activeFilter === "all" ? "active" : ""}`}
+              onClick={() => setActiveFilter("all")}
+            >
+              All
             </button>
-            <div>
-              <h1 className="payments-title">Payment History</h1>
-              <p className="payments-subtitle">View all transactions</p>
-            </div>
-          </div>
-          <div className="compact-user-badge">
-            <span className="user-name">Moses. K</span>
-            <div className="user-avatar">MK</div>
-          </div>
-        </div>
-      </header>
-
-      <main className="payments-main">
-        {/* Search & Filters */}
-        <div className="compact-card">
-          <div className="compact-search-filter">
-            <div className="compact-search-input">
-              <Search className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search history..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-            </div>
-            <div className="compact-filter-buttons">
-              <button
-                className={`compact-filter-btn ${activeFilter === "all" ? "active" : ""}`}
-                onClick={() => setActiveFilter("all")}
-              >
-                All
-              </button>
-              <button
-                className={`compact-filter-btn ${activeFilter === "pending" ? "active" : ""}`}
-                onClick={() => setActiveFilter("pending")}
-              >
-                Pending
-              </button>
-              <button
-                className={`compact-filter-btn ${activeFilter === "completed" ? "active" : ""}`}
-                onClick={() => setActiveFilter("completed")}
-              >
-                Completed
-              </button>
-            </div>
+            <button 
+              className={`tab-btn ${activeFilter === "pending" ? "active" : ""}`}
+              onClick={() => setActiveFilter("pending")}
+            >
+              Pending
+            </button>
+            <button 
+              className={`tab-btn ${activeFilter === "completed" ? "active" : ""}`}
+              onClick={() => setActiveFilter("completed")}
+            >
+              Completed
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* History List */}
-        <div className="compact-history-list">
+      {/* History List */}
+      <div className="commission-overview">
+        <div className="section-title">Payment History</div>
+        <div className="ledger-entry" style={{ marginBottom: '8px' }}>
           {paymentsHistoryData.map((payment, index) => (
-            <div key={index} className="compact-history-card">
-              <div className="compact-history-info">
-                <div className="compact-history-left">
-                  <div className="compact-history-description">{payment.description}</div>
-                  <div className="compact-history-date">{payment.date}</div>
-                  <div className="compact-history-txn">{payment.txnId}</div>
-                </div>
-                <div className="compact-history-right">
-                  <div className="compact-history-amount">UGX {payment.amount}</div>
-                  <div className="compact-history-method">{payment.method}</div>
-                  <span className={`compact-status status-${payment.status.toLowerCase()}`}>
-                    {payment.status}
-                  </span>
-                </div>
+            <div key={index} className="alert-item" style={{ marginBottom: '8px' }}>
+              <div style={{ flex: 1 }}>
+                <div className="alert-type">{payment.description}</div>
+                <div className="alert-message">{payment.txnId}</div>
+                <div className="alert-time">{payment.date}</div>
               </div>
-              <button className="btn btn-compact btn-outline">Details</button>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ 
+                  fontSize: '14px', 
+                  fontWeight: '600', 
+                  color: '#0033cc',
+                  marginBottom: '2px'
+                }}>
+                  UGX {payment.amount}
+                </div>
+                <div style={{ fontSize: '11px', color: '#666', marginBottom: '4px' }}>
+                  {payment.method}
+                </div>
+                <span className={`status-badge ${payment.status === 'Completed' ? 'valid' : payment.status === 'Pending' ? 'pending' : 'invalid'}`}>
+                  {payment.status}
+                </span>
+              </div>
             </div>
           ))}
         </div>
 
         {/* Pagination */}
-        <div className="compact-pagination">
-          <span className="pagination-info">Showing 6 payments</span>
-          <div className="pagination-buttons">
-            <button className="btn btn-compact btn-outline">
-              <ChevronLeft />
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginTop: '16px',
+          paddingTop: '12px',
+          borderTop: '1px solid #e0e0e0'
+        }}>
+          <div style={{ fontSize: '11px', color: '#666' }}>
+            Showing 6 payments
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="share-btn" style={{ fontSize: '11px', padding: '6px 12px' }}>
+              <ChevronLeft style={{ width: '12px', height: '12px', marginRight: '4px' }} />
               Prev
             </button>
-            <button className="btn btn-compact btn-outline">
+            <button className="share-btn" style={{ fontSize: '11px', padding: '6px 12px' }}>
               Next
-              <ChevronRight />
+              <ChevronRight style={{ width: '12px', height: '12px', marginLeft: '4px' }} />
             </button>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 
   // Main render
   return (
-    <div className="payments-app">
+    <>
+      <style jsx>{`
+        /* Chart Styles */
+        .chart-container {
+          width: 100%;
+        }
+
+        .chart-bars {
+          display: flex;
+          gap: 8px;
+          justify-content: space-around;
+          align-items: flex-end;
+          height: 120px;
+          margin-bottom: 12px;
+        }
+
+        .bar-group {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          flex: 1;
+        }
+
+        .bar {
+          width: 12px;
+          border-radius: 2px 2px 0 0;
+          transition: all 0.2s ease;
+        }
+
+        .bar.completed {
+          background: #0033cc;
+        }
+
+        .bar.failed {
+          background: #ff5252;
+        }
+
+        .bar-label {
+          color: #666;
+          font-size: 10px;
+          font-weight: 500;
+          text-align: center;
+        }
+
+        .chart-legend {
+          display: flex;
+          justify-content: center;
+          gap: 20px;
+        }
+
+        .legend-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .legend-color {
+          width: 12px;
+          height: 8px;
+          border-radius: 2px;
+        }
+
+        .legend-color.completed {
+          background: #0033cc;
+        }
+
+        .legend-color.failed {
+          background: #ff5252;
+        }
+
+        .legend-text {
+          color: #666;
+          font-size: 11px;
+          font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+          .alerts-section {
+            grid-template-columns: 1fr;
+          }
+          
+          .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
+        @media (max-width: 480px) {
+          .stats-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .chart-bars {
+            gap: 4px;
+            height: 100px;
+          }
+          
+          .bar {
+            width: 10px;
+          }
+        }
+      `}</style>
+
       {currentView === "dashboard" && renderDashboard()}
       {currentView === "analytics" && renderAnalytics()}
       {currentView === "pending" && renderPending()}
       {currentView === "disputes" && renderDisputes()}
       {currentView === "history" && renderHistory()}
-    </div>
+    </>
   )
 }
