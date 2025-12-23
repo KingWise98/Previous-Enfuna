@@ -260,7 +260,7 @@ const DashboardPage = () => {
     { id: 'start-trip', label: 'Quick Trip' },
     { id: 'deliveries', label: 'Trip History' },
     { id: 'receive-money', label: 'Receive Money' },
-    { id: 'withdraw-money', label: 'Withdraw Money' },
+    { id: 'withdraw-money', label: 'Request Payout' },
     { id: 'add-expense', label: 'Add Expense' },
   ];
 
@@ -276,7 +276,7 @@ const DashboardPage = () => {
             {currentView === 'complete-trip' && 'Complete Trip'}
             {currentView === 'deliveries' && 'Deliveries'}
             {currentView === 'receive-money' && 'Receive Money'}
-            {currentView === 'withdraw-money' && 'Withdraw Money'}
+            {currentView === 'withdraw-money' && 'Request Payout'}
             {currentView === 'add-expense' && 'Add Expense'}
           </h1>
           {currentView !== 'dashboard' && (
@@ -1732,8 +1732,8 @@ const WithdrawMoneyContent = () => {
 
   return (
     <div className="activate-screen">
-      <h2 className="activate-title">Withdraw Money</h2>
-      <p className="activate-subtitle">Withdraw funds from your wallet</p>
+      <h2 className="activate-title">Request Payout</h2>
+      <p className="activate-subtitle">Request Payout of funds from your wallet</p>
 
       {/* Wallet Balance */}
       <div className="balance-card" style={{ marginBottom: '24px' }}>
@@ -1745,7 +1745,7 @@ const WithdrawMoneyContent = () => {
         {/* Amount Input */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
-            Enter Amount to Withdraw (UGX)
+            Enter Amount For Payout (UGX)
           </label>
           <div className="promo-input-section">
             <input
@@ -1759,14 +1759,14 @@ const WithdrawMoneyContent = () => {
             <span style={{ fontSize: '14px', color: '#002AFE', fontWeight: '500' }}>UGX</span>
           </div>
           <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
-            Minimum withdrawal: UGX 5,000
+            Minimum Payout: UGX 5,000
           </div>
         </div>
 
         {/* Withdrawal Method */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
-            Select Withdrawal Method
+            Select Payout Method
           </label>
           <RadioGroup 
             value={withdrawalMethod} 
@@ -1848,7 +1848,7 @@ const WithdrawMoneyContent = () => {
           border: '1px solid #c5cae9'
         }}>
           <div style={{ fontSize: '14px', fontWeight: '600', color: '#002AFE', marginBottom: '12px' }}>
-            Withdrawal Summary
+            Payout Summary
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '14px', color: '#002AFE' }}>Amount:</span>
@@ -1883,7 +1883,7 @@ const WithdrawMoneyContent = () => {
           onClick={handleSubmit}
           disabled={!amount || parseFloat(amount) < 5000}
         >
-          Request Withdrawal
+          Request Payout
         </button>
       </div>
     </div>
