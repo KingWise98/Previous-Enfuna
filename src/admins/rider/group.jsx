@@ -367,28 +367,28 @@ const Groups = () => {
 
   const getContributionColor = (type) => {
     switch(type.toLowerCase()) {
-      case 'savings': return '#3b82f6';
-      case 'emergency': return '#ef4444';
-      case 'spares': return '#10b981';
-      default: return '#64748b';
+      case 'savings': return '#0033cc';
+      case 'emergency': return '#c62828';
+      case 'spares': return '#2e7d32';
+      default: return '#666';
     }
   };
 
   const getGroupTypeColor = (type) => {
     switch(type.toLowerCase()) {
-      case 'savings': return '#3b82f6';
-      case 'emergency': return '#ef4444';
-      case 'spares': return '#10b981';
-      default: return '#64748b';
+      case 'savings': return '#0033cc';
+      case 'emergency': return '#c62828';
+      case 'spares': return '#2e7d32';
+      default: return '#666';
     }
   };
 
   const getGroupTypeBgColor = (type) => {
     switch(type.toLowerCase()) {
-      case 'savings': return '#dbeafe';
-      case 'emergency': return '#fee2e2';
-      case 'spares': return '#d1fae5';
-      default: return '#f1f5f9';
+      case 'savings': return '#e3f2fd';
+      case 'emergency': return '#ffebee';
+      case 'spares': return '#e8f5e9';
+      default: return '#f8f9fa';
     }
   };
 
@@ -416,210 +416,173 @@ const Groups = () => {
   };
 
   return (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">GROUP FUNDING AND EARNINGS</h1>
-            <p className="expense-subtitle">Join forces with other riders to save, invest and access group benefits</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name">Group Admin</span>
-            <div className="expense-user-badge">GA</div>
-          </div>
-        </div>
-      </header>
-
-      {/* Compact Stats Grid */}
-      <div className="compact-stats-grid">
-        <div className="compact-stat-card stat-blue">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Active Groups</span>
-            <span className="compact-stat-change positive">+{stats.activeGroups}</span>
-          </div>
-          <div className="compact-stat-value">
-            {stats.activeGroups}
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-yellow">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Total Pool</span>
-            <span className="compact-stat-change positive">+{stats.totalContributions.toLocaleString()}</span>
-          </div>
-          <div className="compact-stat-value">
-            UGX {stats.totalContributions.toLocaleString()}
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-green">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Due Soon</span>
-            <span className="compact-stat-change negative">+{stats.nextContributions}</span>
-          </div>
-          <div className="compact-stat-value">
-            {stats.nextContributions}
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-purple">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Total Members</span>
-            <span className="compact-stat-change positive">+{myGroups.reduce((sum, g) => sum + g.members, 0)}</span>
-          </div>
-          <div className="compact-stat-value">
-            {myGroups.reduce((sum, g) => sum + g.members, 0)}
-          </div>
-        </div>
+    <div className="rider-agent-container">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">GROUP FUNDING AND EARNINGS</h2>
       </div>
 
-      {/* Compact Action Bar */}
-      <div className="compact-action-bar">
-        <button 
-          className={`compact-btn ${activeTab === 'myGroups' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setActiveTab('myGroups')}
-        >
+      {/* Tab Navigation */}
+      <div className="tab-navigation">
+        <button className={`tab-btn ${activeTab === 'myGroups' ? 'active' : ''}`} onClick={() => setActiveTab('myGroups')}>
           My Groups
         </button>
-        <button 
-          className={`compact-btn ${activeTab === 'allGroups' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setActiveTab('allGroups')}
-        >
+        <button className={`tab-btn ${activeTab === 'allGroups' ? 'active' : ''}`} onClick={() => setActiveTab('allGroups')}>
           All Groups
         </button>
-        <button 
-          className={`compact-btn ${activeTab === 'contributions' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setActiveTab('contributions')}
-        >
+        <button className={`tab-btn ${activeTab === 'contributions' ? 'active' : ''}`} onClick={() => setActiveTab('contributions')}>
           Contributions
         </button>
-        <button 
-          className={`compact-btn ${activeTab === 'analytics' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setActiveTab('analytics')}
-        >
+        <button className={`tab-btn ${activeTab === 'analytics' ? 'active' : ''}`} onClick={() => setActiveTab('analytics')}>
           Analytics
         </button>
       </div>
 
+      {/* Stats Grid */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-label">Active Groups</div>
+          <p className="stat-value">{stats.activeGroups}</p>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-label">Total Pool</div>
+          <p className="stat-value">UGX {stats.totalContributions.toLocaleString()}</p>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-label">Due Soon</div>
+          <p className="stat-value">{stats.nextContributions}</p>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-label">Total Members</div>
+          <p className="stat-value">{myGroups.reduce((sum, g) => sum + g.members, 0)}</p>
+        </div>
+      </div>
+
       {/* Main Content Area */}
-      <div className="compact-content-grid">
-        {/* Left Panel - Dynamic Content */}
-        <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
+      <div className="alerts-section">
+        {/* Left Panel - Main Content */}
+        <div className="referral-alerts" style={{ gridColumn: 'span 2' }}>
           {activeTab === 'myGroups' && (
             <div className="my-groups-view">
-              <div className="compact-section-header">
-                <h2 className="compact-section-title">My Groups</h2>
-                <div className="compact-filters">
-                  <button className="compact-btn btn-secondary" onClick={() => setActiveTab('allGroups')}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div className="alerts-title">My Groups</div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button 
+                    className="share-btn" 
+                    style={{ background: '#f0f4ff', color: '#0033cc' }}
+                    onClick={() => setActiveTab('allGroups')}
+                  >
                     Join Group
                   </button>
-                  <button className="compact-btn btn-primary" onClick={() => setShowCreateGroup(true)}>
+                  <button 
+                    className="share-btn" 
+                    onClick={() => setShowCreateGroup(true)}
+                  >
                     + Create Group
                   </button>
                 </div>
               </div>
 
-              <div className="compact-table-wrapper">
-                <table className="compact-table">
-                  <thead>
-                    <tr>
-                      <th>Group Name</th>
-                      <th>Type</th>
-                      <th>Members</th>
-                      <th>Contribution</th>
-                      <th>Progress</th>
-                      <th>Next Due</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {myGroups.map(group => (
-                      <tr key={group.id}>
-                        <td>
-                          <div className="compact-group-cell">
-                            <div className="compact-group-name">{group.name}</div>
-                            <div className="compact-group-desc">{group.description}</div>
+              <div className="team-list">
+                {myGroups.map(group => (
+                  <div key={group.id} className="team-member-card">
+                    <div className="member-header">
+                      <div className="member-info">
+                        <div>
+                          <p className="member-name">{group.name}</p>
+                          <p style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>{group.description}</p>
+                        </div>
+                        <span className="status-badge active">
+                          {group.type.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="member-stats-preview">
+                        <div className="stat-preview">
+                          <div className="preview-label">Members</div>
+                          <div className="preview-value">{group.members}/{group.maxMembers}</div>
+                        </div>
+                        <div className="stat-preview">
+                          <div className="preview-label">Contribution</div>
+                          <div className="preview-value">UGX {group.contribution.toLocaleString()}</div>
+                        </div>
+                        <div className="stat-preview">
+                          <div className="preview-label">Next Due</div>
+                          <div className="preview-value" style={{ color: '#f59e0b' }}>{group.nextContribution}</div>
+                        </div>
+                      </div>
+                      <button className="expand-btn">▼</button>
+                    </div>
+                    
+                    <div className="member-details">
+                      <div className="detail-row">
+                        <span className="detail-label">Progress</span>
+                        <div style={{ flex: 1, maxWidth: '200px' }}>
+                          <div style={{ 
+                            height: '6px', 
+                            background: '#f0f4ff',
+                            borderRadius: '3px',
+                            overflow: 'hidden',
+                            marginBottom: '4px'
+                          }}>
+                            <div style={{ 
+                              width: `${group.progress}%`,
+                              height: '100%',
+                              background: '#0033cc'
+                            }}></div>
                           </div>
-                        </td>
-                        <td>
-                          <span 
-                            className="compact-group-type"
-                            style={{
-                              backgroundColor: getGroupTypeBgColor(group.type),
-                              color: getGroupTypeColor(group.type),
-                              borderColor: getGroupTypeColor(group.type)
-                            }}
-                          >
-                            {group.type.toUpperCase()}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="compact-members">
-                            {group.members}/{group.maxMembers}
+                          <div style={{ fontSize: '11px', color: '#0033cc', textAlign: 'right' }}>
+                            {group.progress.toFixed(1)}%
                           </div>
-                        </td>
-                        <td className="compact-amount">
-                          UGX {group.contribution.toLocaleString()}
-                        </td>
-                        <td>
-                          <div className="compact-progress-section">
-                            <div className="compact-progress-header">
-                              <span>{group.progress.toFixed(1)}%</span>
-                            </div>
-                            <div className="compact-progress-bar">
-                              <div 
-                                className="compact-progress-fill"
-                                style={{ 
-                                  width: `${group.progress}%`,
-                                  backgroundColor: getGroupTypeColor(group.type)
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="compact-next-due">
-                            <span className="due-badge">{group.nextContribution}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="compact-action-buttons">
-                            <button 
-                              className="compact-action-btn contribute"
-                              onClick={() => handleContribute(group.id)}
-                            >
-                              Contribute
-                            </button>
-                            <button className="compact-action-btn view">
-                              View
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <span className="detail-label">Total Pool</span>
+                        <span className="detail-value">UGX {group.totalPool.toLocaleString()}</span>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <span className="detail-label">Frequency</span>
+                        <span className="detail-value">{group.frequency}</span>
+                      </div>
+                      
+                      <div className="detail-row highlight">
+                        <button 
+                          className="activate-code-btn"
+                          onClick={() => handleContribute(group.id)}
+                          style={{ width: '100%' }}
+                        >
+                          Make Contribution
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
           {activeTab === 'allGroups' && (
             <div className="all-groups-view">
-              <div className="compact-section-header">
-                <h2 className="compact-section-title">Available Groups</h2>
-                <div className="compact-filters">
+              <div style={{ marginBottom: '16px' }}>
+                <div className="alerts-title">Available Groups</div>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                   <input
                     type="text"
                     placeholder="Search groups..."
-                    className="compact-search-input"
+                    className="share-input"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{ flex: 1 }}
                   />
                   <select 
-                    className="compact-filter-select"
+                    className="filter-btn"
                     value={groupFilter}
                     onChange={(e) => setGroupFilter(e.target.value)}
+                    style={{ width: 'auto' }}
                   >
                     <option value="all">All Types</option>
                     <option value="public">Public</option>
@@ -628,182 +591,127 @@ const Groups = () => {
                 </div>
               </div>
 
-              <div className="compact-table-wrapper">
-                <table className="compact-table">
-                  <thead>
-                    <tr>
-                      <th>Group Name</th>
-                      <th>Type</th>
-                      <th>Description</th>
-                      <th>Members</th>
-                      <th>Contribution</th>
-                      <th>Frequency</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredGroups.map(group => (
-                      <tr key={group.id}>
-                        <td>
-                          <div className="compact-group-cell">
-                            <div className="compact-group-name">{group.name}</div>
-                          </div>
-                        </td>
-                        <td>
-                          <span 
-                            className="compact-group-type"
-                            style={{
-                              backgroundColor: getGroupTypeBgColor(group.type),
-                              color: getGroupTypeColor(group.type),
-                              borderColor: getGroupTypeColor(group.type)
-                            }}
-                          >
-                            {group.type.toUpperCase()}
-                          </span>
-                        </td>
-                        <td className="compact-group-desc">{group.description}</td>
-                        <td>
-                          <div className="compact-members">
-                            {group.members}/{group.maxMembers}
-                          </div>
-                        </td>
-                        <td className="compact-amount">
-                          UGX {group.contribution.toLocaleString()}
-                        </td>
-                        <td>
-                          <span className="compact-frequency">{group.frequency}</span>
-                        </td>
-                        <td>
-                          <span className={`compact-status ${group.isPublic ? 'public' : 'private'}`}>
+              <div className="commission-overview">
+                <div className="commission-grid">
+                  {filteredGroups.map(group => (
+                    <div key={group.id} className={`commission-card ${group.isMember ? 'revenue' : 'today'}`}>
+                      <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+                        <div style={{ 
+                          fontSize: '24px', 
+                          marginBottom: '8px',
+                          color: getGroupTypeColor(group.type)
+                        }}>
+                          {group.type === 'savings' ? '💰' : 
+                           group.type === 'emergency' ? '🛡️' : '🔧'}
+                        </div>
+                        <div style={{ fontSize: '14px', fontWeight: '600', color: '#0033cc' }}>
+                          {group.name}
+                        </div>
+                      </div>
+                      
+                      <div style={{ marginBottom: '8px' }}>
+                        <p style={{ fontSize: '11px', color: '#666', marginBottom: '4px' }}>
+                          {group.description}
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#0033cc' }}>
+                          <span>Members: {group.members}/{group.maxMembers}</span>
+                          <span className={`status-badge ${group.isPublic ? 'valid' : 'pending'}`}>
                             {group.isPublic ? 'Public' : 'Private'}
                           </span>
-                        </td>
-                        <td>
-                          {group.isMember ? (
-                            <span className="compact-member-badge">Member</span>
-                          ) : (
-                            <button 
-                              className="compact-action-btn join"
-                              onClick={() => handleJoinGroup(group.id)}
-                            >
-                              Join
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <span className="detail-label">Contribution</span>
+                        <span className="detail-value">UGX {group.contribution.toLocaleString()}</span>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <span className="detail-label">Frequency</span>
+                        <span className="detail-value">{group.frequency}</span>
+                      </div>
+                      
+                      {group.isMember ? (
+                        <div className="detail-row highlight">
+                          <span style={{ fontSize: '12px', color: '#2e7d32', fontWeight: '500' }}>
+                            ✓ Already a Member
+                          </span>
+                        </div>
+                      ) : (
+                        <button 
+                          className="activate-code-btn"
+                          onClick={() => handleJoinGroup(group.id)}
+                          style={{ width: '100%', marginTop: '8px' }}
+                        >
+                          Join Group
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
           {activeTab === 'contributions' && (
             <div className="contributions-view">
-              <div className="compact-section-header">
-                <h2 className="compact-section-title">Contribution History</h2>
-                <div className="compact-filters">
-                  <span className="compact-total-amount">
-                    Total: UGX {contributions.reduce((sum, c) => sum + c.amount, 0).toLocaleString()}
-                  </span>
-                </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div className="alerts-title">Contribution History</div>
+                <span style={{ 
+                  fontSize: '12px', 
+                  fontWeight: '600', 
+                  color: '#0033cc',
+                  background: '#e3f2fd',
+                  padding: '6px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid #bbdefb'
+                }}>
+                  Total: UGX {contributions.reduce((sum, c) => sum + c.amount, 0).toLocaleString()}
+                </span>
               </div>
 
-              <div className="compact-table-wrapper">
-                <table className="compact-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Group</th>
-                      <th>Amount</th>
-                      <th>Status</th>
-                      <th>Type</th>
-                      <th>Receipt</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {contributions.map(contribution => (
-                      <tr key={contribution.id}>
-                        <td className="compact-date">{contribution.date}</td>
-                        <td>
-                          <div className="compact-group-cell">
-                            <div className="compact-group-name">{contribution.group}</div>
-                          </div>
-                        </td>
-                        <td className="compact-amount">
-                          UGX {contribution.amount.toLocaleString()}
-                        </td>
-                        <td>
-                          <span className={`compact-status ${contribution.status.toLowerCase()}`}>
-                            {contribution.status}
-                          </span>
-                        </td>
-                        <td>
-                          <span 
-                            className="compact-type-badge"
-                            style={{
-                              backgroundColor: getContributionColor(contribution.type),
-                              color: 'white'
-                            }}
+              <div className="ledger-entry" style={{ marginBottom: '8px' }}>
+                {contributions.map(contribution => (
+                  <div key={contribution.id} className="alert-item" style={{ marginBottom: '8px' }}>
+                    <div style={{ flex: 1 }}>
+                      <div className="alert-type">{contribution.group}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+                        <span style={{ fontSize: '11px', color: '#666' }}>{contribution.date}</span>
+                        <span className="status-badge" style={{ 
+                          background: getContributionColor(contribution.type),
+                          color: 'white',
+                          fontSize: '10px'
+                        }}>
+                          {contribution.type}
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ 
+                        fontSize: '14px', 
+                        fontWeight: '600', 
+                        color: '#0033cc',
+                        marginBottom: '2px'
+                      }}>
+                        UGX {contribution.amount.toLocaleString()}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className={`status-badge ${contribution.status === 'Completed' ? 'valid' : 'pending'}`}>
+                          {contribution.status}
+                        </span>
+                        {contribution.receipt ? (
+                          <button 
+                            className="share-btn"
+                            onClick={() => handleViewReceipt(contribution.receipt)}
+                            style={{ fontSize: '11px', padding: '4px 8px' }}
                           >
-                            {contribution.type}
+                            View Receipt
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: '10px', color: '#999', fontStyle: 'italic' }}>
+                            Pending
                           </span>
-                        </td>
-                        <td>
-                          {contribution.receipt ? (
-                            <button 
-                              className="compact-action-btn view"
-                              onClick={() => handleViewReceipt(contribution.receipt)}
-                            >
-                              View
-                            </button>
-                          ) : (
-                            <span className="compact-pending">Pending</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'analytics' && (
-            <div className="analytics-view">
-              <div className="compact-section-header">
-                <h2 className="compact-section-title">Group Analytics</h2>
-              </div>
-
-              <div className="compact-breakdown-list">
-                {myGroups.map(group => (
-                  <div key={group.id} className="compact-breakdown-item">
-                    <div className="compact-breakdown-info">
-                      <span className="compact-breakdown-name">{group.name}</span>
-                      <span className="compact-breakdown-percentage">{group.progress.toFixed(1)}%</span>
-                    </div>
-                    <div className="compact-progress-bar">
-                      <div
-                        className="compact-progress-fill"
-                        style={{
-                          width: `${group.progress}%`,
-                          backgroundColor: getGroupTypeColor(group.type)
-                        }}
-                      />
-                    </div>
-                    <div className="compact-group-details">
-                      <div className="compact-detail-row">
-                        <span>Members:</span>
-                        <strong>{group.members}/{group.maxMembers}</strong>
-                      </div>
-                      <div className="compact-detail-row">
-                        <span>Pool:</span>
-                        <strong>UGX {group.totalPool.toLocaleString()}</strong>
-                      </div>
-                      <div className="compact-detail-row">
-                        <span>Next Due:</span>
-                        <strong>{group.nextContribution}</strong>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -811,53 +719,125 @@ const Groups = () => {
               </div>
             </div>
           )}
+
+          {activeTab === 'analytics' && (
+            <div className="analytics-view">
+              <div className="alerts-title">Group Analytics</div>
+              
+              <div className="commission-overview" style={{ marginTop: '16px' }}>
+                <div className="commission-grid">
+                  {myGroups.map(group => (
+                    <div key={group.id} className="commission-card revenue">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: '#0033cc' }}>
+                          {group.name}
+                        </div>
+                        <span style={{ 
+                          fontSize: '12px', 
+                          fontWeight: '600', 
+                          color: '#0033cc',
+                          background: '#f0f4ff',
+                          padding: '2px 8px',
+                          borderRadius: '10px'
+                        }}>
+                          {group.progress.toFixed(1)}%
+                        </span>
+                      </div>
+                      
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{ 
+                          height: '6px', 
+                          background: '#f0f4ff',
+                          borderRadius: '3px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{ 
+                            width: `${group.progress}%`,
+                            height: '100%',
+                            background: '#0033cc'
+                          }}></div>
+                        </div>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <span className="detail-label">Members</span>
+                        <span className="detail-value">{group.members}/{group.maxMembers}</span>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <span className="detail-label">Total Pool</span>
+                        <span className="detail-value">UGX {group.totalPool.toLocaleString()}</span>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <span className="detail-label">Next Due</span>
+                        <span className="detail-value" style={{ color: '#f59e0b' }}>{group.nextContribution}</span>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <span className="detail-label">Frequency</span>
+                        <span className="detail-value">{group.frequency}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Panel - Quick Actions & Stats */}
-        <div className="compact-breakdown-section">
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Quick Actions</h2>
-          </div>
-
-          <div className="compact-quick-actions">
-            <button className="compact-action-btn btn-primary" onClick={handleQuickContribute}>
+        <div className="milestone-section">
+          <div className="alerts-title">Quick Actions</div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+            <button className="activate-code-btn" onClick={handleQuickContribute}>
               Make Contribution
             </button>
-            <button className="compact-action-btn btn-secondary" onClick={handleQuickWithdraw}>
+            <button 
+              className="activate-code-btn" 
+              style={{ background: '#f0f4ff', color: '#0033cc' }}
+              onClick={handleQuickWithdraw}
+            >
               Request Withdrawal
             </button>
-            <button className="compact-action-btn btn-secondary" onClick={handleQuickInvite}>
+            <button 
+              className="activate-code-btn" 
+              style={{ background: '#f0f4ff', color: '#0033cc' }}
+              onClick={handleQuickInvite}
+            >
               Invite Riders
             </button>
-            <button className="compact-action-btn btn-secondary" onClick={() => setShowCreateGroup(true)}>
+            <button 
+              className="activate-code-btn" 
+              style={{ background: '#fef08a', color: 'black' }}
+              onClick={() => setShowCreateGroup(true)}
+            >
               Create Group
             </button>
           </div>
 
-          <div className="compact-section-header" style={{ marginTop: '1rem' }}>
-            <h2 className="compact-section-title">Group Benefits</h2>
-          </div>
-
-          <div className="compact-benefits-list">
-            <div className="compact-benefit-item">
-              <div className="compact-benefit-icon">🛡️</div>
-              <div>
-                <div className="compact-benefit-title">Collective Security</div>
-                <div className="compact-benefit-desc">Emergency group support and financial safety net</div>
+          <div className="alerts-title">Group Benefits</div>
+          
+          <div style={{ marginTop: '8px' }}>
+            <div className="milestone-card">
+              <div className="milestone-title">Collective Security</div>
+              <div className="milestone-text">
+                Emergency group support and financial safety net for members
               </div>
             </div>
-            <div className="compact-benefit-item">
-              <div className="compact-benefit-icon">📊</div>
-              <div>
-                <div className="compact-benefit-title">Better Loan Rates</div>
-                <div className="compact-benefit-desc">Group negotiation power for favorable terms</div>
+            
+            <div className="milestone-card">
+              <div className="milestone-title">Better Loan Rates</div>
+              <div className="milestone-text">
+                Group negotiation power for favorable terms and lower interest rates
               </div>
             </div>
-            <div className="compact-benefit-item">
-              <div className="compact-benefit-icon">🏆</div>
-              <div>
-                <div className="compact-benefit-title">Group Rewards</div>
-                <div className="compact-benefit-desc">Collective achievement bonuses and incentives</div>
+            
+            <div className="milestone-card">
+              <div className="milestone-title">Group Rewards</div>
+              <div className="milestone-text">
+                Collective achievement bonuses and member incentives
               </div>
             </div>
           </div>
@@ -866,31 +846,79 @@ const Groups = () => {
 
       {/* Create Group Modal */}
       {showCreateGroup && (
-        <div className="compact-modal-overlay">
-          <div className="compact-modal">
-            {/* Modal Header */}
-            <div className="compact-modal-header">
+        <div className="modal-overlay active">
+          <div className="modal-content">
+            <div className="modal-header">
               <h2>CREATE NEW GROUP</h2>
-              <div className="compact-modal-steps">
-                <span className={`compact-step ${createStep >= 1 ? "active" : ""}`}>1</span>
-                <span className="compact-step-divider"></span>
-                <span className={`compact-step ${createStep >= 2 ? "active" : ""}`}>2</span>
-                <span className="compact-step-divider"></span>
-                <span className={`compact-step ${createStep >= 3 ? "active" : ""}`}>3</span>
-              </div>
+              <button 
+                className="modal-close"
+                onClick={() => {
+                  setShowCreateGroup(false);
+                  setCreateStep(1);
+                }}
+              >
+                ×
+              </button>
             </div>
 
-            {/* Modal Content */}
-            <div className="compact-modal-content">
-              <form onSubmit={handleCreateGroup} className="create-group-form">
+            <div className="modal-body">
+              {/* Step Indicator */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '20px' }}>
+                <div style={{ 
+                  width: '24px', 
+                  height: '24px', 
+                  borderRadius: '50%', 
+                  background: createStep >= 1 ? '#0033cc' : '#f0f4ff',
+                  color: createStep >= 1 ? 'white' : '#0033cc',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '12px',
+                  fontWeight: '600'
+                }}>
+                  1
+                </div>
+                <div style={{ width: '40px', height: '2px', background: createStep >= 2 ? '#0033cc' : '#f0f4ff' }}></div>
+                <div style={{ 
+                  width: '24px', 
+                  height: '24px', 
+                  borderRadius: '50%', 
+                  background: createStep >= 2 ? '#0033cc' : '#f0f4ff',
+                  color: createStep >= 2 ? 'white' : '#0033cc',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '12px',
+                  fontWeight: '600'
+                }}>
+                  2
+                </div>
+                <div style={{ width: '40px', height: '2px', background: createStep >= 3 ? '#0033cc' : '#f0f4ff' }}></div>
+                <div style={{ 
+                  width: '24px', 
+                  height: '24px', 
+                  borderRadius: '50%', 
+                  background: createStep >= 3 ? '#0033cc' : '#f0f4ff',
+                  color: createStep >= 3 ? 'white' : '#0033cc',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '12px',
+                  fontWeight: '600'
+                }}>
+                  3
+                </div>
+              </div>
+
+              <form onSubmit={handleCreateGroup}>
                 {/* Step 1 */}
                 {createStep === 1 && (
                   <div className="compact-step-content">
-                    <div className="compact-form-group">
-                      <label className="compact-form-label">Group Name</label>
+                    <div style={{ marginBottom: '16px' }}>
+                      <div className="detail-label" style={{ marginBottom: '8px' }}>Group Name</div>
                       <input
                         type="text"
-                        className="compact-form-input"
+                        className="share-input"
                         value={newGroup.name}
                         onChange={(e) => setNewGroup({...newGroup, name: e.target.value})}
                         placeholder="Enter group name"
@@ -898,40 +926,56 @@ const Groups = () => {
                       />
                     </div>
 
-                    <div className="compact-form-group">
-                      <label className="compact-form-label">Description</label>
+                    <div style={{ marginBottom: '16px' }}>
+                      <div className="detail-label" style={{ marginBottom: '8px' }}>Description</div>
                       <textarea
-                        className="compact-form-textarea"
+                        style={{ 
+                          width: '100%',
+                          padding: '12px',
+                          border: '1px solid #0033cc',
+                          borderRadius: '6px',
+                          background: '#f0f4ff',
+                          color: '#0033cc',
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: '12px',
+                          minHeight: '80px'
+                        }}
                         value={newGroup.description}
                         onChange={(e) => setNewGroup({...newGroup, description: e.target.value})}
                         placeholder="Describe the purpose of this group"
-                        rows="3"
                         required
                       />
                     </div>
 
-                    <div className="compact-form-group">
-                      <label className="compact-form-label">Group Type</label>
-                      <div className="compact-category-grid">
+                    <div style={{ marginBottom: '16px' }}>
+                      <div className="detail-label" style={{ marginBottom: '8px' }}>Group Type</div>
+                      <div className="commission-grid">
                         {['savings', 'emergency', 'spares'].map(type => (
                           <button
                             key={type}
                             type="button"
-                            className={`compact-category-btn ${newGroup.type === type ? 'selected' : ''}`}
+                            className={`commission-card ${newGroup.type === type ? 'revenue' : 'pending'}`}
+                            style={{ cursor: 'pointer', textAlign: 'center' }}
                             onClick={() => setNewGroup({...newGroup, type})}
                           >
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                            <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>
+                              {type === 'savings' ? '💰' : 
+                               type === 'emergency' ? '🛡️' : '🔧'}
+                            </div>
+                            <div className="commission-label">
+                              {type.charAt(0).toUpperCase() + type.slice(1)}
+                            </div>
                           </button>
                         ))}
                       </div>
                     </div>
 
-                    <div className="compact-form-row">
-                      <div className="compact-form-group">
-                        <label className="compact-form-label">Max Members</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                      <div>
+                        <div className="detail-label" style={{ marginBottom: '8px' }}>Max Members</div>
                         <input
                           type="number"
-                          className="compact-form-input"
+                          className="share-input"
                           value={newGroup.maxMembers}
                           onChange={(e) => setNewGroup({...newGroup, maxMembers: e.target.value})}
                           min="2"
@@ -939,11 +983,11 @@ const Groups = () => {
                           required
                         />
                       </div>
-                      <div className="compact-form-group">
-                        <label className="compact-form-label">Target Amount</label>
+                      <div>
+                        <div className="detail-label" style={{ marginBottom: '8px' }}>Target Amount</div>
                         <input
                           type="number"
-                          className="compact-form-input"
+                          className="share-input"
                           value={newGroup.targetAmount}
                           onChange={(e) => setNewGroup({...newGroup, targetAmount: e.target.value})}
                           placeholder="Optional"
@@ -951,15 +995,15 @@ const Groups = () => {
                       </div>
                     </div>
 
-                    <div className="compact-form-group">
-                      <label className="compact-checkbox-label">
+                    <div style={{ marginBottom: '16px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#0033cc', cursor: 'pointer' }}>
                         <input
                           type="checkbox"
                           checked={newGroup.isPublic}
                           onChange={(e) => setNewGroup({...newGroup, isPublic: e.target.checked})}
-                          className="compact-checkbox"
+                          style={{ width: '16px', height: '16px' }}
                         />
-                        <span>Make this group public (visible to all riders)</span>
+                        Make this group public (visible to all riders)
                       </label>
                     </div>
                   </div>
@@ -968,11 +1012,11 @@ const Groups = () => {
                 {/* Step 2 */}
                 {createStep === 2 && (
                   <div className="compact-step-content">
-                    <div className="compact-form-group">
-                      <label className="compact-form-label">Contribution Amount</label>
+                    <div style={{ marginBottom: '16px' }}>
+                      <div className="detail-label" style={{ marginBottom: '8px' }}>Contribution Amount</div>
                       <input
                         type="number"
-                        className="compact-form-input"
+                        className="share-input"
                         value={newGroup.contributionAmount}
                         onChange={(e) => setNewGroup({...newGroup, contributionAmount: e.target.value})}
                         placeholder="Amount per contribution"
@@ -980,27 +1024,34 @@ const Groups = () => {
                       />
                     </div>
 
-                    <div className="compact-form-group">
-                      <label className="compact-form-label">Contribution Frequency</label>
-                      <div className="compact-category-grid">
+                    <div style={{ marginBottom: '16px' }}>
+                      <div className="detail-label" style={{ marginBottom: '8px' }}>Contribution Frequency</div>
+                      <div className="commission-grid">
                         {['weekly', 'bi-weekly', 'monthly'].map(freq => (
                           <button
                             key={freq}
                             type="button"
-                            className={`compact-category-btn ${newGroup.frequency === freq ? 'selected' : ''}`}
+                            className={`commission-card ${newGroup.frequency === freq ? 'revenue' : 'pending'}`}
+                            style={{ cursor: 'pointer', textAlign: 'center' }}
                             onClick={() => setNewGroup({...newGroup, frequency: freq})}
                           >
-                            {freq.charAt(0).toUpperCase() + freq.slice(1)}
+                            <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>
+                              {freq === 'weekly' ? '📅' : 
+                               freq === 'bi-weekly' ? '🔄' : '📆'}
+                            </div>
+                            <div className="commission-label">
+                              {freq.charAt(0).toUpperCase() + freq.slice(1)}
+                            </div>
                           </button>
                         ))}
                       </div>
                     </div>
 
-                    <div className="compact-form-group">
-                      <label className="compact-form-label">Admin Fee (%)</label>
+                    <div style={{ marginBottom: '16px' }}>
+                      <div className="detail-label" style={{ marginBottom: '8px' }}>Admin Fee (%)</div>
                       <input
                         type="number"
-                        className="compact-form-input"
+                        className="share-input"
                         value={newGroup.adminFee}
                         onChange={(e) => setNewGroup({...newGroup, adminFee: e.target.value})}
                         placeholder="Optional admin fee"
@@ -1015,33 +1066,51 @@ const Groups = () => {
                 {/* Step 3 */}
                 {createStep === 3 && (
                   <div className="compact-step-content">
-                    <div className="compact-form-group">
-                      <label className="compact-form-label">Group Rules</label>
+                    <div style={{ marginBottom: '16px' }}>
+                      <div className="detail-label" style={{ marginBottom: '8px' }}>Group Rules</div>
                       <textarea
-                        className="compact-form-textarea"
+                        style={{ 
+                          width: '100%',
+                          padding: '12px',
+                          border: '1px solid #0033cc',
+                          borderRadius: '6px',
+                          background: '#f0f4ff',
+                          color: '#0033cc',
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: '12px',
+                          minHeight: '100px'
+                        }}
                         value={newGroup.rules}
                         onChange={(e) => setNewGroup({...newGroup, rules: e.target.value})}
                         placeholder="Define rules for contributions, withdrawals, penalties, etc."
-                        rows="4"
                       />
                     </div>
 
-                    <div className="compact-rules-list">
-                      <div className="compact-rule-item">
-                        <input type="checkbox" defaultChecked disabled />
-                        <span>Late contributions incur 5% penalty</span>
+                    <div style={{ marginTop: '16px' }}>
+                      <div style={{ fontSize: '12px', fontWeight: '600', color: '#0033cc', marginBottom: '8px' }}>Default Rules</div>
+                      <div className="alert-item" style={{ marginBottom: '4px' }}>
+                        <div style={{ flex: 1 }}>
+                          <div className="alert-type">Late contributions incur 5% penalty</div>
+                        </div>
+                        <span className="new-badge">Default</span>
                       </div>
-                      <div className="compact-rule-item">
-                        <input type="checkbox" defaultChecked disabled />
-                        <span>Withdrawals require 24 hours notice</span>
+                      <div className="alert-item" style={{ marginBottom: '4px' }}>
+                        <div style={{ flex: 1 }}>
+                          <div className="alert-type">Withdrawals require 24 hours notice</div>
+                        </div>
+                        <span className="new-badge">Default</span>
                       </div>
-                      <div className="compact-rule-item">
-                        <input type="checkbox" defaultChecked disabled />
-                        <span>Emergency withdrawals available</span>
+                      <div className="alert-item" style={{ marginBottom: '4px' }}>
+                        <div style={{ flex: 1 }}>
+                          <div className="alert-type">Emergency withdrawals available</div>
+                        </div>
+                        <span className="new-badge">Default</span>
                       </div>
-                      <div className="compact-rule-item">
-                        <input type="checkbox" defaultChecked disabled />
-                        <span>Monthly transparency reports</span>
+                      <div className="alert-item">
+                        <div style={{ flex: 1 }}>
+                          <div className="alert-type">Monthly transparency reports</div>
+                        </div>
+                        <span className="new-badge">Default</span>
                       </div>
                     </div>
                   </div>
@@ -1049,25 +1118,29 @@ const Groups = () => {
               </form>
             </div>
 
-            {/* Modal Actions */}
-            <div className="compact-modal-actions">
+            <div className="modal-footer">
               {createStep > 1 && (
                 <button 
-                  className="compact-modal-btn btn-secondary"
+                  className="activate-code-btn" 
+                  style={{ background: '#666' }}
                   onClick={() => setCreateStep(createStep - 1)}
                 >
                   Back
                 </button>
               )}
               <button 
-                className="compact-modal-btn btn-primary"
+                className="activate-code-btn"
                 onClick={handleCreateGroup}
               >
                 {createStep === 3 ? 'Create Group' : 'Continue'}
               </button>
               <button 
-                className="compact-modal-btn btn-secondary"
-                onClick={() => setShowCreateGroup(false)}
+                className="activate-code-btn" 
+                style={{ background: '#666' }}
+                onClick={() => {
+                  setShowCreateGroup(false);
+                  setCreateStep(1);
+                }}
               >
                 Cancel
               </button>
@@ -1078,91 +1151,106 @@ const Groups = () => {
 
       {/* Receipt Modal */}
       {showReceipt && currentReceipt && (
-        <div className="compact-modal-overlay">
-          <div className="compact-modal">
-            {/* Modal Header */}
-            <div className="compact-modal-header">
+        <div className="modal-overlay active">
+          <div className="modal-content">
+            <div className="modal-header">
               <h2>CONTRIBUTION RECEIPT</h2>
-              <div className="compact-modal-steps">
-                <span className="compact-step active">1</span>
-              </div>
-            </div>
-
-            {/* Modal Content */}
-            <div className="compact-modal-content">
-              <div className="compact-review-card">
-                <div className="compact-review-row">
-                  <div className="compact-review-group">
-                    <span className="compact-review-label">Receipt ID</span>
-                    <span className="compact-review-value">{currentReceipt.id}</span>
-                  </div>
-                  <div className="compact-review-group">
-                    <span className="compact-review-label">Date</span>
-                    <span className="compact-review-value">{currentReceipt.date}</span>
-                  </div>
-                </div>
-                <div className="compact-review-row">
-                  <div className="compact-review-group">
-                    <span className="compact-review-label">Group</span>
-                    <span className="compact-review-value">{currentReceipt.groupName}</span>
-                  </div>
-                  <div className="compact-review-group">
-                    <span className="compact-review-label">Type</span>
-                    <span className="compact-review-value">{currentReceipt.groupType}</span>
-                  </div>
-                </div>
-                <div className="compact-review-row">
-                  <div className="compact-review-group">
-                    <span className="compact-review-label">Amount</span>
-                    <span className="compact-review-value" style={{ color: '#10b981', fontWeight: '700' }}>
-                      UGX {currentReceipt.amount.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="compact-review-group">
-                    <span className="compact-review-label">Status</span>
-                    <span className="compact-review-value" style={{ color: '#10b981' }}>
-                      {currentReceipt.status}
-                    </span>
-                  </div>
-                </div>
-                <div className="compact-review-row">
-                  <div className="compact-review-group">
-                    <span className="compact-review-label">Reference</span>
-                    <span className="compact-review-value">{currentReceipt.reference}</span>
-                  </div>
-                  <div className="compact-review-group">
-                    <span className="compact-review-label">Transaction ID</span>
-                    <span className="compact-review-value">{currentReceipt.transactionId}</span>
-                  </div>
-                </div>
-                <div className="compact-review-row">
-                  <div className="compact-review-group">
-                    <span className="compact-review-label">Member</span>
-                    <span className="compact-review-value">{currentReceipt.memberName}</span>
-                  </div>
-                  <div className="compact-review-group">
-                    <span className="compact-review-label">Member ID</span>
-                    <span className="compact-review-value">{currentReceipt.memberId}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Actions */}
-            <div className="compact-modal-actions">
               <button 
-                className="compact-modal-btn btn-secondary"
+                className="modal-close"
+                onClick={() => setShowReceipt(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div style={{ 
+                padding: '20px', 
+                background: 'white', 
+                borderRadius: '8px', 
+                border: '1px solid #e0e0e0',
+                maxWidth: '400px',
+                margin: '0 auto'
+              }}>
+                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                  <div style={{ fontSize: '24px', color: '#0033cc', marginBottom: '8px' }}>✓</div>
+                  <div style={{ fontSize: '16px', fontWeight: '600', color: '#0033cc' }}>Payment Confirmed</div>
+                </div>
+                
+                <div className="detail-row">
+                  <span className="detail-label">Receipt ID</span>
+                  <span className="detail-value" style={{ fontFamily: 'monospace' }}>{currentReceipt.id}</span>
+                </div>
+                
+                <div className="detail-row">
+                  <span className="detail-label">Date</span>
+                  <span className="detail-value">{currentReceipt.date}</span>
+                </div>
+                
+                <div className="detail-row">
+                  <span className="detail-label">Group</span>
+                  <span className="detail-value">{currentReceipt.groupName}</span>
+                </div>
+                
+                <div className="detail-row">
+                  <span className="detail-label">Type</span>
+                  <span className="detail-value">{currentReceipt.groupType}</span>
+                </div>
+                
+                <div className="detail-row highlight">
+                  <span className="detail-label">Amount</span>
+                  <span className="detail-value" style={{ color: '#2e7d32', fontWeight: '700' }}>
+                    UGX {currentReceipt.amount.toLocaleString()}
+                  </span>
+                </div>
+                
+                <div className="detail-row">
+                  <span className="detail-label">Reference</span>
+                  <span className="detail-value" style={{ fontFamily: 'monospace' }}>{currentReceipt.reference}</span>
+                </div>
+                
+                <div className="detail-row">
+                  <span className="detail-label">Transaction ID</span>
+                  <span className="detail-value" style={{ fontFamily: 'monospace' }}>{currentReceipt.transactionId}</span>
+                </div>
+                
+                <div className="detail-row">
+                  <span className="detail-label">Member</span>
+                  <span className="detail-value">{currentReceipt.memberName}</span>
+                </div>
+                
+                <div className="detail-row">
+                  <span className="detail-label">Member ID</span>
+                  <span className="detail-value">{currentReceipt.memberId}</span>
+                </div>
+                
+                <div className="detail-row">
+                  <span className="detail-label">Status</span>
+                  <span className="detail-value">
+                    <span className="status-badge valid">{currentReceipt.status}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="activate-code-btn" 
+                style={{ background: '#666' }}
                 onClick={() => setShowReceipt(false)}
               >
                 Close
               </button>
               <button 
-                className="compact-modal-btn btn-primary"
+                className="activate-code-btn"
                 onClick={handleDownloadReceipt}
               >
                 Download Receipt
               </button>
-              <button className="compact-modal-btn btn-secondary">
+              <button 
+                className="activate-code-btn" 
+                style={{ background: '#f0f4ff', color: '#0033cc' }}
+              >
                 Share
               </button>
             </div>
@@ -1172,363 +1260,31 @@ const Groups = () => {
 
       {/* Toast Notification */}
       {showToast && (
-        <div className="compact-toast">
-          <div className="compact-toast-content">
-            <div className="compact-toast-icon">✅</div>
-            <div>
-              <div className="compact-toast-title">Success!</div>
-              <div className="compact-toast-message">{toastMessage}</div>
-            </div>
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          background: 'white',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          boxShadow: '0 4px 12px rgba(0, 51, 204, 0.2)',
+          borderLeft: '4px solid #2e7d32',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          zIndex: '1001',
+          animation: 'slideIn 0.3s ease',
+          maxWidth: '300px'
+        }}>
+          <div style={{ fontSize: '20px', color: '#2e7d32' }}>✓</div>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#0033cc' }}>Success!</div>
+            <div style={{ fontSize: '11px', color: '#666', lineHeight: '1.3' }}>{toastMessage}</div>
           </div>
         </div>
       )}
 
       <style jsx>{`
-        /* Groups Specific Styles */
-        .compact-group-cell {
-          display: flex;
-          flex-direction: column;
-          gap: 0.125rem;
-        }
-
-        .compact-group-name {
-          font-weight: 600;
-          color: #1e293b;
-          font-size: 0.7rem;
-        }
-
-        .compact-group-desc {
-          color: #64748b;
-          font-size: 0.65rem;
-          line-height: 1.2;
-        }
-
-        .compact-group-type {
-          display: inline-block;
-          padding: 0.125rem 0.375rem;
-          border-radius: 3px;
-          font-size: 0.65rem;
-          font-weight: 600;
-          border: 1px solid;
-          text-transform: uppercase;
-          letter-spacing: 0.3px;
-        }
-
-        .compact-members {
-          font-size: 0.7rem;
-          font-weight: 600;
-          color: #1e293b;
-        }
-
-        .compact-progress-section {
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-
-        .compact-progress-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .compact-progress-header span {
-          font-size: 0.65rem;
-          font-weight: 600;
-          color: #3b82f6;
-        }
-
-        .compact-next-due {
-          display: flex;
-          justify-content: center;
-        }
-
-        .due-badge {
-          padding: 0.125rem 0.375rem;
-          border-radius: 3px;
-          font-size: 0.65rem;
-          font-weight: 600;
-          background: #fef3c7;
-          color: #d97706;
-          border: 1px solid #fde68a;
-        }
-
-        .compact-action-buttons {
-          display: flex;
-          gap: 0.25rem;
-        }
-
-        .compact-action-btn.contribute {
-          background: #3b82f6;
-          color: white;
-          border: none;
-          font-size: 0.65rem;
-          padding: 0.25rem 0.375rem;
-          border-radius: 3px;
-          cursor: pointer;
-          font-weight: 500;
-        }
-
-        .compact-action-btn.view {
-          background: #dbeafe;
-          color: #1e40af;
-          border: none;
-          font-size: 0.65rem;
-          padding: 0.25rem 0.375rem;
-          border-radius: 3px;
-          cursor: pointer;
-          font-weight: 500;
-        }
-
-        .compact-action-btn.join {
-          background: #10b981;
-          color: white;
-          border: none;
-          font-size: 0.65rem;
-          padding: 0.25rem 0.375rem;
-          border-radius: 3px;
-          cursor: pointer;
-          font-weight: 500;
-          min-width: 50px;
-        }
-
-        .compact-frequency {
-          font-size: 0.7rem;
-          color: #475569;
-          font-weight: 500;
-        }
-
-        .compact-status {
-          display: inline-block;
-          padding: 0.125rem 0.375rem;
-          border-radius: 3px;
-          font-size: 0.65rem;
-          font-weight: 600;
-        }
-
-        .compact-status.public {
-          background: #d1fae5;
-          color: #059669;
-          border: 1px solid #a7f3d0;
-        }
-
-        .compact-status.private {
-          background: #fef3c7;
-          color: #d97706;
-          border: 1px solid #fde68a;
-        }
-
-        .compact-status.completed {
-          background: #d1fae5;
-          color: #059669;
-          border: 1px solid #a7f3d0;
-        }
-
-        .compact-status.pending {
-          background: #fef3c7;
-          color: #d97706;
-          border: 1px solid #fde68a;
-        }
-
-        .compact-member-badge {
-          display: inline-block;
-          padding: 0.125rem 0.375rem;
-          border-radius: 3px;
-          font-size: 0.65rem;
-          font-weight: 600;
-          background: #f1f5f9;
-          color: #64748b;
-          border: 1px solid #e2e8f0;
-        }
-
-        .compact-total-amount {
-          font-size: 0.7rem;
-          font-weight: 600;
-          color: #1e40af;
-          background: #eff6ff;
-          padding: 0.375rem 0.75rem;
-          border-radius: 4px;
-          border: 1px solid #dbeafe;
-        }
-
-        .compact-type-badge {
-          display: inline-block;
-          padding: 0.125rem 0.375rem;
-          border-radius: 3px;
-          font-size: 0.65rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.3px;
-        }
-
-        .compact-pending {
-          font-size: 0.65rem;
-          color: #94a3b8;
-          font-style: italic;
-        }
-
-        /* Analytics Styles */
-        .compact-group-details {
-          margin-top: 0.5rem;
-          padding: 0.5rem;
-          background: #f8fafc;
-          border-radius: 4px;
-          border: 1px solid #e2e8f0;
-        }
-
-        .compact-detail-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 0.25rem;
-          font-size: 0.7rem;
-        }
-
-        .compact-detail-row:last-child {
-          margin-bottom: 0;
-        }
-
-        .compact-detail-row span {
-          color: #64748b;
-        }
-
-        .compact-detail-row strong {
-          color: #1e293b;
-          font-weight: 600;
-        }
-
-        /* Quick Actions */
-        .compact-quick-actions {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 0.5rem;
-          margin-bottom: 1rem;
-        }
-
-        .compact-quick-actions .compact-action-btn {
-          width: 100%;
-          justify-content: center;
-          font-size: 0.7rem;
-          padding: 0.5rem;
-        }
-
-        /* Benefits List */
-        .compact-benefits-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-        }
-
-        .compact-benefit-item {
-          display: flex;
-          gap: 0.5rem;
-          padding: 0.75rem;
-          background: #f8fafc;
-          border-radius: 4px;
-          border: 1px solid #e2e8f0;
-        }
-
-        .compact-benefit-icon {
-          font-size: 1rem;
-          flex-shrink: 0;
-        }
-
-        .compact-benefit-title {
-          font-weight: 600;
-          color: #1e293b;
-          font-size: 0.7rem;
-          margin-bottom: 0.125rem;
-        }
-
-        .compact-benefit-desc {
-          color: #64748b;
-          font-size: 0.65rem;
-          line-height: 1.2;
-        }
-
-        /* Create Group Form */
-        .compact-checkbox-label {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.7rem;
-          color: #475569;
-          cursor: pointer;
-        }
-
-        .compact-checkbox {
-          width: 14px;
-          height: 14px;
-          cursor: pointer;
-        }
-
-        .compact-rules-list {
-          margin-top: 1rem;
-          padding: 0.75rem;
-          background: #f8fafc;
-          border-radius: 4px;
-          border: 1px solid #e2e8f0;
-        }
-
-        .compact-rule-item {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          margin-bottom: 0.5rem;
-          font-size: 0.7rem;
-          color: #475569;
-        }
-
-        .compact-rule-item:last-child {
-          margin-bottom: 0;
-        }
-
-        .compact-rule-item input {
-          cursor: not-allowed;
-        }
-
-        /* Toast Notification */
-        .compact-toast {
-          position: fixed;
-          bottom: 1rem;
-          right: 1rem;
-          background: white;
-          border-radius: 4px;
-          padding: 0.75rem;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          border-left: 3px solid #10b981;
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          z-index: 1001;
-          animation: slideIn 0.3s ease;
-          max-width: 300px;
-        }
-
-        .compact-toast-content {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-        }
-
-        .compact-toast-icon {
-          font-size: 1rem;
-          color: #10b981;
-        }
-
-        .compact-toast-title {
-          font-weight: 600;
-          color: #1e293b;
-          font-size: 0.7rem;
-          margin-bottom: 0.125rem;
-        }
-
-        .compact-toast-message {
-          color: #64748b;
-          font-size: 0.65rem;
-          line-height: 1.2;
-        }
-
         @keyframes slideIn {
           from {
             transform: translateX(100%);
@@ -1540,14 +1296,123 @@ const Groups = () => {
           }
         }
 
-        /* Responsive Adjustments */
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 12px;
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+          opacity: 1;
+          visibility: visible;
+        }
+
+        .modal-content {
+          background: white;
+          border-radius: 8px;
+          width: 100%;
+          max-width: 500px;
+          max-height: 90vh;
+          overflow-y: auto;
+          animation: slideUp 0.3s ease-out;
+        }
+
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 20px;
+          border-bottom: 1px solid #e0e0e0;
+          background: #0033cc;
+          color: white;
+          border-radius: 8px 8px 0 0;
+        }
+
+        .modal-header h2 {
+          font-size: 16px;
+          font-weight: 600;
+          margin: 0;
+        }
+
+        .modal-close {
+          background: none;
+          border: none;
+          font-size: 24px;
+          color: white;
+          cursor: pointer;
+          padding: 0;
+          line-height: 1;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 4px;
+          transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+          padding: 20px;
+        }
+
+        .modal-footer {
+          display: flex;
+          gap: 12px;
+          padding: 16px 20px;
+          border-top: 1px solid #e0e0e0;
+          background: #f8f9fa;
+          border-radius: 0 0 8px 8px;
+        }
+
         @media (max-width: 768px) {
-          .compact-content-grid > .compact-table-section {
-            grid-column: span 1;
+          .modal-footer {
+            flex-direction: column;
           }
           
-          .compact-quick-actions {
-            grid-template-columns: repeat(2, 1fr);
+          .modal-header {
+            padding: 12px 16px;
+          }
+          
+          .modal-body {
+            padding: 16px;
+          }
+          
+          .modal-footer {
+            padding: 12px 16px;
+          }
+          
+          .alerts-section {
+            grid-template-columns: 1fr;
+          }
+          
+          .referral-alerts {
+            grid-column: span 1;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .modal-content {
+            max-width: 100%;
+            margin: 0;
+          }
+          
+          .stats-grid {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>

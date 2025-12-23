@@ -1,2264 +1,1566 @@
-"use client"
+import React, { useState } from 'react';
+import {
+  Box,
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  Grid,
+  TextField,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Paper,
+  useTheme,
+  useMediaQuery,
+  IconButton,
+  Snackbar,
+  Alert,
+  Divider,
+  Checkbox,
+  FormControlLabel,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Slider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  InputAdornment
+} from '@mui/material';
+import {
+  DeliveryDining,
+  LocationOn,
+  LocationOff,
+  AttachMoney,
+  CameraAlt,
+  CheckCircle,
+  Close,
+  Add,
+  CloudUpload,
+  Draw,
+  ArrowForward,
+  BarChart,
+  ReportProblem,
+  FileDownload,
+  Share,
+  NotificationsNone,
+  Search,
+  Visibility,
+  ChevronLeft,
+  ChevronRight
+} from '@mui/icons-material';
 
-import { useState, useEffect, useRef } from "react"
-import "./d.css"
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
-import * as XLSX from 'xlsx'
+const SimpleDeliveryPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-const Deliveries = () => {
-  const [currentView, setCurrentView] = useState("dashboard")
-  const [deliveryData, setDeliveryData] = useState({
-    customerName: "",
-    customerPhone: "",
-    packageDescription: "",
-    packageWeight: "",
-    deliveryType: "same-day",
-    pickupAddress: "",
-    dropoffAddress: "",
-    recipientName: "",
-    recipientPhone: "",
-    estimatedPrice: 3000,
-  })
+  const [activeDelivery, setActiveDelivery] = useState(null);
+  const [showNewDeliveryDialog, setShowNewDeliveryDialog] = useState(false);
+  const [showProofDialog, setShowProofDialog] = useState(false);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  const [activeDelivery, setActiveDelivery] = useState(null)
-  const [timer, setTimer] = useState(0)
-  const [distance, setDistance] = useState(0)
-  const [paymentAmount, setPaymentAmount] = useState(0)
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("")
-  const [recipientCode, setRecipientCode] = useState("")
-  const [deliveryNotes, setDeliveryNotes] = useState("")
-  const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [showSuccessModal, setShowSuccessModal] = useState(false)
-  const [showReceipt, setShowReceipt] = useState(false)
-  const [showMultipleDelivery, setShowMultipleDelivery] = useState(false)
-  const [uploadedFile, setUploadedFile] = useState(null)
-  const [receiptData, setReceiptData] = useState(null)
+  const [deliveryPeriod, setDeliveryPeriod] = useState('daily');
 
-  // History filters
-  const [searchQuery, setSearchQuery] = useState("")
-  const [filterStatus, setFilterStatus] = useState("all")
-  const [filterType, setFilterType] = useState("all")
-  const [filterPayment, setFilterPayment] = useState("all")
-  const [filterRoute, setFilterRoute] = useState("all")
-  const [minAmount, setMinAmount] = useState(0)
-  const [maxAmount, setMaxAmount] = useState(15000)
-  const [sortBy, setSortBy] = useState("date")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [analyticsView, setAnalyticsView] = useState("daily")
-  const [analyticsData, setAnalyticsData] = useState({
-    daily: {
-      totalDeliveries: 25,
-      totalRevenue: 40000,
-      completedDeliveries: 22,
-      failedDeliveries: 3,
-      revenueChange: "+2.5%",
-      completedChange: "+20.5%",
-      failedChange: "-2.5%",
-    },
-    weekly: {
-      totalDeliveries: 125,
-      totalRevenue: 180000,
-      completedDeliveries: 102,
-      failedDeliveries: 23,
-      revenueChange: "+12.5%",
-      completedChange: "+15.5%",
-      failedChange: "-5.5%",
-    },
-    monthly: {
-      totalDeliveries: 450,
-      totalRevenue: 750000,
-      completedDeliveries: 385,
-      failedDeliveries: 65,
-      revenueChange: "+25.5%",
-      completedChange: "+30.5%",
-      failedChange: "-8.5%",
-    }
-  })
+  const [historySearch, setHistorySearch] = useState('');
+  const [historyStatus, setHistoryStatus] = useState('all');
+  const [historyType, setHistoryType] = useState('all');
+  const [historyPayment, setHistoryPayment] = useState('all');
+  const [historyRoute, setHistoryRoute] = useState('all');
+  const [historyAmountRange, setHistoryAmountRange] = useState([0, 3000]);
+  const [historySortBy, setHistorySortBy] = useState('date');
+  const [historySortOrder, setHistorySortOrder] = useState('newest');
+  const [historyPage, setHistoryPage] = useState(0);
+  const historyRowsPerPage = 8;
 
-  // Sample delivery history data
-  const [deliveryHistory] = useState([
+  const [deliveryForm, setDeliveryForm] = useState({
+    pickupLocation: '',
+    dropoffLocation: '',
+    deliveryFee: ''
+  });
+
+  const [proofOptions, setProofOptions] = useState({
+    uploadPhoto: false,
+    uploadSignature: false
+  });
+
+  const [todayStats, setTodayStats] = useState({
+    deliveries: 0,
+    earnings: 0,
+    expenses: 0
+  });
+
+  const [deliveryHistory, setDeliveryHistory] = useState([
     {
-      id: "DEL-007",
-      customerName: "James",
-      customerPhone: "0789 898 898",
-      route: "Kireka - Banda",
-      deliveryType: "Same-Day Delivery",
-      distance: "5.2km",
-      duration: "12min",
-      amount: 2000,
-      paymentMethod: "Cash",
-      status: "Completed",
-      date: "2025-01-15",
-      time: "09:30 AM",
-    },
-    {
-      id: "DEL-008",
-      customerName: "Peter",
-      customerPhone: "0787 009 890",
-      route: "Gulu - Nabuti",
-      deliveryType: "Same-Day Delivery",
-      distance: "8.7km",
-      duration: "12min",
-      amount: 8000,
-      paymentMethod: "Cash",
-      status: "Cancelled",
-      date: "2025-01-15",
-      time: "10:15 AM",
-    },
-    {
-      id: "DEL-009",
-      customerName: "Wise",
-      customerPhone: "0787 009 890",
-      route: "Kireka - Banda",
-      deliveryType: "Express",
-      distance: "4.5km",
-      duration: "30min",
-      amount: 3000,
-      paymentMethod: "MTN MoMo",
-      status: "Completed",
-      date: "2025-01-15",
-      time: "11:00 AM",
+      id: 1,
+      deliveryId: 'Del-007',
+      pickup: 'Mukono',
+      dropoff: 'Kampala',
+      fee: 2000,
+      paymentMethod: 'Cash',
+      deliveryType: 'Same Day Delivery',
+      durationMin: 12,
+      tags: ['Manual Override'],
+      recipientName: 'JohnBosco',
+      recipientPhone: '+256 7890 988 990',
+      descriptionText: 'Package Delivered To Recipient',
+      distanceKm: 5.3,
+      customer: 'JohnBosco',
+      status: 'completed',
+      time: '2:02 PM',
+      date: '02/12/2025',
+      proof: true
     },
     {
-      id: "DEL-010",
-      customerName: "Alex",
-      customerPhone: "0789 009 890",
-      route: "Kampala - Banda",
-      deliveryType: "Same-Day Delivery",
-      distance: "2.2km",
-      duration: "14min",
-      amount: 5000,
-      paymentMethod: "MTN MoMo",
-      status: "Completed",
-      date: "2025-01-15",
-      time: "02:45 PM",
+      id: 2,
+      deliveryId: 'Del-007',
+      pickup: 'Gulu',
+      dropoff: 'Nabulu',
+      fee: 2000,
+      paymentMethod: 'Cash',
+      deliveryType: 'Same Day Delivery',
+      durationMin: 12,
+      tags: [],
+      recipientName: 'Peter',
+      recipientPhone: '+256 7890 988 990',
+      descriptionText: 'Delivery Canceled',
+      distanceKm: 8.7,
+      customer: 'Peter',
+      status: 'cancelled',
+      time: '2:02 PM',
+      date: '02/12/2025',
+      proof: false
     },
-  ])
-
-  // Chart data
-  const [chartData] = useState({
-    deliverySummary: [
-      { day: "Mon", completed: 45, failed: 12 },
-      { day: "Tue", completed: 52, failed: 8 },
-      { day: "Wed", completed: 48, failed: 10 },
-      { day: "Thu", completed: 55, failed: 5 },
-      { day: "Fri", completed: 60, failed: 15 },
-      { day: "Sat", completed: 40, failed: 20 },
-      { day: "Sun", completed: 35, failed: 5 }
-    ],
-    revenueBreakdown: [
-      { type: "Same-Day", amount: 25000, color: "#002AFE", percentage: 40 },
-      { type: "Express", amount: 15000, color: "#FEF132", percentage: 25 },
-      { type: "Bulk", amount: 10000, color: "#ef4444", percentage: 15 },
-      { type: "Standard", amount: 5000, color: "#10b981", percentage: 20 }
-    ],
-    paymentMethods: [
-      { method: "Cash", trend: [150, 120, 80, 90, 60, 70, 50, 45, 40], color: "#002AFE" },
-      { method: "MTN MoMo", trend: [180, 160, 150, 145, 140, 135, 130, 125, 120], color: "#FEF132" },
-      { method: "Airtel Money", trend: [190, 185, 175, 165, 160, 155, 150, 145, 140], color: "#ef4444" },
-      { method: "Visa", trend: [195, 193, 190, 188, 185, 183, 180, 178, 175], color: "#1e293b" }
-    ]
-  })
-
-  const receiptRef = useRef(null)
-
-  // Handle body scrolling when modals are open
-  useEffect(() => {
-    if (showPaymentModal || showSuccessModal || showReceipt || showMultipleDelivery) {
-      document.body.classList.add('modal-open')
-    } else {
-      document.body.classList.remove('modal-open')
+    {
+      id: 3,
+      deliveryId: 'Del-007',
+      pickup: 'Kampala',
+      dropoff: 'Bondo',
+      fee: 3000,
+      paymentMethod: 'MTN MoMo',
+      deliveryType: 'Same Day Delivery',
+      durationMin: 14,
+      tags: [],
+      recipientName: 'Mark',
+      recipientPhone: '+256 7890 988 990',
+      descriptionText: 'Package Delivered To Recipient',
+      distanceKm: 2.2,
+      customer: 'Mark',
+      status: 'completed',
+      time: '1:44 PM',
+      date: '02/12/2025',
+      proof: true
+    },
+    {
+      id: 4,
+      deliveryId: 'Del-007',
+      pickup: 'Kireka',
+      dropoff: 'Nonda',
+      fee: 3000,
+      paymentMethod: 'MTN MoMo',
+      deliveryType: 'Express',
+      durationMin: 30,
+      tags: [],
+      recipientName: 'Wise',
+      recipientPhone: '+256 7890 988 990',
+      descriptionText: 'Package Delivered To Recipient',
+      distanceKm: 4.5,
+      customer: 'Wise',
+      status: 'completed',
+      time: '12:30 PM',
+      date: '02/12/2025',
+      proof: true
+    },
+    {
+      id: 5,
+      deliveryId: 'Del-007',
+      pickup: 'Kireka',
+      dropoff: 'Kanda',
+      fee: 2000,
+      paymentMethod: 'MTN MoMo',
+      deliveryType: 'Bulk',
+      durationMin: 27,
+      tags: [],
+      recipientName: 'Wise',
+      recipientPhone: '+256 7890 988 990',
+      descriptionText: 'Delivery Pending',
+      distanceKm: 12.9,
+      customer: 'Wise',
+      status: 'pending',
+      time: '11:47 AM',
+      date: '02/12/2025',
+      proof: false
+    },
+    {
+      id: 6,
+      deliveryId: 'Del-007',
+      pickup: 'Kireka',
+      dropoff: 'Bondo',
+      fee: 2000,
+      paymentMethod: 'Cash',
+      deliveryType: 'Same Day Delivery',
+      durationMin: 47,
+      tags: [],
+      recipientName: 'Alex',
+      recipientPhone: '+256 7890 988 990',
+      descriptionText: 'Delivery Canceled',
+      distanceKm: 5.3,
+      customer: 'Alex',
+      status: 'cancelled',
+      time: '11:03 AM',
+      date: '02/12/2025',
+      proof: false
+    },
+    {
+      id: 7,
+      deliveryId: 'Del-007',
+      pickup: 'Kireka',
+      dropoff: 'Nonda',
+      fee: 3000,
+      paymentMethod: 'Cash',
+      deliveryType: 'Express',
+      durationMin: 7,
+      tags: [],
+      recipientName: 'Null',
+      recipientPhone: '+256 7890 988 990',
+      descriptionText: 'Package Delivered To Recipient',
+      distanceKm: 5.3,
+      customer: 'Null',
+      status: 'completed',
+      time: '10:31 AM',
+      date: '02/12/2025',
+      proof: true
+    },
+    {
+      id: 8,
+      deliveryId: 'Del-007',
+      pickup: 'Kireka',
+      dropoff: 'Nonda',
+      fee: 3000,
+      paymentMethod: 'Split Pay',
+      deliveryType: 'Same Day Delivery',
+      durationMin: 7,
+      tags: [],
+      recipientName: 'Null',
+      recipientPhone: '+256 7890 988 990',
+      descriptionText: 'Package Delivered To Recipient',
+      distanceKm: 5.3,
+      customer: 'Null',
+      status: 'completed',
+      time: '10:05 AM',
+      date: '02/12/2025',
+      proof: true
     }
-    
-    return () => {
-      document.body.classList.remove('modal-open')
-    }
-  }, [showPaymentModal, showSuccessModal, showReceipt, showMultipleDelivery])
+  ]);
 
-  // Timer for active delivery
-  useEffect(() => {
-    let interval
-    if (activeDelivery && currentView === "active-delivery") {
-      interval = setInterval(() => {
-        setTimer((prev) => prev + 1)
-        setDistance((prev) => prev + 0.01)
-      }, 1000)
-    }
-    return () => clearInterval(interval)
-  }, [activeDelivery, currentView])
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
 
-  const formatTime = (seconds) => {
-    const hrs = Math.floor(seconds / 3600)
-    const mins = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
-    return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
-  }
+  const formatDeliveryId = (d) => {
+    if (d?.deliveryId) return d.deliveryId;
+    const n = typeof d?.id === 'number' ? d.id : 0;
+    return `Del-${String(n).slice(-3).padStart(3, '0')}`;
+  };
+
+  const getDeliveryType = (d) => {
+    if (d?.deliveryType) return d.deliveryType;
+    return d?.fee > 0 ? 'Same Day Delivery' : 'Express';
+  };
+
+  const getDurationMin = (d) => {
+    if (typeof d?.durationMin === 'number') return d.durationMin;
+    return Math.max(7, Math.min(60, Math.round(((d?.distanceKm ?? 0) * 7) + 7)));
+  };
+
+  const getPaymentChipSx = (method) => {
+    const m = (method || '').toLowerCase();
+    if (m.includes('cash')) return { backgroundColor: '#E8FFF0', borderColor: '#22C55E', color: '#166534', fontWeight: 700 };
+    if (m.includes('momo') || m.includes('mtn')) return { backgroundColor: '#FFF7D6', borderColor: '#F59E0B', color: '#92400E', fontWeight: 700 };
+    if (m.includes('split')) return { backgroundColor: '#EEF2FF', borderColor: '#6366F1', color: '#3730A3', fontWeight: 700 };
+    return { backgroundColor: '#F3F4F6', borderColor: '#D1D5DB', color: '#111827', fontWeight: 700 };
+  };
+
+  const getStatusChipSx = (status) => {
+    const s = (status || '').toLowerCase();
+    if (s === 'completed' || s === 'complete') return { backgroundColor: '#E8FFF0', borderColor: '#22C55E', color: '#166534', fontWeight: 800 };
+    if (s === 'cancelled' || s === 'canceled') return { backgroundColor: '#FFECEC', borderColor: '#EF4444', color: '#991B1B', fontWeight: 800 };
+    if (s === 'pending') return { backgroundColor: '#FFF7D6', borderColor: '#F59E0B', color: '#92400E', fontWeight: 800 };
+    return { backgroundColor: '#F3F4F6', borderColor: '#D1D5DB', color: '#111827', fontWeight: 800 };
+  };
+
+  const uniqueRoutes = Array.from(
+    new Set(
+      (deliveryHistory || [])
+        .map((d) => `${d?.pickup ?? ''} - ${d?.dropoff ?? ''}`.trim())
+        .filter((r) => r && r !== '-')
+    )
+  );
+
+  const filteredHistory = (deliveryHistory || [])
+    .filter((d) => {
+      const q = historySearch.trim().toLowerCase();
+      if (!q) return true;
+      const hay = [
+        formatDeliveryId(d),
+        d?.recipientName,
+        d?.customer,
+        d?.recipientPhone,
+        d?.pickup,
+        d?.dropoff
+      ]
+        .filter(Boolean)
+        .join(' | ')
+        .toLowerCase();
+      return hay.includes(q);
+    })
+    .filter((d) => {
+      if (historyStatus === 'all') return true;
+      return (d?.status || '').toLowerCase() === historyStatus;
+    })
+    .filter((d) => {
+      if (historyType === 'all') return true;
+      return getDeliveryType(d) === historyType;
+    })
+    .filter((d) => {
+      if (historyPayment === 'all') return true;
+      return (d?.paymentMethod || '').toLowerCase() === historyPayment;
+    })
+    .filter((d) => {
+      if (historyRoute === 'all') return true;
+      return `${d?.pickup ?? ''} - ${d?.dropoff ?? ''}` === historyRoute;
+    })
+    .filter((d) => {
+      const fee = Number(d?.fee ?? 0);
+      return fee >= historyAmountRange[0] && fee <= historyAmountRange[1];
+    })
+    .sort((a, b) => {
+      const dir = historySortOrder === 'newest' ? -1 : 1;
+      if (historySortBy === 'amount') return (Number(a?.fee ?? 0) - Number(b?.fee ?? 0)) * dir;
+      if (historySortBy === 'distance') return (Number(a?.distanceKm ?? 0) - Number(b?.distanceKm ?? 0)) * dir;
+      return (Number(a?.id ?? 0) - Number(b?.id ?? 0)) * dir;
+    });
+
+  const historyTotalPages = Math.max(1, Math.ceil(filteredHistory.length / historyRowsPerPage));
+  const historyPageSafe = Math.min(historyPage, historyTotalPages - 1);
+  const historyStart = historyPageSafe * historyRowsPerPage;
+  const historyEnd = historyStart + historyRowsPerPage;
+  const pagedHistory = filteredHistory.slice(historyStart, historyEnd);
+
+  const clearHistoryFilters = () => {
+    setHistorySearch('');
+    setHistoryStatus('all');
+    setHistoryType('all');
+    setHistoryPayment('all');
+    setHistoryRoute('all');
+    setHistoryAmountRange([0, 3000]);
+    setHistorySortBy('date');
+    setHistorySortOrder('newest');
+    setHistoryPage(0);
+  };
+
+  const handleInputChange = (field) => (event) => {
+    setDeliveryForm(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+  };
+
+  const handleProofOptionChange = (option) => (event) => {
+    setProofOptions(prev => ({
+      ...prev,
+      [option]: event.target.checked
+    }));
+  };
 
   const handleStartDelivery = () => {
-    if (!deliveryData.customerName || !deliveryData.pickupAddress || !deliveryData.dropoffAddress) {
-      alert("Please fill in all required fields")
-      return
+    if (!deliveryForm.pickupLocation || !deliveryForm.dropoffLocation || !deliveryForm.deliveryFee) {
+      showSnackbar('Please fill in pickup, drop-off locations and delivery fee', 'error');
+      return;
     }
 
-    setActiveDelivery({
-      ...deliveryData,
-      id: `DLV-${Date.now().toString().slice(-6)}`,
-      startTime: new Date(),
-    })
-    setTimer(0)
-    setDistance(0)
-    setCurrentView("active-delivery")
-  }
+    const newDelivery = {
+      id: Date.now(),
+      pickup: deliveryForm.pickupLocation,
+      dropoff: deliveryForm.dropoffLocation,
+      fee: parseInt(deliveryForm.deliveryFee),
+      customer: 'Customer',
+      recipientName: 'Recipient',
+      recipientPhone: '+256 000 000 000',
+      descriptionText: 'Package Delivery',
+      paymentMethod: 'Cash',
+      tags: [],
+      distanceKm: 0,
+      startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: 'active',
+      proofOptions: { ...proofOptions }
+    };
 
-  const handleEndDelivery = () => {
-    setCurrentView("complete-delivery")
-  }
-
-  const handleReceiveMoney = () => {
-    setPaymentAmount(activeDelivery?.estimatedPrice || deliveryData.estimatedPrice)
-    setShowPaymentModal(true)
-  }
-
-  const handlePaymentContinue = () => {
-    if (!selectedPaymentMethod) {
-      alert("Please select a payment method")
-      return
-    }
+    setActiveDelivery(newDelivery);
+    setShowNewDeliveryDialog(false);
     
-    // Generate receipt
-    const receipt = {
-      id: activeDelivery?.id || `REC-${Date.now().toString().slice(-6)}`,
-      amount: paymentAmount,
-      paymentMethod: selectedPaymentMethod,
-      date: new Date().toLocaleDateString(),
-      time: new Date().toLocaleTimeString(),
-      customerName: activeDelivery?.customerName || deliveryData.customerName,
-      customerPhone: activeDelivery?.customerPhone || deliveryData.customerPhone,
-      deliveryType: activeDelivery?.deliveryType || deliveryData.deliveryType,
-      recipientCode: recipientCode,
-    }
+    // Reset form
+    setDeliveryForm({
+      pickupLocation: '',
+      dropoffLocation: '',
+      deliveryFee: ''
+    });
+
+    setProofOptions({
+      uploadPhoto: false,
+      uploadSignature: false
+    });
+
+    showSnackbar('Delivery started!');
+  };
+
+  const handleCompleteDelivery = () => {
+    if (!activeDelivery) return;
+
+    const completedDelivery = {
+      ...activeDelivery,
+      id: Date.now(),
+      status: 'completed',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      date: 'Today',
+      proof: true
+    };
+
+    setDeliveryHistory(prev => [completedDelivery, ...prev]);
     
-    setReceiptData(receipt)
-    setShowPaymentModal(false)
-    setShowSuccessModal(true)
-  }
+    // Update today's stats
+    setTodayStats(prev => ({
+      deliveries: prev.deliveries + 1,
+      earnings: prev.earnings + activeDelivery.fee,
+      expenses: prev.expenses
+    }));
 
-  const handlePaymentSuccess = () => {
-    setShowSuccessModal(false)
-    setShowReceipt(true)
-  }
+    setActiveDelivery(null);
+    setShowProofDialog(true);
+    showSnackbar('Delivery completed!');
+  };
 
-  const generateRecipientCode = () => {
-    const code = Math.floor(100000 + Math.random() * 900000).toString()
-    setRecipientCode(code)
-  }
+  const handleTakeProofPhoto = () => {
+    showSnackbar('Proof captured successfully!');
+    setShowProofDialog(false);
+  };
 
-  // Export functionality
-  const exportToPDF = async () => {
-    if (receiptRef.current) {
-      const canvas = await html2canvas(receiptRef.current)
-      const imgData = canvas.toDataURL('image/png')
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      const imgWidth = 210
-      const pageHeight = 297
-      const imgHeight = canvas.height * imgWidth / canvas.width
-      let heightLeft = imgHeight
-      let position = 0
+  const handleCancelDelivery = () => {
+    setActiveDelivery(null);
+    showSnackbar('Delivery cancelled');
+  };
 
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
-      heightLeft -= pageHeight
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight
-        pdf.addPage()
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
-        heightLeft -= pageHeight
-      }
-
-      pdf.save(`receipt-${receiptData.id}.pdf`)
-    }
-  }
-
-  const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(filteredDeliveries)
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Deliveries")
-    XLSX.writeFile(workbook, `deliveries-${new Date().toISOString().split('T')[0]}.xlsx`)
-  }
-
-  const exportToCSV = () => {
-    const worksheet = XLSX.utils.json_to_sheet(filteredDeliveries)
-    const csv = XLSX.utils.sheet_to_csv(worksheet)
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `deliveries-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
-  }
-
-  // Share functionality
-  const shareReceipt = async () => {
-    if (receiptRef.current && navigator.share) {
-      try {
-        const canvas = await html2canvas(receiptRef.current)
-        canvas.toBlob(async (blob) => {
-          const file = new File([blob], `receipt-${receiptData.id}.png`, { type: 'image/png' })
-          
-          await navigator.share({
-            files: [file],
-            title: 'Delivery Receipt',
-            text: `Receipt for delivery ${receiptData.id} - Amount: UGX ${receiptData.amount.toLocaleString()}`
-          })
-        })
-      } catch (err) {
-        console.error('Error sharing:', err)
-        alert('Sharing failed. You can download the PDF instead.')
-      }
-    } else {
-      exportToPDF()
-    }
-  }
-
-  // Multiple delivery functionality
-  const handleAddMultiple = () => {
-    setShowMultipleDelivery(true)
-  }
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0]
-    if (file) {
-      setUploadedFile(file)
-      
-      // Preview CSV/Excel file
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const data = e.target.result
-        const workbook = XLSX.read(data, { type: 'binary' })
-        const firstSheet = workbook.SheetNames[0]
-        const worksheet = workbook.Sheets[firstSheet]
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
-        
-        console.log("Uploaded file data:", jsonData.slice(0, 5))
-      }
-      reader.readAsBinaryString(file)
-    }
-  }
-
-  const removeUploadedFile = () => {
-    setUploadedFile(null)
-  }
-
-  const processMultipleDeliveries = () => {
-    if (!uploadedFile) {
-      alert("Please upload a file first")
-      return
-    }
-    
-    // Process the uploaded file
-    alert(`Processing ${uploadedFile.name} with multiple deliveries...`)
-    setShowMultipleDelivery(false)
-    setUploadedFile(null)
-  }
-
-  // Filter deliveries
-  const filteredDeliveries = deliveryHistory.filter((delivery) => {
-    const matchesSearch =
-      delivery.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      delivery.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      delivery.customerPhone.includes(searchQuery) ||
-      delivery.route.toLowerCase().includes(searchQuery.toLowerCase())
-
-    const matchesStatus = filterStatus === "all" || delivery.status.toLowerCase() === filterStatus.toLowerCase()
-    const matchesType = filterType === "all" || delivery.deliveryType.toLowerCase().includes(filterType.toLowerCase())
-    const matchesPayment =
-      filterPayment === "all" || delivery.paymentMethod.toLowerCase() === filterPayment.toLowerCase()
-    const matchesRoute = filterRoute === "all" || delivery.route.toLowerCase().includes(filterRoute.toLowerCase())
-    const matchesAmount = delivery.amount >= minAmount && delivery.amount <= maxAmount
-
-    return matchesSearch && matchesStatus && matchesType && matchesPayment && matchesRoute && matchesAmount
-  })
-
-  const currentAnalytics = analyticsData[analyticsView]
-
-  // Find max value for bar chart scaling
-  const maxDeliveryValue = Math.max(...chartData.deliverySummary.map(d => d.completed + d.failed))
-
-  // Dashboard render function - Updated to match agent.css styling
-  const renderDashboard = () => (
-    <div className="rider-agent-container">
-      {/* Dashboard Header */}
-      <div className="dashboard-header">
-        <h2 className="dashboard-title">Delivery Dashboard</h2>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="tab-navigation">
-        <button 
-          className={`tab-btn ${currentView === "dashboard" ? "active" : ""}`}
-          onClick={() => setCurrentView("dashboard")}
-        >
-          Dashboard
-        </button>
-        <button 
-          className={`tab-btn ${currentView === "new-delivery" ? "active" : ""}`}
-          onClick={() => setCurrentView("new-delivery")}
-        >
-          New Delivery
-        </button>
-        <button 
-          className={`tab-btn ${currentView === "history" ? "active" : ""}`}
-          onClick={() => setCurrentView("history")}
-        >
-          History
-        </button>
-        <button 
-          className={`tab-btn ${currentView === "analytics" ? "active" : ""}`}
-          onClick={() => setCurrentView("analytics")}
-        >
-          Analytics
-        </button>
-      </div>
-
-      <div className="tab-content">
-        {/* Stats Grid */}
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-label">Total Deliveries</div>
-            <p className="stat-value">125</p>
-            <div className="stat-change positive">
-              +12.5%
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Total Revenue</div>
-            <p className="stat-value">40,000 UGX</p>
-            <div className="stat-change positive">
-              +2.5%
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Completed</div>
-            <p className="stat-value">102</p>
-            <div className="stat-change positive">
-              +20.5%
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Failed</div>
-            <p className="stat-value">23</p>
-            <div className="stat-change negative">
-              -2.5%
-            </div>
-          </div>
-        </div>
-
-        {/* Action Bar */}
-        <div className="commission-overview" style={{ marginBottom: '20px' }}>
-          <div className="section-title">Quick Actions</div>
-          <div style={{ padding: '16px' }}>
-            <div className="share-input-group" style={{ gap: '12px' }}>
-              <button 
-                className="share-btn"
-                onClick={() => setCurrentView("new-delivery")}
-                style={{ flex: '1' }}
-              >
-                🚚 Start New Delivery
-              </button>
-              <button 
-                className="share-btn"
-                onClick={handleReceiveMoney}
-                style={{ 
-                  background: '#FEF132',
-                  color: '#000',
-                  border: '1px solid #FEF132',
-                  flex: '1'
-                }}
-              >
-                💰 Receive Money
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Grid */}
-        <div className="alerts-section">
-          <div className="referral-alerts">
-            <div className="alerts-title">Recent Delivery Activity</div>
-            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              {deliveryHistory.slice(0, 5).map((delivery) => (
-                <div key={delivery.id} className="alert-item">
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="alert-type">
-                      {delivery.customerName} • {delivery.deliveryType}
-                    </div>
-                    <p className="alert-message">
-                      {delivery.route} • {delivery.distance} • {delivery.date} {delivery.time}
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                    <span style={{ 
-                      color: '#002AFE',
-                      fontWeight: '600',
-                      fontSize: '12px',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      UGX {delivery.amount.toLocaleString()}
-                    </span>
-                    <span className="status-badge" style={{ 
-                      background: delivery.status === 'Completed' ? '#e8f5e9' : 
-                                delivery.status === 'Cancelled' ? '#ffebee' : '#fff9c4',
-                      color: delivery.status === 'Completed' ? '#2e7d32' : 
-                            delivery.status === 'Cancelled' ? '#c62828' : '#f59e0b',
-                      border: delivery.status === 'Completed' ? '1px solid #a5d6a7' : 
-                             delivery.status === 'Cancelled' ? '1px solid #ffcdd2' : '1px solid #fde047',
-                      padding: '2px 8px',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {delivery.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="milestone-section">
-            <div className="alerts-title">Quick Stats</div>
-            <div className="milestone-card">
-              <div className="milestone-title">Active Deliveries</div>
-              <div className="milestone-text" style={{ fontSize: '24px', fontWeight: '600', color: '#002AFE' }}>
-                3
-              </div>
-            </div>
-            <div className="milestone-card">
-              <div className="milestone-title">Today's Earnings</div>
-              <div className="milestone-text" style={{ fontSize: '24px', fontWeight: '600', color: '#002AFE' }}>
-                12,000 UGX
-              </div>
-            </div>
-            <div className="milestone-card">
-              <div className="milestone-title">Success Rate</div>
-              <div className="milestone-text" style={{ fontSize: '24px', fontWeight: '600', color: '#10b981' }}>
-                92%
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Ready to Deliver Section */}
-        <div className="commission-overview">
-          <div className="section-title">Ready to Deliver?</div>
-          <div style={{ padding: '16px', textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'bounce 2s infinite' }}>🏍️</div>
-            <h3 style={{ margin: '0 0 8px 0', color: '#002AFE' }}>Start A New Delivery And Start Earning</h3>
-            <p style={{ color: '#666', fontSize: '12px', marginBottom: '16px' }}>
-              Create a new delivery request and begin your journey
-            </p>
-            <button 
-              className="share-btn"
-              onClick={() => setCurrentView("new-delivery")}
-              style={{ 
-                background: '#002AFE',
-                color: 'white',
-                padding: '12px 24px',
-                fontSize: '14px'
-              }}
-            >
-              🚚 Start New Delivery →
-            </button>
-            <button 
-              className="share-btn"
-              onClick={handleAddMultiple}
-              style={{ 
-                background: 'transparent',
-                color: '#002AFE',
-                border: '1px solid #002AFE',
-                marginTop: '8px'
-              }}
-            >
-              📁 Add Multiple Deliveries
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
-  // New Delivery Form - IMPROVED with the beautiful layout
-  const renderNewDelivery = () => (
-    <div className="rider-agent-container">
-      {/* Dashboard Header */}
-      <div className="dashboard-header">
-        <h2 className="dashboard-title">Start New Delivery 🟢</h2>
-        <div style={{ color: 'white', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-          <span style={{ 
-            width: '8px', 
-            height: '8px', 
-            background: '#10b981', 
-            borderRadius: '50%',
-            display: 'inline-block' 
-          }}></span>
-          Online • Create and manage new delivery request
-        </div>
-      </div>
-
-      <div className="tab-content">
-        {/* Form Grid with sections like the example */}
-        <div className="alerts-section" style={{ gridTemplateColumns: '1fr 1fr', marginBottom: '20px' }}>
-          {/* Customer Information Section */}
-          <div className="referral-alerts">
-            <div className="alerts-title">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  background: '#002AFE',
-                  borderRadius: '6px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '14px'
-                }}>
-                  👤
-                </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '14px' }}>Customer Information</h3>
-                  <p style={{ margin: 0, fontSize: '11px', color: '#666' }}>Enter Customer Details</p>
-                </div>
-              </div>
-            </div>
-            
-            <div style={{ padding: '16px' }}>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
-                  Customer Name *
-                </label>
-                <input
-                  type="text"
-                  className="share-input"
-                  placeholder="Sengendo Mark"
-                  value={deliveryData.customerName}
-                  onChange={(e) => setDeliveryData({ ...deliveryData, customerName: e.target.value })}
-                  style={{ width: '100%' }}
-                />
-              </div>
-              
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
-                  Phone Number *
-                </label>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  <div style={{ 
-                    background: '#f8f9fa',
-                    border: '1px solid #002AFE',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    color: '#002AFE',
-                    minWidth: '60px',
-                    textAlign: 'center'
-                  }}>
-                    +256
-                  </div>
-                  <input
-                    type="tel"
-                    className="share-input"
-                    placeholder="079 898 898"
-                    value={deliveryData.customerPhone}
-                    onChange={(e) => setDeliveryData({ ...deliveryData, customerPhone: e.target.value })}
-                    style={{ flex: 1 }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Package Details Section */}
-          <div className="milestone-section">
-            <div className="alerts-title">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    background: '#FEF132',
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#000',
-                    fontSize: '14px'
-                  }}>
-                    📦
-                  </div>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '14px' }}>Package Details</h3>
-                    <p style={{ margin: 0, fontSize: '11px', color: '#666' }}>Describe what's being delivered</p>
-                  </div>
-                </div>
-                <select
-                  className="share-input"
-                  value={deliveryData.deliveryType}
-                  onChange={(e) => setDeliveryData({ ...deliveryData, deliveryType: e.target.value })}
-                  style={{ 
-                    background: '#002AFE',
-                    color: 'white',
-                    border: 'none',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    fontSize: '11px',
-                    fontWeight: '500',
-                    minWidth: '120px'
-                  }}
-                >
-                  <option value="same-day">Same-Day Delivery</option>
-                  <option value="express">Express</option>
-                  <option value="bulk">Bulk</option>
-                  <option value="standard">Standard</option>
-                </select>
-              </div>
-            </div>
-            
-            <div style={{ padding: '16px' }}>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
-                  Package Description
-                </label>
-                <input
-                  type="text"
-                  className="share-input"
-                  placeholder="Electronics, Fragile Items, etc..."
-                  value={deliveryData.packageDescription}
-                  onChange={(e) => setDeliveryData({ ...deliveryData, packageDescription: e.target.value })}
-                  style={{ width: '100%' }}
-                />
-              </div>
-              
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
-                  Weight (kg)
-                </label>
-                <input
-                  type="text"
-                  className="share-input"
-                  placeholder="2.5"
-                  value={deliveryData.packageWeight}
-                  onChange={(e) => setDeliveryData({ ...deliveryData, packageWeight: e.target.value })}
-                  style={{ width: '100%' }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Pickup & Dropoff Section */}
-          <div className="referral-alerts">
-            <div className="alerts-title">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  background: '#10b981',
-                  borderRadius: '6px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '14px'
-                }}>
-                  📍
-                </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '14px' }}>Pickup & Dropoff</h3>
-                  <p style={{ margin: 0, fontSize: '11px', color: '#666' }}>Specify addresses</p>
-                </div>
-              </div>
-            </div>
-            
-            <div style={{ padding: '16px' }}>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
-                  Pickup Address *
-                </label>
-                <input
-                  type="text"
-                  className="share-input"
-                  placeholder="Pioneer Mall, Kampala"
-                  value={deliveryData.pickupAddress}
-                  onChange={(e) => setDeliveryData({ ...deliveryData, pickupAddress: e.target.value })}
-                  style={{ width: '100%' }}
-                />
-              </div>
-              
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
-                  Dropoff Address *
-                </label>
-                <input
-                  type="text"
-                  className="share-input"
-                  placeholder="UCU campus, Mukono"
-                  value={deliveryData.dropoffAddress}
-                  onChange={(e) => setDeliveryData({ ...deliveryData, dropoffAddress: e.target.value })}
-                  style={{ width: '100%' }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Recipient Information Section */}
-          <div className="milestone-section">
-            <div className="alerts-title">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  background: '#8b5cf6',
-                  borderRadius: '6px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '14px'
-                }}>
-                  👤
-                </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '14px' }}>Recipient Information</h3>
-                  <p style={{ margin: 0, fontSize: '11px', color: '#666' }}>Enter recipient details</p>
-                </div>
-              </div>
-            </div>
-            
-            <div style={{ padding: '16px' }}>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
-                  Recipient Name
-                </label>
-                <input
-                  type="text"
-                  className="share-input"
-                  placeholder="Magezi Wise"
-                  value={deliveryData.recipientName}
-                  onChange={(e) => setDeliveryData({ ...deliveryData, recipientName: e.target.value })}
-                  style={{ width: '100%' }}
-                />
-              </div>
-              
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
-                  Phone Number
-                </label>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  <div style={{ 
-                    background: '#f8f9fa',
-                    border: '1px solid #8b5cf6',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    color: '#8b5cf6',
-                    minWidth: '60px',
-                    textAlign: 'center'
-                  }}>
-                    +256
-                  </div>
-                  <input
-                    type="tel"
-                    className="share-input"
-                    placeholder="075 800 898"
-                    value={deliveryData.recipientPhone}
-                    onChange={(e) => setDeliveryData({ ...deliveryData, recipientPhone: e.target.value })}
-                    style={{ flex: 1 }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Delivery Pricing Section - Standalone */}
-        <div className="commission-overview" style={{ marginBottom: '20px' }}>
-          <div className="section-title" style={{ background: '#002AFE' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                background: '#FEF132',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+  // Active Delivery Screen
+  if (activeDelivery) {
+    return (
+      <Box sx={{ 
+        minHeight: '100vh', 
+        backgroundColor: 'background.default',
+        pb: 3
+      }}>
+        <Box sx={{ p: isMobile ? 2 : 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant={isMobile ? 'h6' : 'h5'} sx={{ fontWeight: 'bold', color: '#0025DD' }}>
+              Deliveries
+            </Typography>
+            <Chip 
+              label="Active Delivery" 
+              sx={{ 
+                backgroundColor: '#FFEC01', 
                 color: '#000',
-                fontSize: '20px',
-                fontWeight: '600'
-              }}>
-                💰
-              </div>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '16px' }}>Delivery Pricing</h3>
-                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#ffffffaa' }}>Set delivery rate</p>
-              </div>
-            </div>
-          </div>
-          <div style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
-            <div style={{ flex: 1, minWidth: '200px' }}>
-              <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '8px', display: 'block' }}>
-                Estimated Price (UGX)
-              </label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="number"
-                  className="share-input"
-                  value={deliveryData.estimatedPrice}
-                  onChange={(e) => setDeliveryData({ ...deliveryData, estimatedPrice: parseInt(e.target.value) || 0 })}
-                  min="0"
-                  style={{ 
-                    flex: 1,
-                    fontSize: '20px',
-                    fontWeight: '600',
-                    color: '#002AFE',
-                    textAlign: 'right',
-                    padding: '12px'
-                  }}
-                />
-                <span style={{ fontSize: '16px', fontWeight: '600', color: '#002AFE' }}>UGX</span>
-              </div>
-            </div>
-            
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button 
-                className="share-btn"
-                onClick={handleAddMultiple}
-                style={{ 
-                  background: '#FEF132',
-                  color: '#000',
-                  border: '1px solid #FEF132',
-                  padding: '12px 20px',
-                  fontSize: '14px'
+                fontWeight: 'bold'
+              }}
+            />
+          </Box>
+          <Grid container spacing={3}>
+            {/* Delivery Details */}
+            <Grid item xs={12} md={8}>
+              <Card sx={{ mb: 3, border: `2px solid #0025DD` }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
+                    Delivery Details
+                  </Typography>
+                  
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <LocationOn sx={{ color: '#0025DD', mr: 2 }} />
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Pickup Location
+                        </Typography>
+                        <Typography variant="h6" fontWeight="bold">
+                          {activeDelivery.pickup}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <LocationOff sx={{ color: '#0025DD', mr: 2 }} />
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Drop-off Location
+                        </Typography>
+                        <Typography variant="h6" fontWeight="bold">
+                          {activeDelivery.dropoff}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Typography variant="body2" color="text.secondary">
+                        Delivery Fee
+                      </Typography>
+                      <Typography variant="h5" color="#0025DD" fontWeight="bold">
+                        UGX {activeDelivery.fee.toLocaleString()}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="body2" color="text.secondary">
+                        Status
+                      </Typography>
+                      <Chip 
+                        label="In Progress" 
+                        size="small" 
+                        sx={{ 
+                          backgroundColor: '#FFEC01', 
+                          color: '#000',
+                          fontWeight: 'bold'
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+
+                  {/* Proof Requirements */}
+                  {(activeDelivery.proofOptions?.uploadPhoto || activeDelivery.proofOptions?.uploadSignature) && (
+                    <Paper sx={{ p: 2, mt: 2, backgroundColor: '#0025DD10' }}>
+                      <Typography variant="body2" fontWeight="bold" color="#0025DD" gutterBottom>
+                        Proof Required:
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                        {activeDelivery.proofOptions.uploadPhoto && (
+                          <Chip 
+                            icon={<CameraAlt />}
+                            label="Photo" 
+                            size="small"
+                            variant="outlined"
+                            sx={{ borderColor: '#0025DD', color: '#0025DD' }}
+                          />
+                        )}
+                        {activeDelivery.proofOptions.uploadSignature && (
+                          <Chip 
+                            icon={<Draw />}
+                            label="Signature" 
+                            size="small"
+                            variant="outlined"
+                            sx={{ borderColor: '#0025DD', color: '#0025DD' }}
+                          />
+                        )}
+                      </Box>
+                    </Paper>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Actions */}
+            <Grid item xs={12} md={4}>
+              <Card sx={{ border: `2px solid #0025DD` }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
+                    Delivery Actions
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        backgroundColor: '#0025DD',
+                        '&:hover': {
+                          backgroundColor: '#001FB8'
+                        }
+                      }}
+                      size="large"
+                      startIcon={<CheckCircle />}
+                      onClick={handleCompleteDelivery}
+                      fullWidth
+                    >
+                      Mark As Delivered
+                    </Button>
+                    
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        borderColor: '#0025DD',
+                        color: '#0025DD'
+                      }}
+                      size="large"
+                      startIcon={<CameraAlt />}
+                      onClick={() => setShowProofDialog(true)}
+                      fullWidth
+                    >
+                      Take Proof
+                    </Button>
+
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        borderColor: '#FF4444',
+                        color: '#FF4444'
+                      }}
+                      size="large"
+                      startIcon={<Close />}
+                      onClick={handleCancelDelivery}
+                      fullWidth
+                    >
+                      Cancel Delivery
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* Quick Stats */}
+              <Card sx={{ mt: 2, border: `1px solid #0025DD20` }}>
+                <CardContent>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom color="#0025DD">
+                    Today's Summary
+                  </Typography>
+                  <TableContainer>
+                    <Table size="small">
+                      <TableBody>
+                        <TableRow>
+                          <TableCell sx={{ border: 'none', fontWeight: 'bold' }}>Deliveries</TableCell>
+                          <TableCell sx={{ border: 'none', fontWeight: 'bold', color: '#0025DD' }}>
+                            {todayStats.deliveries}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ border: 'none', fontWeight: 'bold' }}>Earnings</TableCell>
+                          <TableCell sx={{ border: 'none', fontWeight: 'bold', color: '#0025DD' }}>
+                            UGX {todayStats.earnings.toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ border: 'none', fontWeight: 'bold' }}>Expenses</TableCell>
+                          <TableCell sx={{ border: 'none', fontWeight: 'bold', color: '#FF4444' }}>
+                            UGX {todayStats.expenses.toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Box>
+      </Box>
+    );
+  }
+
+  // Main Delivery Page
+  return (
+    <Box sx={{ 
+      minHeight: '100vh', 
+      backgroundColor: 'background.default',
+      pb: 3
+    }}>
+      {/* Main Content */}
+      <Box sx={{ p: isMobile ? 2 : 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, gap: 2, flexWrap: 'wrap' }}>
+          <Typography variant={isMobile ? 'h6' : 'h5'} sx={{ fontWeight: 'bold', color: '#0025DD' }}>
+            Delivery Dashboard
+          </Typography>
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: '#FFEC01',
+              color: '#000',
+              fontWeight: 'bold',
+              '&:hover': { backgroundColor: '#E6D401' }
+            }}
+            startIcon={<Add />}
+            onClick={() => setShowNewDeliveryDialog(true)}
+          >
+            Start Delivery
+          </Button>
+        </Box>
+
+        <Card sx={{ borderRadius: 3, border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+          <Box sx={{ backgroundColor: '#FFF7A8', p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+            <Typography sx={{ fontSize: isMobile ? '1.35rem' : '1.75rem', fontWeight: 'bold', color: '#111827' }}>
+              Wallet Balance
+            </Typography>
+            <Box sx={{ textAlign: 'right' }}>
+              <Typography sx={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: 600 }}>
+                Available Balance
+              </Typography>
+              <Typography sx={{ fontSize: isMobile ? '1.6rem' : '2.1rem', fontWeight: 900, color: '#111827', lineHeight: 1.1 }}>
+                40,000{' '}
+                <Typography component="span" sx={{ fontSize: '0.95rem', fontWeight: 800, ml: 0.5 }}>
+                  UGX
+                </Typography>
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ p: 2 }}>
+            <Divider sx={{ mb: 2, borderColor: '#0025DD20' }} />
+
+            <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+              <Button
+                variant={deliveryPeriod === 'daily' ? 'contained' : 'outlined'}
+                size="small"
+                onClick={() => setDeliveryPeriod('daily')}
+                sx={{
+                  textTransform: 'none',
+                  backgroundColor: deliveryPeriod === 'daily' ? '#0025DD' : 'transparent',
+                  borderColor: '#0025DD50',
+                  color: deliveryPeriod === 'daily' ? 'white' : '#0025DD',
+                  '&:hover': { backgroundColor: deliveryPeriod === 'daily' ? '#001FB8' : '#0025DD10' }
                 }}
               >
-                📁 Add Multiple Deliveries
-              </button>
-            </div>
-          </div>
-        </div>
+                Daily
+              </Button>
+              <Button
+                variant={deliveryPeriod === 'weekly' ? 'contained' : 'outlined'}
+                size="small"
+                onClick={() => setDeliveryPeriod('weekly')}
+                sx={{
+                  textTransform: 'none',
+                  backgroundColor: deliveryPeriod === 'weekly' ? '#0025DD' : 'transparent',
+                  borderColor: '#0025DD50',
+                  color: deliveryPeriod === 'weekly' ? 'white' : '#0025DD',
+                  '&:hover': { backgroundColor: deliveryPeriod === 'weekly' ? '#001FB8' : '#0025DD10' }
+                }}
+              >
+                Weekly
+              </Button>
+              <Button
+                variant={deliveryPeriod === 'monthly' ? 'contained' : 'outlined'}
+                size="small"
+                onClick={() => setDeliveryPeriod('monthly')}
+                sx={{
+                  textTransform: 'none',
+                  backgroundColor: deliveryPeriod === 'monthly' ? '#0025DD' : 'transparent',
+                  borderColor: '#0025DD50',
+                  color: deliveryPeriod === 'monthly' ? 'white' : '#0025DD',
+                  '&:hover': { backgroundColor: deliveryPeriod === 'monthly' ? '#001FB8' : '#0025DD10' }
+                }}
+              >
+                Monthly
+              </Button>
+            </Box>
 
-        {/* Action Buttons */}
-        <div className="commission-overview">
-          <div className="share-input-group" style={{ gap: '12px', padding: '16px' }}>
-            <button 
-              className="share-btn"
-              onClick={() => setCurrentView("dashboard")}
-              style={{ 
-                background: '#f5f5f5',
-                color: '#002AFE',
-                border: '1px solid #002AFE',
-                flex: '1'
-              }}
-            >
-              Cancel
-            </button>
-            <button 
-              className="share-btn"
-              onClick={handleReceiveMoney}
-              style={{ 
-                background: '#10b981',
-                color: 'white',
-                border: '1px solid #10b981',
-                flex: '1'
-              }}
-            >
-              💰 Receive Money
-            </button>
-            <button 
-              className="share-btn"
-              onClick={handleStartDelivery}
-              style={{ 
-                background: '#002AFE',
-                color: 'white',
-                flex: '1'
-              }}
-            >
-              🚚 Start Delivery
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ border: '1px solid #0025DD30', borderRadius: 2, boxShadow: 'none' }}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <DeliveryDining sx={{ color: '#0025DD' }} />
+                      <Typography sx={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 700 }}>+12.5%</Typography>
+                    </Box>
+                    <Typography sx={{ fontSize: '0.85rem', color: '#0025DD', mt: 1 }}>Total Deliveries</Typography>
+                    <Typography sx={{ fontSize: '2rem', color: '#0025DD', fontWeight: 900, lineHeight: 1.1 }}>125</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-  const renderActiveDelivery = () => (
-    <div className="rider-agent-container">
-      {/* Dashboard Header */}
-      <div className="dashboard-header">
-        <h2 className="dashboard-title">Active Delivery 🟡</h2>
-        <div style={{ color: 'white', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-          <span style={{ 
-            width: '8px', 
-            height: '8px', 
-            background: '#FEF132', 
-            borderRadius: '50%',
-            display: 'inline-block' 
-          }}></span>
-          In Progress • Delivery ID: {activeDelivery?.id}
-        </div>
-      </div>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ border: '1px solid #0025DD30', borderRadius: 2, boxShadow: 'none' }}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <BarChart sx={{ color: '#111827' }} />
+                      <Typography sx={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 700 }}>+2.5%</Typography>
+                    </Box>
+                    <Typography sx={{ fontSize: '0.85rem', color: '#0025DD', mt: 1 }}>Total Revenue</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
+                      <Typography sx={{ fontSize: '2rem', color: '#0025DD', fontWeight: 900, lineHeight: 1.1 }}>40,000</Typography>
+                      <Typography sx={{ fontSize: '0.7rem', color: '#0025DD', fontWeight: 900 }}>UGX</Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-      <div className="tab-content">
-        {/* Stats Grid */}
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-label">Elapsed Time</div>
-            <p className="stat-value">{formatTime(timer)}</p>
-            <div className="stat-change">Time to deliver</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Distance</div>
-            <p className="stat-value">{distance.toFixed(1)} KM</p>
-            <div className="stat-change">Distance Covered</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Delivery Price</div>
-            <p className="stat-value">{activeDelivery?.estimatedPrice?.toLocaleString()} UGX</p>
-          </div>
-        </div>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ border: '1px solid #0025DD30', borderRadius: 2, boxShadow: 'none' }}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <CheckCircle sx={{ color: '#16a34a' }} />
+                      <Typography sx={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 700 }}>+20.5%</Typography>
+                    </Box>
+                    <Typography sx={{ fontSize: '0.85rem', color: '#0025DD', mt: 1 }}>Completed Deliveries</Typography>
+                    <Typography sx={{ fontSize: '2rem', color: '#0025DD', fontWeight: 900, lineHeight: 1.1 }}>102</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-        {/* Delivery Details Section */}
-        <div className="commission-overview" style={{ marginBottom: '20px' }}>
-          <div className="section-title" style={{ background: '#FEF132', color: '#000' }}>
-            Delivery Details
-          </div>
-          <div style={{ padding: '16px' }}>
-            <div className="alerts-section" style={{ gridTemplateColumns: '1fr 1fr' }}>
-              <div className="referral-alerts">
-                <div className="alert-item" style={{ borderLeft: '3px solid #002AFE' }}>
-                  <div className="alert-type">Pickup Location</div>
-                  <p className="alert-message" style={{ color: '#002AFE', fontWeight: '600', fontSize: '12px' }}>
-                    {activeDelivery?.pickupAddress}
-                  </p>
-                </div>
-                
-                <div className="alert-item" style={{ borderLeft: '3px solid #10b981' }}>
-                  <div className="alert-type">Dropoff Location</div>
-                  <p className="alert-message" style={{ color: '#002AFE', fontWeight: '600', fontSize: '12px' }}>
-                    {activeDelivery?.dropoffAddress}
-                  </p>
-                </div>
-                
-                <div className="alert-item" style={{ borderLeft: '3px solid #8b5cf6' }}>
-                  <div className="alert-type">Recipient Name</div>
-                  <p className="alert-message" style={{ color: '#002AFE', fontWeight: '600', fontSize: '12px' }}>
-                    {activeDelivery?.recipientName || 'Not specified'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="milestone-section">
-                <div className="milestone-card">
-                  <div className="milestone-title">Recipient Contact</div>
-                  <div className="milestone-text" style={{ fontSize: '14px', fontWeight: '600', color: '#002AFE' }}>
-                    {activeDelivery?.recipientPhone ? `+256 ${activeDelivery.recipientPhone}` : 'Not specified'}
-                  </div>
-                </div>
-                
-                <div className="milestone-card">
-                  <div className="milestone-title">Package</div>
-                  <div className="milestone-text" style={{ fontSize: '14px', fontWeight: '600', color: '#002AFE' }}>
-                    {activeDelivery?.packageDescription || 'Not specified'}
-                  </div>
-                </div>
-                
-                <div className="milestone-card">
-                  <div className="milestone-title">Delivery Type</div>
-                  <div className="milestone-text" style={{ fontSize: '14px', fontWeight: '600', color: '#002AFE' }}>
-                    {activeDelivery?.deliveryType}
-                  </div>
-                </div>
-              </div>
-            </div>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ border: '1px solid #0025DD30', borderRadius: 2, boxShadow: 'none' }}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <ReportProblem sx={{ color: '#dc2626' }} />
+                      <Typography sx={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 700 }}>-2.5%</Typography>
+                    </Box>
+                    <Typography sx={{ fontSize: '0.85rem', color: '#0025DD', mt: 1 }}>Failed Deliveries</Typography>
+                    <Typography sx={{ fontSize: '2rem', color: '#0025DD', fontWeight: 900, lineHeight: 1.1 }}>23</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+        </Card>
 
-            <button 
-              className="share-btn"
-              onClick={handleEndDelivery}
-              style={{ 
-                width: '100%',
-                marginTop: '20px',
-                background: '#002AFE',
-                color: 'white',
-                padding: '12px',
-                fontSize: '14px',
-                fontWeight: '600'
-              }}
-            >
-              ✅ End Delivery
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+        <Divider sx={{ my: 4, borderColor: '#0025DD20' }} />
 
-  const renderCompleteDelivery = () => (
-    <div className="rider-agent-container">
-      {/* Dashboard Header */}
-      <div className="dashboard-header">
-        <h2 className="dashboard-title">Complete Delivery ✅</h2>
-        <div style={{ color: 'white', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-          <span style={{ 
-            width: '8px', 
-            height: '8px', 
-            background: '#10b981', 
-            borderRadius: '50%',
-            display: 'inline-block' 
-          }}></span>
-          Ended • Delivery ID: {activeDelivery?.id}
-        </div>
-      </div>
+        <Box sx={{ textAlign: 'center', py: isMobile ? 4 : 6 }}>
+          <DeliveryDining sx={{ fontSize: isMobile ? 88 : 120, color: '#2D4BFF', mb: 1 }} />
+          <Typography sx={{ fontSize: isMobile ? '1.65rem' : '2rem', fontWeight: 900, color: '#2D4BFF' }}>
+            Ready to Deliver?
+          </Typography>
+          <Typography sx={{ fontSize: '0.95rem', color: '#6b7280', mb: 3 }}>
+            Start A New Delivery And Start Earning
+          </Typography>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => setShowNewDeliveryDialog(true)}
+            endIcon={<ArrowForward />}
+            sx={{
+              backgroundColor: '#0025DD',
+              px: 5,
+              py: 1.4,
+              borderRadius: 2,
+              minWidth: isMobile ? '100%' : 360,
+              '&:hover': { backgroundColor: '#001FB8' }
+            }}
+          >
+            Start New Delivery
+          </Button>
+        </Box>
 
-      <div className="tab-content">
-        {/* Stats Grid */}
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-label">Time Taken</div>
-            <p className="stat-value">{formatTime(timer)}</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Distance</div>
-            <p className="stat-value">{distance.toFixed(1)} KM</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Delivery Price</div>
-            <p className="stat-value">{activeDelivery?.estimatedPrice?.toLocaleString()} UGX</p>
-          </div>
-        </div>
+        <Divider sx={{ my: 4, borderColor: '#0025DD20' }} />
 
-        {/* Capture Recipient Code Section */}
-        <div className="commission-overview" style={{ marginBottom: '20px' }}>
-          <div className="section-title" style={{ background: '#FEF132', color: '#000' }}>
-            Capture Recipient Code
-          </div>
-          <div style={{ padding: '16px', textAlign: 'center' }}>
-            <p style={{ color: '#666', fontSize: '12px', marginBottom: '16px' }}>
-              This code acts as proof of receipt
-            </p>
-            
-            <button 
-              className="share-btn"
-              onClick={generateRecipientCode}
-              style={{ 
-                background: '#002AFE',
-                color: 'white',
-                padding: '12px 24px',
-                fontSize: '14px',
-                marginBottom: '16px'
-              }}
-            >
-              🔐 Request Code
-            </button>
-            
-            {recipientCode && (
-              <div style={{ 
-                padding: '16px',
-                background: '#e3f2fd',
-                borderRadius: '6px',
-                border: '1px solid #bbdefb',
-                marginBottom: '16px'
-              }}>
-                <div style={{ 
-                  fontSize: '24px',
-                  fontWeight: '600',
-                  color: '#002AFE',
-                  letterSpacing: '8px',
-                  marginBottom: '8px',
-                  fontFamily: 'monospace',
-                  background: 'white',
-                  padding: '12px',
-                  borderRadius: '4px',
-                  border: '2px dashed #93c5fd'
-                }}>
-                  {recipientCode}
-                </div>
-                <div style={{ color: '#666', fontSize: '11px' }}>
-                  Code Captured at {new Date().toLocaleTimeString()}
-                </div>
-              </div>
-            )}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 1, gap: 2, flexWrap: 'wrap' }}>
+          <Box>
+            <Typography sx={{ fontWeight: 900, color: '#0025DD', fontSize: '1.1rem' }}>Delivery Activity</Typography>
+            <Typography sx={{ fontSize: '0.85rem', color: '#2D4BFF' }}>View Delivery summary</Typography>
+          </Box>
+          <Button
+            variant="contained"
+            onClick={() => setShowHistoryDialog(true)}
+            sx={{
+              backgroundColor: '#FFEC01',
+              color: '#000',
+              fontWeight: 800,
+              '&:hover': { backgroundColor: '#E6D401' },
+              borderRadius: 1,
+              textTransform: 'none'
+            }}
+          >
+            View Delivery History
+          </Button>
+        </Box>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block', textAlign: 'left' }}>
-                Delivery Notes (Optional)
-              </label>
-              <textarea
-                placeholder="Enter delivery notes..."
-                className="share-input"
-                value={deliveryNotes}
-                onChange={(e) => setDeliveryNotes(e.target.value)}
-                rows="3"
-                style={{ resize: 'vertical', fontFamily: 'inherit', width: '100%' }}
+        <Box sx={{ mt: 2 }}>
+          {deliveryHistory.slice(0, 2).map((d) => (
+            <Paper key={d.id} sx={{ p: 2, mb: 2, backgroundColor: '#F5F9FF', borderRadius: 1.5 }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={4}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#2D4BFF', fontWeight: 700 }}>
+                    Route(Pickup & Destination)
+                  </Typography>
+                  <Typography sx={{ color: '#0025DD', fontWeight: 900 }}>
+                    {d.pickup}
+                  </Typography>
+                  <Typography sx={{ color: '#0025DD', fontWeight: 900 }}>
+                    {d.dropoff}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+                    <Chip label={`${(d.fee ?? 0).toLocaleString()} UGX`} size="small" sx={{ backgroundColor: '#FFEC01', fontWeight: 800 }} />
+                    {d.paymentMethod && (
+                      <Chip label={d.paymentMethod} size="small" variant="outlined" sx={{ borderColor: '#0025DD60' }} />
+                    )}
+                    {(d.tags || []).map((t) => (
+                      <Chip key={t} label={t} size="small" sx={{ backgroundColor: '#C7F9CC', fontWeight: 700 }} />
+                    ))}
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} md={3}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#2D4BFF', fontWeight: 700 }}>Recipient</Typography>
+                  <Typography sx={{ color: '#0025DD', fontWeight: 900 }}>{d.recipientName || d.customer}</Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#6b7280' }}>{d.recipientPhone || ''}</Typography>
+                </Grid>
+
+                <Grid item xs={12} md={3}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#2D4BFF', fontWeight: 700 }}>Description</Typography>
+                  <Typography sx={{ fontSize: '0.8rem', color: '#1f2937' }}>{d.descriptionText || ''}</Typography>
+                  <Typography sx={{ fontSize: '0.7rem', color: '#6b7280' }}>{d.date} • {d.time}</Typography>
+                </Grid>
+
+                <Grid item xs={6} md={1}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#2D4BFF', fontWeight: 700 }}>Status</Typography>
+                  <Typography sx={{ fontWeight: 900, color: d.status === 'completed' ? '#16a34a' : '#dc2626' }}>
+                    {d.status === 'completed' ? 'Complete' : 'Canceled'}
+                  </Typography>
+                </Grid>
+
+                <Grid item xs={6} md={1}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#2D4BFF', fontWeight: 700 }}>Distance</Typography>
+                  <Typography sx={{ fontWeight: 900, color: '#0025DD' }}>
+                    {(d.distanceKm ?? 0).toFixed(1)} KM
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Paper>
+          ))}
+        </Box>
+      </Box>
+
+      <Dialog
+        open={showHistoryDialog}
+        onClose={() => setShowHistoryDialog(false)}
+        fullScreen={isMobile}
+        keepMounted
+        fullWidth={!isMobile}
+        maxWidth={false}
+        PaperProps={{
+          sx: {
+            m: isMobile ? 0 : 3,
+            borderRadius: isMobile ? 0 : 2,
+            backgroundColor: '#EEF3FF',
+            ...(isMobile
+              ? {}
+              : {
+                  width: 'calc(100% - 48px)',
+                  maxWidth: 'calc(100% - 48px)',
+                  height: 'calc(100vh - 48px)',
+                  maxHeight: 'calc(100vh - 48px)',
+                  overflow: 'hidden'
+                })
+          }
+        }}
+      >
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <Box
+            sx={{
+              backgroundColor: '#071A63',
+              color: 'white',
+              px: isMobile ? 2 : 3,
+              py: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2,
+              flexWrap: 'wrap'
+            }}
+          >
+            <Box>
+              <Typography sx={{ fontSize: isMobile ? '1.3rem' : '1.7rem', fontWeight: 900, lineHeight: 1.15 }}>
+                Delivery History
+              </Typography>
+              <Typography sx={{ fontSize: '0.9rem', opacity: 0.85 }}>
+                Manage and view all your deliveries
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <Button
+                variant="contained"
+                size="small"
+                sx={{
+                  backgroundColor: '#FFF7A8',
+                  color: '#111827',
+                  fontWeight: 800,
+                  '&:hover': { backgroundColor: '#FFEC01' },
+                  textTransform: 'none'
+                }}
+              >
+                View Analytics and Performance
+              </Button>
+
+              <Button
+                variant="text"
+                size="small"
+                startIcon={<FileDownload sx={{ color: 'white' }} />}
+                sx={{ color: 'white', textTransform: 'none', fontWeight: 700 }}
+              >
+                Export
+              </Button>
+
+              <Button
+                variant="text"
+                size="small"
+                startIcon={<Share sx={{ color: 'white' }} />}
+                sx={{ color: 'white', textTransform: 'none', fontWeight: 700 }}
+              >
+                Share
+              </Button>
+
+              <IconButton sx={{ color: 'white' }}>
+                <NotificationsNone />
+              </IconButton>
+
+              <Chip
+                label="MK"
+                size="small"
+                sx={{ backgroundColor: '#FFEC01', color: '#071A63', fontWeight: 900 }}
               />
-            </div>
 
-            <div className="share-input-group" style={{ gap: '12px' }}>
-              <button 
-                className="share-btn"
-                onClick={() => setCurrentView("active-delivery")}
-                style={{ 
-                  background: '#f5f5f5',
-                  color: '#002AFE',
-                  border: '1px solid #002AFE',
-                  flex: '1'
-                }}
-              >
-                ← Back
-              </button>
-              <button 
-                className="share-btn"
-                onClick={handleReceiveMoney}
-                style={{ 
-                  background: '#002AFE',
-                  color: 'white',
-                  flex: '1'
-                }}
-              >
-                Continue →
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+              <IconButton onClick={() => setShowHistoryDialog(false)} sx={{ color: 'white' }}>
+                <Close />
+              </IconButton>
+            </Box>
+          </Box>
 
-  const renderHistory = () => (
-    <div className="rider-agent-container">
-      {/* Dashboard Header */}
-      <div className="dashboard-header">
-        <h2 className="dashboard-title">Delivery History</h2>
-      </div>
+          <Box sx={{ flex: 1, p: isMobile ? 2 : 3, overflow: 'hidden' }}>
+            <Grid container spacing={3} sx={{ height: '100%' }}>
+              <Grid item xs={12} md={3} sx={{ height: '100%' }}>
+                <Paper sx={{ p: 2, borderRadius: 2, height: '100%', overflow: 'auto' }}>
+                  <Typography sx={{ fontWeight: 900, color: '#0025DD', mb: 1 }}>
+                    Search
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    placeholder="Delivery ID, Phone, Customer..."
+                    value={historySearch}
+                    onChange={(e) => {
+                      setHistorySearch(e.target.value);
+                      setHistoryPage(0);
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Search sx={{ color: '#0025DD' }} />
+                        </InputAdornment>
+                      )
+                    }}
+                    sx={{ mb: 2 }}
+                  />
 
-      {/* Tab Navigation */}
-      <div className="tab-navigation">
-        <button 
-          className={`tab-btn ${currentView === "dashboard" ? "active" : ""}`}
-          onClick={() => setCurrentView("dashboard")}
-        >
-          Dashboard
-        </button>
-        <button 
-          className={`tab-btn ${currentView === "new-delivery" ? "active" : ""}`}
-          onClick={() => setCurrentView("new-delivery")}
-        >
-          New Delivery
-        </button>
-        <button 
-          className={`tab-btn ${currentView === "history" ? "active" : ""}`}
-          onClick={() => setCurrentView("history")}
-        >
-          History
-        </button>
-        <button 
-          className={`tab-btn ${currentView === "analytics" ? "active" : ""}`}
-          onClick={() => setCurrentView("analytics")}
-        >
-          Analytics
-        </button>
-      </div>
+                  <Typography sx={{ fontWeight: 900, color: '#0025DD', mb: 1 }}>
+                    Filters
+                  </Typography>
 
-      <div className="tab-content">
-        {/* Filters */}
-        <div className="commission-overview" style={{ marginBottom: '20px' }}>
-          <div className="section-title">Filters</div>
-          <div style={{ padding: '16px' }}>
-            <div className="promo-input-section" style={{ marginBottom: '12px' }}>
-              <input
-                type="text"
-                placeholder="Search deliveries..."
-                className="share-input"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ flex: '1' }}
-              />
-              <select
-                className="share-input"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                style={{ minWidth: '120px' }}
-              >
-                <option value="all">All Status</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="pending">Pending</option>
-              </select>
-              <select
-                className="share-input"
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                style={{ minWidth: '120px' }}
-              >
-                <option value="all">All Types</option>
-                <option value="same-day">Same-Day</option>
-                <option value="express">Express</option>
-                <option value="bulk">Bulk</option>
-                <option value="standard">Standard</option>
-              </select>
-            </div>
-            <button 
-              className="share-btn"
-              onClick={() => {
-                setSearchQuery("")
-                setFilterStatus("all")
-                setFilterType("all")
-              }}
-              style={{ 
-                background: '#f5f5f5',
-                color: '#002AFE',
-                border: '1px solid #002AFE'
-              }}
-            >
-              Clear Filters
-            </button>
-          </div>
-        </div>
+                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <InputLabel>Delivery status</InputLabel>
+                    <Select
+                      label="Delivery status"
+                      value={historyStatus}
+                      onChange={(e) => {
+                        setHistoryStatus(e.target.value);
+                        setHistoryPage(0);
+                      }}
+                    >
+                      <MenuItem value="all">All Status</MenuItem>
+                      <MenuItem value="completed">Completed</MenuItem>
+                      <MenuItem value="cancelled">Cancelled</MenuItem>
+                      <MenuItem value="pending">Pending</MenuItem>
+                    </Select>
+                  </FormControl>
 
-        {/* History Table */}
-        <div className="alerts-section">
-          <div className="referral-alerts" style={{ gridColumn: '1 / -1' }}>
-            <div className="alerts-title">All Deliveries</div>
-            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              {filteredDeliveries.map((delivery) => (
-                <div key={delivery.id} className="alert-item">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '6px',
-                      background: delivery.status === 'Completed' ? '#e8f5e9' : 
-                                delivery.status === 'Cancelled' ? '#ffebee' : '#fff9c4',
-                      color: delivery.status === 'Completed' ? '#2e7d32' : 
-                            delivery.status === 'Cancelled' ? '#c62828' : '#f59e0b',
+                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <InputLabel>Delivery Type</InputLabel>
+                    <Select
+                      label="Delivery Type"
+                      value={historyType}
+                      onChange={(e) => {
+                        setHistoryType(e.target.value);
+                        setHistoryPage(0);
+                      }}
+                    >
+                      <MenuItem value="all">All Types</MenuItem>
+                      <MenuItem value="Same Day Delivery">Same Day Delivery</MenuItem>
+                      <MenuItem value="Express">Express</MenuItem>
+                      <MenuItem value="Bulk">Bulk</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <InputLabel>Payment Method</InputLabel>
+                    <Select
+                      label="Payment Method"
+                      value={historyPayment}
+                      onChange={(e) => {
+                        setHistoryPayment(e.target.value);
+                        setHistoryPage(0);
+                      }}
+                    >
+                      <MenuItem value="all">All Methods</MenuItem>
+                      <MenuItem value="cash">Cash</MenuItem>
+                      <MenuItem value="mtn momo">MTN MoMo</MenuItem>
+                      <MenuItem value="split pay">Split Pay</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <InputLabel>Routes</InputLabel>
+                    <Select
+                      label="Routes"
+                      value={historyRoute}
+                      onChange={(e) => {
+                        setHistoryRoute(e.target.value);
+                        setHistoryPage(0);
+                      }}
+                    >
+                      <MenuItem value="all">All Routes</MenuItem>
+                      {uniqueRoutes.map((r) => (
+                        <MenuItem key={r} value={r}>
+                          {r}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <Typography sx={{ fontWeight: 800, color: '#0025DD', mb: 1 }}>
+                    Amount Range: UGX {historyAmountRange[0].toLocaleString()} - UGX {historyAmountRange[1].toLocaleString()}
+                  </Typography>
+                  <Slider
+                    value={historyAmountRange}
+                    onChange={(_, val) => {
+                      setHistoryAmountRange(val);
+                      setHistoryPage(0);
+                    }}
+                    valueLabelDisplay="off"
+                    min={0}
+                    max={3000}
+                    sx={{ mb: 2 }}
+                  />
+
+                  <Typography sx={{ fontWeight: 900, color: '#0025DD', mb: 1 }}>
+                    Sort By
+                  </Typography>
+                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <InputLabel>Field</InputLabel>
+                    <Select
+                      label="Field"
+                      value={historySortBy}
+                      onChange={(e) => {
+                        setHistorySortBy(e.target.value);
+                        setHistoryPage(0);
+                      }}
+                    >
+                      <MenuItem value="date">Date</MenuItem>
+                      <MenuItem value="amount">Amount</MenuItem>
+                      <MenuItem value="distance">Distance</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <InputLabel>Order</InputLabel>
+                    <Select
+                      label="Order"
+                      value={historySortOrder}
+                      onChange={(e) => {
+                        setHistorySortOrder(e.target.value);
+                        setHistoryPage(0);
+                      }}
+                    >
+                      <MenuItem value="newest">Newest</MenuItem>
+                      <MenuItem value="oldest">Oldest</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={clearHistoryFilters}
+                    sx={{
+                      backgroundColor: '#071A63',
+                      '&:hover': { backgroundColor: '#06134A' },
+                      fontWeight: 900,
+                      textTransform: 'none',
+                      mt: 1
+                    }}
+                  >
+                    Clear All Filter
+                  </Button>
+                </Paper>
+              </Grid>
+
+              <Grid item xs={12} md={9} sx={{ height: '100%' }}>
+                <Paper sx={{ borderRadius: 2, overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Box sx={{ flex: 1, overflow: 'auto', backgroundColor: 'white' }}>
+                    <TableContainer>
+                      <Table size="small" stickyHeader>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 900, color: '#0025DD' }}>Delivery ID</TableCell>
+                            <TableCell sx={{ fontWeight: 900, color: '#0025DD' }}>Customer & Contact</TableCell>
+                            <TableCell sx={{ fontWeight: 900, color: '#0025DD' }}>Route Pickup & Dropoff</TableCell>
+                            <TableCell sx={{ fontWeight: 900, color: '#0025DD' }}>Delivery Type</TableCell>
+                            <TableCell sx={{ fontWeight: 900, color: '#0025DD' }}>Distance & Duration</TableCell>
+                            <TableCell sx={{ fontWeight: 900, color: '#0025DD' }}>Amount</TableCell>
+                            <TableCell sx={{ fontWeight: 900, color: '#0025DD' }}>Payment Method</TableCell>
+                            <TableCell sx={{ fontWeight: 900, color: '#0025DD' }}>Status</TableCell>
+                            <TableCell sx={{ fontWeight: 900, color: '#0025DD' }}>Actions</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {pagedHistory.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={9}>
+                                <Box sx={{ textAlign: 'center', py: 6 }}>
+                                  <Typography sx={{ fontWeight: 800, color: '#0025DD' }}>No deliveries found</Typography>
+                                  <Typography variant="body2" color="text.secondary">Try adjusting your filters</Typography>
+                                </Box>
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            pagedHistory.map((d) => {
+                              const deliveryId = formatDeliveryId(d);
+                              const customer = d?.recipientName || d?.customer || 'Customer';
+                              const contact = d?.recipientPhone || '';
+                              const route = `${d?.pickup ?? ''} - ${d?.dropoff ?? ''}`;
+                              const type = getDeliveryType(d);
+                              const distance = Number(d?.distanceKm ?? 0);
+                              const durationMin = getDurationMin(d);
+                              const amount = Number(d?.fee ?? 0);
+                              const paymentMethod = d?.paymentMethod || 'Cash';
+                              const statusRaw = (d?.status || '').toLowerCase();
+                              const statusLabel = statusRaw === 'completed' ? 'Completed' : statusRaw === 'cancelled' ? 'Cancelled' : statusRaw === 'pending' ? 'Pending' : (d?.status || '');
+
+                              return (
+                                <TableRow key={d.id} hover>
+                                  <TableCell>
+                                    <Typography sx={{ fontWeight: 900, color: '#0025DD', fontSize: '0.85rem' }}>{deliveryId}</Typography>
+                                    <Typography sx={{ fontSize: '0.7rem', color: '#6b7280' }}>{d?.date || ''} {d?.time ? `• ${d.time}` : ''}</Typography>
+                                  </TableCell>
+
+                                  <TableCell>
+                                    <Typography sx={{ fontWeight: 800, color: '#111827', fontSize: '0.85rem' }}>{customer}</Typography>
+                                    <Typography sx={{ fontSize: '0.7rem', color: '#6b7280' }}>{contact}</Typography>
+                                  </TableCell>
+
+                                  <TableCell>
+                                    <Typography sx={{ fontWeight: 800, color: '#0025DD', fontSize: '0.85rem' }}>{route}</Typography>
+                                  </TableCell>
+
+                                  <TableCell>
+                                    <Typography sx={{ fontSize: '0.8rem', color: '#2D4BFF', fontWeight: 700 }}>{type}</Typography>
+                                  </TableCell>
+
+                                  <TableCell>
+                                    <Typography sx={{ fontWeight: 900, color: '#0025DD', fontSize: '0.85rem' }}>{distance.toFixed(1)}km</Typography>
+                                    <Typography sx={{ fontSize: '0.7rem', color: '#6b7280' }}>{durationMin}min</Typography>
+                                  </TableCell>
+
+                                  <TableCell>
+                                    <Typography sx={{ fontWeight: 900, color: '#0025DD', fontSize: '0.85rem' }}>UGX {amount.toLocaleString()}</Typography>
+                                  </TableCell>
+
+                                  <TableCell>
+                                    <Chip
+                                      label={paymentMethod}
+                                      variant="outlined"
+                                      size="small"
+                                      sx={{ ...getPaymentChipSx(paymentMethod), borderWidth: 1.5 }}
+                                    />
+                                  </TableCell>
+
+                                  <TableCell>
+                                    <Chip
+                                      label={statusLabel}
+                                      variant="outlined"
+                                      size="small"
+                                      sx={{ ...getStatusChipSx(statusRaw), borderWidth: 1.5 }}
+                                    />
+                                  </TableCell>
+
+                                  <TableCell>
+                                    <Button
+                                      size="small"
+                                      startIcon={<Visibility sx={{ fontSize: 18 }} />}
+                                      sx={{ textTransform: 'none', fontWeight: 800, color: '#2D4BFF' }}
+                                      onClick={() => showSnackbar(`Viewing ${deliveryId}`)}
+                                    >
+                                      View
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      backgroundColor: '#071A63',
+                      color: 'white',
+                      px: 2,
+                      py: 1.2,
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: '600',
-                      fontSize: '12px',
-                      flexShrink: 0,
-                      border: `1px solid ${delivery.status === 'Completed' ? '#a5d6a7' : 
-                              delivery.status === 'Cancelled' ? '#ffcdd2' : '#fde047'}`
-                    }}>
-                      {delivery.id.substring(0, 3)}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <h4 className="alert-type" style={{ margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {delivery.customerName} • {delivery.deliveryType}
-                      </h4>
-                      <p className="alert-message" style={{ margin: '4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {delivery.route} • {delivery.distance} • {delivery.date}
-                      </p>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-                    <span style={{ 
-                      color: '#002AFE',
-                      fontWeight: '600',
-                      fontSize: '14px',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      UGX {delivery.amount.toLocaleString()}
-                    </span>
-                    <span className="status-badge" style={{ 
-                      background: delivery.status === 'Completed' ? '#e8f5e9' : 
-                                delivery.status === 'Cancelled' ? '#ffebee' : '#fff9c4',
-                      color: delivery.status === 'Completed' ? '#2e7d32' : 
-                            delivery.status === 'Cancelled' ? '#c62828' : '#f59e0b',
-                      border: delivery.status === 'Completed' ? '1px solid #a5d6a7' : 
-                             delivery.status === 'Cancelled' ? '1px solid #ffcdd2' : '1px solid #fde047',
-                      padding: '4px 8px',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {delivery.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-              {filteredDeliveries.length === 0 && (
-                <div style={{ 
-                  padding: '40px 20px', 
-                  textAlign: 'center', 
-                  color: '#666',
-                  fontSize: '12px'
-                }}>
-                  No deliveries found. Try adjusting your filters.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+                      justifyContent: 'space-between',
+                      gap: 2,
+                      flexWrap: 'wrap'
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                      Showing {filteredHistory.length} trips
+                    </Typography>
 
-        <div className="commission-overview">
-          <div className="share-input-group" style={{ gap: '12px', padding: '16px' }}>
-            <button 
-              className="share-btn"
-              onClick={() => setCurrentView("dashboard")}
-              style={{ 
-                background: '#f5f5f5',
-                color: '#002AFE',
-                border: '1px solid #002AFE',
-                flex: '1'
-              }}
-            >
-              ← Back to Dashboard
-            </button>
-            <button 
-              className="share-btn"
-              onClick={exportToExcel}
-              style={{ 
-                background: '#FEF132',
-                color: '#000',
-                border: '1px solid #FEF132',
-                flex: '1'
-              }}
-            >
-              📊 Export to Excel
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Button
+                        size="small"
+                        startIcon={<ChevronLeft sx={{ color: 'white' }} />}
+                        sx={{ color: 'white', textTransform: 'none', fontWeight: 800 }}
+                        disabled={historyPageSafe <= 0}
+                        onClick={() => setHistoryPage((p) => Math.max(0, p - 1))}
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        size="small"
+                        endIcon={<ChevronRight sx={{ color: 'white' }} />}
+                        sx={{ color: 'white', textTransform: 'none', fontWeight: 800 }}
+                        disabled={historyPageSafe >= historyTotalPages - 1}
+                        onClick={() => setHistoryPage((p) => Math.min(historyTotalPages - 1, p + 1))}
+                      >
+                        Next
+                      </Button>
+                    </Box>
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Box>
+        </Box>
+      </Dialog>
 
-  const renderAnalytics = () => (
-    <div className="rider-agent-container">
-      {/* Dashboard Header */}
-      <div className="dashboard-header">
-        <h2 className="dashboard-title">Delivery Analytics</h2>
-      </div>
+      {/* New Delivery Dialog */}
+      <Dialog 
+        open={showNewDeliveryDialog} 
+        onClose={() => setShowNewDeliveryDialog(false)} 
+        maxWidth="sm" 
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
+          <Typography variant="h6" fontWeight="bold">New Delivery</Typography>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Typography variant="body1" fontWeight="bold" gutterBottom color="#0025DD">
+                Pickup Location
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder="Enter pickup location"
+                value={deliveryForm.pickupLocation}
+                onChange={handleInputChange('pickupLocation')}
+                sx={{ mb: 2 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationOn sx={{ color: '#0025DD' }} />
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <Typography variant="body1" fontWeight="bold" gutterBottom color="#0025DD">
+                Drop-off Location
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder="Enter drop-off location"
+                value={deliveryForm.dropoffLocation}
+                onChange={handleInputChange('dropoffLocation')}
+                sx={{ mb: 2 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationOff sx={{ color: '#0025DD' }} />
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Grid>
 
-      {/* Tab Navigation */}
-      <div className="tab-navigation">
-        <button 
-          className={`tab-btn ${analyticsView === "daily" ? "active" : ""}`}
-          onClick={() => setAnalyticsView("daily")}
-        >
-          Daily
-        </button>
-        <button 
-          className={`tab-btn ${analyticsView === "weekly" ? "active" : ""}`}
-          onClick={() => setAnalyticsView("weekly")}
-        >
-          Weekly
-        </button>
-        <button 
-          className={`tab-btn ${analyticsView === "monthly" ? "active" : ""}`}
-          onClick={() => setAnalyticsView("monthly")}
-        >
-          Monthly
-        </button>
-      </div>
+            <Grid item xs={12}>
+              <Typography variant="body1" fontWeight="bold" gutterBottom color="#0025DD">
+                Delivery Fee
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder="Enter fee"
+                type="number"
+                value={deliveryForm.deliveryFee}
+                onChange={handleInputChange('deliveryFee')}
+                sx={{ mb: 2 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <AttachMoney sx={{ color: '#0025DD' }} />
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Grid>
 
-      <div className="tab-content">
-        {/* Stats Grid */}
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-label">Total Deliveries</div>
-            <p className="stat-value">{currentAnalytics.totalDeliveries}</p>
-            <div className={`stat-change ${currentAnalytics.revenueChange.includes('+') ? 'positive' : 'negative'}`}>
-              {currentAnalytics.revenueChange}
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Total Revenue</div>
-            <p className="stat-value">{currentAnalytics.totalRevenue.toLocaleString()} UGX</p>
-            <div className={`stat-change ${currentAnalytics.revenueChange.includes('+') ? 'positive' : 'negative'}`}>
-              {currentAnalytics.revenueChange}
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Completed</div>
-            <p className="stat-value">{currentAnalytics.completedDeliveries}</p>
-            <div className={`stat-change ${currentAnalytics.completedChange.includes('+') ? 'positive' : 'negative'}`}>
-              {currentAnalytics.completedChange}
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Failed</div>
-            <p className="stat-value">{currentAnalytics.failedDeliveries}</p>
-            <div className={`stat-change ${currentAnalytics.failedChange.includes('+') ? 'positive' : 'negative'}`}>
-              {currentAnalytics.failedChange}
-            </div>
-          </div>
-        </div>
+            <Grid item xs={12}>
+              <Typography variant="body1" fontWeight="bold" gutterBottom color="#0025DD">
+                Proof Requirements
+              </Typography>
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={proofOptions.uploadPhoto}
+                    onChange={handleProofOptionChange('uploadPhoto')}
+                    sx={{ color: '#0025DD' }}
+                  />
+                }
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CloudUpload />
+                    <Typography>Upload Photo</Typography>
+                  </Box>
+                }
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={proofOptions.uploadSignature}
+                    onChange={handleProofOptionChange('uploadSignature')}
+                    sx={{ color: '#0025DD' }}
+                  />
+                }
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Draw />
+                    <Typography>Upload Signature</Typography>
+                  </Box>
+                }
+              />
+            </Grid>
 
-        <div className="alerts-section">
-          <div className="referral-alerts">
-            <div className="alerts-title">Delivery Summary</div>
-            <div style={{ padding: '16px', background: '#f8f9fa', borderRadius: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-end', height: '150px', marginBottom: '20px' }}>
-                {chartData.deliverySummary.map((data, i) => (
-                  <div key={data.day} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '100px' }}>
-                      <div 
-                        style={{ 
-                          width: '12px', 
-                          height: `${(data.completed / maxDeliveryValue) * 80}px`,
-                          background: '#002AFE',
-                          borderRadius: '2px 2px 0 0'
-                        }}
-                        title={`Completed: ${data.completed}`}
-                      />
-                      <div 
-                        style={{ 
-                          width: '12px', 
-                          height: `${(data.failed / maxDeliveryValue) * 80}px`,
-                          background: '#ef4444',
-                          borderRadius: '2px 2px 0 0'
-                        }}
-                        title={`Failed: ${data.failed}`}
-                      />
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#666', fontWeight: '500' }}>{data.day}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', fontSize: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <div style={{ width: '8px', height: '8px', background: '#002AFE', borderRadius: '1px' }}></div>
-                  <span>Completed</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <div style={{ width: '8px', height: '8px', background: '#ef4444', borderRadius: '1px' }}></div>
-                  <span>Failed</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="milestone-section">
-            <div className="alerts-title">Revenue Breakdown</div>
-            {chartData.revenueBreakdown.map((item, i) => (
-              <div key={item.type} className="milestone-card">
-                <div className="milestone-title">{item.type}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ flex: 1, height: '8px', background: '#e0e0e0', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div 
-                      style={{ 
-                        width: `${item.percentage}%`,
-                        height: '100%',
-                        background: item.color,
-                        borderRadius: '4px'
-                      }}
-                    />
-                  </div>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#002AFE', whiteSpace: 'nowrap' }}>
-                    {item.percentage}%
-                  </div>
-                </div>
-                <div className="milestone-text">
-                  UGX {item.amount.toLocaleString()}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+            <Grid item xs={12}>
+              <Paper sx={{ p: 2, backgroundColor: '#0025DD10', border: '1px solid #0025DD20' }}>
+                <Typography variant="body2" fontWeight="bold" color="#0025DD">
+                  Parcel Delivery
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Standard package delivery service
+                </Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button 
+            onClick={() => setShowNewDeliveryDialog(false)}
+            sx={{ color: '#0025DD' }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="contained"
+            sx={{
+              backgroundColor: '#0025DD',
+              '&:hover': {
+                backgroundColor: '#001FB8'
+              }
+            }}
+            onClick={handleStartDelivery}
+            disabled={!deliveryForm.pickupLocation || !deliveryForm.dropoffLocation || !deliveryForm.deliveryFee}
+          >
+            Save Delivery
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-        <button 
-          className="share-btn"
-          onClick={() => setCurrentView("dashboard")}
-          style={{ 
-            width: '100%',
-            marginTop: '20px',
-            background: '#002AFE',
-            color: 'white',
-            padding: '12px'
+      {/* Proof Photo Dialog */}
+      <Dialog 
+        open={showProofDialog} 
+        onClose={() => setShowProofDialog(false)} 
+        maxWidth="sm" 
+        fullWidth
+      >
+        <DialogTitle sx={{ backgroundColor: '#0025DD', color: 'white' }}>
+          <Typography variant="h6" fontWeight="bold">Delivery Proof</Typography>
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: 'center', py: 4 }}>
+          <CameraAlt sx={{ fontSize: 60, color: '#0025DD', mb: 2 }} />
+          <Typography variant="h6" gutterBottom>
+            Take Proof Photo
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Capture proof of delivery
+          </Typography>
+          
+          <Box 
+            sx={{ 
+              width: 200, 
+              height: 150, 
+              bgcolor: 'grey.200', 
+              mx: 'auto',
+              mb: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 2,
+              border: '2px dashed #0025DD'
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              Camera Preview
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+          <Button 
+            variant="contained"
+            sx={{
+              backgroundColor: '#0025DD'
+            }}
+            startIcon={<CameraAlt />}
+            onClick={handleTakeProofPhoto}
+            size="large"
+          >
+            Capture Proof
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          severity={snackbar.severity} 
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          sx={{
+            backgroundColor: snackbar.severity === 'success' ? '#0025DD' : undefined,
+            color: 'white'
           }}
         >
-          ← Back to Dashboard
-        </button>
-      </div>
-    </div>
-  )
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
+};
 
-  // Payment modal with all options and images
-  const renderPaymentModal = () => (
-    <div className="modal-overlay active">
-      <div className="modal">
-        {/* Modal Header */}
-        <div className="modal-header">
-          <h3 style={{ color: '#002AFE', margin: 0 }}>RECEIVE PAYMENT</h3>
-          <button 
-            onClick={() => setShowPaymentModal(false)}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              cursor: 'pointer',
-              color: '#666',
-              padding: '4px'
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Modal Content */}
-        <div style={{ padding: '20px' }}>
-          <div className="share-input-group" style={{ marginBottom: '16px' }}>
-            <input
-              type="number"
-              placeholder="Enter Amount (UGX)"
-              className="share-input"
-              value={paymentAmount}
-              onChange={(e) => setPaymentAmount(Number(e.target.value))}
-              min="0"
-              style={{ textAlign: 'center', fontSize: '16px', fontWeight: '600' }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px', fontWeight: '500' }}>Select Payment Method</div>
-            <div className="share-input-group" style={{ flexWrap: 'wrap', gap: '8px' }}>
-              <button
-                type="button"
-                className={`share-btn ${selectedPaymentMethod === "cash" ? "active" : ""}`}
-                onClick={() => setSelectedPaymentMethod("cash")}
-                style={{ 
-                  flex: '1',
-                  minWidth: '100px',
-                  background: selectedPaymentMethod === "cash" ? '#002AFE' : 'white',
-                  color: selectedPaymentMethod === "cash" ? 'white' : '#002AFE',
-                  border: `1px solid ${selectedPaymentMethod === "cash" ? '#002AFE' : '#002AFE'}`
-                }}
-              >
-                💵 Cash
-              </button>
-              <button
-                type="button"
-                className={`share-btn ${selectedPaymentMethod === "momo" ? "active" : ""}`}
-                onClick={() => setSelectedPaymentMethod("momo")}
-                style={{ 
-                  flex: '1',
-                  minWidth: '100px',
-                  background: selectedPaymentMethod === "momo" ? '#002AFE' : 'white',
-                  color: selectedPaymentMethod === "momo" ? 'white' : '#002AFE',
-                  border: `1px solid ${selectedPaymentMethod === "momo" ? '#002AFE' : '#002AFE'}`
-                }}
-              >
-                MTN MoMo
-              </button>
-              <button
-                type="button"
-                className={`share-btn ${selectedPaymentMethod === "airtel" ? "active" : ""}`}
-                onClick={() => setSelectedPaymentMethod("airtel")}
-                style={{ 
-                  flex: '1',
-                  minWidth: '100px',
-                  background: selectedPaymentMethod === "airtel" ? '#002AFE' : 'white',
-                  color: selectedPaymentMethod === "airtel" ? 'white' : '#002AFE',
-                  border: `1px solid ${selectedPaymentMethod === "airtel" ? '#002AFE' : '#002AFE'}`
-                }}
-              >
-                Airtel Money
-              </button>
-              <button
-                type="button"
-                className={`share-btn ${selectedPaymentMethod === "visa" ? "active" : ""}`}
-                onClick={() => setSelectedPaymentMethod("visa")}
-                style={{ 
-                  flex: '1',
-                  minWidth: '100px',
-                  background: selectedPaymentMethod === "visa" ? '#002AFE' : 'white',
-                  color: selectedPaymentMethod === "visa" ? 'white' : '#002AFE',
-                  border: `1px solid ${selectedPaymentMethod === "visa" ? '#002AFE' : '#002AFE'}`
-                }}
-              >
-                VISA
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Modal Actions */}
-        <div style={{ padding: '0 20px 20px 20px' }}>
-          <div className="share-input-group" style={{ gap: '12px' }}>
-            <button 
-              className="share-btn"
-              onClick={() => setShowPaymentModal(false)}
-              style={{ 
-                background: '#f5f5f5',
-                color: '#002AFE',
-                border: '1px solid #002AFE',
-                flex: '1'
-              }}
-            >
-              Cancel
-            </button>
-            <button 
-              className="share-btn"
-              onClick={handlePaymentContinue}
-              disabled={!selectedPaymentMethod}
-              style={{ 
-                background: selectedPaymentMethod ? '#002AFE' : '#cccccc',
-                color: 'white',
-                flex: '1',
-                cursor: selectedPaymentMethod ? 'pointer' : 'not-allowed'
-              }}
-            >
-              Continue
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
-  // Multiple delivery modal
-  const renderMultipleDeliveryModal = () => (
-    <div className="modal-overlay active">
-      <div className="modal">
-        {/* Modal Header */}
-        <div className="modal-header">
-          <h3 style={{ color: '#002AFE', margin: 0 }}>ADD MULTIPLE DELIVERIES</h3>
-          <button 
-            onClick={() => {
-              setShowMultipleDelivery(false)
-              setUploadedFile(null)
-            }}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              cursor: 'pointer',
-              color: '#666',
-              padding: '4px'
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Modal Content */}
-        <div style={{ padding: '20px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px', fontWeight: '500' }}>Upload Delivery File</div>
-            <div style={{ 
-              border: '2px dashed #002AFE',
-              borderRadius: '8px',
-              padding: '40px 20px',
-              textAlign: 'center',
-              background: '#f8f9fa',
-              cursor: 'pointer',
-              position: 'relative'
-            }}>
-              <input
-                type="file"
-                id="multiple-file-upload"
-                style={{ 
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  opacity: 0,
-                  cursor: 'pointer'
-                }}
-                accept=".csv,.xlsx,.xls"
-                onChange={handleFileUpload}
-              />
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>📁</div>
-              <div style={{ fontSize: '14px', fontWeight: '500', color: '#002AFE', marginBottom: '4px' }}>
-                Click to upload or drag and drop
-              </div>
-              <div style={{ fontSize: '12px', color: '#666' }}>CSV or Excel files only</div>
-            </div>
-          </div>
-
-          {uploadedFile && (
-            <div style={{ 
-              padding: '12px',
-              background: '#e8f5e9',
-              borderRadius: '6px',
-              border: '1px solid #a5d6a7',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '16px'
-            }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '12px', fontWeight: '500', color: '#2e7d32', marginBottom: '2px' }}>
-                  {uploadedFile.name}
-                </div>
-                <div style={{ fontSize: '11px', color: '#666' }}>
-                  {Math.round(uploadedFile.size / 1024)} KB
-                </div>
-              </div>
-              <button 
-                className="share-btn"
-                onClick={removeUploadedFile}
-                style={{ 
-                  background: '#ffebee',
-                  color: '#c62828',
-                  border: '1px solid #ffcdd2',
-                  padding: '4px 8px',
-                  fontSize: '11px'
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Modal Actions */}
-        <div style={{ padding: '0 20px 20px 20px' }}>
-          <div className="share-input-group" style={{ gap: '12px' }}>
-            <button 
-              className="share-btn"
-              onClick={() => {
-                setShowMultipleDelivery(false)
-                setUploadedFile(null)
-              }}
-              style={{ 
-                background: '#f5f5f5',
-                color: '#002AFE',
-                border: '1px solid #002AFE',
-                flex: '1'
-              }}
-            >
-              Cancel
-            </button>
-            <button 
-              className="share-btn"
-              onClick={processMultipleDeliveries}
-              disabled={!uploadedFile}
-              style={{ 
-                background: uploadedFile ? '#002AFE' : '#cccccc',
-                color: 'white',
-                flex: '1',
-                cursor: uploadedFile ? 'pointer' : 'not-allowed'
-              }}
-            >
-              Process Deliveries
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
-  // Success modal with receipt
-  const renderSuccessModal = () => (
-    <div className="modal-overlay active">
-      <div className="modal">
-        {/* Modal Header */}
-        <div className="modal-header">
-          <h3 style={{ color: '#002AFE', margin: 0 }}>DELIVERY COMPLETE</h3>
-          <button 
-            onClick={() => {
-              setShowSuccessModal(false)
-              setCurrentView("dashboard")
-              setActiveDelivery(null)
-            }}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              cursor: 'pointer',
-              color: '#666',
-              padding: '4px'
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Modal Content */}
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', color: '#10b981', marginBottom: '16px' }}>✓</div>
-          <h3 style={{ margin: '0 0 8px 0', color: '#002AFE' }}>Payment Successful</h3>
-          <div style={{ fontSize: '32px', fontWeight: '600', color: '#002AFE', marginBottom: '8px' }}>
-            UGX {paymentAmount.toLocaleString()}
-          </div>
-          <p style={{ color: '#666', fontSize: '12px', margin: 0 }}>
-            Payment received via {selectedPaymentMethod}
-          </p>
-        </div>
-
-        {/* Modal Actions */}
-        <div style={{ padding: '0 20px 20px 20px' }}>
-          <div className="share-input-group" style={{ gap: '12px' }}>
-            <button 
-              className="share-btn"
-              onClick={handlePaymentSuccess}
-              style={{ 
-                background: '#002AFE',
-                color: 'white',
-                flex: '1'
-              }}
-            >
-              View Receipt
-            </button>
-            <button 
-              className="share-btn"
-              onClick={() => {
-                setShowSuccessModal(false)
-                setCurrentView("dashboard")
-                setActiveDelivery(null)
-              }}
-              style={{ 
-                background: '#FEF132',
-                color: '#000',
-                border: '1px solid #FEF132',
-                flex: '1'
-              }}
-            >
-              New Delivery
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
-  // Receipt display
-  const renderReceipt = () => (
-    <div className="modal-overlay active">
-      <div className="modal" style={{ maxWidth: '400px' }}>
-        {/* Modal Header */}
-        <div className="modal-header">
-          <h3 style={{ color: '#002AFE', margin: 0 }}>DELIVERY RECEIPT</h3>
-          <button 
-            onClick={() => {
-              setShowReceipt(false)
-              setCurrentView("dashboard")
-              setActiveDelivery(null)
-            }}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              cursor: 'pointer',
-              color: '#666',
-              padding: '4px'
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Modal Content */}
-        <div style={{ padding: '20px' }}>
-          <div ref={receiptRef} style={{ 
-            textAlign: 'left', 
-            padding: '16px', 
-            background: 'white', 
-            borderRadius: '6px', 
-            border: '1px solid #e0e0e0',
-            fontFamily: 'Poppins, sans-serif'
-          }}>
-            <h2 style={{ 
-              textAlign: 'center', 
-              color: '#002AFE', 
-              marginBottom: '16px',
-              fontSize: '16px',
-              fontWeight: '600'
-            }}>Delivery Receipt</h2>
-            
-            <div style={{ marginBottom: '16px', borderBottom: '1px solid #e0e0e0', paddingBottom: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', color: '#666' }}>Receipt ID:</span>
-                <span style={{ fontSize: '12px', fontWeight: '600', color: '#002AFE' }}>{receiptData?.id}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '12px', color: '#666' }}>Date:</span>
-                <span style={{ fontSize: '12px', fontWeight: '500' }}>{receiptData?.date} {receiptData?.time}</span>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '12px', marginBottom: '8px', color: '#002AFE', fontWeight: '600' }}>Customer Details</h3>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontSize: '12px', color: '#666' }}>Name:</span>
-                <span style={{ fontSize: '12px', fontWeight: '500' }}>{receiptData?.customerName}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontSize: '12px', color: '#666' }}>Phone:</span>
-                <span style={{ fontSize: '12px', fontWeight: '500' }}>{receiptData?.customerPhone}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '12px', color: '#666' }}>Delivery Type:</span>
-                <span style={{ fontSize: '12px', fontWeight: '500' }}>{receiptData?.deliveryType}</span>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '16px', borderTop: '1px solid #e0e0e0', paddingTop: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: '600' }}>Payment Method:</span>
-                <span style={{ fontSize: '12px', fontWeight: '600', color: '#002AFE' }}>{receiptData?.paymentMethod}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: '600' }}>Amount:</span>
-                <span style={{ fontSize: '16px', fontWeight: '600', color: '#002AFE' }}>UGX {receiptData?.amount?.toLocaleString()}</span>
-              </div>
-              {receiptData?.recipientCode && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '12px', fontWeight: '600' }}>Recipient Code:</span>
-                  <span style={{ fontSize: '12px', fontWeight: '600', color: '#002AFE', fontFamily: 'monospace' }}>
-                    {receiptData?.recipientCode}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div style={{ textAlign: 'center', marginTop: '16px', paddingTop: '16px', borderTop: '2px dashed #cbd5e1' }}>
-              <p style={{ fontSize: '11px', color: '#666', fontStyle: 'italic' }}>Thank you for using our delivery service!</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Modal Actions */}
-        <div style={{ padding: '0 20px 20px 20px' }}>
-          <div className="share-input-group" style={{ gap: '8px' }}>
-            <button 
-              className="share-btn"
-              onClick={exportToPDF}
-              style={{ 
-                background: '#f5f5f5',
-                color: '#002AFE',
-                border: '1px solid #002AFE',
-                flex: '1',
-                fontSize: '11px',
-                padding: '8px'
-              }}
-            >
-              📄 Save as PDF
-            </button>
-            <button 
-              className="share-btn"
-              onClick={shareReceipt}
-              style={{ 
-                background: '#FEF132',
-                color: '#000',
-                border: '1px solid #FEF132',
-                flex: '1',
-                fontSize: '11px',
-                padding: '8px'
-              }}
-            >
-              📤 Share Receipt
-            </button>
-            <button 
-              className="share-btn"
-              onClick={() => {
-                setShowReceipt(false)
-                setCurrentView("dashboard")
-                setActiveDelivery(null)
-                setDeliveryData({
-                  customerName: "",
-                  customerPhone: "",
-                  packageDescription: "",
-                  packageWeight: "",
-                  deliveryType: "same-day",
-                  pickupAddress: "",
-                  dropoffAddress: "",
-                  recipientName: "",
-                  recipientPhone: "",
-                  estimatedPrice: 3000,
-                })
-              }}
-              style={{ 
-                background: '#002AFE',
-                color: 'white',
-                flex: '1',
-                fontSize: '11px',
-                padding: '8px'
-              }}
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
-  return (
-    <div className="rider-agent-container">
-      {currentView === "dashboard" && renderDashboard()}
-      {currentView === "new-delivery" && renderNewDelivery()}
-      {currentView === "active-delivery" && renderActiveDelivery()}
-      {currentView === "complete-delivery" && renderCompleteDelivery()}
-      {currentView === "history" && renderHistory()}
-      {currentView === "analytics" && renderAnalytics()}
-      {showPaymentModal && renderPaymentModal()}
-      {showMultipleDelivery && renderMultipleDeliveryModal()}
-      {showSuccessModal && renderSuccessModal()}
-      {showReceipt && renderReceipt()}
-
-      <style jsx>{`
-        /* Modal Styles */
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0,0,0,0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          animation: fadeIn 0.2s ease-in;
-        }
-
-        .modal {
-          background: white;
-          border-radius: 8px;
-          width: 90%;
-          max-width: 500px;
-          max-height: 90vh;
-          overflow-y: auto;
-          animation: slideUp 0.3s ease-out;
-        }
-
-        .modal-header {
-          padding: 16px 20px;
-          border-bottom: 1px solid #e0e0e0;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes bounce {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-6px);
-          }
-        }
-
-        /* Custom styles for the new delivery form */
-        .alerts-section {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-          margin-bottom: 20px;
-        }
-
-        .referral-alerts,
-        .milestone-section {
-          background: white;
-          padding: 16px;
-          border-radius: 8px;
-          border: 1px solid #e0e0e0;
-        }
-
-        .alerts-title {
-          color: #002AFE;
-          font-size: 14px;
-          font-weight: 600;
-          margin-bottom: 12px;
-          padding-bottom: 8px;
-          border-bottom: 1px solid #e0e0e0;
-        }
-
-        .alert-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          padding: 12px;
-          background: #f8f9fa;
-          border-radius: 6px;
-          margin-bottom: 8px;
-          transition: all 0.2s ease;
-          border-left: 3px solid #002AFE;
-        }
-
-        .alert-item:hover {
-          background: #e8eaf6;
-          transform: translateX(2px);
-        }
-
-        .alert-type {
-          color: #002AFE;
-          font-size: 12px;
-          font-weight: 500;
-          margin: 0 0 4px 0;
-        }
-
-        .alert-message {
-          color: #666;
-          font-size: 11px;
-          margin: 0 0 2px 0;
-          line-height: 1.3;
-        }
-
-        .milestone-card {
-          padding: 12px;
-          background: #f8f9fa;
-          border-radius: 6px;
-          margin-bottom: 8px;
-          border: 1px solid #e0e0e0;
-        }
-
-        .milestone-title {
-          color: #002AFE;
-          font-size: 12px;
-          font-weight: 600;
-          margin: 0 0 6px 0;
-        }
-
-        .milestone-text {
-          color: #666;
-          font-size: 11px;
-          margin: 0 0 4px 0;
-          line-height: 1.3;
-        }
-
-        .stat-change {
-          font-size: 10px;
-          font-weight: 500;
-          margin-top: 4px;
-        }
-
-        .stat-change.positive {
-          color: #2e7d32;
-        }
-
-        .stat-change.negative {
-          color: #c62828;
-        }
-
-        @media (max-width: 768px) {
-          .alerts-section {
-            grid-template-columns: 1fr;
-          }
-          
-          .share-input-group {
-            flex-direction: column;
-          }
-          
-          .share-btn, .share-input {
-            width: 100%;
-          }
-        }
-      `}</style>
-    </div>
-  )
-}
-
-export default Deliveries
+export default SimpleDeliveryPage;
