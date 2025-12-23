@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import "./expense.css"
+
+import React from "react"
 
 export default function ExpenseManagement() {
   const [currentView, setCurrentView] = useState("dashboard")
@@ -24,7 +25,7 @@ export default function ExpenseManagement() {
 
   const expenseBreakdown = [
     { name: "Fuel", percentage: 82, color: "#FF0000" },
-    { name: "Packing", percentage: 2, color: "#00FF00" },
+    { name: "Parking", percentage: 2, color: "#00FF00" },
     { name: "Repairs", percentage: 50, color: "#FFFF00" },
     { name: "Airtime", percentage: 12, color: "#8B4513" },
     { name: "Meals", percentage: 32, color: "#808000" },
@@ -115,346 +116,643 @@ export default function ExpenseManagement() {
   }
 
   return (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">EXPENSE DASHBOARD</h1>
-            <p className="expense-subtitle">Track and Manage expenses</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name">Moses. K</span>
-            <div className="expense-user-badge">MK</div>
-          </div>
-        </div>
-      </header>
-
-      {/* Compact Stats Grid - All cards in one line */}
-      <div className="compact-stats-grid">
-        <div className="compact-stat-card stat-blue">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Weekly</span>
-            <span className="compact-stat-change positive">+2</span>
-          </div>
-          <div className="compact-stat-value">
-            18,000<span className="compact-stat-currency">UGX</span>
-          </div>
+    <div className="rider-agent-container">
+      <div className="rider-agent-dashboard">
+        {/* Dashboard Header */}
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">EXPENSE DASHBOARD</h1>
         </div>
 
-        <div className="compact-stat-card stat-yellow">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Fuel</span>
-            <span className="compact-stat-change negative">+8.5%</span>
-          </div>
-          <div className="compact-stat-value">
-            75,000<span className="compact-stat-currency">UGX</span>
-          </div>
-          <div className="compact-stat-badge">Top</div>
+        {/* Tab Navigation */}
+        <div className="tab-navigation">
+          <button className="tab-btn active">Dashboard</button>
+          <button className="tab-btn">All Expenses</button>
+          <button className="tab-btn">Reports</button>
+          <button className="tab-btn">Settings</button>
         </div>
 
-        <div className="compact-stat-card stat-green">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Monthly</span>
-            <span className="compact-stat-change negative">+20.5%</span>
+        {/* Stats Grid */}
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-label">Today</div>
+            <h3 className="stat-value">
+              125,000<span style={{ fontSize: '12px', marginLeft: '2px' }}>UGX</span>
+            </h3>
+            <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+              <span style={{ color: '#2e7d32' }}>+12.5%</span> from yesterday
+            </div>
           </div>
-          <div className="compact-stat-value">
-            430,000<span className="compact-stat-currency">UGX</span>
+
+          <div className="stat-card">
+            <div className="stat-label">Weekly</div>
+            <h3 className="stat-value">
+              18,000<span style={{ fontSize: '12px', marginLeft: '2px' }}>UGX</span>
+            </h3>
+            <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+              <span style={{ color: '#2e7d32' }}>+2</span> expenses
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-label">Monthly</div>
+            <h3 className="stat-value">
+              430,000<span style={{ fontSize: '12px', marginLeft: '2px' }}>UGX</span>
+            </h3>
+            <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+              <span style={{ color: '#c62828' }}>+20.5%</span> from last month
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-label">Fuel</div>
+            <h3 className="stat-value">
+              75,000<span style={{ fontSize: '12px', marginLeft: '2px' }}>UGX</span>
+            </h3>
+            <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+              <span style={{ color: '#c62828' }}>+8.5%</span> Top category
+            </div>
           </div>
         </div>
 
-        <div className="compact-stat-card stat-purple">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Today</span>
-            <span className="compact-stat-change positive">+12.5%</span>
-          </div>
-          <div className="compact-stat-value">
-            125,000<span className="compact-stat-currency">UGX</span>
-          </div>
+        {/* Action Buttons */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+          <button 
+            className="activate-code-btn" 
+            onClick={handleAddExpense}
+          >
+            Add Expense
+          </button>
+          <button className="withdraw-commission-btn">
+            Scan Receipt
+          </button>
+          <button className="activate-code-btn">
+            Export Report
+          </button>
         </div>
-      </div>
 
-      {/* Compact Action Buttons */}
-      <div className="compact-action-bar">
-        <button className="compact-btn btn-primary" onClick={handleAddExpense}>
-          Add Expense
-        </button>
-        <button className="compact-btn btn-secondary">Scan Receipt</button>
-        <button className="compact-btn btn-secondary">Export</button>
-      </div>
-
-      {/* Compact Content Grid */}
-      <div className="compact-content-grid">
-        {/* Compact Table Section */}
-        <div className="compact-table-section">
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Recent Expenses</h2>
-            <div className="compact-filters">
+        {/* Main Content Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          {/* Recent Expenses Table */}
+          <div className="commission-engine">
+            <div className="section-title">Recent Expenses</div>
+            
+            {/* Filters */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
               <input
                 type="text"
-                placeholder="Search..."
-                className="compact-search-input"
+                className="promo-input"
+                placeholder="Search expenses..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ flex: 1 }}
               />
               <select
-                className="compact-filter-select"
+                className="filter-btn"
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
+                style={{ minWidth: '120px' }}
               >
-                <option>All</option>
+                <option value="All">All Categories</option>
                 {expenseCategories.map((cat) => (
-                  <option key={cat}>{cat}</option>
+                  <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
             </div>
-          </div>
 
-          <div className="compact-table-wrapper">
-            <table className="compact-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Category</th>
-                  <th>Amount</th>
-                  <th>Receipt</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {expenseData.map((expense) => (
-                  <tr key={expense.id}>
-                    <td>
-                      <div className="compact-date-cell">
-                        <div className="compact-date">{expense.date}</div>
-                        <div className="compact-time">{expense.time}</div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="compact-category-badge">{expense.category}</span>
-                    </td>
-                    <td className="compact-amount">UGX {expense.amount}</td>
-                    <td>
-                      <span className={`compact-receipt ${expense.receipt === "Yes" ? "yes" : "no"}`}>
-                        {expense.receipt}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="compact-action-buttons">
-                        <button className="compact-action-btn view">View</button>
-                        <button className="compact-action-btn delete">Delete</button>
-                      </div>
-                    </td>
+            {/* Expenses Table */}
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#f0f4ff' }}>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Date & Time</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Category</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Amount</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Receipt</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Actions</th>
                   </tr>
+                </thead>
+                <tbody>
+                  {expenseData.map((expense) => (
+                    <tr key={expense.id} style={{ borderBottom: '1px solid #e0e0e0' }}>
+                      <td style={{ padding: '12px', fontSize: '12px' }}>
+                        <div>{expense.date}</div>
+                        <div style={{ fontSize: '11px', color: '#666' }}>{expense.time}</div>
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <span className="status-badge" style={{ 
+                          background: '#f0f4ff',
+                          color: '#002AFE',
+                          border: '1px solid #dbeafe'
+                        }}>
+                          {expense.category}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', fontSize: '12px', color: '#002AFE', fontWeight: '600' }}>
+                        UGX {expense.amount}
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <span className={`status-badge ${expense.receipt === "Yes" ? "valid" : "invalid"}`}>
+                          {expense.receipt === "Yes" ? "✓ Receipt" : "No Receipt"}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button className="filter-btn" style={{ fontSize: '11px', padding: '4px 8px' }}>
+                            View
+                          </button>
+                          <button className="filter-btn" style={{ 
+                            fontSize: '11px', 
+                            padding: '4px 8px',
+                            background: '#ffebee',
+                            color: '#c62828',
+                            border: '1px solid #ffcdd2'
+                          }}>
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Expense Breakdown */}
+          <div className="commission-overview">
+            <div className="section-title">Expense Breakdown</div>
+            <div style={{ padding: '16px' }}>
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>Today's Usage</div>
+                {expenseBreakdown.map((item, index) => (
+                  <div key={index} style={{ marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: '500', color: '#002AFE' }}>{item.name}</span>
+                      <span style={{ fontSize: '12px', fontWeight: '600', color: '#002AFE' }}>{item.percentage}%</span>
+                    </div>
+                    <div style={{ 
+                      width: '100%', 
+                      height: '6px', 
+                      background: '#f0f4ff',
+                      borderRadius: '3px',
+                      overflow: 'hidden'
+                    }}>
+                      <div 
+                        style={{ 
+                          width: `${item.percentage}%`,
+                          height: '100%',
+                          background: item.color,
+                          borderRadius: '3px'
+                        }}
+                      />
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Compact Breakdown Section */}
-        <div className="compact-breakdown-section">
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Breakdown</h2>
-            <p className="compact-section-subtitle">Today's usage</p>
-          </div>
-
-          <div className="compact-breakdown-list">
-            {expenseBreakdown.map((item, index) => (
-              <div key={index} className="compact-breakdown-item">
-                <div className="compact-breakdown-info">
-                  <span className="compact-breakdown-name">{item.name}</span>
-                  <span className="compact-breakdown-percentage">{item.percentage}%</span>
-                </div>
-                <div className="compact-progress-bar">
-                  <div
-                    className="compact-progress-fill"
-                    style={{
-                      width: `${item.percentage}%`,
-                      backgroundColor: item.color,
-                    }}
-                  />
-                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {/* Compact Add Expense Modal */}
-      {showAddExpense && (
-        <div className="compact-modal-overlay">
-          <div className="compact-modal">
-            {/* Modal Header */}
-            <div className="compact-modal-header">
-              <h2>ADD EXPENSE</h2>
-              <div className="compact-modal-steps">
-                <span className="compact-step active">1</span>
-                <span className="compact-step-divider"></span>
-                <span className={`compact-step ${addExpenseStep >= 2 ? "active" : ""}`}>2</span>
-                <span className="compact-step-divider"></span>
-                <span className={`compact-step ${addExpenseStep >= 3 ? "active" : ""}`}>3</span>
+              {/* Quick Stats */}
+              <div style={{ 
+                background: '#f8f9fa', 
+                padding: '16px', 
+                borderRadius: '8px',
+                border: '1px solid #e0e0e0'
+              }}>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: '#002AFE', marginBottom: '12px' }}>
+                  Quick Stats
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#666' }}>Total Expenses</div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#002AFE' }}>5</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#666' }}>Avg. per Day</div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#002AFE' }}>25,000 UGX</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#666' }}>With Receipt</div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#002AFE' }}>75%</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#666' }}>Most Common</div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#002AFE' }}>Fuel</div>
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Modal Content */}
-            <div className="compact-modal-content">
-              {/* Step 1 */}
-              {addExpenseStep === 1 && (
-                <div className="compact-step-content">
-                  <div className="compact-form-group">
-                    <label className="compact-form-label">Category</label>
-                    <div className="compact-category-grid">
-                      {expenseCategories.map((category) => (
-                        <button
-                          key={category}
-                          className={`compact-category-btn ${
-                            selectedCategory === category ? "selected" : ""
-                          }`}
-                          onClick={() => setSelectedCategory(category)}
-                        >
-                          {category}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="compact-form-row">
-                    <div className="compact-form-group">
-                      <label className="compact-form-label">Amount</label>
-                      <input
-                        type="text"
-                        className="compact-form-input"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        placeholder="10,000"
-                      />
-                    </div>
-                    <div className="compact-form-group">
-                      <label className="compact-form-label">Date</label>
-                      <input
-                        type="text"
-                        className="compact-form-input"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                      />
-                    </div>
-                  </div>
+        {/* Add Expense Modal */}
+        {showAddExpense && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '12px',
+            animation: 'fadeIn 0.3s ease-in'
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '8px',
+              maxWidth: '500px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              animation: 'slideUp 0.3s ease-out'
+            }}>
+              {/* Modal Header */}
+              <div style={{ 
+                background: '#002AFE', 
+                padding: '16px 20px', 
+                borderRadius: '8px 8px 0 0',
+                color: 'white',
+                fontSize: '16px',
+                fontWeight: '600',
+                textAlign: 'center'
+              }}>
+                ADD NEW EXPENSE
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  gap: '8px',
+                  marginTop: '8px'
+                }}>
+                  {[1, 2, 3].map((step) => (
+                    <React.Fragment key={step}>
+                      <div style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        background: addExpenseStep >= step ? 'white' : 'rgba(255, 255, 255, 0.3)',
+                        color: addExpenseStep >= step ? '#002AFE' : 'rgba(255, 255, 255, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        fontWeight: '600'
+                      }}>
+                        {step}
+                      </div>
+                      {step < 3 && (
+                        <div style={{
+                          width: '20px',
+                          height: '2px',
+                          background: addExpenseStep > step ? 'white' : 'rgba(255, 255, 255, 0.3)'
+                        }} />
+                      )}
+                    </React.Fragment>
+                  ))}
                 </div>
-              )}
+              </div>
 
-              {/* Step 2 */}
-              {addExpenseStep === 2 && (
-                <div className="compact-step-content">
-                  <div className="compact-form-group">
-                    <label className="compact-form-label">Receipt</label>
-                    <div className="compact-upload-area">
+              {/* Modal Content */}
+              <div style={{ padding: '20px' }}>
+                {/* Step 1: Category & Amount */}
+                {addExpenseStep === 1 && (
+                  <div>
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                        Select Category
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                        {expenseCategories.map((category) => (
+                          <button
+                            key={category}
+                            onClick={() => setSelectedCategory(category)}
+                            style={{
+                              padding: '12px',
+                              border: selectedCategory === category ? '2px solid #002AFE' : '1px solid #e0e0e0',
+                              background: selectedCategory === category ? '#002AFE' : 'white',
+                              color: selectedCategory === category ? 'white' : '#666',
+                              borderRadius: '8px',
+                              fontSize: '12px',
+                              fontWeight: '500',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            {category}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                      <div>
+                        <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                          Amount (UGX)
+                        </label>
+                        <input
+                          type="text"
+                          className="promo-input"
+                          placeholder="10,000"
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                          Date
+                        </label>
+                        <input
+                          type="text"
+                          className="promo-input"
+                          value={date}
+                          onChange={(e) => setDate(e.target.value)}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: Details & Receipt */}
+                {addExpenseStep === 2 && (
+                  <div>
+                    <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+                      <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                        Upload Receipt (Optional)
+                      </label>
+                      <div style={{ 
+                        border: '2px dashed #002AFE', 
+                        borderRadius: '8px', 
+                        padding: '24px',
+                        background: '#f8f9fa',
+                        cursor: 'pointer'
+                      }} onClick={() => document.getElementById('receipt-upload').click()}>
+                        <div style={{ fontSize: '24px', color: '#002AFE', marginBottom: '8px' }}>📤</div>
+                        <div style={{ color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Click to upload</div>
+                        <div style={{ color: '#666', fontSize: '10px', marginTop: '4px' }}>Max 10MB • JPG, PNG, PDF</div>
+                      </div>
                       <input
                         type="file"
-                        id="compact-receipt-upload"
-                        className="compact-file-input"
+                        id="receipt-upload"
+                        style={{ display: 'none' }}
                         onChange={handleFileUpload}
                         accept="image/*,.pdf"
                       />
-                      <label htmlFor="compact-receipt-upload" className="compact-upload-label">
-                        <div className="compact-upload-icon">📤</div>
-                        <div className="compact-upload-text">Upload</div>
-                      </label>
+                      {receipt && (
+                        <div style={{ 
+                          marginTop: '12px', 
+                          padding: '8px', 
+                          background: '#e3f2fd',
+                          borderRadius: '6px',
+                          border: '1px solid #bbdefb'
+                        }}>
+                          <div style={{ fontSize: '11px', color: '#002AFE' }}>
+                            Selected: {receipt.name}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
 
-                  <div className="compact-form-group">
-                    <label className="compact-form-label">Details (Optional)</label>
-                    <textarea
-                      className="compact-form-textarea"
-                      placeholder="Description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      rows="3"
-                    />
-                  </div>
-
-                  <div className="compact-form-row">
-                    <div className="compact-form-group">
-                      <label className="compact-form-label">Bike</label>
-                      <input
-                        type="text"
-                        className="compact-form-input"
-                        value={motorbikeDetails}
-                        onChange={(e) => setMotorbikeDetails(e.target.value)}
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                        Details (Optional)
+                      </label>
+                      <textarea
+                        className="promo-input"
+                        placeholder="Description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        rows="3"
+                        style={{ width: '100%', resize: 'vertical' }}
                       />
                     </div>
-                    <div className="compact-form-group">
-                      <label className="compact-form-label">Payment</label>
-                      <select
-                        className="compact-form-input"
-                        value={paymentMethod}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                      >
-                        <option>MTN MoMo</option>
-                        <option>Airtel Money</option>
-                        <option>Cash</option>
-                        <option>Card</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
 
-              {/* Step 3 */}
-              {addExpenseStep === 3 && (
-                <div className="compact-step-content">
-                  <div className="compact-review-card">
-                    <div className="compact-review-row">
-                      <div className="compact-review-group">
-                        <span className="compact-review-label">Category</span>
-                        <span className="compact-review-value">{selectedCategory || "Fuel"}</span>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div>
+                        <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                          Motorbike
+                        </label>
+                        <input
+                          type="text"
+                          className="promo-input"
+                          value={motorbikeDetails}
+                          onChange={(e) => setMotorbikeDetails(e.target.value)}
+                          style={{ width: '100%' }}
+                        />
                       </div>
-                      <div className="compact-review-group">
-                        <span className="compact-review-label">Amount</span>
-                        <span className="compact-review-value">UGX {amount || "10,000"}</span>
-                      </div>
-                    </div>
-                    <div className="compact-review-row">
-                      <div className="compact-review-group">
-                        <span className="compact-review-label">Payment</span>
-                        <span className="compact-review-value">{paymentMethod}</span>
-                      </div>
-                      <div className="compact-review-group">
-                        <span className="compact-review-label">Date</span>
-                        <span className="compact-review-value">{date}</span>
+                      <div>
+                        <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                          Payment Method
+                        </label>
+                        <select
+                          className="promo-input"
+                          value={paymentMethod}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          style={{ width: '100%' }}
+                        >
+                          <option>MTN MoMo</option>
+                          <option>Airtel Money</option>
+                          <option>Cash</option>
+                          <option>Card</option>
+                        </select>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
 
-            {/* Modal Actions */}
-            <div className="compact-modal-actions">
-              {addExpenseStep < 3 ? (
-                <>
-                  <button className="compact-modal-btn btn-secondary" onClick={handleBack}>
-                    Back
-                  </button>
-                  <button className="compact-modal-btn btn-primary" onClick={handleContinue}>
-                    Continue
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button className="compact-modal-btn btn-secondary" onClick={handleCancel}>
-                    Cancel
-                  </button>
-                  <button className="compact-modal-btn btn-primary" onClick={handleSaveExpense}>
-                    Save
-                  </button>
-                </>
-              )}
+                {/* Step 3: Review */}
+                {addExpenseStep === 3 && (
+                  <div>
+                    <div style={{ 
+                      background: '#f8f9fa', 
+                      padding: '16px', 
+                      borderRadius: '8px',
+                      border: '1px solid #e0e0e0',
+                      marginBottom: '20px'
+                    }}>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#002AFE', marginBottom: '12px' }}>
+                        Expense Summary
+                      </div>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                        <div>
+                          <div style={{ fontSize: '11px', color: '#666' }}>Category</div>
+                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#002AFE' }}>
+                            {selectedCategory || "Fuel"}
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '11px', color: '#666' }}>Amount</div>
+                          <div style={{ fontSize: '14px', fontWeight: '600', color: '#002AFE' }}>
+                            UGX {amount || "10,000"}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                        <div>
+                          <div style={{ fontSize: '11px', color: '#666' }}>Payment Method</div>
+                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#002AFE' }}>
+                            {paymentMethod}
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '11px', color: '#666' }}>Date</div>
+                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#002AFE' }}>
+                            {date}
+                          </div>
+                        </div>
+                      </div>
+
+                      {motorbikeDetails && (
+                        <div style={{ marginBottom: '12px' }}>
+                          <div style={{ fontSize: '11px', color: '#666' }}>Motorbike</div>
+                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#002AFE' }}>
+                            {motorbikeDetails}
+                          </div>
+                        </div>
+                      )}
+
+                      {description && (
+                        <div>
+                          <div style={{ fontSize: '11px', color: '#666' }}>Description</div>
+                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#002AFE' }}>
+                            {description}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Actions */}
+              <div style={{ 
+                padding: '16px 20px', 
+                borderTop: '1px solid #e0e0e0',
+                display: 'flex',
+                gap: '12px'
+              }}>
+                {addExpenseStep < 3 ? (
+                  <>
+                    <button 
+                      className="activate-code-btn"
+                      style={{ 
+                        background: 'transparent', 
+                        border: '1px solid #002AFE', 
+                        color: '#002AFE',
+                        flex: 1
+                      }}
+                      onClick={handleBack}
+                      disabled={addExpenseStep === 1}
+                    >
+                      Back
+                    </button>
+                    <button 
+                      className="activate-code-btn"
+                      onClick={handleContinue}
+                      disabled={addExpenseStep === 1 && (!selectedCategory || !amount)}
+                      style={{ flex: 1 }}
+                    >
+                      Continue
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button 
+                      className="activate-code-btn"
+                      style={{ 
+                        background: 'transparent', 
+                        border: '1px solid #002AFE', 
+                        color: '#002AFE',
+                        flex: 1
+                      }}
+                      onClick={handleCancel}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      className="activate-code-btn"
+                      onClick={handleSaveExpense}
+                      style={{ flex: 1 }}
+                    >
+                      Save Expense
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+          from { 
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .status-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 12px;
+          border-radius: 12px;
+          font-size: 10px;
+          font-weight: 500;
+          text-transform: uppercase;
+        }
+
+        .status-badge.valid {
+          background: #e8f5e9;
+          color: #2e7d32;
+          border: 1px solid #a5d6a7;
+        }
+
+        .status-badge.invalid {
+          background: #ffebee;
+          color: #c62828;
+          border: 1px solid #ffcdd2;
+        }
+
+        /* Override MUI styles */
+        .rider-agent-container .MuiButton-contained {
+          background: #002AFE !important;
+          color: white !important;
+          border-radius: 8px !important;
+          font-weight: 500 !important;
+          text-transform: none !important;
+        }
+
+        .rider-agent-container .MuiButton-outlined {
+          background: transparent !important;
+          color: #002AFE !important;
+          border: 1px solid #002AFE !important;
+          border-radius: 8px !important;
+          font-weight: 500 !important;
+          text-transform: none !important;
+        }
+
+        .yellow-button {
+          background: #FEF132 !important;
+          color: black !important;
+          border: 1px solid #fde047 !important;
+        }
+      `}</style>
     </div>
   )
 }

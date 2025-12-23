@@ -6,7 +6,8 @@ import jsPDF from 'jspdf'
 import * as XLSX from 'xlsx'
 
 export default function Trips() {
-  const [currentView, setCurrentView] = useState("dashboard")
+  const [currentView, setCurrentView] = useState("new-trip")
+  const [activeTab, setActiveTab] = useState("new-trip")
   const [tripData, setTripData] = useState({
     pickup: "",
     destination: "",
@@ -78,7 +79,7 @@ export default function Trips() {
     }
   })
   
-  // Sample trip history data - matching your original data
+  // Sample trip history data
   const [tripHistory] = useState([
     {
       id: "Trip-007",
@@ -142,14 +143,14 @@ export default function Trips() {
       { day: "Sun", completed: 7, failed: 1 }
     ],
     revenueBreakdown: [
-      { type: "Normal", amount: 15000, color: "#3b82f6", percentage: 40 },
-      { type: "Express", amount: 10000, color: "#f59e0b", percentage: 25 },
+      { type: "Normal", amount: 15000, color: "#002AFE", percentage: 40 },
+      { type: "Express", amount: 10000, color: "#FEF132", percentage: 25 },
       { type: "Group", amount: 8000, color: "#ef4444", percentage: 20 },
       { type: "Delivery", amount: 5000, color: "#10b981", percentage: 15 }
     ],
     paymentMethods: [
-      { method: "Cash", trend: [120, 100, 90, 85, 80, 75, 70, 65, 60], color: "#3b82f6" },
-      { method: "MTN MoMo", trend: [150, 140, 130, 125, 120, 115, 110, 105, 100], color: "#f59e0b" },
+      { method: "Cash", trend: [120, 100, 90, 85, 80, 75, 70, 65, 60], color: "#002AFE" },
+      { method: "MTN MoMo", trend: [150, 140, 130, 125, 120, 115, 110, 105, 100], color: "#FEF132" },
       { method: "Airtel Money", trend: [80, 85, 90, 95, 100, 105, 110, 115, 120], color: "#ef4444" },
       { method: "Visa", trend: [60, 65, 70, 75, 80, 85, 90, 95, 100], color: "#1e293b" }
     ]
@@ -385,210 +386,148 @@ export default function Trips() {
   const currentAnalytics = analyticsData[analyticsView]
   const maxTripValue = Math.max(...chartData.tripSummary.map(d => d.completed + d.failed))
   
-  // Dashboard render function - matching Deliveries layout
+  // Tab Navigation Component
+  const TabNavigation = () => (
+    <div className="tab-navigation">
+       <button 
+        className={`tab-btn ${activeTab === "new-trip" ? "active" : ""}`}
+        onClick={() => {
+          setActiveTab("new-trip")
+          setCurrentView("new-trip")
+        }}
+      >
+        New Trip
+      </button>
+      <button 
+        className={`tab-btn ${activeTab === "dashboard" ? "active" : ""}`}
+        onClick={() => {
+          setActiveTab("dashboard")
+          setCurrentView("dashboard")
+        }}
+      >
+        Dashboard
+      </button>
+     
+      <button 
+        className={`tab-btn ${activeTab === "history" ? "active" : ""}`}
+        onClick={() => {
+          setActiveTab("history")
+          setCurrentView("history")
+        }}
+      >
+        History
+      </button>
+      
+    </div>
+  )
+  
+  // Dashboard render function
   const renderDashboard = () => (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">TRIP DASHBOARD</h1>
-            <p className="expense-subtitle">Manage and track all your trips</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name">Rider</span>
-            <div className="expense-user-badge">RK</div>
-          </div>
-        </div>
-      </header>
-
-      {/* Compact Stats Grid */}
-      <div className="compact-stats-grid">
-        <div className="compact-stat-card stat-blue">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Total Trips</span>
-            <span className="compact-stat-change positive">↑ +12.5%</span>
-          </div>
-          <div className="compact-stat-value">
-            45
-          </div>
+    <div className="rider-agent-container">
+      <div className="rider-agent-dashboard">
+        {/* Dashboard Header */}
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">TRIP DASHBOARD</h1>
         </div>
 
-        <div className="compact-stat-card stat-yellow">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Total Revenue</span>
-            <span className="compact-stat-change positive">↑ +15.5%</span>
+        <TabNavigation />
+
+        {/* Stats Grid */}
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-label">Total Trips</div>
+            <h3 className="stat-value">45</h3>
           </div>
-          <div className="compact-stat-value">
-            85,000<span className="compact-stat-currency">UGX</span>
+          <div className="stat-card">
+            <div className="stat-label">Total Revenue</div>
+            <h3 className="stat-value">85,000</h3>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Completed</div>
+            <h3 className="stat-value">38</h3>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Failed</div>
+            <h3 className="stat-value">7</h3>
           </div>
         </div>
 
-        <div className="compact-stat-card stat-green">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Completed</span>
-            <span className="compact-stat-change positive">↑ +18.5%</span>
-          </div>
-          <div className="compact-stat-value">
-            38
+        {/* Commission Overview */}
+        <div className="commission-overview">
+          <div className="section-title">Trip Overview</div>
+          <div className="commission-grid">
+            <div className="commission-card revenue">
+              <div className="commission-label">Today's Revenue</div>
+              <h4 className="commission-amount">UGX 15,000</h4>
+            </div>
+            <div className="commission-card today">
+              <div className="commission-label">Today's Trips</div>
+              <h4 className="commission-amount">10</h4>
+            </div>
+            <div className="commission-card weekly">
+              <div className="commission-label">Success Rate</div>
+              <h4 className="commission-amount">84%</h4>
+            </div>
+            <div className="commission-card lifetime">
+              <div className="commission-label">Avg. Time</div>
+              <h4 className="commission-amount">18min</h4>
+            </div>
+            <div className="commission-card pending">
+              <div className="commission-label">Active Trips</div>
+              <h4 className="commission-amount">2</h4>
+            </div>
           </div>
         </div>
 
-        <div className="compact-stat-card stat-purple">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Failed</span>
-            <span className="compact-stat-change negative">↓ -5.5%</span>
-          </div>
-          <div className="compact-stat-value">
-            7
-          </div>
+        {/* Action Buttons */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+          <button 
+            className="activate-code-btn" 
+            onClick={() => setCurrentView("new-trip")}
+          >
+            Start New Trip
+          </button>
+          <button 
+            className="withdraw-commission-btn"
+            onClick={handleReceiveMoney}
+          >
+            Receive Money
+          </button>
         </div>
-      </div>
 
-      {/* Compact Action Bar */}
-      <div className="compact-action-bar">
-        <button 
-          className="compact-btn btn-primary" 
-          onClick={() => setCurrentView("new-trip")}
-        >
-          Start New Trip
-        </button>
-        <button 
-          className="compact-btn btn-secondary" 
-          onClick={handleReceiveMoney}
-        >
-          Receive Money
-        </button>
-        <button 
-          className="compact-btn btn-secondary" 
-          onClick={() => setCurrentView("history")}
-        >
-          View History
-        </button>
-        <button 
-          className="compact-btn btn-secondary" 
-          onClick={() => setCurrentView("analytics")}
-        >
-          View Analytics
-        </button>
-      </div>
-
-      {/* Ready Section */}
-      <div className="compact-section" style={{ margin: '0 0.75rem 1rem', textAlign: 'center' }}>
-        <div className="delivery-icon-large" style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🏍️</div>
-        <h2 className="compact-section-title">Ready to Ride?</h2>
-        <p className="compact-section-subtitle">Start A New Trip And Start Earning</p>
-        <button 
-          className="compact-btn btn-primary" 
-          style={{ marginTop: '0.5rem' }}
-          onClick={() => setCurrentView("new-trip")}
-        >
-          Start New Trip →
-        </button>
-      </div>
-
-      {/* Compact Content Grid */}
-      <div className="compact-content-grid">
         {/* Recent Activity */}
-        <div className="compact-table-section">
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Recent Trip Activity</h2>
-            <p className="compact-section-subtitle">Your latest trips</p>
-          </div>
-
-          <div className="compact-table-wrapper">
-            <table className="compact-table">
-              <thead>
-                <tr>
-                  <th>Trip ID</th>
-                  <th>Route</th>
-                  <th>Distance</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tripHistory.slice(0, 3).map((trip) => (
-                  <tr key={trip.id}>
-                    <td className="compact-trip-id">{trip.id}</td>
-                    <td className="compact-route">{trip.route}</td>
-                    <td className="compact-distance">{trip.distance}</td>
-                    <td className="compact-amount">UGX {trip.amount.toLocaleString()}</td>
-                    <td>
-                      <span className={`compact-status ${trip.status.toLowerCase()}`}>
-                        {trip.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="commission-engine">
+          <div className="section-title">Recent Trip Activity</div>
+          <div className="commission-ledger">
+            {tripHistory.slice(0, 4).map((trip) => (
+              <div key={trip.id} className="ledger-entry">
+                <div className="entry-info">
+                  <div className="entry-type">{trip.id} - {trip.route}</div>
+                  <div className="entry-time">{trip.time}</div>
+                </div>
+                <div className="entry-amount" style={{ 
+                  color: trip.status === "Completed" ? "#2e7d32" : 
+                         trip.status === "Cancelled" ? "#c62828" : "#f57c00"
+                }}>
+                  UGX {trip.amount.toLocaleString()}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="compact-breakdown-section">
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Quick Stats</h2>
-            <p className="compact-section-subtitle">Trip metrics</p>
+        {/* Wallet Balance */}
+        <div className="payout-section">
+          <div className="balance-card">
+            <div className="balance-label">Wallet Balance</div>
+            <h2 className="balance-amount">40,000<span style={{ fontSize: '16px', marginLeft: '4px' }}>UGX</span></h2>
           </div>
-
-          <div className="compact-breakdown-list">
-            <div className="compact-stat-item">
-              <div className="compact-stat-info">
-                <span className="compact-stat-name">Active Trips</span>
-                <span className="compact-stat-value">2</span>
-              </div>
-            </div>
-            
-            <div className="compact-stat-item">
-              <div className="compact-stat-info">
-                <span className="compact-stat-name">Today's Earnings</span>
-                <span className="compact-stat-value">UGX 15,000</span>
-              </div>
-              <div className="compact-progress-bar">
-                <div
-                  className="compact-progress-fill"
-                  style={{
-                    width: '65%',
-                    backgroundColor: '#f59e0b'
-                  }}
-                />
-              </div>
-            </div>
-            
-            <div className="compact-stat-item">
-              <div className="compact-stat-info">
-                <span className="compact-stat-name">Success Rate</span>
-                <span className="compact-stat-value">84%</span>
-              </div>
-              <div className="compact-progress-bar">
-                <div
-                  className="compact-progress-fill"
-                  style={{
-                    width: '84%',
-                    backgroundColor: '#10b981'
-                  }}
-                />
-              </div>
-            </div>
-            
-            <div className="compact-stat-item">
-              <div className="compact-stat-info">
-                <span className="compact-stat-name">Avg Trip Time</span>
-                <span className="compact-stat-value">18min</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="compact-section-header" style={{ marginTop: '1rem' }}>
-            <h2 className="compact-section-title">Wallet Balance</h2>
-          </div>
-          
-          <div className="compact-wallet-balance">
-            <div className="compact-wallet-amount">40,000<span className="compact-wallet-currency">UGX</span></div>
-            <div className="compact-wallet-label">Available Balance</div>
-          </div>
+          <button 
+            className="withdraw-btn-large"
+            onClick={() => setCurrentView("history")}
+          >
+            View All Trips →
+          </button>
         </div>
       </div>
     </div>
@@ -596,204 +535,240 @@ export default function Trips() {
   
   // New Trip View
   const renderNewTrip = () => (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">START NEW TRIP</h1>
-            <p className="expense-subtitle">Create and manage new trip request</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name">Online</span>
-            <div className="expense-user-badge" style={{ background: '#10b981' }}>🟢</div>
-          </div>
+    <div className="rider-agent-container">
+      <div className="rider-agent-dashboard">
+        {/* Dashboard Header */}
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">START NEW TRIP</h1>
         </div>
-      </header>
 
-      {/* Form Content */}
-      <div className="compact-content-grid">
-        <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Trip Details</h2>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <select
-                className="compact-filter-select"
-                value={tripData.tripType}
-                onChange={(e) => setTripData({ ...tripData, tripType: e.target.value })}
-              >
-                <option value="normal">Normal Trip</option>
-                <option value="express">Express</option>
-                <option value="group">Group</option>
-                <option value="delivery">Delivery</option>
-              </select>
-            </div>
-          </div>
+        <TabNavigation />
 
-          <div className="compact-modal-content">
-            <div className="compact-form-group">
-              <label className="compact-form-label">Pickup Location *</label>
-              <input
-                type="text"
-                className="compact-form-input"
-                placeholder="Mukono"
-                value={tripData.pickup}
-                onChange={(e) => setTripData({ ...tripData, pickup: e.target.value })}
-              />
-              <div className="suggestions" style={{ marginTop: '0.5rem' }}>
-                {popularPickups.map((loc) => (
-                  <button
-                    key={loc}
-                    className="compact-suggestion-btn"
-                    onClick={() => setTripData({ ...tripData, pickup: loc })}
-                  >
-                    {loc}
-                  </button>
-                ))}
+        <div className="tab-content" style={{ animation: 'fadeIn 0.3s ease-in' }}>
+          <div className="activate-screen">
+            <h2 className="activate-title">Start Trip</h2>
+            <p className="activate-subtitle">Create and manage your trip details</p>
+
+            <div className="promo-status">
+              <div className="status-title">Trip Details</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
+                <span className={`status-badge ${activeTrip ? "valid" : "invalid"}`}>
+                  {activeTrip ? "Active" : "Inactive"}
+                </span>
+                <span style={{ fontSize: '12px', color: '#666' }}>
+                  Ready to start earning
+                </span>
               </div>
             </div>
 
-            <div className="compact-form-group">
-              <label className="compact-form-label">Destination *</label>
-              <input
-                type="text"
-                className="compact-form-input"
-                placeholder="Kampala"
-                value={tripData.destination}
-                onChange={(e) => setTripData({ ...tripData, destination: e.target.value })}
-              />
-              <div className="suggestions" style={{ marginTop: '0.5rem' }}>
-                {popularDestinations.map((loc) => (
-                  <button
-                    key={loc}
-                    className="compact-suggestion-btn"
-                    onClick={() => setTripData({ ...tripData, destination: loc })}
-                  >
-                    {loc}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="compact-form-group">
-              <label className="compact-form-label">Trip Amount (UGX)</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {isEditingAmount ? (
-                  <>
-                    <input
-                      type="text"
-                      className="compact-form-input"
-                      style={{ flex: 1 }}
-                      value={amountDraft}
-                      onChange={(e) => setAmountDraft(e.target.value)}
-                      onBlur={commitAmount}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') commitAmount()
-                        if (e.key === 'Escape') {
-                          setIsEditingAmount(false)
-                          setAmountDraft(String(tripData.amount ?? ""))
-                        }
-                      }}
-                      autoFocus
-                    />
-                    <span className="compact-form-currency">UGX</span>
-                  </>
-                ) : (
-                  <>
-                    <div className="compact-amount-display">{tripData.amount.toLocaleString()}</div>
-                    <span className="compact-form-currency">UGX</span>
-                    <button 
-                      className="compact-btn btn-secondary" 
-                      style={{ marginLeft: 'auto' }}
-                      onClick={beginEditAmount}
-                    >
-                      Change
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Intermediate Stops */}
-            {tripData.stops.length > 0 && (
-              <div className="compact-form-group">
-                <label className="compact-form-label">Intermediate Stops</label>
-                {tripData.stops.map((stop, index) => (
-                  <div key={index} className="compact-stop-row">
-                    <input
-                      type="text"
-                      className="compact-form-input"
-                      style={{ flex: 2 }}
-                      placeholder="Stop location"
-                      value={stop.location}
-                      onChange={(e) => {
-                        const newStops = [...tripData.stops]
-                        newStops[index].location = e.target.value
-                        setTripData({ ...tripData, stops: newStops })
-                      }}
-                    />
-                    <input
-                      type="number"
-                      className="compact-form-input"
-                      style={{ flex: 1 }}
-                      placeholder="Amount"
-                      value={stop.amount}
-                      onChange={(e) => {
-                        const newStops = [...tripData.stops]
-                        newStops[index].amount = Number(e.target.value)
-                        setTripData({ ...tripData, stops: newStops })
-                      }}
-                    />
-                    <button 
-                      className="compact-btn btn-secondary" 
-                      onClick={() => removeStop(index)}
-                    >
-                      Remove
-                    </button>
+            <div style={{ background: '#e3f2fd', padding: '16px', borderRadius: '8px', marginBottom: '24px', border: '1px solid #bbdefb' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                    Pickup Location *
+                  </label>
+                  <input
+                    type="text"
+                    className="promo-input"
+                    placeholder="Mukono"
+                    value={tripData.pickup}
+                    onChange={(e) => setTripData({ ...tripData, pickup: e.target.value })}
+                    style={{ width: '100%' }}
+                  />
+                  <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                    {popularPickups.map((loc) => (
+                      <button
+                        key={loc}
+                        style={{
+                          padding: '4px 8px',
+                          background: '#f0f4ff',
+                          border: '1px solid #002AFE',
+                          borderRadius: '4px',
+                          color: '#002AFE',
+                          fontSize: '11px',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => setTripData({ ...tripData, pickup: loc })}
+                      >
+                        {loc}
+                      </button>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
 
-            <div className="compact-form-group">
-              <label className="compact-form-label">Trip Notes (Optional)</label>
-              <textarea
-                className="compact-form-textarea"
-                placeholder="Delivery instructions, Multistop info etc..."
-                value={tripData.notes}
-                onChange={(e) => setTripData({ ...tripData, notes: e.target.value })}
-                rows="3"
-              />
+                <div>
+                  <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                    Destination *
+                  </label>
+                  <input
+                    type="text"
+                    className="promo-input"
+                    placeholder="Kampala"
+                    value={tripData.destination}
+                    onChange={(e) => setTripData({ ...tripData, destination: e.target.value })}
+                    style={{ width: '100%' }}
+                  />
+                  <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                    {popularDestinations.map((loc) => (
+                      <button
+                        key={loc}
+                        style={{
+                          padding: '4px 8px',
+                          background: '#f0f4ff',
+                          border: '1px solid #002AFE',
+                          borderRadius: '4px',
+                          color: '#002AFE',
+                          fontSize: '11px',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => setTripData({ ...tripData, destination: loc })}
+                      >
+                        {loc}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '16px' }}>
+                <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                  Trip Amount (UGX)
+                </label>
+                <div className="promo-input-section">
+                  <div style={{ flex: 1, position: 'relative' }}>
+                    {isEditingAmount ? (
+                      <input
+                        type="text"
+                        className="promo-input"
+                        value={amountDraft}
+                        onChange={(e) => setAmountDraft(e.target.value)}
+                        onBlur={commitAmount}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') commitAmount()
+                          if (e.key === 'Escape') {
+                            setIsEditingAmount(false)
+                            setAmountDraft(String(tripData.amount ?? ""))
+                          }
+                        }}
+                        autoFocus
+                      />
+                    ) : (
+                      <div style={{ 
+                        padding: '14px',
+                        fontSize: '16px',
+                        color: '#002AFE',
+                        border: '2px solid #002AFE',
+                        borderRadius: '8px',
+                        background: '#f0f4ff',
+                        textAlign: 'center',
+                        fontWeight: '500',
+                        fontFamily: "'Poppins', monospace"
+                      }}>
+                        {tripData.amount.toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                  <button 
+                    className="validate-btn"
+                    onClick={beginEditAmount}
+                    style={{ minWidth: '100px' }}
+                  >
+                    {isEditingAmount ? 'Save' : 'Change'}
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '16px' }}>
+                <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                  Trip Type
+                </label>
+                <select
+                  className="promo-input"
+                  value={tripData.tripType}
+                  onChange={(e) => setTripData({ ...tripData, tripType: e.target.value })}
+                  style={{ width: '100%' }}
+                >
+                  <option value="normal">Normal Trip</option>
+                  <option value="express">Express</option>
+                  <option value="group">Group</option>
+                  <option value="delivery">Delivery</option>
+                </select>
+              </div>
+
+              {tripData.stops.length > 0 && (
+                <div style={{ marginTop: '16px' }}>
+                  <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                    Intermediate Stops
+                  </label>
+                  {tripData.stops.map((stop, index) => (
+                    <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                      <input
+                        type="text"
+                        className="promo-input"
+                        placeholder="Stop location"
+                        value={stop.location}
+                        onChange={(e) => {
+                          const newStops = [...tripData.stops]
+                          newStops[index].location = e.target.value
+                          setTripData({ ...tripData, stops: newStops })
+                        }}
+                        style={{ flex: 2 }}
+                      />
+                      <input
+                        type="number"
+                        className="promo-input"
+                        placeholder="Amount"
+                        value={stop.amount}
+                        onChange={(e) => {
+                          const newStops = [...tripData.stops]
+                          newStops[index].amount = Number(e.target.value)
+                          setTripData({ ...tripData, stops: newStops })
+                        }}
+                        style={{ flex: 1 }}
+                      />
+                      <button 
+                        className="validate-btn"
+                        onClick={() => removeStop(index)}
+                        style={{ minWidth: '80px' }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ marginTop: '16px' }}>
+                <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                  Trip Notes (Optional)
+                </label>
+                <textarea
+                  className="promo-input"
+                  placeholder="Delivery instructions, Multistop info etc..."
+                  value={tripData.notes}
+                  onChange={(e) => setTripData({ ...tripData, notes: e.target.value })}
+                  rows="3"
+                  style={{ width: '100%', resize: 'vertical' }}
+                />
+              </div>
             </div>
 
-            <div className="compact-modal-actions">
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
               <button 
-                className="compact-modal-btn btn-secondary" 
-                onClick={() => {
-                  setCurrentView("dashboard")
-                  setTripData({
-                    pickup: "",
-                    destination: "",
-                    amount: 2000,
-                    startTime: null,
-                    duration: 0,
-                    distance: 0,
-                    stops: [],
-                    notes: "",
-                    tripType: "normal",
-                  })
-                }}
+                className="activate-code-btn"
+                style={{ background: 'transparent', border: '1px solid #002AFE', color: '#002AFE' }}
+                onClick={() => setCurrentView("dashboard")}
               >
                 Cancel
               </button>
               <button 
-                className="compact-modal-btn btn-secondary"
-                onClick={handleReceiveMoney}
+                className="activate-code-btn"
+                onClick={addStop}
               >
-                Receive Money
+                + Add Stop
               </button>
               <button 
-                className="compact-modal-btn btn-primary"
+                className="activate-code-btn"
                 onClick={handleStartTrip}
               >
                 Start Trip
@@ -802,114 +777,88 @@ export default function Trips() {
           </div>
         </div>
       </div>
-
-      <button 
-        className="compact-btn btn-secondary" 
-        style={{ margin: '0.75rem', width: 'calc(100% - 1.5rem)' }}
-        onClick={addStop}
-      >
-        + Add Intermediate Stop
-      </button>
     </div>
   )
   
   // Active Trip View
   const renderActiveTrip = () => (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">ACTIVE TRIP</h1>
-            <p className="expense-subtitle">Trip ID: {activeTrip?.id}</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name" style={{ color: '#f59e0b' }}>In Progress</span>
-            <div className="expense-user-badge" style={{ background: '#f59e0b' }}>⏳</div>
-          </div>
-        </div>
-      </header>
-
-      {/* Compact Stats Grid */}
-      <div className="compact-stats-grid">
-        <div className="compact-stat-card stat-blue">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Elapsed Time</span>
-          </div>
-          <div className="compact-stat-value">
-            {formatTime(timer)}
-          </div>
+    <div className="rider-agent-container">
+      <div className="rider-agent-dashboard">
+        {/* Dashboard Header */}
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">ACTIVE TRIP</h1>
         </div>
 
-        <div className="compact-stat-card stat-yellow">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Distance</span>
-          </div>
-          <div className="compact-stat-value">
-            {distance.toFixed(1)}<span className="compact-stat-currency">KM</span>
-          </div>
-        </div>
+        <div className="tab-content" style={{ animation: 'fadeIn 0.3s ease-in' }}>
+          <div className="activate-screen">
+            <h2 className="activate-title">Trip In Progress</h2>
+            <p className="activate-subtitle">Trip ID: {activeTrip?.id}</p>
 
-        <div className="compact-stat-card stat-green">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Trip Price</span>
-          </div>
-          <div className="compact-stat-value">
-            {activeTrip?.amount?.toLocaleString()}<span className="compact-stat-currency">UGX</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Trip Details */}
-      <div className="compact-content-grid">
-        <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Trip Details</h2>
-          </div>
-
-          <div className="compact-delivery-details">
-            <div className="compact-detail-row">
-              <span className="compact-detail-label">Pickup Location</span>
-              <span className="compact-detail-value">{activeTrip?.pickup}</span>
-            </div>
-            <div className="compact-detail-row">
-              <span className="compact-detail-label">Destination</span>
-              <span className="compact-detail-value">{activeTrip?.destination}</span>
-            </div>
-            <div className="compact-detail-row">
-              <span className="compact-detail-label">Trip Type</span>
-              <span className="compact-detail-value">{activeTrip?.tripType}</span>
-            </div>
-            {activeTrip?.stops?.map((stop, index) => (
-              <div key={index} className="compact-detail-row">
-                <span className="compact-detail-label">Stop {index + 1}</span>
-                <span className="compact-detail-value">{stop.location} - UGX {stop.amount}</span>
+            {/* Stats Grid */}
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-label">Elapsed Time</div>
+                <h3 className="stat-value">{formatTime(timer)}</h3>
               </div>
-            ))}
-            {activeTrip?.notes && (
-              <div className="compact-detail-row">
-                <span className="compact-detail-label">Notes</span>
-                <span className="compact-detail-value">{activeTrip?.notes}</span>
+              <div className="stat-card">
+                <div className="stat-label">Distance</div>
+                <h3 className="stat-value">{distance.toFixed(1)}<span style={{ fontSize: '12px', marginLeft: '2px' }}>km</span></h3>
               </div>
-            )}
-          </div>
+              <div className="stat-card">
+                <div className="stat-label">Trip Price</div>
+                <h3 className="stat-value">{activeTrip?.amount?.toLocaleString()}<span style={{ fontSize: '12px', marginLeft: '2px' }}>UGX</span></h3>
+              </div>
+            </div>
 
-          <div className="compact-modal-actions">
-            <button 
-              className="compact-modal-btn btn-secondary" 
-              onClick={() => {
-                setCurrentView("new-trip")
-                setActiveTrip(null)
-              }}
-            >
-              Edit Trip
-            </button>
-            <button 
-              className="compact-modal-btn btn-primary"
-              onClick={handleEndTrip}
-            >
-              End Trip
-            </button>
+            {/* Trip Details */}
+            <div className="commission-overview">
+              <div className="section-title">Trip Details</div>
+              <div style={{ padding: '16px' }}>
+                <div className="detail-row">
+                  <span className="detail-label">Pickup Location</span>
+                  <span className="detail-value">{activeTrip?.pickup}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Destination</span>
+                  <span className="detail-value">{activeTrip?.destination}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Trip Type</span>
+                  <span className="detail-value">{activeTrip?.tripType}</span>
+                </div>
+                {activeTrip?.stops?.map((stop, index) => (
+                  <div key={index} className="detail-row">
+                    <span className="detail-label">Stop {index + 1}</span>
+                    <span className="detail-value">{stop.location} - UGX {stop.amount}</span>
+                  </div>
+                ))}
+                {activeTrip?.notes && (
+                  <div className="detail-row">
+                    <span className="detail-label">Notes</span>
+                    <span className="detail-value">{activeTrip?.notes}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+              <button 
+                className="activate-code-btn"
+                style={{ background: 'transparent', border: '1px solid #002AFE', color: '#002AFE' }}
+                onClick={() => {
+                  setCurrentView("new-trip")
+                  setActiveTrip(null)
+                }}
+              >
+                Edit Trip
+              </button>
+              <button 
+                className="activate-code-btn"
+                onClick={handleEndTrip}
+              >
+                End Trip
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -918,103 +867,72 @@ export default function Trips() {
   
   // Complete Trip View
   const renderCompleteTrip = () => (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">COMPLETE TRIP</h1>
-            <p className="expense-subtitle">Trip ID: {activeTrip?.id}</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name" style={{ color: '#64748b' }}>Ended</span>
-            <div className="expense-user-badge" style={{ background: '#64748b' }}>✓</div>
-          </div>
-        </div>
-      </header>
-
-      {/* Compact Stats Grid */}
-      <div className="compact-stats-grid">
-        <div className="compact-stat-card stat-blue">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Time Taken</span>
-          </div>
-          <div className="compact-stat-value">
-            {formatTime(timer)}
-          </div>
+    <div className="rider-agent-container">
+      <div className="rider-agent-dashboard">
+        {/* Dashboard Header */}
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">COMPLETE TRIP</h1>
         </div>
 
-        <div className="compact-stat-card stat-yellow">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Distance</span>
-          </div>
-          <div className="compact-stat-value">
-            {distance.toFixed(1)}<span className="compact-stat-currency">KM</span>
-          </div>
-        </div>
+        <div className="tab-content" style={{ animation: 'fadeIn 0.3s ease-in' }}>
+          <div className="activate-screen">
+            <h2 className="activate-title">Trip Completed</h2>
+            <p className="activate-subtitle">Trip ID: {activeTrip?.id}</p>
 
-        <div className="compact-stat-card stat-green">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Trip Price</span>
-          </div>
-          <div className="compact-stat-value">
-            {activeTrip?.amount?.toLocaleString()}<span className="compact-stat-currency">UGX</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Complete Trip Content */}
-      <div className="compact-content-grid">
-        <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Trip Summary</h2>
-            <p className="compact-section-subtitle">Review trip details before payment</p>
-          </div>
-
-          <div className="compact-delivery-details">
-            <div className="compact-detail-row">
-              <span className="compact-detail-label">From</span>
-              <span className="compact-detail-value">{activeTrip?.pickup}</span>
+            {/* Stats Grid */}
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-label">Time Taken</div>
+                <h3 className="stat-value">{formatTime(timer)}</h3>
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">Distance</div>
+                <h3 className="stat-value">{distance.toFixed(1)}<span style={{ fontSize: '12px', marginLeft: '2px' }}>km</span></h3>
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">Trip Price</div>
+                <h3 className="stat-value">{activeTrip?.amount?.toLocaleString()}<span style={{ fontSize: '12px', marginLeft: '2px' }}>UGX</span></h3>
+              </div>
             </div>
-            <div className="compact-detail-row">
-              <span className="compact-detail-label">To</span>
-              <span className="compact-detail-value">{activeTrip?.destination}</span>
-            </div>
-            <div className="compact-detail-row">
-              <span className="compact-detail-label">Duration</span>
-              <span className="compact-detail-value">{formatDuration(timer)}</span>
-            </div>
-            <div className="compact-detail-row">
-              <span className="compact-detail-label">Distance</span>
-              <span className="compact-detail-value">{distance.toFixed(1)} km</span>
-            </div>
-          </div>
 
-          <div className="compact-form-group" style={{ marginTop: '1rem' }}>
-            <label className="compact-form-label">
-              <input
-                type="checkbox"
-                checked={manualOverride}
-                onChange={(e) => setManualOverride(e.target.checked)}
-                style={{ marginRight: '0.5rem' }}
-              />
-              Manual Amount Override
-            </label>
-          </div>
+            {/* Trip Summary */}
+            <div className="commission-overview">
+              <div className="section-title">Trip Summary</div>
+              <div style={{ padding: '16px' }}>
+                <div className="detail-row">
+                  <span className="detail-label">From</span>
+                  <span className="detail-value">{activeTrip?.pickup}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">To</span>
+                  <span className="detail-value">{activeTrip?.destination}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Duration</span>
+                  <span className="detail-value">{formatDuration(timer)}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Distance</span>
+                  <span className="detail-value">{distance.toFixed(1)} km</span>
+                </div>
+              </div>
+            </div>
 
-          <div className="compact-modal-actions">
-            <button 
-              className="compact-modal-btn btn-secondary" 
-              onClick={() => setCurrentView("active-trip")}
-            >
-              Back
-            </button>
-            <button 
-              className="compact-modal-btn btn-primary"
-              onClick={handleReceiveMoney}
-            >
-              Receive Money
-            </button>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+              <button 
+                className="activate-code-btn"
+                style={{ background: 'transparent', border: '1px solid #002AFE', color: '#002AFE' }}
+                onClick={() => setCurrentView("active-trip")}
+              >
+                Back
+              </button>
+              <button 
+                className="activate-code-btn"
+                onClick={handleReceiveMoney}
+              >
+                Receive Money
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1023,38 +941,50 @@ export default function Trips() {
   
   // History View
   const renderHistory = () => (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">TRIP HISTORY</h1>
-            <p className="expense-subtitle">Manage and view all your trips</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name">History View</span>
-            <div className="expense-user-badge">HV</div>
-          </div>
+    <div className="rider-agent-container">
+      <div className="rider-agent-dashboard">
+        {/* Dashboard Header */}
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">TRIP HISTORY</h1>
         </div>
-      </header>
 
-      {/* History Filters */}
-      <div className="compact-content-grid">
-        <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">All Trips</h2>
-            <div className="compact-filters">
+        <TabNavigation />
+
+        <div className="tab-content" style={{ animation: 'fadeIn 0.3s ease-in' }}>
+          {/* Filters */}
+          <div style={{ background: 'white', padding: '16px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #e0e0e0' }}>
+            <div className="promo-input-section">
               <input
                 type="text"
+                className="promo-input"
                 placeholder="Search trips..."
-                className="compact-search-input"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+              <button 
+                className="validate-btn"
+                onClick={() => {
+                  setSearchQuery("")
+                  setFilterStatus("all")
+                  setFilterPayment("all")
+                }}
+              >
+                Clear
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
               <select
-                className="compact-filter-select"
+                className="filter-btn"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
+                style={{ 
+                  padding: '6px 12px',
+                  background: 'white',
+                  color: '#002AFE',
+                  border: '1px solid #002AFE',
+                  borderRadius: '6px',
+                  fontSize: '12px'
+                }}
               >
                 <option value="all">All Status</option>
                 <option value="completed">Completed</option>
@@ -1062,81 +992,78 @@ export default function Trips() {
                 <option value="pending">Pending</option>
               </select>
               <select
-                className="compact-filter-select"
+                className="filter-btn"
                 value={filterPayment}
                 onChange={(e) => setFilterPayment(e.target.value)}
+                style={{ 
+                  padding: '6px 12px',
+                  background: 'white',
+                  color: '#002AFE',
+                  border: '1px solid #002AFE',
+                  borderRadius: '6px',
+                  fontSize: '12px'
+                }}
               >
                 <option value="all">All Payments</option>
                 <option value="cash">Cash</option>
                 <option value="mtn momo">MTN MoMo</option>
                 <option value="airtel money">Airtel Money</option>
-                <option value="visa">Visa</option>
               </select>
-              <button 
-                className="compact-btn btn-secondary"
-                style={{ minWidth: 'auto', padding: '0.375rem' }}
-                onClick={() => {
-                  setSearchQuery("")
-                  setFilterStatus("all")
-                  setFilterType("all")
-                  setFilterPayment("all")
-                  setFilterRoute("all")
-                }}
-              >
-                Clear
-              </button>
             </div>
           </div>
 
-          <div className="compact-table-wrapper">
-            <table className="compact-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Route</th>
-                  <th>Distance</th>
-                  <th>Duration</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTrips.map((trip) => (
-                  <tr key={trip.id}>
-                    <td className="compact-trip-id">{trip.id}</td>
-                    <td className="compact-route">{trip.route}</td>
-                    <td className="compact-distance">{trip.distance}</td>
-                    <td className="compact-duration">{trip.duration}</td>
-                    <td className="compact-amount">UGX {trip.amount.toLocaleString()}</td>
-                    <td>
-                      <span className={`compact-status ${trip.status.toLowerCase()}`}>
-                        {trip.status}
-                      </span>
-                      {trip.manualOverride && (
-                        <span className="compact-manual-badge">Manual</span>
-                      )}
-                    </td>
+          {/* Trip History Table */}
+          <div className="commission-engine">
+            <div className="section-title">All Trips</div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#f0f4ff' }}>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>ID</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Route</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Distance</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Duration</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Amount</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredTrips.map((trip) => (
+                    <tr key={trip.id} style={{ borderBottom: '1px solid #e0e0e0' }}>
+                      <td style={{ padding: '12px', fontSize: '12px', color: '#002AFE', fontWeight: '500' }}>{trip.id}</td>
+                      <td style={{ padding: '12px', fontSize: '12px', color: '#1e293b' }}>{trip.route}</td>
+                      <td style={{ padding: '12px', fontSize: '12px', color: '#475569' }}>{trip.distance}</td>
+                      <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>{trip.duration}</td>
+                      <td style={{ padding: '12px', fontSize: '12px', color: '#002AFE', fontWeight: '600' }}>UGX {trip.amount.toLocaleString()}</td>
+                      <td style={{ padding: '12px' }}>
+                        <span className={`status-badge ${trip.status.toLowerCase()}`}>
+                          {trip.status}
+                          {trip.manualOverride && " (Manual)"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <div className="compact-modal-actions">
+          <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
             <button 
-              className="compact-modal-btn btn-secondary"
+              className="activate-code-btn"
+              style={{ background: 'transparent', border: '1px solid #002AFE', color: '#002AFE' }}
               onClick={() => setCurrentView("dashboard")}
             >
-              Back to Dashboard
+              ← Back to Dashboard
             </button>
             <button 
-              className="compact-modal-btn btn-secondary"
+              className="activate-code-btn"
               onClick={exportToExcel}
             >
               Export to Excel
             </button>
             <button 
-              className="compact-modal-btn btn-primary"
+              className="activate-code-btn"
               onClick={() => setCurrentView("analytics")}
             >
               View Analytics
@@ -1149,247 +1076,240 @@ export default function Trips() {
   
   // Analytics View
   const renderAnalytics = () => (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">TRIP ANALYTICS</h1>
-            <p className="expense-subtitle">Real-time trip performance analytics</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name">Analytics</span>
-            <div className="expense-user-badge">TA</div>
-          </div>
-        </div>
-      </header>
-
-      {/* Analytics Tabs */}
-      <div className="compact-action-bar">
-        <button 
-          className={`compact-btn ${analyticsView === "daily" ? "btn-primary" : "btn-secondary"}`}
-          onClick={() => setAnalyticsView("daily")}
-        >
-          Daily
-        </button>
-        <button 
-          className={`compact-btn ${analyticsView === "weekly" ? "btn-primary" : "btn-secondary"}`}
-          onClick={() => setAnalyticsView("weekly")}
-        >
-          Weekly
-        </button>
-        <button 
-          className={`compact-btn ${analyticsView === "monthly" ? "btn-primary" : "btn-secondary"}`}
-          onClick={() => setAnalyticsView("monthly")}
-        >
-          Monthly
-        </button>
-      </div>
-
-      {/* Compact Stats Grid */}
-      <div className="compact-stats-grid">
-        <div className="compact-stat-card stat-blue">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Total Trips</span>
-            <span className="compact-stat-change positive">{currentAnalytics.revenueChange}</span>
-          </div>
-          <div className="compact-stat-value">
-            {currentAnalytics.totalTrips}
-          </div>
+    <div className="rider-agent-container">
+      <div className="rider-agent-dashboard">
+        {/* Dashboard Header */}
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">TRIP ANALYTICS</h1>
         </div>
 
-        <div className="compact-stat-card stat-yellow">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Total Revenue</span>
-            <span className="compact-stat-change positive">{currentAnalytics.revenueChange}</span>
-          </div>
-          <div className="compact-stat-value">
-            {currentAnalytics.totalRevenue.toLocaleString()}<span className="compact-stat-currency">UGX</span>
-          </div>
-        </div>
+        <TabNavigation />
 
-        <div className="compact-stat-card stat-green">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Completed</span>
-            <span className="compact-stat-change positive">{currentAnalytics.completedChange}</span>
-          </div>
-          <div className="compact-stat-value">
-            {currentAnalytics.completedTrips}
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-purple">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Failed</span>
-            <span className="compact-stat-change negative">{currentAnalytics.failedChange}</span>
-          </div>
-          <div className="compact-stat-value">
-            {currentAnalytics.failedTrips}
-          </div>
-        </div>
-      </div>
-
-      {/* Analytics Content */}
-      <div className="compact-content-grid">
-        <div className="compact-table-section">
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Trip Summary</h2>
-            <p className="compact-section-subtitle">Completed vs failed trips</p>
+        <div className="tab-content" style={{ animation: 'fadeIn 0.3s ease-in' }}>
+          {/* Analytics Tabs */}
+          <div className="tab-navigation" style={{ background: '#e8eaf6', marginBottom: '20px' }}>
+            <button 
+              className={`tab-btn ${analyticsView === "daily" ? "active" : ""}`}
+              onClick={() => setAnalyticsView("daily")}
+            >
+              Daily
+            </button>
+            <button 
+              className={`tab-btn ${analyticsView === "weekly" ? "active" : ""}`}
+              onClick={() => setAnalyticsView("weekly")}
+            >
+              Weekly
+            </button>
+            <button 
+              className={`tab-btn ${analyticsView === "monthly" ? "active" : ""}`}
+              onClick={() => setAnalyticsView("monthly")}
+            >
+              Monthly
+            </button>
           </div>
 
-          <div className="compact-breakdown-list">
-            {chartData.tripSummary.map((data) => (
-              <div key={data.day} className="compact-breakdown-item">
-                <div className="compact-breakdown-info">
-                  <span className="compact-breakdown-name">{data.day}</span>
-                  <span className="compact-breakdown-percentage">{data.completed} completed</span>
+          {/* Stats Grid */}
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-label">Total Trips</div>
+              <h3 className="stat-value">{currentAnalytics.totalTrips}</h3>
+              <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+                <span style={{ color: '#2e7d32' }}>{currentAnalytics.revenueChange}</span> from last period
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Total Revenue</div>
+              <h3 className="stat-value">{currentAnalytics.totalRevenue.toLocaleString()}</h3>
+              <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+                <span style={{ color: '#2e7d32' }}>{currentAnalytics.revenueChange}</span> from last period
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Completed</div>
+              <h3 className="stat-value">{currentAnalytics.completedTrips}</h3>
+              <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+                <span style={{ color: '#2e7d32' }}>{currentAnalytics.completedChange}</span> from last period
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Failed</div>
+              <h3 className="stat-value">{currentAnalytics.failedTrips}</h3>
+              <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+                <span style={{ color: '#c62828' }}>{currentAnalytics.failedChange}</span> from last period
+              </div>
+            </div>
+          </div>
+
+          {/* Chart Section */}
+          <div className="analytics-section">
+            <div className="chart-section">
+              <div className="chart-title">Trip Summary - {analyticsView === "daily" ? "This Week" : analyticsView === "weekly" ? "Last 4 Weeks" : "This Month"}</div>
+              <div className="chart-container">
+                <div className="chart-bars">
+                  {chartData.tripSummary.map((data) => (
+                    <div key={data.day} className="bar-group">
+                      <div 
+                        className="bar commission"
+                        style={{ 
+                          height: `${(data.completed / maxTripValue) * 100}%`,
+                          background: '#002AFE'
+                        }}
+                      />
+                      <div 
+                        className="bar revenue"
+                        style={{ 
+                          height: `${(data.failed / maxTripValue) * 100}%`,
+                          background: '#FEF132',
+                          marginTop: '2px'
+                        }}
+                      />
+                      <div className="bar-label">{data.day}</div>
+                    </div>
+                  ))}
                 </div>
-                <div className="compact-progress-bar">
-                  <div
-                    className="compact-progress-fill"
-                    style={{
-                      width: `${(data.completed / maxTripValue) * 100}%`,
-                      backgroundColor: '#10b981'
-                    }}
-                  />
-                  <div
-                    className="compact-progress-fill"
-                    style={{
-                      width: `${(data.failed / maxTripValue) * 100}%`,
-                      backgroundColor: '#ef4444',
-                      position: 'absolute',
-                      left: `${(data.completed / maxTripValue) * 100}%`
-                    }}
-                  />
+                <div className="chart-legend">
+                  <div className="legend-item">
+                    <div className="legend-color commission" style={{ background: '#002AFE' }} />
+                    <span className="legend-text">Completed</span>
+                  </div>
+                  <div className="legend-item">
+                    <div className="legend-color revenue" style={{ background: '#FEF132' }} />
+                    <span className="legend-text">Failed</span>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        <div className="compact-breakdown-section">
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Revenue Breakdown</h2>
-            <p className="compact-section-subtitle">By trip type</p>
-          </div>
-
-          <div className="compact-breakdown-list">
-            {chartData.revenueBreakdown.map((item) => (
-              <div key={item.type} className="compact-breakdown-item">
-                <div className="compact-breakdown-info">
-                  <span className="compact-breakdown-name">{item.type}</span>
-                  <span className="compact-breakdown-percentage">{item.percentage}%</span>
-                </div>
-                <div className="compact-progress-bar">
-                  <div
-                    className="compact-progress-fill"
-                    style={{
-                      width: `${item.percentage}%`,
-                      backgroundColor: item.color
+            {/* Revenue Breakdown */}
+            <div className="conversion-funnel" style={{ marginTop: '20px' }}>
+              <div className="funnel-title">Revenue Breakdown</div>
+              {chartData.revenueBreakdown.map((item) => (
+                <div key={item.type} className="funnel-stage">
+                  <div 
+                    className="funnel-bar"
+                    style={{ 
+                      background: item.color,
+                      width: `${item.percentage}%`
                     }}
-                  />
+                  >
+                    <span className="funnel-label">{item.type}</span>
+                    <span className="funnel-value">{item.percentage}%</span>
+                  </div>
                 </div>
-                <div className="compact-breakdown-amount">UGX {item.amount.toLocaleString()}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+
+          <button 
+            className="activate-code-btn" 
+            style={{ marginTop: '20px' }}
+            onClick={() => setCurrentView("dashboard")}
+          >
+            ← Back to Dashboard
+          </button>
         </div>
       </div>
-
-      <button 
-        className="compact-btn btn-primary" 
-        style={{ margin: '0.75rem', width: 'calc(100% - 1.5rem)' }}
-        onClick={() => setCurrentView("dashboard")}
-      >
-        ← Back to Dashboard
-      </button>
     </div>
   )
   
-  // Enhanced Payment Modal with all options
+  // Enhanced Payment Modal
   const renderPaymentModal = () => (
-    <div className={`compact-modal-overlay ${showPaymentModal ? "active" : ""}`}>
-      <div className="compact-modal">
+    <div className={`compact-modal-overlay ${showPaymentModal ? "active" : ""}`} style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: '12px',
+      animation: 'fadeIn 0.3s ease-in'
+    }}>
+      <div className="compact-modal" style={{
+        background: 'white',
+        borderRadius: '8px',
+        maxWidth: '500px',
+        width: '100%',
+        maxHeight: '90vh',
+        overflow: 'auto',
+        animation: 'slideUp 0.3s ease-out'
+      }}>
         {/* Modal Header */}
-        <div className="compact-modal-header">
-          <h2>RECEIVE PAYMENT</h2>
-          <div className="compact-modal-steps">
-            <span className="compact-step active">1</span>
-          </div>
+        <div style={{ 
+          background: '#002AFE', 
+          padding: '16px 20px', 
+          borderRadius: '8px 8px 0 0',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: '600'
+        }}>
+          RECEIVE PAYMENT
         </div>
 
         {/* Modal Content */}
-        <div className="compact-modal-content">
-          <div className="compact-form-group">
-            <label className="compact-form-label">Enter Amount (UGX)</label>
+        <div style={{ padding: '20px' }}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+              Enter Amount (UGX)
+            </label>
             <input
               type="number"
-              className="compact-form-input"
+              className="promo-input"
               value={paymentAmount}
               onChange={(e) => setPaymentAmount(Number(e.target.value))}
               min="0"
+              style={{ width: '100%' }}
             />
           </div>
 
-          <div className="compact-form-group">
-            <label className="compact-form-label">Select Payment Method</label>
-            <div className="compact-category-grid">
-              <button
-                type="button"
-                className={`compact-category-btn ${selectedPaymentMethod === "cash" ? "selected" : ""}`}
-                onClick={() => setSelectedPaymentMethod("cash")}
-              >
-                💵 Cash
-              </button>
-              <button
-                type="button"
-                className={`compact-category-btn ${selectedPaymentMethod === "momo" ? "selected" : ""}`}
-                onClick={() => setSelectedPaymentMethod("momo")}
-              >
-                <span className="payment-icon-momo">MTN</span> MoMo
-              </button>
-              <button
-                type="button"
-                className={`compact-category-btn ${selectedPaymentMethod === "airtel" ? "selected" : ""}`}
-                onClick={() => setSelectedPaymentMethod("airtel")}
-              >
-                <span className="payment-icon-airtel">Airtel</span> Money
-              </button>
-              <button
-                type="button"
-                className={`compact-category-btn ${selectedPaymentMethod === "visa" ? "selected" : ""}`}
-                onClick={() => setSelectedPaymentMethod("visa")}
-              >
-                💳 VISA
-              </button>
-              <button
-                type="button"
-                className={`compact-category-btn ${selectedPaymentMethod === "qr" ? "selected" : ""}`}
-                onClick={() => {
-                  setSelectedPaymentMethod("qr")
-                  setShowQR(true)
-                }}
-              >
-                ▦ QR Code
-              </button>
-              <button
-                type="button"
-                className={`compact-category-btn ${selectedPaymentMethod === "split" ? "selected" : ""}`}
-                onClick={() => setSelectedPaymentMethod("split")}
-              >
-                ◎◎ Split Payment
-              </button>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+              Select Payment Method
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+              {['cash', 'momo', 'airtel', 'visa', 'qr', 'split'].map((method) => (
+                <button
+                  key={method}
+                  type="button"
+                  className={`filter-btn ${selectedPaymentMethod === method ? "active" : ""}`}
+                  onClick={() => {
+                    setSelectedPaymentMethod(method)
+                    if (method === "qr") setShowQR(true)
+                  }}
+                  style={{ 
+                    padding: '10px',
+                    textAlign: 'center',
+                    background: selectedPaymentMethod === method ? '#002AFE' : 'white',
+                    color: selectedPaymentMethod === method ? 'white' : '#002AFE',
+                    border: '1px solid #002AFE',
+                    borderRadius: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {method === 'cash' ? '💵 Cash' : 
+                   method === 'momo' ? 'MTN MoMo' : 
+                   method === 'airtel' ? 'Airtel Money' : 
+                   method === 'visa' ? '💳 VISA' : 
+                   method === 'qr' ? '▦ QR Code' : 
+                   '◎◎ Split'}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Split Payment Details */}
           {selectedPaymentMethod === "split" && (
-            <div className="compact-split-payment">
-              <div className="compact-form-group">
-                <label className="compact-form-label">Cash Amount (UGX)</label>
+            <div style={{ background: '#f8f9fa', padding: '16px', borderRadius: '8px', marginBottom: '20px' }}>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                  Cash Amount (UGX)
+                </label>
                 <input
                   type="number"
-                  className="compact-form-input"
+                  className="promo-input"
                   value={splitPayment.cash}
                   onChange={(e) => {
                     setSplitPayment({ ...splitPayment, cash: Number(e.target.value) })
@@ -1397,15 +1317,18 @@ export default function Trips() {
                   onBlur={handleSplitPaymentUpdate}
                   min="0"
                   max={paymentAmount}
+                  style={{ width: '100%' }}
                 />
               </div>
               
-              <div className="compact-form-group">
-                <label className="compact-form-label">Digital Amount (UGX)</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div>
+                <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                  Digital Amount (UGX)
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <input
                     type="number"
-                    className="compact-form-input"
+                    className="promo-input"
                     value={splitPayment.digital}
                     onChange={(e) => {
                       setSplitPayment({ ...splitPayment, digital: Number(e.target.value) })
@@ -1413,11 +1336,13 @@ export default function Trips() {
                     onBlur={handleSplitPaymentUpdate}
                     min="0"
                     max={paymentAmount}
+                    style={{ flex: 1 }}
                   />
                   <select
-                    className="compact-filter-select"
+                    className="filter-btn"
                     value={splitMethod}
                     onChange={(e) => setSplitMethod(e.target.value)}
+                    style={{ minWidth: '100px' }}
                   >
                     <option value="momo">MTN MoMo</option>
                     <option value="airtel">Airtel Money</option>
@@ -1426,20 +1351,39 @@ export default function Trips() {
                 </div>
               </div>
               
-              <div className="compact-total-amount">
-                Total: UGX {(splitPayment.cash + splitPayment.digital).toLocaleString()}
+              <div style={{ textAlign: 'center', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e0e0e0' }}>
+                <div style={{ color: '#002AFE', fontSize: '14px', fontWeight: '600' }}>
+                  Total: UGX {(splitPayment.cash + splitPayment.digital).toLocaleString()}
+                </div>
               </div>
             </div>
           )}
 
           {/* QR Code Display */}
           {selectedPaymentMethod === "qr" && showQR && (
-            <div className="compact-qr-display">
-              <div className="compact-qr-box">
-                <div className="compact-qr-placeholder">
-                  [QR Code Display]
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <div style={{ 
+                background: '#f8f9fa', 
+                padding: '24px', 
+                borderRadius: '8px',
+                border: '1px solid #e0e0e0'
+              }}>
+                <div style={{ 
+                  width: '120px', 
+                  height: '120px', 
+                  margin: '0 auto 16px',
+                  background: 'white',
+                  border: '2px solid #002AFE',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <div style={{ fontSize: '24px', color: '#002AFE', marginBottom: '4px' }}>▦</div>
+                  <div style={{ color: '#999', fontSize: '10px', fontStyle: 'italic' }}>QR Code</div>
                 </div>
-                <div className="compact-qr-instruction">
+                <div style={{ color: '#666', fontSize: '12px' }}>
                   Scan this QR code to complete payment
                 </div>
               </div>
@@ -1448,9 +1392,20 @@ export default function Trips() {
         </div>
 
         {/* Modal Actions */}
-        <div className="compact-modal-actions">
+        <div style={{ 
+          padding: '16px 20px', 
+          borderTop: '1px solid #e0e0e0',
+          display: 'flex',
+          gap: '12px'
+        }}>
           <button 
-            className="compact-modal-btn btn-secondary" 
+            className="activate-code-btn"
+            style={{ 
+              background: 'transparent', 
+              border: '1px solid #002AFE', 
+              color: '#002AFE',
+              flex: 1
+            }}
             onClick={() => {
               setShowPaymentModal(false)
               setShowQR(false)
@@ -1461,7 +1416,8 @@ export default function Trips() {
             Cancel
           </button>
           <button 
-            className="compact-modal-btn btn-primary"
+            className="activate-code-btn"
+            style={{ flex: 1 }}
             onClick={handlePaymentContinue}
           >
             Continue
@@ -1473,26 +1429,78 @@ export default function Trips() {
   
   // Success Modal
   const renderSuccessModal = () => (
-    <div className={`compact-modal-overlay ${showSuccessModal ? "active" : ""}`}>
-      <div className="compact-modal">
+    <div className={`compact-modal-overlay ${showSuccessModal ? "active" : ""}`} style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: '12px',
+      animation: 'fadeIn 0.3s ease-in'
+    }}>
+      <div className="compact-modal" style={{
+        background: 'white',
+        borderRadius: '8px',
+        maxWidth: '400px',
+        width: '100%',
+        animation: 'slideUp 0.3s ease-out',
+        textAlign: 'center'
+      }}>
         {/* Modal Header */}
-        <div className="compact-modal-header">
-          <h2>TRIP COMPLETE</h2>
-          <div className="compact-modal-steps">
-            <span className="compact-step active">1</span>
-          </div>
+        <div style={{ 
+          background: '#002AFE', 
+          padding: '16px 20px', 
+          borderRadius: '8px 8px 0 0',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: '600'
+        }}>
+          TRIP COMPLETE
         </div>
 
         {/* Modal Content */}
-        <div className="compact-modal-content" style={{ textAlign: 'center' }}>
-          <div className="success-icon" style={{ fontSize: '3rem', color: '#10b981', marginBottom: '1rem' }}>✓</div>
-          <h3>Payment Successful</h3>
-          <div className="compact-stat-value" style={{ fontSize: '2rem', margin: '1rem 0' }}>
+        <div style={{ padding: '32px 20px' }}>
+          <div style={{ 
+            width: '48px', 
+            height: '48px', 
+            background: '#e8f5e9',
+            border: '2px solid #4caf50',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+            color: '#4caf50',
+            fontSize: '24px'
+          }}>
+            ✓
+          </div>
+          <h3 style={{ color: '#002AFE', marginBottom: '12px' }}>Payment Successful</h3>
+          <div style={{ 
+            color: '#002AFE', 
+            fontSize: '24px', 
+            fontWeight: '600',
+            marginBottom: '16px'
+          }}>
             UGX {paymentAmount.toLocaleString()}
           </div>
-          <p>Payment received via {selectedPaymentMethod === "split" ? "Split Payment" : selectedPaymentMethod}</p>
+          <p style={{ color: '#666', fontSize: '14px', marginBottom: '8px' }}>
+            Payment received via {selectedPaymentMethod === "split" ? "Split Payment" : selectedPaymentMethod}
+          </p>
           {receiptData?.splitPayment && (
-            <div className="compact-split-summary">
+            <div style={{ 
+              background: '#e3f2fd', 
+              padding: '12px', 
+              borderRadius: '6px',
+              marginTop: '16px',
+              fontSize: '12px',
+              textAlign: 'left'
+            }}>
               <div>Cash: UGX {receiptData.splitPayment.cash.toLocaleString()}</div>
               <div>Digital ({receiptData.splitMethod}): UGX {receiptData.splitPayment.digital.toLocaleString()}</div>
             </div>
@@ -1500,15 +1508,27 @@ export default function Trips() {
         </div>
 
         {/* Modal Actions */}
-        <div className="compact-modal-actions">
+        <div style={{ 
+          padding: '16px 20px', 
+          borderTop: '1px solid #e0e0e0',
+          display: 'flex',
+          gap: '12px'
+        }}>
           <button 
-            className="compact-modal-btn btn-primary"
+            className="activate-code-btn"
+            style={{ flex: 1 }}
             onClick={handlePaymentSuccess}
           >
             View Receipt
           </button>
           <button 
-            className="compact-modal-btn btn-secondary"
+            className="activate-code-btn"
+            style={{ 
+              background: 'transparent', 
+              border: '1px solid #002AFE', 
+              color: '#002AFE',
+              flex: 1
+            }}
             onClick={() => {
               setShowSuccessModal(false)
               setCurrentView("dashboard")
@@ -1535,114 +1555,162 @@ export default function Trips() {
   
   // Detailed Receipt
   const renderReceipt = () => (
-    <div className="compact-modal-overlay active">
-      <div className="compact-modal">
+    <div className="compact-modal-overlay active" style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: '12px',
+      animation: 'fadeIn 0.3s ease-in'
+    }}>
+      <div className="compact-modal" style={{
+        background: 'white',
+        borderRadius: '8px',
+        maxWidth: '500px',
+        width: '100%',
+        maxHeight: '90vh',
+        overflow: 'auto',
+        animation: 'slideUp 0.3s ease-out'
+      }}>
         {/* Modal Header */}
-        <div className="compact-modal-header">
-          <h2>TRIP RECEIPT</h2>
-          <div className="compact-modal-steps">
-            <span className="compact-step active">1</span>
-          </div>
+        <div style={{ 
+          background: '#002AFE', 
+          padding: '16px 20px', 
+          borderRadius: '8px 8px 0 0',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: '600'
+        }}>
+          TRIP RECEIPT
         </div>
 
         {/* Modal Content */}
-        <div className="compact-modal-content">
-          <div ref={receiptRef} style={{ textAlign: 'left', padding: '1rem', background: 'white', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-            <h2 style={{ textAlign: 'center', color: '#1e40af', marginBottom: '1rem' }}>Trip Receipt</h2>
+        <div style={{ padding: '20px' }}>
+          <div ref={receiptRef} style={{ 
+            background: 'white', 
+            padding: '20px', 
+            borderRadius: '8px',
+            border: '1px solid #e0e0e0'
+          }}>
+            <h2 style={{ textAlign: 'center', color: '#002AFE', marginBottom: '16px', fontSize: '18px' }}>Trip Receipt</h2>
             
-            <div style={{ marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ fontWeight: '600' }}>Receipt ID:</span>
+            <div style={{ marginBottom: '16px', borderBottom: '1px solid #e0e0e0', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+                <span style={{ fontWeight: '600', color: '#002AFE' }}>Receipt ID:</span>
                 <span>{receiptData?.id}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ fontWeight: '600' }}>Date:</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+                <span style={{ fontWeight: '600', color: '#002AFE' }}>Date:</span>
                 <span>{receiptData?.date} {receiptData?.time}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontWeight: '600' }}>Trip Type:</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                <span style={{ fontWeight: '600', color: '#002AFE' }}>Trip Type:</span>
                 <span>{receiptData?.tripType}</span>
               </div>
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: '#1e293b' }}>Trip Details</h3>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '14px', marginBottom: '8px', color: '#002AFE', fontWeight: '600' }}>Trip Details</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12px' }}>
                 <span>From:</span>
                 <span>{receiptData?.pickup}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12px' }}>
                 <span>To:</span>
                 <span>{receiptData?.destination}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12px' }}>
                 <span>Distance:</span>
                 <span>{receiptData?.distance} km</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                 <span>Duration:</span>
                 <span>{receiptData?.duration}</span>
               </div>
             </div>
 
-            <div style={{ marginBottom: '1rem', borderTop: '1px solid #e2e8f0', paddingTop: '0.5rem' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: '#1e293b' }}>Payment Information</h3>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+            <div style={{ marginBottom: '16px', borderTop: '1px solid #e0e0e0', paddingTop: '12px' }}>
+              <h3 style={{ fontSize: '14px', marginBottom: '8px', color: '#002AFE', fontWeight: '600' }}>Payment Information</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
                 <span style={{ fontWeight: '600' }}>Payment Method:</span>
                 <span style={{ fontWeight: '600' }}>{receiptData?.paymentMethod === "split" ? "Split Payment" : receiptData?.paymentMethod}</span>
               </div>
               
               {receiptData?.splitPayment ? (
                 <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12px' }}>
                     <span>Cash Amount:</span>
                     <span>UGX {receiptData.splitPayment.cash.toLocaleString()}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12px' }}>
                     <span>Digital Amount ({receiptData.splitMethod}):</span>
                     <span>UGX {receiptData.splitPayment.digital.toLocaleString()}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', paddingTop: '0.25rem', borderTop: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', paddingTop: '8px', borderTop: '1px solid #e0e0e0', fontSize: '12px' }}>
                     <span style={{ fontWeight: '600' }}>Total Amount:</span>
                     <span style={{ fontWeight: '600' }}>UGX {receiptData?.amount?.toLocaleString()}</span>
                   </div>
                 </>
               ) : (
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
                   <span style={{ fontWeight: '600' }}>Amount:</span>
                   <span style={{ fontWeight: '600' }}>UGX {receiptData?.amount?.toLocaleString()}</span>
                 </div>
               )}
               
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                 <span style={{ fontWeight: '600' }}>Payment Status:</span>
-                <span style={{ fontWeight: '600', color: '#10b981' }}>Paid</span>
+                <span style={{ fontWeight: '600', color: '#4caf50' }}>Paid</span>
               </div>
             </div>
 
-            <div style={{ textAlign: 'center', marginTop: '1.5rem', paddingTop: '1rem', borderTop: '2px dashed #cbd5e1' }}>
-              <p style={{ fontSize: '0.875rem', color: '#64748b' }}>Thank you for riding with us!</p>
-              <p style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Receipt Code: TR{Date.now().toString().slice(-8)}</p>
+            <div style={{ textAlign: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '2px dashed #e0e0e0' }}>
+              <p style={{ fontSize: '12px', color: '#666' }}>Thank you for riding with us!</p>
+              <p style={{ fontSize: '10px', color: '#999' }}>Receipt Code: TR{Date.now().toString().slice(-8)}</p>
             </div>
           </div>
         </div>
 
         {/* Modal Actions */}
-        <div className="compact-modal-actions">
+        <div style={{ 
+          padding: '16px 20px', 
+          borderTop: '1px solid #e0e0e0',
+          display: 'flex',
+          gap: '12px'
+        }}>
           <button 
-            className="compact-modal-btn btn-secondary"
+            className="activate-code-btn"
+            style={{ 
+              background: 'transparent', 
+              border: '1px solid #002AFE', 
+              color: '#002AFE',
+              flex: 1
+            }}
             onClick={exportToPDF}
           >
             Save as PDF
           </button>
           <button 
-            className="compact-modal-btn btn-secondary"
+            className="activate-code-btn"
+            style={{ 
+              background: '#FEF132', 
+              color: '#000',
+              border: '1px solid #fde047',
+              flex: 1
+            }}
             onClick={shareReceipt}
           >
             Share Receipt
           </button>
           <button 
-            className="compact-modal-btn btn-primary"
+            className="activate-code-btn"
+            style={{ flex: 1 }}
             onClick={() => {
               setShowReceipt(false)
               setCurrentView("dashboard")
@@ -1679,190 +1747,56 @@ export default function Trips() {
       {showSuccessModal && renderSuccessModal()}
       {showReceipt && renderReceipt()}
       
-      <style jsx>{`
-        /* Trip Specific Styles */
-        .compact-trip-id {
-          font-size: 0.7rem;
-          font-weight: 600;
-          color: #3b82f6;
-          font-family: 'Courier New', monospace;
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
 
-        .compact-route {
-          font-size: 0.7rem;
-          color: #1e293b;
-          font-weight: 500;
-        }
-
-        .compact-distance {
-          font-size: 0.7rem;
-          color: #475569;
-          font-weight: 500;
-        }
-
-        .compact-duration {
-          font-size: 0.7rem;
-          color: #64748b;
-        }
-
-        .compact-manual-badge {
-          display: inline-block;
-          margin-left: 0.25rem;
-          padding: 0.1rem 0.3rem;
-          background: #fef3c7;
-          color: #92400e;
-          border-radius: 3px;
-          font-size: 0.6rem;
-          font-weight: 600;
-        }
-
-        .compact-amount-display {
-          font-size: 1.2rem;
-          font-weight: 700;
-          color: #3b82f6;
-          padding: 0.5rem;
-          background: #f8fafc;
-          border-radius: 4px;
-          border: 1px solid #e2e8f0;
-        }
-
-        .compact-form-currency {
-          font-size: 0.875rem;
-          color: #64748b;
-          font-weight: 600;
-        }
-
-        .compact-stop-row {
-          display: flex;
-          gap: 0.5rem;
-          margin-bottom: 0.5rem;
-          align-items: center;
-        }
-
-        .compact-suggestion-btn {
-          padding: 0.25rem 0.5rem;
-          background: #f0f1ff;
-          border: 1px solid #dbeafe;
-          border-radius: 4px;
-          color: #3b82f6;
-          font-size: 0.7rem;
-          cursor: pointer;
-          margin-right: 0.25rem;
-          margin-bottom: 0.25rem;
-        }
-
-        .compact-suggestion-btn:hover {
-          background: #dbeafe;
-        }
-
-        .payment-icon-momo {
-          color: #f59e0b;
-          font-weight: 700;
-        }
-
-        .payment-icon-airtel {
-          color: #ef4444;
-          font-weight: 700;
-        }
-
-        .compact-split-payment {
-          background: #f8fafc;
-          padding: 1rem;
-          border-radius: 6px;
-          border: 1px solid #e2e8f0;
-          margin-top: 1rem;
-        }
-
-        .compact-total-amount {
-          text-align: center;
-          font-weight: 700;
-          color: #1e40af;
-          margin-top: 0.5rem;
-          padding-top: 0.5rem;
-          border-top: 1px dashed #cbd5e1;
-        }
-
-        .compact-qr-display {
-          text-align: center;
-          margin-top: 1rem;
-        }
-
-        .compact-qr-box {
-          background: white;
-          padding: 1.5rem;
-          border-radius: 8px;
-          border: 1px solid #e2e8f0;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .compact-qr-placeholder {
-          width: 150px;
-          height: 150px;
-          margin: 0 auto 1rem;
-          background: linear-gradient(45deg, #f3f4f6 25%, #e5e7eb 25%, #e5e7eb 50%, #f3f4f6 50%, #f3f4f6 75%, #e5e7eb 75%);
-          background-size: 20px 20px;
-          border-radius: 4px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #64748b;
-          font-size: 0.875rem;
-        }
-
-        .compact-qr-instruction {
-          font-size: 0.875rem;
-          color: #475569;
-          margin-top: 0.5rem;
-        }
-
-        .compact-split-summary {
-          background: #f0f9ff;
-          padding: 0.75rem;
-          border-radius: 6px;
-          margin-top: 1rem;
-          font-size: 0.875rem;
-        }
-
-        .compact-split-summary div {
-          margin: 0.25rem 0;
-        }
-
-        /* Trip-specific status colors */
-        .compact-status.completed {
-          background: #d1fae5;
-          color: #059669;
-          border: 1px solid #a7f3d0;
-        }
-
-        .compact-status.cancelled {
-          background: #fee2e2;
-          color: #dc2626;
-          border: 1px solid #fecaca;
-        }
-
-        .compact-status.pending {
-          background: #fef3c7;
-          color: #d97706;
-          border: 1px solid #fde68a;
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 768px) {
-          .compact-content-grid > .compact-table-section {
-            grid-column: span 1;
+        @keyframes slideUp {
+          from { 
+            opacity: 0;
+            transform: translateY(10px);
           }
-          
-          .compact-filters {
-            flex-direction: column;
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
-          
-          .compact-stop-row {
-            flex-direction: column;
-          }
-          
-          .compact-split-payment {
-            padding: 0.75rem;
-          }
+        }
+
+        .modal-open {
+          overflow: hidden;
+        }
+
+        /* Status badges */
+        .status-badge.valid {
+          background: #e8f5e9;
+          color: #2e7d32;
+          border: 1px solid #a5d6a7;
+        }
+
+        .status-badge.invalid {
+          background: #ffebee;
+          color: #c62828;
+          border: 1px solid #ffcdd2;
+        }
+
+        .status-badge.completed {
+          background: #e8f5e9;
+          color: #2e7d32;
+          border: 1px solid #a5d6a7;
+        }
+
+        .status-badge.cancelled {
+          background: #ffebee;
+          color: #c62828;
+          border: 1px solid #ffcdd2;
+        }
+
+        .status-badge.pending {
+          background: #fff3e0;
+          color: #ef6c00;
+          border: 1px solid #ffcc80;
         }
       `}</style>
     </>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import "./d.css"
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import * as XLSX from 'xlsx'
@@ -147,14 +148,14 @@ const Deliveries = () => {
       { day: "Sun", completed: 35, failed: 5 }
     ],
     revenueBreakdown: [
-      { type: "Same-Day", amount: 25000, color: "#3b82f6", percentage: 40 },
-      { type: "Express", amount: 15000, color: "#f59e0b", percentage: 25 },
+      { type: "Same-Day", amount: 25000, color: "#002AFE", percentage: 40 },
+      { type: "Express", amount: 15000, color: "#FEF132", percentage: 25 },
       { type: "Bulk", amount: 10000, color: "#ef4444", percentage: 15 },
       { type: "Standard", amount: 5000, color: "#10b981", percentage: 20 }
     ],
     paymentMethods: [
-      { method: "Cash", trend: [150, 120, 80, 90, 60, 70, 50, 45, 40], color: "#3b82f6" },
-      { method: "MTN MoMo", trend: [180, 160, 150, 145, 140, 135, 130, 125, 120], color: "#f59e0b" },
+      { method: "Cash", trend: [150, 120, 80, 90, 60, 70, 50, 45, 40], color: "#002AFE" },
+      { method: "MTN MoMo", trend: [180, 160, 150, 145, 140, 135, 130, 125, 120], color: "#FEF132" },
       { method: "Airtel Money", trend: [190, 185, 175, 165, 160, 155, 150, 145, 140], color: "#ef4444" },
       { method: "Visa", trend: [195, 193, 190, 188, 185, 183, 180, 178, 175], color: "#1e293b" }
     ]
@@ -384,560 +385,1323 @@ const Deliveries = () => {
   // Find max value for bar chart scaling
   const maxDeliveryValue = Math.max(...chartData.deliverySummary.map(d => d.completed + d.failed))
 
-  // Dashboard render function
+  // Dashboard render function - Updated to match agent.css styling
   const renderDashboard = () => (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">DELIVERY DASHBOARD</h1>
-            <p className="expense-subtitle">Manage and track all your deliveries</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name">Delivery Rider</span>
-            <div className="expense-user-badge">DR</div>
-          </div>
-        </div>
-      </header>
-
-      {/* Compact Stats Grid */}
-      <div className="compact-stats-grid">
-        <div className="compact-stat-card stat-blue">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Total Deliveries</span>
-            <span className="compact-stat-change positive">↑ +12.5%</span>
-          </div>
-          <div className="compact-stat-value">
-            125
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-yellow">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Total Revenue</span>
-            <span className="compact-stat-change positive">↑ +2.5%</span>
-          </div>
-          <div className="compact-stat-value">
-            40,000<span className="compact-stat-currency">UGX</span>
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-green">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Completed</span>
-            <span className="compact-stat-change positive">↑ +20.5%</span>
-          </div>
-          <div className="compact-stat-value">
-            102
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-purple">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Failed</span>
-            <span className="compact-stat-change negative">↓ -2.5%</span>
-          </div>
-          <div className="compact-stat-value">
-            23
-          </div>
-        </div>
+    <div className="rider-agent-container">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">Delivery Dashboard</h2>
       </div>
 
-      {/* Compact Action Bar */}
-      <div className="compact-action-bar">
+      {/* Tab Navigation */}
+      <div className="tab-navigation">
         <button 
-          className="compact-btn btn-primary" 
+          className={`tab-btn ${currentView === "dashboard" ? "active" : ""}`}
+          onClick={() => setCurrentView("dashboard")}
+        >
+          Dashboard
+        </button>
+        <button 
+          className={`tab-btn ${currentView === "new-delivery" ? "active" : ""}`}
           onClick={() => setCurrentView("new-delivery")}
         >
-          Start New Delivery
+          New Delivery
         </button>
         <button 
-          className="compact-btn btn-secondary" 
-          onClick={handleReceiveMoney}
-        >
-          Receive Money
-        </button>
-        <button 
-          className="compact-btn btn-secondary" 
+          className={`tab-btn ${currentView === "history" ? "active" : ""}`}
           onClick={() => setCurrentView("history")}
         >
-          View History
+          History
         </button>
         <button 
-          className="compact-btn btn-secondary" 
+          className={`tab-btn ${currentView === "analytics" ? "active" : ""}`}
           onClick={() => setCurrentView("analytics")}
         >
-          View Analytics
+          Analytics
         </button>
       </div>
 
-      {/* Ready Section */}
-      <div className="compact-section" style={{ margin: '0 0.75rem 1rem', textAlign: 'center' }}>
-        <div className="delivery-icon-large" style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🏍️</div>
-        <h2 className="compact-section-title">Ready to Deliver?</h2>
-        <p className="compact-section-subtitle">Start A New Delivery And Start Earning</p>
-        <button 
-          className="compact-btn btn-primary" 
-          style={{ marginTop: '0.5rem' }}
-          onClick={() => setCurrentView("new-delivery")}
-        >
-          Start New Delivery →
-        </button>
-      </div>
-
-      {/* Compact Content Grid */}
-      <div className="compact-content-grid">
-        {/* Recent Activity */}
-        <div className="compact-table-section">
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Recent Delivery Activity</h2>
-            <p className="compact-section-subtitle">Your latest deliveries</p>
+      <div className="tab-content">
+        {/* Stats Grid */}
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-label">Total Deliveries</div>
+            <p className="stat-value">125</p>
+            <div className="stat-change positive">
+              +12.5%
+            </div>
           </div>
-
-          <div className="compact-table-wrapper">
-            <table className="compact-table">
-              <thead>
-                <tr>
-                  <th>Customer</th>
-                  <th>Route</th>
-                  <th>Distance</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deliveryHistory.slice(0, 3).map((delivery) => (
-                  <tr key={delivery.id}>
-                    <td>
-                      <div className="compact-contact-cell">
-                        <div className="compact-contact-name">{delivery.customerName}</div>
-                        <div className="compact-contact-phone">{delivery.customerPhone}</div>
-                      </div>
-                    </td>
-                    <td className="compact-route">{delivery.route}</td>
-                    <td className="compact-distance">{delivery.distance}</td>
-                    <td className="compact-amount">UGX {delivery.amount.toLocaleString()}</td>
-                    <td>
-                      <span className={`compact-status ${delivery.status.toLowerCase()}`}>
-                        {delivery.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="stat-card">
+            <div className="stat-label">Total Revenue</div>
+            <p className="stat-value">40,000 UGX</p>
+            <div className="stat-change positive">
+              +2.5%
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Completed</div>
+            <p className="stat-value">102</p>
+            <div className="stat-change positive">
+              +20.5%
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Failed</div>
+            <p className="stat-value">23</p>
+            <div className="stat-change negative">
+              -2.5%
+            </div>
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="compact-breakdown-section">
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Quick Stats</h2>
-            <p className="compact-section-subtitle">Delivery metrics</p>
+        {/* Action Bar */}
+        <div className="commission-overview" style={{ marginBottom: '20px' }}>
+          <div className="section-title">Quick Actions</div>
+          <div style={{ padding: '16px' }}>
+            <div className="share-input-group" style={{ gap: '12px' }}>
+              <button 
+                className="share-btn"
+                onClick={() => setCurrentView("new-delivery")}
+                style={{ flex: '1' }}
+              >
+                🚚 Start New Delivery
+              </button>
+              <button 
+                className="share-btn"
+                onClick={handleReceiveMoney}
+                style={{ 
+                  background: '#FEF132',
+                  color: '#000',
+                  border: '1px solid #FEF132',
+                  flex: '1'
+                }}
+              >
+                💰 Receive Money
+              </button>
+            </div>
           </div>
+        </div>
 
-          <div className="compact-breakdown-list">
-            <div className="compact-stat-item">
-              <div className="compact-stat-info">
-                <span className="compact-stat-name">Active Deliveries</span>
-                <span className="compact-stat-value">3</span>
+        {/* Content Grid */}
+        <div className="alerts-section">
+          <div className="referral-alerts">
+            <div className="alerts-title">Recent Delivery Activity</div>
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {deliveryHistory.slice(0, 5).map((delivery) => (
+                <div key={delivery.id} className="alert-item">
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="alert-type">
+                      {delivery.customerName} • {delivery.deliveryType}
+                    </div>
+                    <p className="alert-message">
+                      {delivery.route} • {delivery.distance} • {delivery.date} {delivery.time}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    <span style={{ 
+                      color: '#002AFE',
+                      fontWeight: '600',
+                      fontSize: '12px',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      UGX {delivery.amount.toLocaleString()}
+                    </span>
+                    <span className="status-badge" style={{ 
+                      background: delivery.status === 'Completed' ? '#e8f5e9' : 
+                                delivery.status === 'Cancelled' ? '#ffebee' : '#fff9c4',
+                      color: delivery.status === 'Completed' ? '#2e7d32' : 
+                            delivery.status === 'Cancelled' ? '#c62828' : '#f59e0b',
+                      border: delivery.status === 'Completed' ? '1px solid #a5d6a7' : 
+                             delivery.status === 'Cancelled' ? '1px solid #ffcdd2' : '1px solid #fde047',
+                      padding: '2px 8px',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {delivery.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="milestone-section">
+            <div className="alerts-title">Quick Stats</div>
+            <div className="milestone-card">
+              <div className="milestone-title">Active Deliveries</div>
+              <div className="milestone-text" style={{ fontSize: '24px', fontWeight: '600', color: '#002AFE' }}>
+                3
               </div>
             </div>
-            
-            <div className="compact-stat-item">
-              <div className="compact-stat-info">
-                <span className="compact-stat-name">Today's Earnings</span>
-                <span className="compact-stat-value">UGX 12,000</span>
-              </div>
-              <div className="compact-progress-bar">
-                <div
-                  className="compact-progress-fill"
-                  style={{
-                    width: '75%',
-                    backgroundColor: '#3b82f6'
-                  }}
-                />
+            <div className="milestone-card">
+              <div className="milestone-title">Today's Earnings</div>
+              <div className="milestone-text" style={{ fontSize: '24px', fontWeight: '600', color: '#002AFE' }}>
+                12,000 UGX
               </div>
             </div>
-            
-            <div className="compact-stat-item">
-              <div className="compact-stat-info">
-                <span className="compact-stat-name">Success Rate</span>
-                <span className="compact-stat-value">92%</span>
-              </div>
-              <div className="compact-progress-bar">
-                <div
-                  className="compact-progress-fill"
-                  style={{
-                    width: '92%',
-                    backgroundColor: '#10b981'
-                  }}
-                />
-              </div>
-            </div>
-            
-            <div className="compact-stat-item">
-              <div className="compact-stat-info">
-                <span className="compact-stat-name">Avg Delivery Time</span>
-                <span className="compact-stat-value">25min</span>
+            <div className="milestone-card">
+              <div className="milestone-title">Success Rate</div>
+              <div className="milestone-text" style={{ fontSize: '24px', fontWeight: '600', color: '#10b981' }}>
+                92%
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="compact-section-header" style={{ marginTop: '1rem' }}>
-            <h2 className="compact-section-title">Wallet Balance</h2>
-          </div>
-          
-          <div className="compact-wallet-balance">
-            <div className="compact-wallet-amount">40,000<span className="compact-wallet-currency">UGX</span></div>
-            <div className="compact-wallet-label">Available Balance</div>
+        {/* Ready to Deliver Section */}
+        <div className="commission-overview">
+          <div className="section-title">Ready to Deliver?</div>
+          <div style={{ padding: '16px', textAlign: 'center' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'bounce 2s infinite' }}>🏍️</div>
+            <h3 style={{ margin: '0 0 8px 0', color: '#002AFE' }}>Start A New Delivery And Start Earning</h3>
+            <p style={{ color: '#666', fontSize: '12px', marginBottom: '16px' }}>
+              Create a new delivery request and begin your journey
+            </p>
+            <button 
+              className="share-btn"
+              onClick={() => setCurrentView("new-delivery")}
+              style={{ 
+                background: '#002AFE',
+                color: 'white',
+                padding: '12px 24px',
+                fontSize: '14px'
+              }}
+            >
+              🚚 Start New Delivery →
+            </button>
+            <button 
+              className="share-btn"
+              onClick={handleAddMultiple}
+              style={{ 
+                background: 'transparent',
+                color: '#002AFE',
+                border: '1px solid #002AFE',
+                marginTop: '8px'
+              }}
+            >
+              📁 Add Multiple Deliveries
+            </button>
           </div>
         </div>
       </div>
     </div>
   )
 
+  // New Delivery Form - IMPROVED with the beautiful layout
   const renderNewDelivery = () => (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">START NEW DELIVERY</h1>
-            <p className="expense-subtitle">Create and manage new delivery request</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name">Online</span>
-            <div className="expense-user-badge" style={{ background: '#10b981' }}>🟢</div>
-          </div>
+    <div className="rider-agent-container">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">Start New Delivery 🟢</h2>
+        <div style={{ color: 'white', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+          <span style={{ 
+            width: '8px', 
+            height: '8px', 
+            background: '#10b981', 
+            borderRadius: '50%',
+            display: 'inline-block' 
+          }}></span>
+          Online • Create and manage new delivery request
         </div>
-      </header>
+      </div>
 
-      {/* Form Content */}
-      <div className="compact-content-grid">
-        <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Delivery Details</h2>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <select
-                className="compact-filter-select"
-                value={deliveryData.deliveryType}
-                onChange={(e) => setDeliveryData({ ...deliveryData, deliveryType: e.target.value })}
-              >
-                <option value="same-day">Same-Day Delivery</option>
-                <option value="express">Express</option>
-                <option value="bulk">Bulk</option>
-                <option value="standard">Standard</option>
-              </select>
+      <div className="tab-content">
+        {/* Form Grid with sections like the example */}
+        <div className="alerts-section" style={{ gridTemplateColumns: '1fr 1fr', marginBottom: '20px' }}>
+          {/* Customer Information Section */}
+          <div className="referral-alerts">
+            <div className="alerts-title">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  background: '#002AFE',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '14px'
+                }}>
+                  👤
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '14px' }}>Customer Information</h3>
+                  <p style={{ margin: 0, fontSize: '11px', color: '#666' }}>Enter Customer Details</p>
+                </div>
+              </div>
             </div>
-          </div>
-
-          <div className="compact-modal-content">
-            <div className="compact-form-group">
-              <label className="compact-form-label">Customer Name *</label>
-              <input
-                type="text"
-                className="compact-form-input"
-                placeholder="Sengendo Mark"
-                value={deliveryData.customerName}
-                onChange={(e) => setDeliveryData({ ...deliveryData, customerName: e.target.value })}
-              />
-            </div>
-
-            <div className="compact-form-group">
-              <label className="compact-form-label">Phone Number *</label>
-              <input
-                type="tel"
-                className="compact-form-input"
-                placeholder="+256 79 898 898"
-                value={deliveryData.customerPhone}
-                onChange={(e) => setDeliveryData({ ...deliveryData, customerPhone: e.target.value })}
-              />
-            </div>
-
-            <div className="compact-form-group">
-              <label className="compact-form-label">Package Description</label>
-              <input
-                type="text"
-                className="compact-form-input"
-                placeholder="Electronics, Fragile Items, etc..."
-                value={deliveryData.packageDescription}
-                onChange={(e) => setDeliveryData({ ...deliveryData, packageDescription: e.target.value })}
-              />
-            </div>
-
-            <div className="compact-form-row">
-              <div className="compact-form-group">
-                <label className="compact-form-label">Pickup Address *</label>
+            
+            <div style={{ padding: '16px' }}>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
+                  Customer Name *
+                </label>
                 <input
                   type="text"
-                  className="compact-form-input"
+                  className="share-input"
+                  placeholder="Sengendo Mark"
+                  value={deliveryData.customerName}
+                  onChange={(e) => setDeliveryData({ ...deliveryData, customerName: e.target.value })}
+                  style={{ width: '100%' }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
+                  Phone Number *
+                </label>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  <div style={{ 
+                    background: '#f8f9fa',
+                    border: '1px solid #002AFE',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    color: '#002AFE',
+                    minWidth: '60px',
+                    textAlign: 'center'
+                  }}>
+                    +256
+                  </div>
+                  <input
+                    type="tel"
+                    className="share-input"
+                    placeholder="079 898 898"
+                    value={deliveryData.customerPhone}
+                    onChange={(e) => setDeliveryData({ ...deliveryData, customerPhone: e.target.value })}
+                    style={{ flex: 1 }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Package Details Section */}
+          <div className="milestone-section">
+            <div className="alerts-title">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    background: '#FEF132',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#000',
+                    fontSize: '14px'
+                  }}>
+                    📦
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '14px' }}>Package Details</h3>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#666' }}>Describe what's being delivered</p>
+                  </div>
+                </div>
+                <select
+                  className="share-input"
+                  value={deliveryData.deliveryType}
+                  onChange={(e) => setDeliveryData({ ...deliveryData, deliveryType: e.target.value })}
+                  style={{ 
+                    background: '#002AFE',
+                    color: 'white',
+                    border: 'none',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: '500',
+                    minWidth: '120px'
+                  }}
+                >
+                  <option value="same-day">Same-Day Delivery</option>
+                  <option value="express">Express</option>
+                  <option value="bulk">Bulk</option>
+                  <option value="standard">Standard</option>
+                </select>
+              </div>
+            </div>
+            
+            <div style={{ padding: '16px' }}>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
+                  Package Description
+                </label>
+                <input
+                  type="text"
+                  className="share-input"
+                  placeholder="Electronics, Fragile Items, etc..."
+                  value={deliveryData.packageDescription}
+                  onChange={(e) => setDeliveryData({ ...deliveryData, packageDescription: e.target.value })}
+                  style={{ width: '100%' }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
+                  Weight (kg)
+                </label>
+                <input
+                  type="text"
+                  className="share-input"
+                  placeholder="2.5"
+                  value={deliveryData.packageWeight}
+                  onChange={(e) => setDeliveryData({ ...deliveryData, packageWeight: e.target.value })}
+                  style={{ width: '100%' }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Pickup & Dropoff Section */}
+          <div className="referral-alerts">
+            <div className="alerts-title">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  background: '#10b981',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '14px'
+                }}>
+                  📍
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '14px' }}>Pickup & Dropoff</h3>
+                  <p style={{ margin: 0, fontSize: '11px', color: '#666' }}>Specify addresses</p>
+                </div>
+              </div>
+            </div>
+            
+            <div style={{ padding: '16px' }}>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
+                  Pickup Address *
+                </label>
+                <input
+                  type="text"
+                  className="share-input"
                   placeholder="Pioneer Mall, Kampala"
                   value={deliveryData.pickupAddress}
                   onChange={(e) => setDeliveryData({ ...deliveryData, pickupAddress: e.target.value })}
+                  style={{ width: '100%' }}
                 />
               </div>
-              <div className="compact-form-group">
-                <label className="compact-form-label">Dropoff Address *</label>
+              
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
+                  Dropoff Address *
+                </label>
                 <input
                   type="text"
-                  className="compact-form-input"
+                  className="share-input"
                   placeholder="UCU campus, Mukono"
                   value={deliveryData.dropoffAddress}
                   onChange={(e) => setDeliveryData({ ...deliveryData, dropoffAddress: e.target.value })}
+                  style={{ width: '100%' }}
                 />
               </div>
-            </div>
-
-            <div className="compact-form-row">
-              <div className="compact-form-group">
-                <label className="compact-form-label">Recipient Name</label>
-                <input
-                  type="text"
-                  className="compact-form-input"
-                  placeholder="Magezi Wise"
-                  value={deliveryData.recipientName}
-                  onChange={(e) => setDeliveryData({ ...deliveryData, recipientName: e.target.value })}
-                />
-              </div>
-              <div className="compact-form-group">
-                <label className="compact-form-label">Recipient Phone</label>
-                <input
-                  type="tel"
-                  className="compact-form-input"
-                  placeholder="+256 75 800 898"
-                  value={deliveryData.recipientPhone}
-                  onChange={(e) => setDeliveryData({ ...deliveryData, recipientPhone: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="compact-form-group">
-              <label className="compact-form-label">Delivery Price (UGX)</label>
-              <input
-                type="number"
-                className="compact-form-input"
-                value={deliveryData.estimatedPrice}
-                onChange={(e) => setDeliveryData({ ...deliveryData, estimatedPrice: parseInt(e.target.value) || 0 })}
-                min="0"
-              />
             </div>
           </div>
 
-          <div className="compact-modal-actions">
+          {/* Recipient Information Section */}
+          <div className="milestone-section">
+            <div className="alerts-title">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  background: '#8b5cf6',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '14px'
+                }}>
+                  👤
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '14px' }}>Recipient Information</h3>
+                  <p style={{ margin: 0, fontSize: '11px', color: '#666' }}>Enter recipient details</p>
+                </div>
+              </div>
+            </div>
+            
+            <div style={{ padding: '16px' }}>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
+                  Recipient Name
+                </label>
+                <input
+                  type="text"
+                  className="share-input"
+                  placeholder="Magezi Wise"
+                  value={deliveryData.recipientName}
+                  onChange={(e) => setDeliveryData({ ...deliveryData, recipientName: e.target.value })}
+                  style={{ width: '100%' }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
+                  Phone Number
+                </label>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  <div style={{ 
+                    background: '#f8f9fa',
+                    border: '1px solid #8b5cf6',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    color: '#8b5cf6',
+                    minWidth: '60px',
+                    textAlign: 'center'
+                  }}>
+                    +256
+                  </div>
+                  <input
+                    type="tel"
+                    className="share-input"
+                    placeholder="075 800 898"
+                    value={deliveryData.recipientPhone}
+                    onChange={(e) => setDeliveryData({ ...deliveryData, recipientPhone: e.target.value })}
+                    style={{ flex: 1 }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Delivery Pricing Section - Standalone */}
+        <div className="commission-overview" style={{ marginBottom: '20px' }}>
+          <div className="section-title" style={{ background: '#002AFE' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                background: '#FEF132',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#000',
+                fontSize: '20px',
+                fontWeight: '600'
+              }}>
+                💰
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16px' }}>Delivery Pricing</h3>
+                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#ffffffaa' }}>Set delivery rate</p>
+              </div>
+            </div>
+          </div>
+          <div style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '8px', display: 'block' }}>
+                Estimated Price (UGX)
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="number"
+                  className="share-input"
+                  value={deliveryData.estimatedPrice}
+                  onChange={(e) => setDeliveryData({ ...deliveryData, estimatedPrice: parseInt(e.target.value) || 0 })}
+                  min="0"
+                  style={{ 
+                    flex: 1,
+                    fontSize: '20px',
+                    fontWeight: '600',
+                    color: '#002AFE',
+                    textAlign: 'right',
+                    padding: '12px'
+                  }}
+                />
+                <span style={{ fontSize: '16px', fontWeight: '600', color: '#002AFE' }}>UGX</span>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                className="share-btn"
+                onClick={handleAddMultiple}
+                style={{ 
+                  background: '#FEF132',
+                  color: '#000',
+                  border: '1px solid #FEF132',
+                  padding: '12px 20px',
+                  fontSize: '14px'
+                }}
+              >
+                📁 Add Multiple Deliveries
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="commission-overview">
+          <div className="share-input-group" style={{ gap: '12px', padding: '16px' }}>
             <button 
-              className="compact-modal-btn btn-secondary" 
+              className="share-btn"
               onClick={() => setCurrentView("dashboard")}
+              style={{ 
+                background: '#f5f5f5',
+                color: '#002AFE',
+                border: '1px solid #002AFE',
+                flex: '1'
+              }}
             >
               Cancel
             </button>
             <button 
-              className="compact-modal-btn btn-secondary"
+              className="share-btn"
               onClick={handleReceiveMoney}
+              style={{ 
+                background: '#10b981',
+                color: 'white',
+                border: '1px solid #10b981',
+                flex: '1'
+              }}
             >
-              Receive Money
+              💰 Receive Money
             </button>
             <button 
-              className="compact-modal-btn btn-primary"
+              className="share-btn"
               onClick={handleStartDelivery}
+              style={{ 
+                background: '#002AFE',
+                color: 'white',
+                flex: '1'
+              }}
             >
-              Start Delivery
+              🚚 Start Delivery
             </button>
           </div>
         </div>
       </div>
-
-      {/* Add Multiple Deliveries Button */}
-      <button 
-        className="compact-btn btn-secondary" 
-        style={{ margin: '0.75rem', width: 'calc(100% - 1.5rem)' }}
-        onClick={handleAddMultiple}
-      >
-        + Add Multiple Deliveries
-      </button>
     </div>
   )
 
   const renderActiveDelivery = () => (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">ACTIVE DELIVERY</h1>
-            <p className="expense-subtitle">Delivery ID: {activeDelivery?.id}</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name" style={{ color: '#f59e0b' }}>In Progress</span>
-            <div className="expense-user-badge" style={{ background: '#f59e0b' }}>⏳</div>
-          </div>
-        </div>
-      </header>
-
-      {/* Compact Stats Grid */}
-      <div className="compact-stats-grid">
-        <div className="compact-stat-card stat-blue">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Elapsed Time</span>
-          </div>
-          <div className="compact-stat-value">
-            {formatTime(timer)}
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-yellow">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Distance</span>
-          </div>
-          <div className="compact-stat-value">
-            {distance.toFixed(1)}<span className="compact-stat-currency">KM</span>
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-green">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Delivery Price</span>
-          </div>
-          <div className="compact-stat-value">
-            {activeDelivery?.estimatedPrice?.toLocaleString()}<span className="compact-stat-currency">UGX</span>
-          </div>
+    <div className="rider-agent-container">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">Active Delivery 🟡</h2>
+        <div style={{ color: 'white', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+          <span style={{ 
+            width: '8px', 
+            height: '8px', 
+            background: '#FEF132', 
+            borderRadius: '50%',
+            display: 'inline-block' 
+          }}></span>
+          In Progress • Delivery ID: {activeDelivery?.id}
         </div>
       </div>
 
-      {/* Delivery Details */}
-      <div className="compact-content-grid">
-        <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Delivery Details</h2>
+      <div className="tab-content">
+        {/* Stats Grid */}
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-label">Elapsed Time</div>
+            <p className="stat-value">{formatTime(timer)}</p>
+            <div className="stat-change">Time to deliver</div>
           </div>
-
-          <div className="compact-delivery-details">
-            <div className="compact-detail-row">
-              <span className="compact-detail-label">Pickup Location</span>
-              <span className="compact-detail-value">{activeDelivery?.pickupAddress}</span>
-            </div>
-            <div className="compact-detail-row">
-              <span className="compact-detail-label">Dropoff Location</span>
-              <span className="compact-detail-value">{activeDelivery?.dropoffAddress}</span>
-            </div>
-            <div className="compact-detail-row">
-              <span className="compact-detail-label">Recipient</span>
-              <span className="compact-detail-value">{activeDelivery?.recipientName}</span>
-            </div>
-            <div className="compact-detail-row">
-              <span className="compact-detail-label">Recipient Contact</span>
-              <span className="compact-detail-value">+256 {activeDelivery?.recipientPhone}</span>
-            </div>
-            <div className="compact-detail-row">
-              <span className="compact-detail-label">Package</span>
-              <span className="compact-detail-value">{activeDelivery?.packageDescription}</span>
-            </div>
+          <div className="stat-card">
+            <div className="stat-label">Distance</div>
+            <p className="stat-value">{distance.toFixed(1)} KM</p>
+            <div className="stat-change">Distance Covered</div>
           </div>
+          <div className="stat-card">
+            <div className="stat-label">Delivery Price</div>
+            <p className="stat-value">{activeDelivery?.estimatedPrice?.toLocaleString()} UGX</p>
+          </div>
+        </div>
 
-          <button 
-            className="compact-btn btn-primary" 
-            style={{ marginTop: '1rem', width: '100%' }}
-            onClick={handleEndDelivery}
-          >
-            End Delivery
-          </button>
+        {/* Delivery Details Section */}
+        <div className="commission-overview" style={{ marginBottom: '20px' }}>
+          <div className="section-title" style={{ background: '#FEF132', color: '#000' }}>
+            Delivery Details
+          </div>
+          <div style={{ padding: '16px' }}>
+            <div className="alerts-section" style={{ gridTemplateColumns: '1fr 1fr' }}>
+              <div className="referral-alerts">
+                <div className="alert-item" style={{ borderLeft: '3px solid #002AFE' }}>
+                  <div className="alert-type">Pickup Location</div>
+                  <p className="alert-message" style={{ color: '#002AFE', fontWeight: '600', fontSize: '12px' }}>
+                    {activeDelivery?.pickupAddress}
+                  </p>
+                </div>
+                
+                <div className="alert-item" style={{ borderLeft: '3px solid #10b981' }}>
+                  <div className="alert-type">Dropoff Location</div>
+                  <p className="alert-message" style={{ color: '#002AFE', fontWeight: '600', fontSize: '12px' }}>
+                    {activeDelivery?.dropoffAddress}
+                  </p>
+                </div>
+                
+                <div className="alert-item" style={{ borderLeft: '3px solid #8b5cf6' }}>
+                  <div className="alert-type">Recipient Name</div>
+                  <p className="alert-message" style={{ color: '#002AFE', fontWeight: '600', fontSize: '12px' }}>
+                    {activeDelivery?.recipientName || 'Not specified'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="milestone-section">
+                <div className="milestone-card">
+                  <div className="milestone-title">Recipient Contact</div>
+                  <div className="milestone-text" style={{ fontSize: '14px', fontWeight: '600', color: '#002AFE' }}>
+                    {activeDelivery?.recipientPhone ? `+256 ${activeDelivery.recipientPhone}` : 'Not specified'}
+                  </div>
+                </div>
+                
+                <div className="milestone-card">
+                  <div className="milestone-title">Package</div>
+                  <div className="milestone-text" style={{ fontSize: '14px', fontWeight: '600', color: '#002AFE' }}>
+                    {activeDelivery?.packageDescription || 'Not specified'}
+                  </div>
+                </div>
+                
+                <div className="milestone-card">
+                  <div className="milestone-title">Delivery Type</div>
+                  <div className="milestone-text" style={{ fontSize: '14px', fontWeight: '600', color: '#002AFE' }}>
+                    {activeDelivery?.deliveryType}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button 
+              className="share-btn"
+              onClick={handleEndDelivery}
+              style={{ 
+                width: '100%',
+                marginTop: '20px',
+                background: '#002AFE',
+                color: 'white',
+                padding: '12px',
+                fontSize: '14px',
+                fontWeight: '600'
+              }}
+            >
+              ✅ End Delivery
+            </button>
+          </div>
         </div>
       </div>
     </div>
   )
 
   const renderCompleteDelivery = () => (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">COMPLETE DELIVERY</h1>
-            <p className="expense-subtitle">Delivery ID: {activeDelivery?.id}</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name" style={{ color: '#64748b' }}>Ended</span>
-            <div className="expense-user-badge" style={{ background: '#64748b' }}>✓</div>
-          </div>
-        </div>
-      </header>
-
-      {/* Compact Stats Grid */}
-      <div className="compact-stats-grid">
-        <div className="compact-stat-card stat-blue">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Time Taken</span>
-          </div>
-          <div className="compact-stat-value">
-            {formatTime(timer)}
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-yellow">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Distance</span>
-          </div>
-          <div className="compact-stat-value">
-            {distance.toFixed(1)}<span className="compact-stat-currency">KM</span>
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-green">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Delivery Price</span>
-          </div>
-          <div className="compact-stat-value">
-            {activeDelivery?.estimatedPrice?.toLocaleString()}<span className="compact-stat-currency">UGX</span>
-          </div>
+    <div className="rider-agent-container">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">Complete Delivery ✅</h2>
+        <div style={{ color: 'white', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+          <span style={{ 
+            width: '8px', 
+            height: '8px', 
+            background: '#10b981', 
+            borderRadius: '50%',
+            display: 'inline-block' 
+          }}></span>
+          Ended • Delivery ID: {activeDelivery?.id}
         </div>
       </div>
 
-      {/* Complete Delivery Content */}
-      <div className="compact-content-grid">
-        <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Capture Recipient Code</h2>
-            <p className="compact-section-subtitle">This code acts as proof of receipt</p>
+      <div className="tab-content">
+        {/* Stats Grid */}
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-label">Time Taken</div>
+            <p className="stat-value">{formatTime(timer)}</p>
           </div>
+          <div className="stat-card">
+            <div className="stat-label">Distance</div>
+            <p className="stat-value">{distance.toFixed(1)} KM</p>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Delivery Price</div>
+            <p className="stat-value">{activeDelivery?.estimatedPrice?.toLocaleString()} UGX</p>
+          </div>
+        </div>
 
-          <div className="compact-code-section">
+        {/* Capture Recipient Code Section */}
+        <div className="commission-overview" style={{ marginBottom: '20px' }}>
+          <div className="section-title" style={{ background: '#FEF132', color: '#000' }}>
+            Capture Recipient Code
+          </div>
+          <div style={{ padding: '16px', textAlign: 'center' }}>
+            <p style={{ color: '#666', fontSize: '12px', marginBottom: '16px' }}>
+              This code acts as proof of receipt
+            </p>
+            
             <button 
-              className="compact-btn btn-primary"
+              className="share-btn"
               onClick={generateRecipientCode}
+              style={{ 
+                background: '#002AFE',
+                color: 'white',
+                padding: '12px 24px',
+                fontSize: '14px',
+                marginBottom: '16px'
+              }}
             >
-              Request Code
+              🔐 Request Code
             </button>
             
             {recipientCode && (
-              <div className="compact-code-display">
-                <div className="compact-code-value">{recipientCode}</div>
-                <div className="compact-code-time">Code Captured at {new Date().toLocaleTimeString()}</div>
+              <div style={{ 
+                padding: '16px',
+                background: '#e3f2fd',
+                borderRadius: '6px',
+                border: '1px solid #bbdefb',
+                marginBottom: '16px'
+              }}>
+                <div style={{ 
+                  fontSize: '24px',
+                  fontWeight: '600',
+                  color: '#002AFE',
+                  letterSpacing: '8px',
+                  marginBottom: '8px',
+                  fontFamily: 'monospace',
+                  background: 'white',
+                  padding: '12px',
+                  borderRadius: '4px',
+                  border: '2px dashed #93c5fd'
+                }}>
+                  {recipientCode}
+                </div>
+                <div style={{ color: '#666', fontSize: '11px' }}>
+                  Code Captured at {new Date().toLocaleTimeString()}
+                </div>
               </div>
             )}
-          </div>
 
-          <div className="compact-form-group" style={{ marginTop: '1rem' }}>
-            <label className="compact-form-label">Delivery Notes (Optional)</label>
-            <textarea
-              className="compact-form-textarea"
-              placeholder="Enter delivery notes..."
-              value={deliveryNotes}
-              onChange={(e) => setDeliveryNotes(e.target.value)}
-              rows="3"
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ fontSize: '11px', color: '#666', fontWeight: '500', marginBottom: '4px', display: 'block', textAlign: 'left' }}>
+                Delivery Notes (Optional)
+              </label>
+              <textarea
+                placeholder="Enter delivery notes..."
+                className="share-input"
+                value={deliveryNotes}
+                onChange={(e) => setDeliveryNotes(e.target.value)}
+                rows="3"
+                style={{ resize: 'vertical', fontFamily: 'inherit', width: '100%' }}
+              />
+            </div>
+
+            <div className="share-input-group" style={{ gap: '12px' }}>
+              <button 
+                className="share-btn"
+                onClick={() => setCurrentView("active-delivery")}
+                style={{ 
+                  background: '#f5f5f5',
+                  color: '#002AFE',
+                  border: '1px solid #002AFE',
+                  flex: '1'
+                }}
+              >
+                ← Back
+              </button>
+              <button 
+                className="share-btn"
+                onClick={handleReceiveMoney}
+                style={{ 
+                  background: '#002AFE',
+                  color: 'white',
+                  flex: '1'
+                }}
+              >
+                Continue →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderHistory = () => (
+    <div className="rider-agent-container">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">Delivery History</h2>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="tab-navigation">
+        <button 
+          className={`tab-btn ${currentView === "dashboard" ? "active" : ""}`}
+          onClick={() => setCurrentView("dashboard")}
+        >
+          Dashboard
+        </button>
+        <button 
+          className={`tab-btn ${currentView === "new-delivery" ? "active" : ""}`}
+          onClick={() => setCurrentView("new-delivery")}
+        >
+          New Delivery
+        </button>
+        <button 
+          className={`tab-btn ${currentView === "history" ? "active" : ""}`}
+          onClick={() => setCurrentView("history")}
+        >
+          History
+        </button>
+        <button 
+          className={`tab-btn ${currentView === "analytics" ? "active" : ""}`}
+          onClick={() => setCurrentView("analytics")}
+        >
+          Analytics
+        </button>
+      </div>
+
+      <div className="tab-content">
+        {/* Filters */}
+        <div className="commission-overview" style={{ marginBottom: '20px' }}>
+          <div className="section-title">Filters</div>
+          <div style={{ padding: '16px' }}>
+            <div className="promo-input-section" style={{ marginBottom: '12px' }}>
+              <input
+                type="text"
+                placeholder="Search deliveries..."
+                className="share-input"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ flex: '1' }}
+              />
+              <select
+                className="share-input"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                style={{ minWidth: '120px' }}
+              >
+                <option value="all">All Status</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="pending">Pending</option>
+              </select>
+              <select
+                className="share-input"
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                style={{ minWidth: '120px' }}
+              >
+                <option value="all">All Types</option>
+                <option value="same-day">Same-Day</option>
+                <option value="express">Express</option>
+                <option value="bulk">Bulk</option>
+                <option value="standard">Standard</option>
+              </select>
+            </div>
+            <button 
+              className="share-btn"
+              onClick={() => {
+                setSearchQuery("")
+                setFilterStatus("all")
+                setFilterType("all")
+              }}
+              style={{ 
+                background: '#f5f5f5',
+                color: '#002AFE',
+                border: '1px solid #002AFE'
+              }}
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
+
+        {/* History Table */}
+        <div className="alerts-section">
+          <div className="referral-alerts" style={{ gridColumn: '1 / -1' }}>
+            <div className="alerts-title">All Deliveries</div>
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {filteredDeliveries.map((delivery) => (
+                <div key={delivery.id} className="alert-item">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '6px',
+                      background: delivery.status === 'Completed' ? '#e8f5e9' : 
+                                delivery.status === 'Cancelled' ? '#ffebee' : '#fff9c4',
+                      color: delivery.status === 'Completed' ? '#2e7d32' : 
+                            delivery.status === 'Cancelled' ? '#c62828' : '#f59e0b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: '600',
+                      fontSize: '12px',
+                      flexShrink: 0,
+                      border: `1px solid ${delivery.status === 'Completed' ? '#a5d6a7' : 
+                              delivery.status === 'Cancelled' ? '#ffcdd2' : '#fde047'}`
+                    }}>
+                      {delivery.id.substring(0, 3)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h4 className="alert-type" style={{ margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {delivery.customerName} • {delivery.deliveryType}
+                      </h4>
+                      <p className="alert-message" style={{ margin: '4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {delivery.route} • {delivery.distance} • {delivery.date}
+                      </p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                    <span style={{ 
+                      color: '#002AFE',
+                      fontWeight: '600',
+                      fontSize: '14px',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      UGX {delivery.amount.toLocaleString()}
+                    </span>
+                    <span className="status-badge" style={{ 
+                      background: delivery.status === 'Completed' ? '#e8f5e9' : 
+                                delivery.status === 'Cancelled' ? '#ffebee' : '#fff9c4',
+                      color: delivery.status === 'Completed' ? '#2e7d32' : 
+                            delivery.status === 'Cancelled' ? '#c62828' : '#f59e0b',
+                      border: delivery.status === 'Completed' ? '1px solid #a5d6a7' : 
+                             delivery.status === 'Cancelled' ? '1px solid #ffcdd2' : '1px solid #fde047',
+                      padding: '4px 8px',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {delivery.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {filteredDeliveries.length === 0 && (
+                <div style={{ 
+                  padding: '40px 20px', 
+                  textAlign: 'center', 
+                  color: '#666',
+                  fontSize: '12px'
+                }}>
+                  No deliveries found. Try adjusting your filters.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="commission-overview">
+          <div className="share-input-group" style={{ gap: '12px', padding: '16px' }}>
+            <button 
+              className="share-btn"
+              onClick={() => setCurrentView("dashboard")}
+              style={{ 
+                background: '#f5f5f5',
+                color: '#002AFE',
+                border: '1px solid #002AFE',
+                flex: '1'
+              }}
+            >
+              ← Back to Dashboard
+            </button>
+            <button 
+              className="share-btn"
+              onClick={exportToExcel}
+              style={{ 
+                background: '#FEF132',
+                color: '#000',
+                border: '1px solid #FEF132',
+                flex: '1'
+              }}
+            >
+              📊 Export to Excel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderAnalytics = () => (
+    <div className="rider-agent-container">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">Delivery Analytics</h2>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="tab-navigation">
+        <button 
+          className={`tab-btn ${analyticsView === "daily" ? "active" : ""}`}
+          onClick={() => setAnalyticsView("daily")}
+        >
+          Daily
+        </button>
+        <button 
+          className={`tab-btn ${analyticsView === "weekly" ? "active" : ""}`}
+          onClick={() => setAnalyticsView("weekly")}
+        >
+          Weekly
+        </button>
+        <button 
+          className={`tab-btn ${analyticsView === "monthly" ? "active" : ""}`}
+          onClick={() => setAnalyticsView("monthly")}
+        >
+          Monthly
+        </button>
+      </div>
+
+      <div className="tab-content">
+        {/* Stats Grid */}
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-label">Total Deliveries</div>
+            <p className="stat-value">{currentAnalytics.totalDeliveries}</p>
+            <div className={`stat-change ${currentAnalytics.revenueChange.includes('+') ? 'positive' : 'negative'}`}>
+              {currentAnalytics.revenueChange}
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Total Revenue</div>
+            <p className="stat-value">{currentAnalytics.totalRevenue.toLocaleString()} UGX</p>
+            <div className={`stat-change ${currentAnalytics.revenueChange.includes('+') ? 'positive' : 'negative'}`}>
+              {currentAnalytics.revenueChange}
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Completed</div>
+            <p className="stat-value">{currentAnalytics.completedDeliveries}</p>
+            <div className={`stat-change ${currentAnalytics.completedChange.includes('+') ? 'positive' : 'negative'}`}>
+              {currentAnalytics.completedChange}
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Failed</div>
+            <p className="stat-value">{currentAnalytics.failedDeliveries}</p>
+            <div className={`stat-change ${currentAnalytics.failedChange.includes('+') ? 'positive' : 'negative'}`}>
+              {currentAnalytics.failedChange}
+            </div>
+          </div>
+        </div>
+
+        <div className="alerts-section">
+          <div className="referral-alerts">
+            <div className="alerts-title">Delivery Summary</div>
+            <div style={{ padding: '16px', background: '#f8f9fa', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-end', height: '150px', marginBottom: '20px' }}>
+                {chartData.deliverySummary.map((data, i) => (
+                  <div key={data.day} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '100px' }}>
+                      <div 
+                        style={{ 
+                          width: '12px', 
+                          height: `${(data.completed / maxDeliveryValue) * 80}px`,
+                          background: '#002AFE',
+                          borderRadius: '2px 2px 0 0'
+                        }}
+                        title={`Completed: ${data.completed}`}
+                      />
+                      <div 
+                        style={{ 
+                          width: '12px', 
+                          height: `${(data.failed / maxDeliveryValue) * 80}px`,
+                          background: '#ef4444',
+                          borderRadius: '2px 2px 0 0'
+                        }}
+                        title={`Failed: ${data.failed}`}
+                      />
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#666', fontWeight: '500' }}>{data.day}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', fontSize: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ width: '8px', height: '8px', background: '#002AFE', borderRadius: '1px' }}></div>
+                  <span>Completed</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ width: '8px', height: '8px', background: '#ef4444', borderRadius: '1px' }}></div>
+                  <span>Failed</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="milestone-section">
+            <div className="alerts-title">Revenue Breakdown</div>
+            {chartData.revenueBreakdown.map((item, i) => (
+              <div key={item.type} className="milestone-card">
+                <div className="milestone-title">{item.type}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ flex: 1, height: '8px', background: '#e0e0e0', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div 
+                      style={{ 
+                        width: `${item.percentage}%`,
+                        height: '100%',
+                        background: item.color,
+                        borderRadius: '4px'
+                      }}
+                    />
+                  </div>
+                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#002AFE', whiteSpace: 'nowrap' }}>
+                    {item.percentage}%
+                  </div>
+                </div>
+                <div className="milestone-text">
+                  UGX {item.amount.toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <button 
+          className="share-btn"
+          onClick={() => setCurrentView("dashboard")}
+          style={{ 
+            width: '100%',
+            marginTop: '20px',
+            background: '#002AFE',
+            color: 'white',
+            padding: '12px'
+          }}
+        >
+          ← Back to Dashboard
+        </button>
+      </div>
+    </div>
+  )
+
+  // Payment modal with all options and images
+  const renderPaymentModal = () => (
+    <div className="modal-overlay active">
+      <div className="modal">
+        {/* Modal Header */}
+        <div className="modal-header">
+          <h3 style={{ color: '#002AFE', margin: 0 }}>RECEIVE PAYMENT</h3>
+          <button 
+            onClick={() => setShowPaymentModal(false)}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              cursor: 'pointer',
+              color: '#666',
+              padding: '4px'
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Modal Content */}
+        <div style={{ padding: '20px' }}>
+          <div className="share-input-group" style={{ marginBottom: '16px' }}>
+            <input
+              type="number"
+              placeholder="Enter Amount (UGX)"
+              className="share-input"
+              value={paymentAmount}
+              onChange={(e) => setPaymentAmount(Number(e.target.value))}
+              min="0"
+              style={{ textAlign: 'center', fontSize: '16px', fontWeight: '600' }}
             />
           </div>
 
-          <div className="compact-modal-actions">
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px', fontWeight: '500' }}>Select Payment Method</div>
+            <div className="share-input-group" style={{ flexWrap: 'wrap', gap: '8px' }}>
+              <button
+                type="button"
+                className={`share-btn ${selectedPaymentMethod === "cash" ? "active" : ""}`}
+                onClick={() => setSelectedPaymentMethod("cash")}
+                style={{ 
+                  flex: '1',
+                  minWidth: '100px',
+                  background: selectedPaymentMethod === "cash" ? '#002AFE' : 'white',
+                  color: selectedPaymentMethod === "cash" ? 'white' : '#002AFE',
+                  border: `1px solid ${selectedPaymentMethod === "cash" ? '#002AFE' : '#002AFE'}`
+                }}
+              >
+                💵 Cash
+              </button>
+              <button
+                type="button"
+                className={`share-btn ${selectedPaymentMethod === "momo" ? "active" : ""}`}
+                onClick={() => setSelectedPaymentMethod("momo")}
+                style={{ 
+                  flex: '1',
+                  minWidth: '100px',
+                  background: selectedPaymentMethod === "momo" ? '#002AFE' : 'white',
+                  color: selectedPaymentMethod === "momo" ? 'white' : '#002AFE',
+                  border: `1px solid ${selectedPaymentMethod === "momo" ? '#002AFE' : '#002AFE'}`
+                }}
+              >
+                MTN MoMo
+              </button>
+              <button
+                type="button"
+                className={`share-btn ${selectedPaymentMethod === "airtel" ? "active" : ""}`}
+                onClick={() => setSelectedPaymentMethod("airtel")}
+                style={{ 
+                  flex: '1',
+                  minWidth: '100px',
+                  background: selectedPaymentMethod === "airtel" ? '#002AFE' : 'white',
+                  color: selectedPaymentMethod === "airtel" ? 'white' : '#002AFE',
+                  border: `1px solid ${selectedPaymentMethod === "airtel" ? '#002AFE' : '#002AFE'}`
+                }}
+              >
+                Airtel Money
+              </button>
+              <button
+                type="button"
+                className={`share-btn ${selectedPaymentMethod === "visa" ? "active" : ""}`}
+                onClick={() => setSelectedPaymentMethod("visa")}
+                style={{ 
+                  flex: '1',
+                  minWidth: '100px',
+                  background: selectedPaymentMethod === "visa" ? '#002AFE' : 'white',
+                  color: selectedPaymentMethod === "visa" ? 'white' : '#002AFE',
+                  border: `1px solid ${selectedPaymentMethod === "visa" ? '#002AFE' : '#002AFE'}`
+                }}
+              >
+                VISA
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal Actions */}
+        <div style={{ padding: '0 20px 20px 20px' }}>
+          <div className="share-input-group" style={{ gap: '12px' }}>
             <button 
-              className="compact-modal-btn btn-secondary" 
-              onClick={() => setCurrentView("active-delivery")}
+              className="share-btn"
+              onClick={() => setShowPaymentModal(false)}
+              style={{ 
+                background: '#f5f5f5',
+                color: '#002AFE',
+                border: '1px solid #002AFE',
+                flex: '1'
+              }}
             >
-              Back
+              Cancel
             </button>
             <button 
-              className="compact-modal-btn btn-primary"
-              onClick={handleReceiveMoney}
+              className="share-btn"
+              onClick={handlePaymentContinue}
+              disabled={!selectedPaymentMethod}
+              style={{ 
+                background: selectedPaymentMethod ? '#002AFE' : '#cccccc',
+                color: 'white',
+                flex: '1',
+                cursor: selectedPaymentMethod ? 'pointer' : 'not-allowed'
+              }}
             >
               Continue
             </button>
@@ -947,438 +1711,134 @@ const Deliveries = () => {
     </div>
   )
 
-  const renderHistory = () => (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">DELIVERY HISTORY</h1>
-            <p className="expense-subtitle">Manage and view all your deliveries</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name">History View</span>
-            <div className="expense-user-badge">HV</div>
-          </div>
-        </div>
-      </header>
-
-      {/* History Filters */}
-      <div className="compact-content-grid">
-        <div className="compact-table-section" style={{ gridColumn: 'span 2' }}>
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">All Deliveries</h2>
-            <div className="compact-filters">
-              <input
-                type="text"
-                placeholder="Search deliveries..."
-                className="compact-search-input"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <select
-                className="compact-filter-select"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-              >
-                <option value="all">All Status</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="pending">Pending</option>
-              </select>
-              <select
-                className="compact-filter-select"
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-              >
-                <option value="all">All Types</option>
-                <option value="same-day">Same-Day</option>
-                <option value="express">Express</option>
-                <option value="bulk">Bulk</option>
-                <option value="standard">Standard</option>
-              </select>
-              <button 
-                className="compact-btn btn-secondary"
-                style={{ minWidth: 'auto', padding: '0.375rem' }}
-                onClick={() => {
-                  setSearchQuery("")
-                  setFilterStatus("all")
-                  setFilterType("all")
-                  setFilterPayment("all")
-                  setFilterRoute("all")
-                }}
-              >
-                Clear
-              </button>
-            </div>
-          </div>
-
-          <div className="compact-table-wrapper">
-            <table className="compact-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Customer</th>
-                  <th>Route</th>
-                  <th>Type</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredDeliveries.map((delivery) => (
-                  <tr key={delivery.id}>
-                    <td className="compact-delivery-id">{delivery.id}</td>
-                    <td>
-                      <div className="compact-contact-cell">
-                        <div className="compact-contact-name">{delivery.customerName}</div>
-                        <div className="compact-contact-phone">{delivery.customerPhone}</div>
-                      </div>
-                    </td>
-                    <td className="compact-route">{delivery.route}</td>
-                    <td>
-                      <span className="compact-type-badge">{delivery.deliveryType}</span>
-                    </td>
-                    <td className="compact-amount">UGX {delivery.amount.toLocaleString()}</td>
-                    <td>
-                      <span className={`compact-status ${delivery.status.toLowerCase()}`}>
-                        {delivery.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="compact-modal-actions">
-            <button 
-              className="compact-modal-btn btn-secondary"
-              onClick={() => setCurrentView("dashboard")}
-            >
-              Back to Dashboard
-            </button>
-            <button 
-              className="compact-modal-btn btn-secondary"
-              onClick={exportToExcel}
-            >
-              Export to Excel
-            </button>
-            <button 
-              className="compact-modal-btn btn-primary"
-              onClick={() => setCurrentView("analytics")}
-            >
-              View Analytics
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
-  const renderAnalytics = () => (
-    <div className="expense-container">
-      {/* Compact Header */}
-      <header className="expense-header">
-        <div className="expense-header-content">
-          <div>
-            <h1 className="expense-title">DELIVERY ANALYTICS</h1>
-            <p className="expense-subtitle">Real-time delivery performance analytics</p>
-          </div>
-          <div className="expense-user-profile">
-            <span className="expense-user-name">Analytics</span>
-            <div className="expense-user-badge">DA</div>
-          </div>
-        </div>
-      </header>
-
-      {/* Analytics Tabs */}
-      <div className="compact-action-bar">
-        <button 
-          className={`compact-btn ${analyticsView === "daily" ? "btn-primary" : "btn-secondary"}`}
-          onClick={() => setAnalyticsView("daily")}
-        >
-          Daily
-        </button>
-        <button 
-          className={`compact-btn ${analyticsView === "weekly" ? "btn-primary" : "btn-secondary"}`}
-          onClick={() => setAnalyticsView("weekly")}
-        >
-          Weekly
-        </button>
-        <button 
-          className={`compact-btn ${analyticsView === "monthly" ? "btn-primary" : "btn-secondary"}`}
-          onClick={() => setAnalyticsView("monthly")}
-        >
-          Monthly
-        </button>
-      </div>
-
-      {/* Compact Stats Grid */}
-      <div className="compact-stats-grid">
-        <div className="compact-stat-card stat-blue">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Total Deliveries</span>
-            <span className="compact-stat-change positive">{currentAnalytics.revenueChange}</span>
-          </div>
-          <div className="compact-stat-value">
-            {currentAnalytics.totalDeliveries}
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-yellow">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Total Revenue</span>
-            <span className="compact-stat-change positive">{currentAnalytics.revenueChange}</span>
-          </div>
-          <div className="compact-stat-value">
-            {currentAnalytics.totalRevenue.toLocaleString()}<span className="compact-stat-currency">UGX</span>
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-green">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Completed</span>
-            <span className="compact-stat-change positive">{currentAnalytics.completedChange}</span>
-          </div>
-          <div className="compact-stat-value">
-            {currentAnalytics.completedDeliveries}
-          </div>
-        </div>
-
-        <div className="compact-stat-card stat-purple">
-          <div className="compact-stat-header">
-            <span className="compact-stat-label">Failed</span>
-            <span className="compact-stat-change negative">{currentAnalytics.failedChange}</span>
-          </div>
-          <div className="compact-stat-value">
-            {currentAnalytics.failedDeliveries}
-          </div>
-        </div>
-      </div>
-
-      {/* Analytics Content */}
-      <div className="compact-content-grid">
-        <div className="compact-table-section">
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Delivery Summary</h2>
-            <p className="compact-section-subtitle">Completed vs failed deliveries</p>
-          </div>
-
-          <div className="compact-breakdown-list">
-            {chartData.deliverySummary.map((data, i) => (
-              <div key={data.day} className="compact-breakdown-item">
-                <div className="compact-breakdown-info">
-                  <span className="compact-breakdown-name">{data.day}</span>
-                  <span className="compact-breakdown-percentage">{data.completed} completed</span>
-                </div>
-                <div className="compact-progress-bar">
-                  <div
-                    className="compact-progress-fill"
-                    style={{
-                      width: `${(data.completed / maxDeliveryValue) * 100}%`,
-                      backgroundColor: '#10b981'
-                    }}
-                  />
-                  <div
-                    className="compact-progress-fill"
-                    style={{
-                      width: `${(data.failed / maxDeliveryValue) * 100}%`,
-                      backgroundColor: '#ef4444',
-                      position: 'absolute',
-                      left: `${(data.completed / maxDeliveryValue) * 100}%`
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="compact-breakdown-section">
-          <div className="compact-section-header">
-            <h2 className="compact-section-title">Revenue Breakdown</h2>
-            <p className="compact-section-subtitle">By delivery type</p>
-          </div>
-
-          <div className="compact-breakdown-list">
-            {chartData.revenueBreakdown.map((item, i) => (
-              <div key={item.type} className="compact-breakdown-item">
-                <div className="compact-breakdown-info">
-                  <span className="compact-breakdown-name">{item.type}</span>
-                  <span className="compact-breakdown-percentage">{item.percentage}%</span>
-                </div>
-                <div className="compact-progress-bar">
-                  <div
-                    className="compact-progress-fill"
-                    style={{
-                      width: `${item.percentage}%`,
-                      backgroundColor: item.color
-                    }}
-                  />
-                </div>
-                <div className="compact-breakdown-amount">UGX {item.amount.toLocaleString()}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <button 
-        className="compact-btn btn-primary" 
-        style={{ margin: '0.75rem', width: 'calc(100% - 1.5rem)' }}
-        onClick={() => setCurrentView("dashboard")}
-      >
-        ← Back to Dashboard
-      </button>
-    </div>
-  )
-
-  // Payment modal with all options and images
-  const renderPaymentModal = () => (
-    <div className={`compact-modal-overlay ${showPaymentModal ? "active" : ""}`}>
-      <div className="compact-modal">
-        {/* Modal Header */}
-        <div className="compact-modal-header">
-          <h2>RECEIVE PAYMENT</h2>
-          <div className="compact-modal-steps">
-            <span className="compact-step active">1</span>
-          </div>
-        </div>
-
-        {/* Modal Content */}
-        <div className="compact-modal-content">
-          <div className="compact-form-group">
-            <label className="compact-form-label">Enter Amount (UGX)</label>
-            <input
-              type="number"
-              className="compact-form-input"
-              value={paymentAmount}
-              onChange={(e) => setPaymentAmount(Number(e.target.value))}
-              min="0"
-            />
-          </div>
-
-          <div className="compact-form-group">
-            <label className="compact-form-label">Select Payment Method</label>
-            <div className="compact-category-grid">
-              <button
-                type="button"
-                className={`compact-category-btn ${selectedPaymentMethod === "cash" ? "selected" : ""}`}
-                onClick={() => setSelectedPaymentMethod("cash")}
-              >
-                💵 Cash
-              </button>
-              <button
-                type="button"
-                className={`compact-category-btn ${selectedPaymentMethod === "momo" ? "selected" : ""}`}
-                onClick={() => setSelectedPaymentMethod("momo")}
-              >
-                MTN MoMo
-              </button>
-              <button
-                type="button"
-                className={`compact-category-btn ${selectedPaymentMethod === "airtel" ? "selected" : ""}`}
-                onClick={() => setSelectedPaymentMethod("airtel")}
-              >
-                Airtel Money
-              </button>
-              <button
-                type="button"
-                className={`compact-category-btn ${selectedPaymentMethod === "visa" ? "selected" : ""}`}
-                onClick={() => setSelectedPaymentMethod("visa")}
-              >
-                VISA
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Modal Actions */}
-        <div className="compact-modal-actions">
-          <button 
-            className="compact-modal-btn btn-secondary" 
-            onClick={() => setShowPaymentModal(false)}
-          >
-            Cancel
-          </button>
-          <button 
-            className="compact-modal-btn btn-primary"
-            onClick={handlePaymentContinue}
-          >
-            Continue
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-
   // Multiple delivery modal
   const renderMultipleDeliveryModal = () => (
-    <div className={`compact-modal-overlay ${showMultipleDelivery ? "active" : ""}`}>
-      <div className="compact-modal">
+    <div className="modal-overlay active">
+      <div className="modal">
         {/* Modal Header */}
-        <div className="compact-modal-header">
-          <h2>ADD MULTIPLE DELIVERIES</h2>
-          <div className="compact-modal-steps">
-            <span className="compact-step active">1</span>
-          </div>
+        <div className="modal-header">
+          <h3 style={{ color: '#002AFE', margin: 0 }}>ADD MULTIPLE DELIVERIES</h3>
+          <button 
+            onClick={() => {
+              setShowMultipleDelivery(false)
+              setUploadedFile(null)
+            }}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              cursor: 'pointer',
+              color: '#666',
+              padding: '4px'
+            }}
+          >
+            ✕
+          </button>
         </div>
 
         {/* Modal Content */}
-        <div className="compact-modal-content">
-          <div className="compact-form-group">
-            <label className="compact-form-label">Upload Delivery File</label>
-            <div className="compact-upload-area">
+        <div style={{ padding: '20px' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px', fontWeight: '500' }}>Upload Delivery File</div>
+            <div style={{ 
+              border: '2px dashed #002AFE',
+              borderRadius: '8px',
+              padding: '40px 20px',
+              textAlign: 'center',
+              background: '#f8f9fa',
+              cursor: 'pointer',
+              position: 'relative'
+            }}>
               <input
                 type="file"
                 id="multiple-file-upload"
-                className="compact-file-input"
+                style={{ 
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  opacity: 0,
+                  cursor: 'pointer'
+                }}
                 accept=".csv,.xlsx,.xls"
                 onChange={handleFileUpload}
               />
-              <label htmlFor="multiple-file-upload" className="compact-upload-label">
-                <div className="compact-upload-icon">📁</div>
-                <div className="compact-upload-text">Click to upload or drag and drop</div>
-                <div className="compact-upload-subtext">CSV or Excel files only</div>
-              </label>
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>📁</div>
+              <div style={{ fontSize: '14px', fontWeight: '500', color: '#002AFE', marginBottom: '4px' }}>
+                Click to upload or drag and drop
+              </div>
+              <div style={{ fontSize: '12px', color: '#666' }}>CSV or Excel files only</div>
             </div>
           </div>
 
           {uploadedFile && (
-            <div className="compact-attachments-list">
-              <div className="compact-attachment-item">
-                <span className="compact-attachment-name">{uploadedFile.name}</span>
-                <span className="compact-attachment-size">({Math.round(uploadedFile.size / 1024)} KB)</span>
-                <button 
-                  className="compact-action-btn delete"
-                  onClick={removeUploadedFile}
-                >
-                  Remove
-                </button>
+            <div style={{ 
+              padding: '12px',
+              background: '#e8f5e9',
+              borderRadius: '6px',
+              border: '1px solid #a5d6a7',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px'
+            }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '12px', fontWeight: '500', color: '#2e7d32', marginBottom: '2px' }}>
+                  {uploadedFile.name}
+                </div>
+                <div style={{ fontSize: '11px', color: '#666' }}>
+                  {Math.round(uploadedFile.size / 1024)} KB
+                </div>
               </div>
+              <button 
+                className="share-btn"
+                onClick={removeUploadedFile}
+                style={{ 
+                  background: '#ffebee',
+                  color: '#c62828',
+                  border: '1px solid #ffcdd2',
+                  padding: '4px 8px',
+                  fontSize: '11px'
+                }}
+              >
+                Remove
+              </button>
             </div>
           )}
         </div>
 
         {/* Modal Actions */}
-        <div className="compact-modal-actions">
-          <button 
-            className="compact-modal-btn btn-secondary" 
-            onClick={() => {
-              setShowMultipleDelivery(false)
-              setUploadedFile(null)
-            }}
-          >
-            Cancel
-          </button>
-          <button 
-            className="compact-modal-btn btn-primary"
-            onClick={processMultipleDeliveries}
-            disabled={!uploadedFile}
-          >
-            Process Deliveries
-          </button>
+        <div style={{ padding: '0 20px 20px 20px' }}>
+          <div className="share-input-group" style={{ gap: '12px' }}>
+            <button 
+              className="share-btn"
+              onClick={() => {
+                setShowMultipleDelivery(false)
+                setUploadedFile(null)
+              }}
+              style={{ 
+                background: '#f5f5f5',
+                color: '#002AFE',
+                border: '1px solid #002AFE',
+                flex: '1'
+              }}
+            >
+              Cancel
+            </button>
+            <button 
+              className="share-btn"
+              onClick={processMultipleDeliveries}
+              disabled={!uploadedFile}
+              style={{ 
+                background: uploadedFile ? '#002AFE' : '#cccccc',
+                color: 'white',
+                flex: '1',
+                cursor: uploadedFile ? 'pointer' : 'not-allowed'
+              }}
+            >
+              Process Deliveries
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1386,44 +1846,72 @@ const Deliveries = () => {
 
   // Success modal with receipt
   const renderSuccessModal = () => (
-    <div className={`compact-modal-overlay ${showSuccessModal ? "active" : ""}`}>
-      <div className="compact-modal">
+    <div className="modal-overlay active">
+      <div className="modal">
         {/* Modal Header */}
-        <div className="compact-modal-header">
-          <h2>DELIVERY COMPLETE</h2>
-          <div className="compact-modal-steps">
-            <span className="compact-step active">1</span>
-          </div>
-        </div>
-
-        {/* Modal Content */}
-        <div className="compact-modal-content" style={{ textAlign: 'center' }}>
-          <div className="success-icon" style={{ fontSize: '3rem', color: '#10b981', marginBottom: '1rem' }}>✓</div>
-          <h3>Payment Successful</h3>
-          <div className="compact-stat-value" style={{ fontSize: '2rem', margin: '1rem 0' }}>
-            UGX {paymentAmount.toLocaleString()}
-          </div>
-          <p>Payment received via {selectedPaymentMethod}</p>
-        </div>
-
-        {/* Modal Actions */}
-        <div className="compact-modal-actions">
+        <div className="modal-header">
+          <h3 style={{ color: '#002AFE', margin: 0 }}>DELIVERY COMPLETE</h3>
           <button 
-            className="compact-modal-btn btn-primary"
-            onClick={handlePaymentSuccess}
-          >
-            View Receipt
-          </button>
-          <button 
-            className="compact-modal-btn btn-secondary"
             onClick={() => {
               setShowSuccessModal(false)
               setCurrentView("dashboard")
               setActiveDelivery(null)
             }}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              cursor: 'pointer',
+              color: '#666',
+              padding: '4px'
+            }}
           >
-            New Delivery
+            ✕
           </button>
+        </div>
+
+        {/* Modal Content */}
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', color: '#10b981', marginBottom: '16px' }}>✓</div>
+          <h3 style={{ margin: '0 0 8px 0', color: '#002AFE' }}>Payment Successful</h3>
+          <div style={{ fontSize: '32px', fontWeight: '600', color: '#002AFE', marginBottom: '8px' }}>
+            UGX {paymentAmount.toLocaleString()}
+          </div>
+          <p style={{ color: '#666', fontSize: '12px', margin: 0 }}>
+            Payment received via {selectedPaymentMethod}
+          </p>
+        </div>
+
+        {/* Modal Actions */}
+        <div style={{ padding: '0 20px 20px 20px' }}>
+          <div className="share-input-group" style={{ gap: '12px' }}>
+            <button 
+              className="share-btn"
+              onClick={handlePaymentSuccess}
+              style={{ 
+                background: '#002AFE',
+                color: 'white',
+                flex: '1'
+              }}
+            >
+              View Receipt
+            </button>
+            <button 
+              className="share-btn"
+              onClick={() => {
+                setShowSuccessModal(false)
+                setCurrentView("dashboard")
+                setActiveDelivery(null)
+              }}
+              style={{ 
+                background: '#FEF132',
+                color: '#000',
+                border: '1px solid #FEF132',
+                flex: '1'
+              }}
+            >
+              New Delivery
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1431,114 +1919,167 @@ const Deliveries = () => {
 
   // Receipt display
   const renderReceipt = () => (
-    <div className="compact-modal-overlay active">
-      <div className="compact-modal">
+    <div className="modal-overlay active">
+      <div className="modal" style={{ maxWidth: '400px' }}>
         {/* Modal Header */}
-        <div className="compact-modal-header">
-          <h2>DELIVERY RECEIPT</h2>
-          <div className="compact-modal-steps">
-            <span className="compact-step active">1</span>
-          </div>
+        <div className="modal-header">
+          <h3 style={{ color: '#002AFE', margin: 0 }}>DELIVERY RECEIPT</h3>
+          <button 
+            onClick={() => {
+              setShowReceipt(false)
+              setCurrentView("dashboard")
+              setActiveDelivery(null)
+            }}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              cursor: 'pointer',
+              color: '#666',
+              padding: '4px'
+            }}
+          >
+            ✕
+          </button>
         </div>
 
         {/* Modal Content */}
-        <div className="compact-modal-content">
-          <div ref={receiptRef} style={{ textAlign: 'left', padding: '1rem', background: 'white', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-            <h2 style={{ textAlign: 'center', color: '#1e40af', marginBottom: '1rem' }}>Delivery Receipt</h2>
+        <div style={{ padding: '20px' }}>
+          <div ref={receiptRef} style={{ 
+            textAlign: 'left', 
+            padding: '16px', 
+            background: 'white', 
+            borderRadius: '6px', 
+            border: '1px solid #e0e0e0',
+            fontFamily: 'Poppins, sans-serif'
+          }}>
+            <h2 style={{ 
+              textAlign: 'center', 
+              color: '#002AFE', 
+              marginBottom: '16px',
+              fontSize: '16px',
+              fontWeight: '600'
+            }}>Delivery Receipt</h2>
             
-            <div style={{ marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ fontWeight: '600' }}>Receipt ID:</span>
-                <span>{receiptData?.id}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ fontWeight: '600' }}>Date:</span>
-                <span>{receiptData?.date} {receiptData?.time}</span>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: '#1e293b' }}>Customer Details</h3>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                <span>Name:</span>
-                <span>{receiptData?.customerName}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                <span>Phone:</span>
-                <span>{receiptData?.customerPhone}</span>
+            <div style={{ marginBottom: '16px', borderBottom: '1px solid #e0e0e0', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', color: '#666' }}>Receipt ID:</span>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: '#002AFE' }}>{receiptData?.id}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Delivery Type:</span>
-                <span>{receiptData?.deliveryType}</span>
+                <span style={{ fontSize: '12px', color: '#666' }}>Date:</span>
+                <span style={{ fontSize: '12px', fontWeight: '500' }}>{receiptData?.date} {receiptData?.time}</span>
               </div>
             </div>
 
-            <div style={{ marginBottom: '1rem', borderTop: '1px solid #e2e8f0', paddingTop: '0.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ fontWeight: '600' }}>Payment Method:</span>
-                <span style={{ fontWeight: '600' }}>{receiptData?.paymentMethod}</span>
+            <div style={{ marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '12px', marginBottom: '8px', color: '#002AFE', fontWeight: '600' }}>Customer Details</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span style={{ fontSize: '12px', color: '#666' }}>Name:</span>
+                <span style={{ fontSize: '12px', fontWeight: '500' }}>{receiptData?.customerName}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ fontWeight: '600' }}>Amount:</span>
-                <span style={{ fontWeight: '600' }}>UGX {receiptData?.amount?.toLocaleString()}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span style={{ fontSize: '12px', color: '#666' }}>Phone:</span>
+                <span style={{ fontSize: '12px', fontWeight: '500' }}>{receiptData?.customerPhone}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '12px', color: '#666' }}>Delivery Type:</span>
+                <span style={{ fontSize: '12px', fontWeight: '500' }}>{receiptData?.deliveryType}</span>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '16px', borderTop: '1px solid #e0e0e0', paddingTop: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: '600' }}>Payment Method:</span>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: '#002AFE' }}>{receiptData?.paymentMethod}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: '600' }}>Amount:</span>
+                <span style={{ fontSize: '16px', fontWeight: '600', color: '#002AFE' }}>UGX {receiptData?.amount?.toLocaleString()}</span>
               </div>
               {receiptData?.recipientCode && (
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: '600' }}>Recipient Code:</span>
-                  <span style={{ fontWeight: '600', fontFamily: 'monospace' }}>{receiptData?.recipientCode}</span>
+                  <span style={{ fontSize: '12px', fontWeight: '600' }}>Recipient Code:</span>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: '#002AFE', fontFamily: 'monospace' }}>
+                    {receiptData?.recipientCode}
+                  </span>
                 </div>
               )}
             </div>
 
-            <div style={{ textAlign: 'center', marginTop: '1.5rem', paddingTop: '1rem', borderTop: '2px dashed #cbd5e1' }}>
-              <p style={{ fontSize: '0.875rem', color: '#64748b' }}>Thank you for using our delivery service!</p>
+            <div style={{ textAlign: 'center', marginTop: '16px', paddingTop: '16px', borderTop: '2px dashed #cbd5e1' }}>
+              <p style={{ fontSize: '11px', color: '#666', fontStyle: 'italic' }}>Thank you for using our delivery service!</p>
             </div>
           </div>
         </div>
 
         {/* Modal Actions */}
-        <div className="compact-modal-actions">
-          <button 
-            className="compact-modal-btn btn-secondary"
-            onClick={exportToPDF}
-          >
-            Save as PDF
-          </button>
-          <button 
-            className="compact-modal-btn btn-secondary"
-            onClick={shareReceipt}
-          >
-            Share Receipt
-          </button>
-          <button 
-            className="compact-modal-btn btn-primary"
-            onClick={() => {
-              setShowReceipt(false)
-              setCurrentView("dashboard")
-              setActiveDelivery(null)
-              setDeliveryData({
-                customerName: "",
-                customerPhone: "",
-                packageDescription: "",
-                packageWeight: "",
-                deliveryType: "same-day",
-                pickupAddress: "",
-                dropoffAddress: "",
-                recipientName: "",
-                recipientPhone: "",
-                estimatedPrice: 3000,
-              })
-            }}
-          >
-            Done
-          </button>
+        <div style={{ padding: '0 20px 20px 20px' }}>
+          <div className="share-input-group" style={{ gap: '8px' }}>
+            <button 
+              className="share-btn"
+              onClick={exportToPDF}
+              style={{ 
+                background: '#f5f5f5',
+                color: '#002AFE',
+                border: '1px solid #002AFE',
+                flex: '1',
+                fontSize: '11px',
+                padding: '8px'
+              }}
+            >
+              📄 Save as PDF
+            </button>
+            <button 
+              className="share-btn"
+              onClick={shareReceipt}
+              style={{ 
+                background: '#FEF132',
+                color: '#000',
+                border: '1px solid #FEF132',
+                flex: '1',
+                fontSize: '11px',
+                padding: '8px'
+              }}
+            >
+              📤 Share Receipt
+            </button>
+            <button 
+              className="share-btn"
+              onClick={() => {
+                setShowReceipt(false)
+                setCurrentView("dashboard")
+                setActiveDelivery(null)
+                setDeliveryData({
+                  customerName: "",
+                  customerPhone: "",
+                  packageDescription: "",
+                  packageWeight: "",
+                  deliveryType: "same-day",
+                  pickupAddress: "",
+                  dropoffAddress: "",
+                  recipientName: "",
+                  recipientPhone: "",
+                  estimatedPrice: 3000,
+                })
+              }}
+              style={{ 
+                background: '#002AFE',
+                color: 'white',
+                flex: '1',
+                fontSize: '11px',
+                padding: '8px'
+              }}
+            >
+              Done
+            </button>
+          </div>
         </div>
       </div>
     </div>
   )
 
   return (
-    <>
+    <div className="rider-agent-container">
       {currentView === "dashboard" && renderDashboard()}
       {currentView === "new-delivery" && renderNewDelivery()}
       {currentView === "active-delivery" && renderActiveDelivery()}
@@ -1549,240 +2090,174 @@ const Deliveries = () => {
       {showMultipleDelivery && renderMultipleDeliveryModal()}
       {showSuccessModal && renderSuccessModal()}
       {showReceipt && renderReceipt()}
-      
+
       <style jsx>{`
-        /* Delivery Specific Styles */
-        .compact-contact-cell {
+        /* Modal Styles */
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0,0,0,0.5);
           display: flex;
-          flex-direction: column;
-          gap: 0.125rem;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          animation: fadeIn 0.2s ease-in;
         }
 
-        .compact-contact-name {
-          font-weight: 600;
-          color: #1e293b;
-          font-size: 0.7rem;
+        .modal {
+          background: white;
+          border-radius: 8px;
+          width: 90%;
+          max-width: 500px;
+          max-height: 90vh;
+          overflow-y: auto;
+          animation: slideUp 0.3s ease-out;
         }
 
-        .compact-contact-phone {
-          color: #64748b;
-          font-size: 0.65rem;
-        }
-
-        .compact-route {
-          font-size: 0.7rem;
-          color: #1e293b;
-          font-weight: 500;
-        }
-
-        .compact-distance {
-          font-size: 0.7rem;
-          color: #475569;
-          font-weight: 500;
-        }
-
-        .compact-status {
-          display: inline-block;
-          padding: 0.125rem 0.375rem;
-          border-radius: 3px;
-          font-size: 0.65rem;
-          font-weight: 600;
-        }
-
-        .compact-status.completed {
-          background: #d1fae5;
-          color: #059669;
-          border: 1px solid #a7f3d0;
-        }
-
-        .compact-status.cancelled {
-          background: #fee2e2;
-          color: #dc2626;
-          border: 1px solid #fecaca;
-        }
-
-        .compact-status.pending {
-          background: #fef3c7;
-          color: #d97706;
-          border: 1px solid #fde68a;
-        }
-
-        .compact-stat-item {
-          padding: 0.5rem;
-          background: #f8fafc;
-          border-radius: 4px;
-          border: 1px solid #e2e8f0;
-          margin-bottom: 0.5rem;
-        }
-
-        .compact-stat-info {
+        .modal-header {
+          padding: 16px 20px;
+          border-bottom: 1px solid #e0e0e0;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 0.25rem;
         }
 
-        .compact-stat-name {
+        /* Animations */
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes bounce {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-6px);
+          }
+        }
+
+        /* Custom styles for the new delivery form */
+        .alerts-section {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
+        .referral-alerts,
+        .milestone-section {
+          background: white;
+          padding: 16px;
+          border-radius: 8px;
+          border: 1px solid #e0e0e0;
+        }
+
+        .alerts-title {
+          color: #002AFE;
+          font-size: 14px;
           font-weight: 600;
-          color: #1e293b;
-          font-size: 0.7rem;
+          margin-bottom: 12px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid #e0e0e0;
         }
 
-        .compact-stat-value {
-          font-weight: 700;
-          color: #3b82f6;
-          font-size: 0.75rem;
-        }
-
-        .compact-wallet-balance {
-          text-align: center;
-          padding: 1rem;
-          background: linear-gradient(135deg, #fde047 0%, #fbbf24 100%);
-          border-radius: 4px;
-          border: 1px solid #fde68a;
-        }
-
-        .compact-wallet-amount {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #1e293b;
-          line-height: 1;
-        }
-
-        .compact-wallet-currency {
-          font-size: 1rem;
-          color: #475569;
-          margin-left: 0.25rem;
-        }
-
-        .compact-wallet-label {
-          font-size: 0.7rem;
-          color: #475569;
-          margin-top: 0.25rem;
-        }
-
-        .compact-type-badge {
-          display: inline-block;
-          padding: 0.125rem 0.375rem;
-          border-radius: 3px;
-          font-size: 0.65rem;
-          font-weight: 600;
-          background: #eff6ff;
-          color: #1e40af;
-          border: 1px solid #dbeafe;
-        }
-
-        .compact-delivery-details {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-          padding: 1rem;
-          background: #f8fafc;
-          border-radius: 4px;
-          border: 1px solid #e2e8f0;
-        }
-
-        .compact-detail-row {
+        .alert-item {
           display: flex;
           justify-content: space-between;
-          align-items: center;
-          padding: 0.5rem;
-          background: white;
-          border-radius: 3px;
-          border: 1px solid #e2e8f0;
-        }
-
-        .compact-detail-label {
-          font-size: 0.7rem;
-          color: #64748b;
-          font-weight: 600;
-        }
-
-        .compact-detail-value {
-          font-size: 0.7rem;
-          color: #1e293b;
-          font-weight: 500;
-          text-align: right;
-          max-width: 60%;
-          word-break: break-word;
-        }
-
-        .compact-code-section {
-          text-align: center;
-          padding: 1rem;
-          background: #fffbeb;
-          border-radius: 4px;
-          border: 1px solid #fde68a;
-        }
-
-        .compact-code-display {
-          margin-top: 1rem;
-          padding: 1rem;
-          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-          border-radius: 4px;
-          border: 1px solid #dbeafe;
-        }
-
-        .compact-code-value {
-          display: block;
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #1e40af;
-          letter-spacing: 0.5rem;
-          margin-bottom: 0.5rem;
-          font-family: 'Courier New', monospace;
-          background: white;
-          padding: 0.5rem;
-          border-radius: 4px;
-          border: 2px dashed #93c5fd;
-        }
-
-        .compact-code-time {
-          font-size: 0.7rem;
-          color: #64748b;
-        }
-
-        .compact-delivery-id {
-          font-size: 0.7rem;
-          font-weight: 600;
-          color: #3b82f6;
-          font-family: 'Courier New', monospace;
-        }
-
-        .compact-breakdown-amount {
-          font-size: 0.7rem;
-          color: #1e40af;
-          font-weight: 600;
-          text-align: right;
-          margin-top: 0.25rem;
-        }
-
-        .compact-section {
-          background: white;
+          align-items: flex-start;
+          padding: 12px;
+          background: #f8f9fa;
           border-radius: 6px;
-          padding: 1rem;
-          border: 1px solid #e2e8f0;
-          text-align: center;
+          margin-bottom: 8px;
+          transition: all 0.2s ease;
+          border-left: 3px solid #002AFE;
         }
 
-        .success-icon {
-          font-size: 3rem;
-          color: #10b981;
-          margin-bottom: 1rem;
+        .alert-item:hover {
+          background: #e8eaf6;
+          transform: translateX(2px);
         }
 
-        /* Responsive Adjustments */
+        .alert-type {
+          color: #002AFE;
+          font-size: 12px;
+          font-weight: 500;
+          margin: 0 0 4px 0;
+        }
+
+        .alert-message {
+          color: #666;
+          font-size: 11px;
+          margin: 0 0 2px 0;
+          line-height: 1.3;
+        }
+
+        .milestone-card {
+          padding: 12px;
+          background: #f8f9fa;
+          border-radius: 6px;
+          margin-bottom: 8px;
+          border: 1px solid #e0e0e0;
+        }
+
+        .milestone-title {
+          color: #002AFE;
+          font-size: 12px;
+          font-weight: 600;
+          margin: 0 0 6px 0;
+        }
+
+        .milestone-text {
+          color: #666;
+          font-size: 11px;
+          margin: 0 0 4px 0;
+          line-height: 1.3;
+        }
+
+        .stat-change {
+          font-size: 10px;
+          font-weight: 500;
+          margin-top: 4px;
+        }
+
+        .stat-change.positive {
+          color: #2e7d32;
+        }
+
+        .stat-change.negative {
+          color: #c62828;
+        }
+
         @media (max-width: 768px) {
-          .compact-content-grid > .compact-table-section {
-            grid-column: span 1;
+          .alerts-section {
+            grid-template-columns: 1fr;
           }
           
-          .compact-filters {
+          .share-input-group {
             flex-direction: column;
+          }
+          
+          .share-btn, .share-input {
+            width: 100%;
           }
         }
       `}</style>
-    </>
+    </div>
   )
 }
 
