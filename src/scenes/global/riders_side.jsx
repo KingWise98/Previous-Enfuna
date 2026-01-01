@@ -207,7 +207,7 @@ const Riders = () => {
 
             {/* Main Menu Items */}
             <SubMenu 
-              title="Point Of Sale (POS)" 
+              title="Platform" 
               icon={<ShoppingCartOutlinedIcon sx={{ color: '#ffffff' }} />}
               style={{
                 color: '#ffffff',
@@ -222,7 +222,7 @@ const Riders = () => {
                 setSelected={handleItemClick} 
               />
               <Item 
-                title="New Ride" 
+                title="Start Trip" 
                 to="/rider/ride" 
                 icon={<LocalOfferIcon />} 
                 selected={selected} 
@@ -268,7 +268,7 @@ const Riders = () => {
               
               
               <Item 
-                title="Statements" 
+                title="Financial" 
                 to="/rider/statements" 
                 icon={<DescriptionOutlinedIcon />} 
                 selected={selected} 

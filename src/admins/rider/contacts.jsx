@@ -49,10 +49,9 @@ const ContactsPage = () => {
         email: "kure@email.com",
         location: "Kampala, Uganda",
         business: "Kure's Car Wash",
-        loyaltyPoints: 1250,
         lastPurchase: "2024-01-15",
         totalSpent: 450000,
-        status: "vip",
+        status: "active",
         avatar: ""
       },
       {
@@ -63,7 +62,6 @@ const ContactsPage = () => {
         email: "sarah@supply.com",
         location: "Entebbe, Uganda",
         business: "Auto Parts Ltd",
-        loyaltyPoints: 0,
         lastPurchase: null,
         totalSpent: 0,
         status: "active",
@@ -77,7 +75,6 @@ const ContactsPage = () => {
         email: "james@company.com",
         location: "Kampala, Uganda",
         business: "",
-        loyaltyPoints: 0,
         lastPurchase: null,
         totalSpent: 0,
         status: "active",
@@ -91,7 +88,6 @@ const ContactsPage = () => {
         email: "maria@email.com",
         location: "Jinja, Uganda",
         business: "Nakato's Restaurant",
-        loyaltyPoints: 850,
         lastPurchase: "2024-01-10",
         totalSpent: 280000,
         status: "active",
@@ -129,7 +125,7 @@ const ContactsPage = () => {
       (filter === 'customer' && contact.type === 'customer') ||
       (filter === 'supplier' && contact.type === 'supplier') ||
       (filter === 'employee' && contact.type === 'employee') ||
-      (filter === 'vip' && contact.status === 'vip') ||
+      (filter === 'active' && contact.status === 'active') ||
       (filter === 'inactive' && contact.status === 'inactive');
     
     return matchesSearch && matchesFilter;
@@ -144,7 +140,6 @@ const ContactsPage = () => {
       email: "",
       location: "",
       business: "",
-      loyaltyPoints: 0,
       lastPurchase: null,
       totalSpent: 0,
       status: "active",
@@ -235,7 +230,6 @@ const ContactsPage = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'vip': return '#f59e0b';
       case 'active': return '#2e7d32';
       case 'inactive': return '#c62828';
       default: return '#64748b';
@@ -244,7 +238,6 @@ const ContactsPage = () => {
 
   const getStatusBackgroundColor = (status) => {
     switch (status) {
-      case 'vip': return '#fff9c4';
       case 'active': return '#e8f5e9';
       case 'inactive': return '#ffebee';
       default: return '#f5f5f5';
@@ -258,22 +251,10 @@ const ContactsPage = () => {
         <h2 className="dashboard-title">Contacts Management</h2>
       </div>
 
-      {/* Tab Navigation */}
+      {/* Tab Navigation - Simplified */}
       <div className="tab-navigation">
         <button className="tab-btn active">
           All Contacts
-        </button>
-        <button className="tab-btn">
-          Customers
-        </button>
-        <button className="tab-btn">
-          Suppliers
-        </button>
-        <button className="tab-btn">
-          Employees
-        </button>
-        <button className="tab-btn">
-          VIP
         </button>
       </div>
 
@@ -285,20 +266,12 @@ const ContactsPage = () => {
             <p className="stat-value">{contacts.length}</p>
           </div>
           <div className="stat-card">
-            <div className="stat-label">Customers</div>
-            <p className="stat-value">{contacts.filter(c => c.type === 'customer').length}</p>
+            <div className="stat-label">Active</div>
+            <p className="stat-value">{contacts.filter(c => c.status === 'active').length}</p>
           </div>
           <div className="stat-card">
-            <div className="stat-label">Suppliers</div>
-            <p className="stat-value">{contacts.filter(c => c.type === 'supplier').length}</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Employees</div>
-            <p className="stat-value">{contacts.filter(c => c.type === 'employee').length}</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">VIP Members</div>
-            <p className="stat-value">{contacts.filter(c => c.status === 'vip').length}</p>
+            <div className="stat-label">Inactive</div>
+            <p className="stat-value">{contacts.filter(c => c.status === 'inactive').length}</p>
           </div>
         </div>
 
@@ -325,10 +298,7 @@ const ContactsPage = () => {
                   style={{ minWidth: '140px' }}
                 >
                   <option value="all">All Contacts</option>
-                  <option value="customer">Customers</option>
-                  <option value="supplier">Suppliers</option>
-                  <option value="employee">Employees</option>
-                  <option value="vip">VIP</option>
+                  <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
                 <button 
@@ -382,18 +352,16 @@ const ContactsPage = () => {
                           }}>
                             {contact.type}
                           </span>
-                          {contact.status === 'vip' && (
-                            <span className="status-badge" style={{
-                              background: '#fff9c4',
-                              color: '#f59e0b',
-                              border: '1px solid #fde047',
-                              padding: '2px 8px',
-                              fontSize: '10px',
-                              textTransform: 'uppercase'
-                            }}>
-                              VIP
-                            </span>
-                          )}
+                          <span className="status-badge" style={{
+                            background: getStatusBackgroundColor(contact.status),
+                            color: getStatusColor(contact.status),
+                            border: `1px solid ${getStatusColor(contact.status)}`,
+                            padding: '2px 8px',
+                            fontSize: '10px',
+                            textTransform: 'uppercase'
+                          }}>
+                            {contact.status}
+                          </span>
                         </div>
                         <p className="alert-message" style={{ marginBottom: '4px' }}>
                           <Phone style={{ fontSize: '12px', marginRight: '4px' }} />
@@ -463,7 +431,31 @@ const ContactsPage = () => {
             
             <div className="milestone-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Customers</span>
+                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Active Contacts</span>
+                <span style={{ color: '#0033cc', fontSize: '16px', fontWeight: '600' }}>
+                  {contacts.filter(c => c.status === 'active').length}
+                </span>
+              </div>
+              <div className="milestone-text" style={{ fontSize: '10px' }}>
+                {((contacts.filter(c => c.status === 'active').length / contacts.length) * 100).toFixed(0)}% of total
+              </div>
+            </div>
+
+            <div className="milestone-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Inactive Contacts</span>
+                <span style={{ color: '#0033cc', fontSize: '16px', fontWeight: '600' }}>
+                  {contacts.filter(c => c.status === 'inactive').length}
+                </span>
+              </div>
+              <div className="milestone-text" style={{ fontSize: '10px' }}>
+                {((contacts.filter(c => c.status === 'inactive').length / contacts.length) * 100).toFixed(0)}% of total
+              </div>
+            </div>
+
+            <div className="milestone-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Customer Contacts</span>
                 <span style={{ color: '#0033cc', fontSize: '16px', fontWeight: '600' }}>
                   {contacts.filter(c => c.type === 'customer').length}
                 </span>
@@ -475,7 +467,7 @@ const ContactsPage = () => {
 
             <div className="milestone-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Suppliers</span>
+                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Supplier Contacts</span>
                 <span style={{ color: '#0033cc', fontSize: '16px', fontWeight: '600' }}>
                   {contacts.filter(c => c.type === 'supplier').length}
                 </span>
@@ -485,39 +477,15 @@ const ContactsPage = () => {
               </div>
             </div>
 
-            <div className="milestone-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Employees</span>
-                <span style={{ color: '#0033cc', fontSize: '16px', fontWeight: '600' }}>
-                  {contacts.filter(c => c.type === 'employee').length}
-                </span>
-              </div>
-              <div className="milestone-text" style={{ fontSize: '10px' }}>
-                {((contacts.filter(c => c.type === 'employee').length / contacts.length) * 100).toFixed(0)}% of total
-              </div>
-            </div>
-
-            <div className="milestone-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Active Status</span>
-                <span style={{ color: '#0033cc', fontSize: '16px', fontWeight: '600' }}>
-                  {contacts.filter(c => c.status === 'active').length}
-                </span>
-              </div>
-              <div className="milestone-text" style={{ fontSize: '10px' }}>
-                {contacts.filter(c => c.status === 'vip').length} VIP members
-              </div>
-            </div>
-
             <div className="milestone-card" style={{ background: '#e3f2fd', borderColor: '#bbdefb' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Total Loyalty Points</span>
+                <span style={{ color: '#0033cc', fontSize: '12px', fontWeight: '500' }}>Total Contacts</span>
                 <span style={{ color: '#0033cc', fontSize: '20px', fontWeight: '600' }}>
-                  {contacts.reduce((sum, c) => sum + (c.loyaltyPoints || 0), 0)}
+                  {contacts.length}
                 </span>
               </div>
               <div className="milestone-text" style={{ fontSize: '10px' }}>
-                Across all customers
+                All contact types
               </div>
             </div>
           </div>
@@ -732,44 +700,18 @@ const ContactsPage = () => {
                   </div>
                 </div>
 
-                {currentContact.type === 'customer' && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div>
-                      <label className="status-title" style={{ display: 'block', marginBottom: '8px' }}>Loyalty Points</label>
-                      <div style={{ position: 'relative' }}>
-                        <Loyalty style={{
-                          position: 'absolute',
-                          left: '12px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          fontSize: '14px',
-                          color: '#666'
-                        }} />
-                        <input
-                          type="number"
-                          className="share-input"
-                          style={{ paddingLeft: '36px' }}
-                          value={currentContact.loyaltyPoints || 0}
-                          onChange={(e) => setCurrentContact({...currentContact, loyaltyPoints: parseInt(e.target.value) || 0})}
-                          disabled={!editMode}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="status-title" style={{ display: 'block', marginBottom: '8px' }}>Status</label>
-                      <select
-                        className="share-input"
-                        value={currentContact.status || 'active'}
-                        onChange={(e) => setCurrentContact({...currentContact, status: e.target.value})}
-                        disabled={!editMode}
-                      >
-                        <option value="active">Active</option>
-                        <option value="vip">VIP</option>
-                        <option value="inactive">Inactive</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
+                <div>
+                  <label className="status-title" style={{ display: 'block', marginBottom: '8px' }}>Status</label>
+                  <select
+                    className="share-input"
+                    value={currentContact.status || 'active'}
+                    onChange={(e) => setCurrentContact({...currentContact, status: e.target.value})}
+                    disabled={!editMode}
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
 
                 {!editMode && currentContact.type === 'customer' && currentContact.totalSpent > 0 && (
                   <div style={{
@@ -779,18 +721,10 @@ const ContactsPage = () => {
                     border: '1px solid #e0e0e0',
                     marginTop: '12px'
                   }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                      <div>
-                        <div className="stat-label">Total Spent</div>
-                        <div className="stat-value" style={{ fontSize: '16px', color: '#2e7d32' }}>
-                          {formatCurrency(currentContact.totalSpent)}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="stat-label">Loyalty Points</div>
-                        <div className="stat-value" style={{ fontSize: '16px' }}>
-                          {currentContact.loyaltyPoints} pts
-                        </div>
+                    <div style={{ marginBottom: '12px' }}>
+                      <div className="stat-label">Total Spent</div>
+                      <div className="stat-value" style={{ fontSize: '16px', color: '#2e7d32' }}>
+                        {formatCurrency(currentContact.totalSpent)}
                       </div>
                     </div>
                     <div>

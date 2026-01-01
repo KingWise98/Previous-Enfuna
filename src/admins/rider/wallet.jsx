@@ -63,8 +63,8 @@ const Wallet = () => {
     },
     {
       id: 3,
-      type: 'withdrawal',
-      title: 'Withdrawal to MTN',
+      type: 'payout',
+      title: 'Request Payout to MTN',
       time: 'Today 10:43 AM',
       reference: 'MoMo - 089600',
       amount: 5500,

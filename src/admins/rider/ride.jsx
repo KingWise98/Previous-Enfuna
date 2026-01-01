@@ -15,9 +15,7 @@ export default function Trips() {
     startTime: null,
     duration: 0,
     distance: 0,
-    stops: [],
     notes: "",
-    tripType: "normal",
   })
   
   const [activeTrip, setActiveTrip] = useState(null)
@@ -28,7 +26,6 @@ export default function Trips() {
   const [splitPayment, setSplitPayment] = useState({ cash: 0, digital: 0 })
   const [splitMethod, setSplitMethod] = useState("momo")
   const [showQR, setShowQR] = useState(false)
-  const [deliveryNotes, setDeliveryNotes] = useState("")
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [showReceipt, setShowReceipt] = useState(false)
@@ -40,9 +37,7 @@ export default function Trips() {
   // History filters
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
-  const [filterType, setFilterType] = useState("all")
   const [filterPayment, setFilterPayment] = useState("all")
-  const [filterRoute, setFilterRoute] = useState("all")
   const [minAmount, setMinAmount] = useState(0)
   const [maxAmount, setMaxAmount] = useState(15000)
   const [sortBy, setSortBy] = useState("date")
@@ -84,7 +79,6 @@ export default function Trips() {
     {
       id: "Trip-007",
       route: "Kireka - Banda",
-      distance: "5.2km",
       duration: "12min",
       amount: 2000,
       paymentMethod: "Cash",
@@ -96,7 +90,6 @@ export default function Trips() {
     {
       id: "Trip-008",
       route: "Gulu - Nakutt",
-      distance: "8.7km",
       duration: "17min",
       amount: 8000,
       paymentMethod: "MTN MoMo",
@@ -108,7 +101,6 @@ export default function Trips() {
     {
       id: "Trip-009",
       route: "Kampala - Banda",
-      distance: "2.2km",
       duration: "14min",
       amount: 6000,
       paymentMethod: "MTN MoMo",
@@ -120,7 +112,6 @@ export default function Trips() {
     {
       id: "Trip-010",
       route: "Kireka - Banda",
-      distance: "4.5km",
       duration: "30min",
       amount: 3000,
       paymentMethod: "MTN MoMo",
@@ -254,7 +245,6 @@ export default function Trips() {
       time: new Date().toLocaleTimeString(),
       pickup: activeTrip?.pickup || tripData.pickup,
       destination: activeTrip?.destination || tripData.destination,
-      tripType: activeTrip?.tripType || tripData.tripType,
       distance: distance.toFixed(1),
       duration: formatDuration(timer),
     }
@@ -336,20 +326,6 @@ export default function Trips() {
     }
   }
   
-  const addStop = () => {
-    setTripData((prev) => ({
-      ...prev,
-      stops: [...prev.stops, { location: "", amount: 0 }],
-    }))
-  }
-
-  const removeStop = (index) => {
-    setTripData((prev) => ({
-      ...prev,
-      stops: prev.stops.filter((_, i) => i !== index),
-    }))
-  }
-  
   const beginEditAmount = () => {
     setAmountDraft(String(tripData.amount ?? ""))
     setIsEditingAmount(true)
@@ -374,13 +350,11 @@ export default function Trips() {
       trip.route.toLowerCase().includes(searchQuery.toLowerCase())
     
     const matchesStatus = filterStatus === "all" || trip.status.toLowerCase() === filterStatus.toLowerCase()
-    const matchesType = filterType === "all" || true // Add type filter if needed
     const matchesPayment =
       filterPayment === "all" || trip.paymentMethod.toLowerCase() === filterPayment.toLowerCase()
-    const matchesRoute = filterRoute === "all" || trip.route.toLowerCase().includes(filterRoute.toLowerCase())
     const matchesAmount = trip.amount >= minAmount && trip.amount <= maxAmount
     
-    return matchesSearch && matchesStatus && matchesType && matchesPayment && matchesRoute && matchesAmount
+    return matchesSearch && matchesStatus && matchesPayment && matchesAmount
   })
   
   const currentAnalytics = analyticsData[analyticsView]
@@ -389,7 +363,7 @@ export default function Trips() {
   // Tab Navigation Component
   const TabNavigation = () => (
     <div className="tab-navigation">
-       <button 
+      <button 
         className={`tab-btn ${activeTab === "new-trip" ? "active" : ""}`}
         onClick={() => {
           setActiveTab("new-trip")
@@ -678,78 +652,8 @@ export default function Trips() {
                 </div>
               </div>
 
-              <div style={{ marginTop: '16px' }}>
-                <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
-                  Trip Type
-                </label>
-                <select
-                  className="promo-input"
-                  value={tripData.tripType}
-                  onChange={(e) => setTripData({ ...tripData, tripType: e.target.value })}
-                  style={{ width: '100%' }}
-                >
-                  <option value="normal">Normal Trip</option>
-                  <option value="express">Express</option>
-                  <option value="group">Group</option>
-                  <option value="delivery">Delivery</option>
-                </select>
-              </div>
-
-              {tripData.stops.length > 0 && (
-                <div style={{ marginTop: '16px' }}>
-                  <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
-                    Intermediate Stops
-                  </label>
-                  {tripData.stops.map((stop, index) => (
-                    <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                      <input
-                        type="text"
-                        className="promo-input"
-                        placeholder="Stop location"
-                        value={stop.location}
-                        onChange={(e) => {
-                          const newStops = [...tripData.stops]
-                          newStops[index].location = e.target.value
-                          setTripData({ ...tripData, stops: newStops })
-                        }}
-                        style={{ flex: 2 }}
-                      />
-                      <input
-                        type="number"
-                        className="promo-input"
-                        placeholder="Amount"
-                        value={stop.amount}
-                        onChange={(e) => {
-                          const newStops = [...tripData.stops]
-                          newStops[index].amount = Number(e.target.value)
-                          setTripData({ ...tripData, stops: newStops })
-                        }}
-                        style={{ flex: 1 }}
-                      />
-                      <button 
-                        className="validate-btn"
-                        onClick={() => removeStop(index)}
-                        style={{ minWidth: '80px' }}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div style={{ marginTop: '16px' }}>
-                <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
-                  Trip Notes (Optional)
-                </label>
-                <textarea
-                  className="promo-input"
-                  placeholder="Delivery instructions, Multistop info etc..."
-                  value={tripData.notes}
-                  onChange={(e) => setTripData({ ...tripData, notes: e.target.value })}
-                  rows="3"
-                  style={{ width: '100%', resize: 'vertical' }}
-                />
+              <div style={{ textAlign: 'center', marginTop: '20px', color: '#666', fontSize: '12px' }}>
+                * All fields are required to start a trip
               </div>
             </div>
 
@@ -763,13 +667,12 @@ export default function Trips() {
               </button>
               <button 
                 className="activate-code-btn"
-                onClick={addStop}
-              >
-                + Add Stop
-              </button>
-              <button 
-                className="activate-code-btn"
                 onClick={handleStartTrip}
+                disabled={!tripData.pickup || !tripData.destination}
+                style={{ 
+                  opacity: (!tripData.pickup || !tripData.destination) ? 0.5 : 1,
+                  cursor: (!tripData.pickup || !tripData.destination) ? 'not-allowed' : 'pointer'
+                }}
               >
                 Start Trip
               </button>
@@ -822,22 +725,6 @@ export default function Trips() {
                   <span className="detail-label">Destination</span>
                   <span className="detail-value">{activeTrip?.destination}</span>
                 </div>
-                <div className="detail-row">
-                  <span className="detail-label">Trip Type</span>
-                  <span className="detail-value">{activeTrip?.tripType}</span>
-                </div>
-                {activeTrip?.stops?.map((stop, index) => (
-                  <div key={index} className="detail-row">
-                    <span className="detail-label">Stop {index + 1}</span>
-                    <span className="detail-value">{stop.location} - UGX {stop.amount}</span>
-                  </div>
-                ))}
-                {activeTrip?.notes && (
-                  <div className="detail-row">
-                    <span className="detail-label">Notes</span>
-                    <span className="detail-value">{activeTrip?.notes}</span>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -1021,9 +908,9 @@ export default function Trips() {
                   <tr style={{ background: '#f0f4ff' }}>
                     <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>ID</th>
                     <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Route</th>
-                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Distance</th>
                     <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Duration</th>
                     <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Amount</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Payment</th>
                     <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Status</th>
                   </tr>
                 </thead>
@@ -1032,9 +919,9 @@ export default function Trips() {
                     <tr key={trip.id} style={{ borderBottom: '1px solid #e0e0e0' }}>
                       <td style={{ padding: '12px', fontSize: '12px', color: '#002AFE', fontWeight: '500' }}>{trip.id}</td>
                       <td style={{ padding: '12px', fontSize: '12px', color: '#1e293b' }}>{trip.route}</td>
-                      <td style={{ padding: '12px', fontSize: '12px', color: '#475569' }}>{trip.distance}</td>
                       <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>{trip.duration}</td>
                       <td style={{ padding: '12px', fontSize: '12px', color: '#002AFE', fontWeight: '600' }}>UGX {trip.amount.toLocaleString()}</td>
+                      <td style={{ padding: '12px', fontSize: '12px', color: '#475569' }}>{trip.paymentMethod}</td>
                       <td style={{ padding: '12px' }}>
                         <span className={`status-badge ${trip.status.toLowerCase()}`}>
                           {trip.status}
@@ -1540,9 +1427,7 @@ export default function Trips() {
                 startTime: null,
                 duration: 0,
                 distance: 0,
-                stops: [],
                 notes: "",
-                tripType: "normal",
               })
             }}
           >
@@ -1609,10 +1494,6 @@ export default function Trips() {
                 <span style={{ fontWeight: '600', color: '#002AFE' }}>Date:</span>
                 <span>{receiptData?.date} {receiptData?.time}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                <span style={{ fontWeight: '600', color: '#002AFE' }}>Trip Type:</span>
-                <span>{receiptData?.tripType}</span>
-              </div>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
@@ -1649,7 +1530,7 @@ export default function Trips() {
                     <span>UGX {receiptData.splitPayment.cash.toLocaleString()}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12px' }}>
-                    <span>Digital Amount ({receiptData.splitMethod}):</span>
+                    <span>Digital ({receiptData.splitMethod}):</span>
                     <span>UGX {receiptData.splitPayment.digital.toLocaleString()}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', paddingTop: '8px', borderTop: '1px solid #e0e0e0', fontSize: '12px' }}>
@@ -1722,9 +1603,7 @@ export default function Trips() {
                 startTime: null,
                 duration: 0,
                 distance: 0,
-                stops: [],
                 notes: "",
-                tripType: "normal",
               })
             }}
           >

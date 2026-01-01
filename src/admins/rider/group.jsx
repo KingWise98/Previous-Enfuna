@@ -5,6 +5,8 @@ import React, { useState, useEffect } from 'react';
 const Groups = () => {
   const [activeTab, setActiveTab] = useState('myGroups');
   const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [showContributionModal, setShowContributionModal] = useState(false);
+  const [selectedGroupForContribution, setSelectedGroupForContribution] = useState(null);
   const [showReceipt, setShowReceipt] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -93,30 +95,8 @@ const Groups = () => {
       isMember: false,
       isPublic: true
     },
-    {
-      id: 3,
-      name: 'Emergency Circle Fund',
-      type: 'emergency',
-      description: 'Emergency support fund',
-      members: 3,
-      maxMembers: 7,
-      contribution: 20000,
-      frequency: 'Monthly',
-      isMember: true,
-      isPublic: false
-    },
-    {
-      id: 4,
-      name: 'Rent Savings Group',
-      type: 'savings',
-      description: 'Monthly rent savings',
-      members: 6,
-      maxMembers: 10,
-      contribution: 40000,
-      frequency: 'Monthly',
-      isMember: false,
-      isPublic: true
-    }
+   
+   
   ]);
 
   const [contributions, setContributions] = useState([
@@ -147,24 +127,8 @@ const Groups = () => {
       type: 'Spares',
       receipt: 'receipt_003.pdf'
     },
-    {
-      id: 4,
-      date: '13-Dec-2025',
-      group: 'Kampala Boda Savers',
-      amount: 50000,
-      status: 'Completed',
-      type: 'Emergency',
-      receipt: 'receipt_004.pdf'
-    },
-    {
-      id: 5,
-      date: '10-Dec-2025',
-      group: 'Emergency Fund Circle',
-      amount: 30000,
-      status: 'Pending',
-      type: 'Emergency',
-      receipt: ''
-    }
+   
+    
   ]);
 
   const showNotification = (message) => {
@@ -217,9 +181,22 @@ const Groups = () => {
     };
   };
 
-  const handleContribute = (groupId) => {
-    setMyGroups(myGroups.map(group => {
-      if (group.id === groupId) {
+  const handleContribute = (group) => {
+    if (!group) return;
+    
+    const groupData = myGroups.find(g => g.id === group.id) || availableGroups.find(g => g.id === group.id);
+    if (!groupData) return;
+    
+    // Set the selected group for contribution
+    setSelectedGroupForContribution(groupData);
+    setShowContributionModal(true);
+  };
+
+  const confirmContribution = () => {
+    if (!selectedGroupForContribution) return;
+
+    const updatedGroups = myGroups.map(group => {
+      if (group.id === selectedGroupForContribution.id) {
         const newTotal = group.totalPool + group.contribution;
         const newProgress = (group.members / group.maxMembers) * 100;
         
@@ -241,10 +218,11 @@ const Groups = () => {
         
         // Show receipt modal
         setCurrentReceipt(receipt);
+        setShowContributionModal(false);
         setShowReceipt(true);
         
         // Show success notification
-        showNotification(`Contribution of UGX ${group.contribution.toLocaleString()} successful`);
+        showNotification(`Contribution of UGX ${group.contribution.toLocaleString()} successful to ${group.name}`);
         
         return {
           ...group,
@@ -255,7 +233,10 @@ const Groups = () => {
         };
       }
       return group;
-    }));
+    });
+    
+    setMyGroups(updatedGroups);
+    setSelectedGroupForContribution(null);
   };
 
   const handleCreateGroup = (e) => {
@@ -395,13 +376,14 @@ const Groups = () => {
   const stats = {
     activeGroups: myGroups.length,
     totalContributions: myGroups.reduce((sum, group) => sum + group.totalPool, 0),
-    nextContributions: myGroups.filter(g => g.nextContribution === '2 days').length
+    totalMembers: myGroups.reduce((sum, g) => sum + g.members, 0)
   };
 
   // Quick action handlers
   const handleQuickContribute = () => {
     if (myGroups.length > 0) {
-      handleContribute(myGroups[0].id);
+      // Show group selection for contribution
+      setShowContributionModal(true);
     } else {
       showNotification('No groups available for contribution');
     }
@@ -413,6 +395,11 @@ const Groups = () => {
 
   const handleQuickInvite = () => {
     showNotification('Invitation link copied to clipboard');
+  };
+
+  const handleSelectGroupForContribution = (group) => {
+    setSelectedGroupForContribution(group);
+    setShowContributionModal(true);
   };
 
   return (
@@ -451,13 +438,8 @@ const Groups = () => {
         </div>
         
         <div className="stat-card">
-          <div className="stat-label">Due Soon</div>
-          <p className="stat-value">{stats.nextContributions}</p>
-        </div>
-        
-        <div className="stat-card">
           <div className="stat-label">Total Members</div>
-          <p className="stat-value">{myGroups.reduce((sum, g) => sum + g.members, 0)}</p>
+          <p className="stat-value">{stats.totalMembers}</p>
         </div>
       </div>
 
@@ -552,7 +534,7 @@ const Groups = () => {
                       <div className="detail-row highlight">
                         <button 
                           className="activate-code-btn"
-                          onClick={() => handleContribute(group.id)}
+                          onClick={() => handleContribute(group)}
                           style={{ width: '100%' }}
                         >
                           Make Contribution
@@ -1144,6 +1126,187 @@ const Groups = () => {
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contribution Selection Modal */}
+      {showContributionModal && (
+        <div className="modal-overlay active">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>MAKE CONTRIBUTION</h2>
+              <button 
+                className="modal-close"
+                onClick={() => {
+                  setShowContributionModal(false);
+                  setSelectedGroupForContribution(null);
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {!selectedGroupForContribution ? (
+                <div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <div className="detail-label" style={{ marginBottom: '8px' }}>Select Group</div>
+                    <div className="commission-overview">
+                      <div className="commission-grid">
+                        {myGroups.map(group => (
+                          <div key={group.id} className="commission-card revenue">
+                            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+                              <div style={{ 
+                                fontSize: '24px', 
+                                marginBottom: '8px',
+                                color: getGroupTypeColor(group.type)
+                              }}>
+                                {group.type === 'savings' ? '💰' : 
+                                 group.type === 'emergency' ? '🛡️' : '🔧'}
+                              </div>
+                              <div style={{ fontSize: '14px', fontWeight: '600', color: '#0033cc' }}>
+                                {group.name}
+                              </div>
+                            </div>
+                            
+                            <div style={{ marginBottom: '8px' }}>
+                              <p style={{ fontSize: '11px', color: '#666', marginBottom: '4px' }}>
+                                {group.description}
+                              </p>
+                            </div>
+                            
+                            <div className="detail-row">
+                              <span className="detail-label">Members</span>
+                              <span className="detail-value">{group.members}/{group.maxMembers}</span>
+                            </div>
+                            
+                            <div className="detail-row">
+                              <span className="detail-label">Contribution</span>
+                              <span className="detail-value">UGX {group.contribution.toLocaleString()}</span>
+                            </div>
+                            
+                            <div className="detail-row">
+                              <span className="detail-label">Next Due</span>
+                              <span className="detail-value" style={{ color: '#f59e0b' }}>{group.nextContribution}</span>
+                            </div>
+                            
+                            <button 
+                              className="activate-code-btn"
+                              onClick={() => setSelectedGroupForContribution(group)}
+                              style={{ width: '100%', marginTop: '8px' }}
+                            >
+                              Select This Group
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <div className="detail-label" style={{ marginBottom: '8px' }}>Confirm Contribution</div>
+                    
+                    <div style={{ 
+                      padding: '16px', 
+                      background: '#f0f4ff',
+                      borderRadius: '8px',
+                      marginBottom: '16px'
+                    }}>
+                      <div className="detail-row highlight">
+                        <span className="detail-label">Group</span>
+                        <span className="detail-value" style={{ fontWeight: '600', color: '#0033cc' }}>
+                          {selectedGroupForContribution.name}
+                        </span>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <span className="detail-label">Type</span>
+                        <span className="detail-value">{selectedGroupForContribution.type.toUpperCase()}</span>
+                      </div>
+                      
+                      <div className="detail-row highlight">
+                        <span className="detail-label">Contribution Amount</span>
+                        <span className="detail-value" style={{ color: '#2e7d32', fontWeight: '700', fontSize: '18px' }}>
+                          UGX {selectedGroupForContribution.contribution.toLocaleString()}
+                        </span>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <span className="detail-label">Frequency</span>
+                        <span className="detail-value">{selectedGroupForContribution.frequency}</span>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <span className="detail-label">Current Pool</span>
+                        <span className="detail-value">UGX {selectedGroupForContribution.totalPool?.toLocaleString() || '0'}</span>
+                      </div>
+                    </div>
+
+                    <div style={{ 
+                      background: '#e8f5e9', 
+                      padding: '12px', 
+                      borderRadius: '8px',
+                      border: '1px solid #c8e6c9',
+                      marginBottom: '16px'
+                    }}>
+                      <div style={{ fontSize: '12px', fontWeight: '600', color: '#2e7d32', marginBottom: '4px' }}>
+                        💡 Important Information
+                      </div>
+                      <ul style={{ fontSize: '11px', color: '#666', margin: 0, paddingLeft: '16px' }}>
+                        <li>This contribution will be added to the group's total pool</li>
+                        <li>You will receive a receipt for this transaction</li>
+                        <li>The next contribution is due in {selectedGroupForContribution.nextContribution || '7 days'}</li>
+                        <li>Late contributions may incur penalties as per group rules</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              {selectedGroupForContribution ? (
+                <>
+                  <button 
+                    className="activate-code-btn" 
+                    style={{ background: '#666' }}
+                    onClick={() => setSelectedGroupForContribution(null)}
+                  >
+                    Back
+                  </button>
+                  <button 
+                    className="activate-code-btn"
+                    onClick={confirmContribution}
+                  >
+                    Confirm Contribution
+                  </button>
+                  <button 
+                    className="activate-code-btn" 
+                    style={{ background: '#f0f4ff', color: '#0033cc' }}
+                    onClick={() => {
+                      setShowContributionModal(false);
+                      setSelectedGroupForContribution(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button 
+                  className="activate-code-btn" 
+                  style={{ background: '#666' }}
+                  onClick={() => {
+                    setShowContributionModal(false);
+                    setSelectedGroupForContribution(null);
+                  }}
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </div>
         </div>
