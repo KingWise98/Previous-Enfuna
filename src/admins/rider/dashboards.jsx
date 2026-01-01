@@ -1682,7 +1682,7 @@ const DeliveriesContent = ({
       <div className="payout-section">
         <div className="balance-card">
           <div className="balance-label">Earnings Summary</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px', }}>
             <div>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)' }}>Total Earnings</div>
               <div style={{ fontSize: '20px', fontWeight: '600', color: 'white' }}>
