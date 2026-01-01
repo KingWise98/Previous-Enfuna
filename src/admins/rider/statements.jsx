@@ -576,6 +576,7 @@ const Statements = () => {
           <Activity size={14} style={{ marginRight: '4px' }} />
           Cashflow
         </button>
+        {/* Comment out the bookkeeping tab
         <button 
           className={`tab-btn ${activeView === 'bookkeeping' ? 'active' : ''}`}
           onClick={() => setActiveView('bookkeeping')}
@@ -583,6 +584,7 @@ const Statements = () => {
           <FileCheck size={14} style={{ marginRight: '4px' }} />
           Bookkeeping
         </button>
+        */}
         <button 
           className={`tab-btn ${activeView === 'balance' ? 'active' : ''}`}
           onClick={() => setActiveView('balance')}
@@ -1191,12 +1193,12 @@ const Statements = () => {
           </div>
         )}
 
+        {/* Comment out the bookkeeping view section
         {activeView === 'bookkeeping' && bookkeepingData && (
           <div style={{ animation: 'fadeIn 0.3s ease-in' }}>
             <div className="commission-overview">
               <div className="section-title">Bookkeeping & Reconciliation</div>
               <div style={{ padding: '16px' }}>
-                {/* Bookkeeping Summary */}
                 <div className="commission-grid">
                   <div className="commission-card revenue" style={{ background: '#e3f2fd', padding: '16px', minHeight: '100px' }}>
                     <div className="commission-label">Outstanding Invoices</div>
@@ -1238,7 +1240,6 @@ const Statements = () => {
               </div>
             </div>
 
-            {/* Task Progress */}
             <div className="alerts-section">
               <div className="referral-alerts" style={{ gridColumn: '1 / -1' }}>
                 <div className="alerts-title">Task Progress</div>
@@ -1287,6 +1288,7 @@ const Statements = () => {
             </div>
           </div>
         )}
+        */}
 
         {activeView === 'balance' && balanceSheet && (
           <div style={{ animation: 'fadeIn 0.3s ease-in' }}>
@@ -1446,7 +1448,11 @@ const Statements = () => {
                     </div>
                   </div>
                   <div className="commission-card weekly" style={{ background: '#e8f5e9', padding: '16px', minHeight: '100px' }}>
-                                        <div style={{ fontSize: '10px', color: '#2e7d32', marginTop: '4px' }}>
+                    <div className="commission-label">Net Income</div>
+                    <p className="commission-amount" style={{ fontSize: '18px', lineHeight: '1.2', margin: '8px 0' }}>
+                      {formatCompactCurrency(performanceData[`${performanceView}View`].netIncome)}
+                    </p>
+                    <div style={{ fontSize: '10px', color: '#2e7d32', marginTop: '4px' }}>
                       <TrendUp size={10} style={{ marginRight: '2px' }} />
                       {performanceData[`${performanceView}View`].netIncomeGrowth}
                     </div>
@@ -2209,7 +2215,8 @@ const Statements = () => {
                 { id: 'expenses', label: 'Expenses', icon: <CreditCard size={16} /> },
                 { id: 'wallet', label: 'Wallet', icon: <Wallet size={16} /> },
                 { id: 'cashflow', label: 'Cashflow', icon: <Activity size={16} /> },
-                { id: 'bookkeeping', label: 'Bookkeeping', icon: <FileCheck size={16} /> },
+                // Comment out bookkeeping from mobile menu
+                // { id: 'bookkeeping', label: 'Bookkeeping', icon: <FileCheck size={16} /> },
                 { id: 'balance', label: 'Balance Sheet', icon: <Calculator size={16} /> },
                 { id: 'performance', label: 'Performance', icon: <Target size={16} /> },
                 { id: 'trends', label: 'Trends', icon: <TrendUp size={16} /> },
