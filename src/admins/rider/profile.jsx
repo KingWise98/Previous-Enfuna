@@ -25,7 +25,6 @@ import {
   StepContent,
   Chip,
   Alert,
-  CircularProgress,
   Tabs,
   Tab,
   List,
@@ -33,22 +32,13 @@ import {
   ListItemText,
   ListItemIcon,
   LinearProgress,
-  AppBar,
-  Toolbar,
-  Drawer,
-  ListItemButton,
   RadioGroup,
   Radio,
   Checkbox,
   Slider,
   FormGroup,
   InputAdornment,
-  Tooltip,
-  Badge,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions
+  Tooltip
 } from '@mui/material';
 import {
   Person,
@@ -57,9 +47,7 @@ import {
   Save,
   Cancel,
   Verified,
-  Warning,
   DirectionsCar,
-  BusinessCenter,
   Security,
   LocationOn,
   Phone,
@@ -69,28 +57,21 @@ import {
   CheckCircle,
   Error,
   Work,
-  Star,
-  Menu,
+  Group,
   Upload,
   Description,
-  CalendarToday,
-  AttachMoney,
   ContactPhone,
   Home,
-  AccountBalanceWallet,
   Payment,
   Notifications,
   Visibility,
   VisibilityOff,
   AutoAwesome,
-  SecurityUpdateGood,
   VerifiedUser,
-  FileCopy,
   UploadFile,
-  Schedule,
-  Language,
-  Speed,
-  DriveEta
+  DriveEta,
+  People,
+  Schedule
 } from '@mui/icons-material';
 
 const DriverProfilePage = () => {
@@ -98,11 +79,9 @@ const DriverProfilePage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [activeTab, setActiveTab] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState('verified');
   const [uploadProgress, setUploadProgress] = useState({});
   const [profileCompletion, setProfileCompletion] = useState(85);
   const [showAccountNumber, setShowAccountNumber] = useState(false);
-  const [documentPreview, setDocumentPreview] = useState({ open: false, url: '', title: '' });
 
   // Clean, relevant dummy data
   const initialProfileData = {
@@ -111,12 +90,10 @@ const DriverProfilePage = () => {
       lastName: 'Peter',
       dateOfBirth: '1985-08-20',
       gender: 'male',
-      nationality: 'Ugandan',
-      maritalStatus: 'married'
+      nationality: 'Ugandan'
     },
     identification: {
       nationalId: 'CM9141515151515',
-      tinNumber: '123456789',
       drivingLicense: 'UB542315678',
       licenseClass: 'D',
       licenseExpiry: '2025-12-31'
@@ -135,7 +112,6 @@ const DriverProfilePage = () => {
       model: 'Noah',
       year: '2020',
       licensePlate: 'UBA 789K',
-      color: 'White',
       seatingCapacity: '7',
       fuelType: 'petrol',
       transmission: 'automatic'
@@ -145,7 +121,6 @@ const DriverProfilePage = () => {
       email: 'kure.peter@enfuna.com',
       address: 'Plot 456, Entebbe Road',
       city: 'Kampala',
-      district: 'Kawempe',
       emergencyContact: {
         name: 'Sarafina Vangamoi',
         phone: '+256781234567',
@@ -156,21 +131,21 @@ const DriverProfilePage = () => {
       bankName: 'Stanbic Bank',
       accountNumber: '9876543210',
       accountName: 'Peter Kure',
-      branch: 'Kampala Main',
       mobileMoney: '+256712345678',
-      mobileMoneyProvider: 'mtn',
-      preferredPaymentMethod: 'mobile_money'
+      mobileMoneyProvider: 'mtn'
     },
     preferences: {
       notifications: true,
       smsAlerts: true,
-      emailUpdates: false,
-      autoAcceptRides: false,
-      shareLocation: true,
       longTrips: true,
       shortTrips: true,
       nightDriving: false,
-      highwayDriving: true
+      autoAcceptRides: false
+    },
+    stats: {
+      totalRiders: 1247,
+      completedTrips: 1230,
+      activeHours: 856
     }
   };
 
@@ -182,17 +157,17 @@ const DriverProfilePage = () => {
 
   // Driver-specific options
   const driverTypes = [
-    { value: 'taxi', label: '🚗 Taxi Driver', description: 'Passenger transportation' },
-    { value: 'boda', label: '🏍️ Boda Rider', description: 'Motorcycle taxi' },
-    { value: 'truck', label: '🚚 Truck Driver', description: 'Goods transportation' },
-    { value: 'delivery', label: '📦 Delivery Driver', description: 'Package delivery' }
+    { value: 'taxi', label: '🚗 Taxi Driver' },
+    { value: 'boda', label: '🏍️ Boda Rider' },
+    { value: 'truck', label: '🚚 Truck Driver' },
+    { value: 'delivery', label: '📦 Delivery Driver' }
   ];
 
   const vehicleTypes = [
-    { value: 'sedan', label: '🚗 Sedan', capacity: '4-5 passengers' },
-    { value: 'suv', label: '🚙 SUV', capacity: '5-7 passengers' },
-    { value: 'minibus', label: '🚐 Minibus', capacity: '12-15 passengers' },
-    { value: 'motorcycle', label: '🏍️ Motorcycle', capacity: '1-2 passengers' }
+    { value: 'sedan', label: '🚗 Sedan' },
+    { value: 'suv', label: '🚙 SUV' },
+    { value: 'minibus', label: '🚐 Minibus' },
+    { value: 'motorcycle', label: '🏍️ Motorcycle' }
   ];
 
   const fuelTypes = [
@@ -209,8 +184,6 @@ const DriverProfilePage = () => {
   const languages = ['English', 'Luganda', 'Swahili'];
 
   const banks = ['Stanbic Bank', 'Centenary Bank', 'DFCU Bank', 'Equity Bank'];
-
-  const districts = ['Kampala', 'Wakiso', 'Mukono', 'Entebbe'];
 
   const mobileMoneyProviders = [
     { value: 'mtn', label: 'MTN Mobile Money' },
@@ -364,15 +337,14 @@ const DriverProfilePage = () => {
     <Box sx={{ 
       minHeight: '100vh', 
       backgroundColor: '#f8fafc',
-      pl: { xs: 0, md: 0 } // Adjust for sidebar
+      pl: { xs: 0, md: 0 }
     }}>
       {/* Main Content Area */}
-      <Box sx={{ p: isMobile ? 1.5 : 3 }}>
+      <Box sx={{ p: isMobile ? 1 : 2 }}>
         <Card sx={{ 
           border: '1px solid #e2e8f0',
-          borderRadius: '12px',
-          overflow: 'hidden',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)'
+          borderRadius: '8px',
+          overflow: 'hidden'
         }}>
           {/* Header */}
           <Box sx={{ 
@@ -383,14 +355,14 @@ const DriverProfilePage = () => {
             justifyContent: 'space-between',
             alignItems: 'center',
             flexWrap: 'wrap',
-            gap: 2
+            gap: 1
           }}>
             <Box>
-              <Typography variant="h5" fontWeight="bold">
+              <Typography variant="h6" fontWeight="bold">
                 Rider Profile
               </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Manage your rider account and preferences
+              <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                Manage your rider account
               </Typography>
             </Box>
             
@@ -408,7 +380,7 @@ const DriverProfilePage = () => {
                       backgroundColor: '#f59e0b'
                     }
                   }}
-                  size={isMobile ? "small" : "medium"}
+                  size="small"
                 >
                   Edit Profile
                 </Button>
@@ -422,11 +394,10 @@ const DriverProfilePage = () => {
                       borderColor: 'white',
                       color: 'white',
                       '&:hover': {
-                        borderColor: '#fbbf24',
-                        backgroundColor: '#ffffff10'
+                        borderColor: '#fbbf24'
                       }
                     }}
-                    size={isMobile ? "small" : "medium"}
+                    size="small"
                   >
                     Cancel
                   </Button>
@@ -442,7 +413,7 @@ const DriverProfilePage = () => {
                         backgroundColor: '#f59e0b'
                       }
                     }}
-                    size={isMobile ? "small" : "medium"}
+                    size="small"
                   >
                     Save
                   </Button>
@@ -451,13 +422,11 @@ const DriverProfilePage = () => {
             </Box>
           </Box>
 
-          <CardContent sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
-            <Grid container spacing={3}>
+          <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+            <Grid container spacing={2}>
               {/* Left Sidebar - Profile Summary */}
               <Grid item xs={12} md={4}>
                 <Box sx={{ 
-                  position: 'sticky',
-                  top: 20,
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 2
@@ -472,7 +441,7 @@ const DriverProfilePage = () => {
                             height: 80, 
                             mx: 'auto', 
                             mb: 2,
-                            border: '3px solid #1e40af'
+                            border: '2px solid #1e40af'
                           }}
                         >
                           <Person sx={{ fontSize: 40 }} />
@@ -503,7 +472,7 @@ const DriverProfilePage = () => {
                         )}
                       </Box>
 
-                      <Typography variant="h6" fontWeight="bold" gutterBottom>
+                      <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                         {profileData.personalInfo.firstName} {profileData.personalInfo.lastName}
                       </Typography>
                       
@@ -513,23 +482,25 @@ const DriverProfilePage = () => {
                           backgroundColor: '#1e40af',
                           color: 'white',
                           fontWeight: 'bold',
-                          mb: 2 
+                          mb: 1,
+                          fontSize: '0.75rem'
                         }}
                       />
 
                       <Chip
                         icon={<Verified />}
-                        label="Verified Rider"
+                        label="Verified"
                         color="success"
                         variant="filled"
                         sx={{ mb: 2 }}
+                        size="small"
                       />
 
                       {/* Profile Completion */}
                       <Box sx={{ mb: 2 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                          <Typography variant="body2">Profile Completion</Typography>
-                          <Typography variant="body2" fontWeight="bold" color="#1e40af">
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                          <Typography variant="caption">Profile Completion</Typography>
+                          <Typography variant="caption" fontWeight="bold" color="#1e40af">
                             {profileCompletion}%
                           </Typography>
                         </Box>
@@ -537,8 +508,8 @@ const DriverProfilePage = () => {
                           variant="determinate"
                           value={profileCompletion}
                           sx={{ 
-                            height: 6, 
-                            borderRadius: 3,
+                            height: 4, 
+                            borderRadius: 2,
                             backgroundColor: '#e2e8f0',
                             '& .MuiLinearProgress-bar': {
                               backgroundColor: profileCompletion >= 80 ? '#10b981' : '#f59e0b'
@@ -547,25 +518,33 @@ const DriverProfilePage = () => {
                         />
                       </Box>
 
-                      {/* Driver Stats */}
+                      {/* Rider Stats */}
                       <Grid container spacing={1}>
-                        <Grid item xs={6}>
-                          <Paper sx={{ p: 1, textAlign: 'center', backgroundColor: '#f8fafc' }}>
+                        <Grid item xs={4}>
+                          <Paper sx={{ p: 1, textAlign: 'center', backgroundColor: '#f1f5f9' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-                              <Star sx={{ color: '#f59e0b', fontSize: 16 }} />
-                              <Typography variant="h6" fontWeight="bold">
-                                4.7
+                              <People sx={{ color: '#1e40af', fontSize: 14 }} />
+                              <Typography variant="body2" fontWeight="bold">
+                                {profileData.stats.totalRiders.toLocaleString()}
                               </Typography>
                             </Box>
-                            <Typography variant="caption">Rating</Typography>
+                            <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>Total Riders</Typography>
                           </Paper>
                         </Grid>
-                        <Grid item xs={6}>
-                          <Paper sx={{ p: 1, textAlign: 'center', backgroundColor: '#f8fafc' }}>
-                            <Typography variant="h6" fontWeight="bold">
-                              1,247
+                        <Grid item xs={4}>
+                          <Paper sx={{ p: 1, textAlign: 'center', backgroundColor: '#f1f5f9' }}>
+                            <Typography variant="body2" fontWeight="bold">
+                              {profileData.stats.completedTrips.toLocaleString()}
                             </Typography>
-                            <Typography variant="caption">Total Rides</Typography>
+                            <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>Trips</Typography>
+                          </Paper>
+                        </Grid>
+                        <Grid item xs={4}>
+                          <Paper sx={{ p: 1, textAlign: 'center', backgroundColor: '#f1f5f9' }}>
+                            <Typography variant="body2" fontWeight="bold">
+                              {profileData.stats.activeHours}
+                            </Typography>
+                            <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>Hours</Typography>
                           </Paper>
                         </Grid>
                       </Grid>
@@ -575,10 +554,10 @@ const DriverProfilePage = () => {
                   {/* Verification Status */}
                   <Card sx={{ border: '1px solid #e2e8f0' }}>
                     <CardContent sx={{ p: 2 }}>
-                      <Typography variant="h6" gutterBottom fontWeight="bold">
+                      <Typography variant="subtitle2" gutterBottom fontWeight="bold">
                         Verification Status
                       </Typography>
-                      <Stepper orientation="vertical" activeStep={3}>
+                      <Stepper orientation="vertical" activeStep={3} sx={{ '& .MuiStepLabel-label': { fontSize: '0.75rem' } }}>
                         <Step>
                           <StepLabel>Profile Setup</StepLabel>
                         </Step>
@@ -602,13 +581,13 @@ const DriverProfilePage = () => {
                 <Box sx={{ 
                   display: 'flex', 
                   flexDirection: 'column',
-                  gap: 3
+                  gap: 2
                 }}>
                   {/* Tab Navigation */}
                   <Paper sx={{ 
-                    p: 1, 
-                    borderRadius: 2,
-                    backgroundColor: '#f8fafc'
+                    p: 0.5, 
+                    borderRadius: 1,
+                    backgroundColor: '#f1f5f9'
                   }}>
                     <Tabs
                       value={activeTab}
@@ -616,9 +595,14 @@ const DriverProfilePage = () => {
                       variant="scrollable"
                       scrollButtons="auto"
                       sx={{
+                        minHeight: 40,
                         '& .MuiTab-root': {
-                          minHeight: 48,
-                          minWidth: { xs: 80, sm: 120 }
+                          minHeight: 40,
+                          minWidth: 60,
+                          fontSize: '0.75rem',
+                          '& .MuiSvgIcon-root': {
+                            fontSize: 16
+                          }
                         }
                       }}
                     >
@@ -634,15 +618,15 @@ const DriverProfilePage = () => {
                   </Paper>
 
                   {/* Tab Content */}
-                  <Box sx={{ minHeight: 400 }}>
+                  <Box sx={{ minHeight: 300 }}>
                     {/* Personal Information */}
                     {activeTab === 0 && (
                       <Box>
-                        <Typography variant="h6" gutterBottom fontWeight="bold">
+                        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
                           Personal Information
                         </Typography>
                         
-                        <Grid container spacing={2}>
+                        <Grid container spacing={1}>
                           <Grid item xs={12} sm={6}>
                             <TextField
                               fullWidth
@@ -651,6 +635,7 @@ const DriverProfilePage = () => {
                               onChange={(e) => handleInputChange('personalInfo', 'firstName', e.target.value)}
                               disabled={!isEditing}
                               size="small"
+                              InputLabelProps={{ shrink: true }}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -661,6 +646,7 @@ const DriverProfilePage = () => {
                               onChange={(e) => handleInputChange('personalInfo', 'lastName', e.target.value)}
                               disabled={!isEditing}
                               size="small"
+                              InputLabelProps={{ shrink: true }}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -695,11 +681,11 @@ const DriverProfilePage = () => {
                     {/* Professional Information */}
                     {activeTab === 1 && (
                       <Box>
-                        <Typography variant="h6" gutterBottom fontWeight="bold">
+                        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
                           Professional Information
                         </Typography>
 
-                        <Grid container spacing={2}>
+                        <Grid container spacing={1}>
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth size="small" disabled={!isEditing}>
                               <InputLabel>Rider Type *</InputLabel>
@@ -725,13 +711,14 @@ const DriverProfilePage = () => {
                               onChange={(e) => handleInputChange('professionalInfo', 'yearsExperience', e.target.value)}
                               disabled={!isEditing}
                               size="small"
+                              InputLabelProps={{ shrink: true }}
                             />
                           </Grid>
 
                           {/* Languages */}
                           <Grid item xs={12}>
-                            <Typography variant="subtitle2" gutterBottom>Languages Spoken</Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            <Typography variant="caption" gutterBottom display="block">Languages Spoken</Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                               {languages.map((language) => {
                                 const isSelected = profileData.professionalInfo.languages.includes(language);
                                 return (
@@ -763,11 +750,11 @@ const DriverProfilePage = () => {
                     {/* Vehicle Information */}
                     {activeTab === 2 && (
                       <Box>
-                        <Typography variant="h6" gutterBottom fontWeight="bold">
+                        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
                           Vehicle Information
                         </Typography>
 
-                        <Grid container spacing={2}>
+                        <Grid container spacing={1}>
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth size="small" disabled={!isEditing}>
                               <InputLabel>Vehicle Type *</InputLabel>
@@ -792,6 +779,7 @@ const DriverProfilePage = () => {
                               onChange={(e) => handleInputChange('vehicleInfo', 'licensePlate', e.target.value)}
                               disabled={!isEditing}
                               size="small"
+                              InputLabelProps={{ shrink: true }}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -802,6 +790,7 @@ const DriverProfilePage = () => {
                               onChange={(e) => handleInputChange('vehicleInfo', 'make', e.target.value)}
                               disabled={!isEditing}
                               size="small"
+                              InputLabelProps={{ shrink: true }}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -812,6 +801,7 @@ const DriverProfilePage = () => {
                               onChange={(e) => handleInputChange('vehicleInfo', 'model', e.target.value)}
                               disabled={!isEditing}
                               size="small"
+                              InputLabelProps={{ shrink: true }}
                             />
                           </Grid>
                         </Grid>
@@ -821,11 +811,11 @@ const DriverProfilePage = () => {
                     {/* Documents */}
                     {activeTab === 3 && (
                       <Box>
-                        <Typography variant="h6" gutterBottom fontWeight="bold">
+                        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
                           Documents
                         </Typography>
                         
-                        <Grid container spacing={2}>
+                        <Grid container spacing={1}>
                           {requiredDocuments.map((doc, index) => (
                             <Grid item xs={12} sm={6} key={index}>
                               <Card sx={{ 
@@ -833,10 +823,10 @@ const DriverProfilePage = () => {
                                 backgroundColor: '#f8fafc',
                                 height: '100%'
                               }}>
-                                <CardContent sx={{ p: 2 }}>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                                    <Description sx={{ color: '#64748b' }} />
-                                    <Typography variant="subtitle2" fontWeight="bold">
+                                <CardContent sx={{ p: 1.5 }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                    <Description sx={{ color: '#64748b', fontSize: 20 }} />
+                                    <Typography variant="caption" fontWeight="bold">
                                       {doc.name}
                                     </Typography>
                                   </Box>
@@ -847,7 +837,8 @@ const DriverProfilePage = () => {
                                     sx={{
                                       backgroundColor: doc.required ? '#fee2e2' : '#fef3c7',
                                       color: doc.required ? '#dc2626' : '#92400e',
-                                      mb: 1
+                                      mb: 1,
+                                      fontSize: '0.65rem'
                                     }}
                                   />
                                   
@@ -856,7 +847,7 @@ const DriverProfilePage = () => {
                                       <LinearProgress 
                                         variant="determinate" 
                                         value={uploadProgress[doc.field]} 
-                                        sx={{ height: 6, borderRadius: 3 }}
+                                        sx={{ height: 4, borderRadius: 2 }}
                                       />
                                     </Box>
                                   ) : (
@@ -866,11 +857,12 @@ const DriverProfilePage = () => {
                                       size="small"
                                       startIcon={<UploadFile />}
                                       sx={{
-                                        mt: 1,
-                                        width: '100%'
+                                        mt: 0.5,
+                                        width: '100%',
+                                        fontSize: '0.75rem'
                                       }}
                                     >
-                                      Upload Document
+                                      Upload
                                       <input
                                         type="file"
                                         hidden
@@ -890,11 +882,11 @@ const DriverProfilePage = () => {
                     {/* Contact Information */}
                     {activeTab === 4 && (
                       <Box>
-                        <Typography variant="h6" gutterBottom fontWeight="bold">
+                        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
                           Contact Information
                         </Typography>
 
-                        <Grid container spacing={2}>
+                        <Grid container spacing={1}>
                           <Grid item xs={12} sm={6}>
                             <TextField
                               fullWidth
@@ -903,6 +895,7 @@ const DriverProfilePage = () => {
                               onChange={(e) => handleInputChange('contactInfo', 'phone', e.target.value)}
                               disabled={!isEditing}
                               size="small"
+                              InputLabelProps={{ shrink: true }}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -914,6 +907,7 @@ const DriverProfilePage = () => {
                               onChange={(e) => handleInputChange('contactInfo', 'email', e.target.value)}
                               disabled={!isEditing}
                               size="small"
+                              InputLabelProps={{ shrink: true }}
                             />
                           </Grid>
                           <Grid item xs={12}>
@@ -924,21 +918,23 @@ const DriverProfilePage = () => {
                               onChange={(e) => handleInputChange('contactInfo', 'address', e.target.value)}
                               disabled={!isEditing}
                               size="small"
+                              InputLabelProps={{ shrink: true }}
                             />
                           </Grid>
                           <Grid item xs={12}>
-                            <Divider sx={{ my: 2 }}>
+                            <Divider sx={{ my: 1 }}>
                               <Typography variant="caption" fontWeight="bold">Emergency Contact</Typography>
                             </Divider>
                           </Grid>
                           <Grid item xs={12} sm={6}>
                             <TextField
                               fullWidth
-                              label="Emergency Contact Name"
+                              label="Contact Name"
                               value={profileData.contactInfo.emergencyContact.name}
                               onChange={(e) => handleNestedInputChange('contactInfo', 'emergencyContact', 'name', e.target.value)}
                               disabled={!isEditing}
                               size="small"
+                              InputLabelProps={{ shrink: true }}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -949,6 +945,7 @@ const DriverProfilePage = () => {
                               onChange={(e) => handleNestedInputChange('contactInfo', 'emergencyContact', 'phone', e.target.value)}
                               disabled={!isEditing}
                               size="small"
+                              InputLabelProps={{ shrink: true }}
                             />
                           </Grid>
                         </Grid>
@@ -958,11 +955,11 @@ const DriverProfilePage = () => {
                     {/* Banking Information */}
                     {activeTab === 5 && (
                       <Box>
-                        <Typography variant="h6" gutterBottom fontWeight="bold">
+                        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
                           Banking Information
                         </Typography>
 
-                        <Grid container spacing={2}>
+                        <Grid container spacing={1}>
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth size="small" disabled={!isEditing}>
                               <InputLabel>Bank Name *</InputLabel>
@@ -988,6 +985,7 @@ const DriverProfilePage = () => {
                               onChange={(e) => handleInputChange('bankingInfo', 'accountNumber', e.target.value)}
                               disabled={!isEditing}
                               size="small"
+                              InputLabelProps={{ shrink: true }}
                               InputProps={{
                                 endAdornment: (
                                   <InputAdornment position="end">
@@ -1027,6 +1025,7 @@ const DriverProfilePage = () => {
                               onChange={(e) => handleInputChange('bankingInfo', 'mobileMoney', e.target.value)}
                               disabled={!isEditing}
                               size="small"
+                              InputLabelProps={{ shrink: true }}
                             />
                           </Grid>
                         </Grid>
@@ -1036,15 +1035,15 @@ const DriverProfilePage = () => {
                     {/* Preferences */}
                     {activeTab === 6 && (
                       <Box>
-                        <Typography variant="h6" gutterBottom fontWeight="bold">
+                        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
                           Preferences
                         </Typography>
 
-                        <Grid container spacing={3}>
+                        <Grid container spacing={2}>
                           <Grid item xs={12} md={6}>
                             <Card sx={{ border: '1px solid #e2e8f0' }}>
                               <CardContent>
-                                <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+                                <Typography variant="caption" gutterBottom fontWeight="bold" display="block">
                                   <Notifications sx={{ mr: 1, verticalAlign: 'middle' }} />
                                   Notifications
                                 </Typography>
@@ -1059,6 +1058,7 @@ const DriverProfilePage = () => {
                                       />
                                     }
                                     label="Enable Notifications"
+                                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.75rem' } }}
                                   />
                                   <FormControlLabel
                                     control={
@@ -1070,6 +1070,7 @@ const DriverProfilePage = () => {
                                       />
                                     }
                                     label="SMS Alerts"
+                                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.75rem' } }}
                                   />
                                 </FormGroup>
                               </CardContent>
@@ -1079,7 +1080,7 @@ const DriverProfilePage = () => {
                           <Grid item xs={12} md={6}>
                             <Card sx={{ border: '1px solid #e2e8f0' }}>
                               <CardContent>
-                                <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+                                <Typography variant="caption" gutterBottom fontWeight="bold" display="block">
                                   <AutoAwesome sx={{ mr: 1, verticalAlign: 'middle' }} />
                                   Ride Preferences
                                 </Typography>
@@ -1094,6 +1095,7 @@ const DriverProfilePage = () => {
                                       />
                                     }
                                     label="Long Distance Trips"
+                                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.75rem' } }}
                                   />
                                   <FormControlLabel
                                     control={
@@ -1105,6 +1107,7 @@ const DriverProfilePage = () => {
                                       />
                                     }
                                     label="Night Driving"
+                                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.75rem' } }}
                                   />
                                 </FormGroup>
                               </CardContent>
