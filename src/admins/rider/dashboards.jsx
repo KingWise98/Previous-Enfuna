@@ -1,104 +1,98 @@
-"use client"
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
   Button,
-  Card,
-  CardContent,
-  Grid,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  useTheme,
-  useMediaQuery,
-  AppBar,
-  Toolbar,
-  Chip,
-  IconButton,
-  Divider,
-  ToggleButton,
-  ToggleButtonGroup,
-  Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   TextField,
-  InputAdornment,
-  Stepper,
-  Step,
-  StepLabel,
-  Radio,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
   RadioGroup,
   FormControlLabel,
+  Radio,
+  Divider,
+  Chip,
+  IconButton,
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Paper,
+  Stepper,
+  Step,
+  StepLabel,
+  InputAdornment,
   LinearProgress,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  RadioGroup as MuiRadioGroup,
-  FormControlLabel as MuiFormControlLabel,
-  CircularProgress
+  Snackbar,
+  Alert,
+  useTheme,
+  useMediaQuery,
+  Card,
+  CardContent,
+  Grid,
+  List,
+  ListItem,
+  ListItemText,
+  ToggleButton,
+  ToggleButtonGroup,
+  Avatar
 } from '@mui/material';
 import {
-  Person,
   DirectionsCar,
   AccountBalanceWallet,
   Payment,
   Receipt,
-  TrendingUp,
-  TrendingDown,
-  Add,
-  Visibility,
-  Schedule,
-  CheckCircle,
   Cancel,
-  TripOrigin,
-  LocationOn,
-  LocalShipping,
-  Circle,
-  ArrowForward,
-  ArrowUpward,
-  ArrowDownward,
-  CloudUpload,
-  Search,
-  Refresh,
-  Share,
-  Delete,
-  AttachMoney,
-  QrCode,
+  CheckCircle,
+  Close,
+  AccessTime,
+  Route,
   Money,
-  FileUpload,
-  ArrowBack,
-  Save,
-  DirectionsRun,
   CreditCard,
-  LocalAtm,
   Print,
   Download,
   WhatsApp,
   Email,
-  Close,
-  AccessTime,
-  Route,
+  ArrowForward,
+  QrCode,
+  LocalAtm,
+  AccountBalanceWalletOutlined,
+  CreditCardOutlined,
+  AttachMoney,
   AccountBalance,
-  AccountCircle,
+  Schedule,
+  LocationOn,
+  DirectionsRun,
+  CloudUpload,
+  TrendingUp,
+  TrendingDown,
+  Add,
+  Visibility,
+  Refresh,
+  Share,
+  Delete,
+  ArrowBack,
+  Save,
   Phone,
   CalendarToday,
   AttachFile,
   QrCode2,
-  AccountBalanceWalletOutlined,
-  CreditCardOutlined
+  AccountCircle,
+  TripOrigin,
+  LocalShipping,
+  Circle,
+  ArrowUpward,
+  ArrowDownward,
+  Search
 } from '@mui/icons-material';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -116,14 +110,18 @@ const DashboardPage = () => {
   const [activeTrip, setActiveTrip] = useState(null);
   const [timer, setTimer] = useState(0);
   const [distance, setDistance] = useState(0);
+  const [showQuickTripPopup, setShowQuickTripPopup] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showCancelTripModal, setShowCancelTripModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [receiptData, setReceiptData] = useState(null);
   const receiptRef = useRef(null);
 
   // Trip data state
   const [tripData, setTripData] = useState({
-    pickup: '',
+    pickup: 'Current Location',
     destination: '',
     amount: 5000,
     duration: '',
@@ -137,21 +135,14 @@ const DashboardPage = () => {
 
   useEffect(() => {
     let interval;
-    if (activeTrip && currentView === 'active-trip') {
+    if (activeTrip && activeTrip.status === 'active') {
       interval = setInterval(() => {
         setTimer(prev => prev + 1);
         setDistance(prev => prev + 0.01);
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [activeTrip, currentView]);
-
-  const handleTabChange = (event, newTab) => {
-    if (newTab !== null) {
-      setActiveTab(newTab);
-      setCurrentView(newTab === 'start-trip' ? 'start-trip' : 'dashboard');
-    }
-  };
+  }, [activeTrip]);
 
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -160,15 +151,11 @@ const DashboardPage = () => {
     return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   };
 
-  const handleStartTrip = () => {
-    if (!tripData.pickup || !tripData.destination) {
-      alert("Please fill in pickup and destination");
-      return;
-    }
-
+  const handleStartQuickTrip = () => {
+    // Start trip immediately with default values
     const newTrip = {
       ...tripData,
-      id: `TRP-${Date.now().toString().slice(-6)}`,
+      id: `QT-${Date.now().toString().slice(-6)}`,
       startTime: new Date(),
       status: 'active'
     };
@@ -176,11 +163,93 @@ const DashboardPage = () => {
     setActiveTrip(newTrip);
     setTimer(0);
     setDistance(0);
-    setCurrentView('active-trip');
+    setShowQuickTripPopup(false);
+    
+    setSnackbar({
+      open: true,
+      message: 'Quick Trip Started!',
+      severity: 'success'
+    });
   };
 
   const handleEndTrip = () => {
+    // Calculate final trip details
+    const completedTrip = {
+      ...activeTrip,
+      endTime: new Date(),
+      status: 'ended',
+      duration: formatTime(timer),
+      distance: distance.toFixed(2)
+    };
+    
+    setActiveTrip(completedTrip);
     setShowPaymentModal(true);
+  };
+
+  const handleCancelTrip = (withReason = false) => {
+    if (withReason && !cancelReason.trim()) {
+      setSnackbar({
+        open: true,
+        message: 'Please provide a reason for cancellation',
+        severity: 'warning'
+      });
+      return;
+    }
+
+    const cancelledTrip = {
+      ...activeTrip,
+      endTime: new Date(),
+      status: 'cancelled',
+      duration: formatTime(timer),
+      distance: distance.toFixed(2),
+      cancelReason: withReason ? cancelReason : 'No reason provided'
+    };
+
+    setActiveTrip(cancelledTrip);
+    setShowCancelTripModal(false);
+    setCancelReason('');
+    
+    // Generate cancellation receipt
+    const receipt = {
+      tripId: cancelledTrip.id,
+      status: 'Cancelled',
+      pickup: cancelledTrip.pickup,
+      destination: cancelledTrip.destination || 'Trip Cancelled',
+      amount: cancelledTrip.amount,
+      cancelReason: cancelledTrip.cancelReason,
+      date: new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }),
+      time: new Date().toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }),
+      duration: cancelledTrip.duration,
+      distance: cancelledTrip.distance,
+      riderName: 'John Doe',
+      riderId: 'RD-2024-001',
+      vehicle: 'Bajaj Boxer - Red (UAJ 786X)'
+    };
+
+    setReceiptData(receipt);
+    setShowReceiptModal(true);
+    
+    setSnackbar({
+      open: true,
+      message: 'Trip cancelled successfully',
+      severity: 'info'
+    });
+  };
+
+  const handleContinueTrip = () => {
+    setShowCancelTripModal(false);
+    setSnackbar({
+      open: true,
+      message: 'Trip continued',
+      severity: 'info'
+    });
   };
 
   const handlePaymentComplete = (paymentData) => {
@@ -227,6 +296,12 @@ const DashboardPage = () => {
 
     setReceiptData(receipt);
     setShowReceiptModal(true);
+    
+    setSnackbar({
+      open: true,
+      message: 'Payment received successfully!',
+      severity: 'success'
+    });
   };
 
   const handleExportPDF = async () => {
@@ -255,9 +330,50 @@ const DashboardPage = () => {
     window.open(url, '_blank');
   };
 
+  const handleCustomerReceipt = () => {
+    // Generate customer-specific receipt
+    const customerReceipt = {
+      ...receiptData,
+      header: 'CUSTOMER COPY',
+      footer: 'Thank you for riding with us!\nFor inquiries: support@enfuna.com'
+    };
+    
+    // You could open a new popup or download directly
+    const receiptText = `
+      CUSTOMER RECEIPT
+      ================
+      Trip ID: ${customerReceipt.tripId}
+      Date: ${customerReceipt.date} ${customerReceipt.time}
+      
+      From: ${customerReceipt.pickup}
+      To: ${customerReceipt.destination}
+      
+      Distance: ${customerReceipt.distance} km
+      Duration: ${customerReceipt.duration}
+      
+      Amount: UGX ${customerReceipt.amount.toLocaleString()}
+      Payment: ${customerReceipt.paymentMethod}
+      
+      ${customerReceipt.footer}
+    `;
+    
+    // Download as text file
+    const blob = new Blob([receiptText], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `customer-receipt-${customerReceipt.tripId}.txt`;
+    a.click();
+    
+    setSnackbar({
+      open: true,
+      message: 'Customer receipt downloaded',
+      severity: 'success'
+    });
+  };
+
   const tabs = [
     { id: 'dashboard', label: 'Dashboard' },
-    { id: 'start-trip', label: 'Quick Trip' },
     { id: 'deliveries', label: 'Trip History' },
     { id: 'receive-money', label: 'Receive Money' },
     { id: 'withdraw-money', label: 'Request Payout' },
@@ -270,22 +386,34 @@ const DashboardPage = () => {
         {/* Dashboard Header */}
         <div className="dashboard-header">
           <h1 className="dashboard-title">
-            {currentView === 'dashboard' && 'Dashboard'}
-            {currentView === 'start-trip' && 'Start Quick Trip'}
-            {currentView === 'active-trip' && 'Active Trip'}
-            {currentView === 'complete-trip' && 'Complete Trip'}
-            {currentView === 'deliveries' && 'Deliveries'}
+            {activeTrip?.status === 'active' ? 'Active Quick Trip' : 'Dashboard'}
+            {currentView === 'deliveries' && 'Trip History'}
             {currentView === 'receive-money' && 'Receive Money'}
             {currentView === 'withdraw-money' && 'Request Payout'}
             {currentView === 'add-expense' && 'Add Expense'}
           </h1>
-          {currentView !== 'dashboard' && (
-            <button 
-              className="back-btn"
-              onClick={() => setCurrentView('dashboard')}
-            >
-              <ArrowBack /> Back to Dashboard
-            </button>
+          
+          {activeTrip?.status === 'active' && (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Chip 
+                icon={<AccessTime />} 
+                label={`Time: ${formatTime(timer)}`}
+                color="primary"
+                variant="outlined"
+              />
+              <Chip 
+                icon={<Route />} 
+                label={`Distance: ${distance.toFixed(2)} km`}
+                color="secondary"
+                variant="outlined"
+              />
+              <Chip 
+                icon={<DirectionsCar />} 
+                label={`Amount: UGX ${activeTrip.amount.toLocaleString()}`}
+                color="success"
+                variant="outlined"
+              />
+            </div>
           )}
         </div>
 
@@ -297,12 +425,18 @@ const DashboardPage = () => {
               className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
               onClick={() => {
                 setActiveTab(tab.id);
-                setCurrentView(tab.id === 'start-trip' ? 'start-trip' : tab.id);
+                setCurrentView(tab.id);
               }}
             >
               {tab.label}
             </button>
           ))}
+          <button
+            className="tab-btn yellow-button"
+            onClick={() => setShowQuickTripPopup(true)}
+          >
+            Quick Trip
+          </button>
         </div>
 
         {/* Main Content */}
@@ -314,24 +448,12 @@ const DashboardPage = () => {
               isMobile={isMobile}
               navigate={navigate}
               setCurrentView={setCurrentView}
-            />
-          )}
-          {currentView === 'start-trip' && (
-            <StartTripContent 
-              tripData={tripData}
-              setTripData={setTripData}
-              handleStartTrip={handleStartTrip}
-              setCurrentView={setCurrentView}
-            />
-          )}
-          {currentView === 'active-trip' && activeTrip && (
-            <ActiveTripContent
               activeTrip={activeTrip}
+              formatTime={formatTime}
               timer={timer}
               distance={distance}
-              formatTime={formatTime}
               handleEndTrip={handleEndTrip}
-              setCurrentView={setCurrentView}
+              setShowCancelTripModal={setShowCancelTripModal}
             />
           )}
           {currentView === 'deliveries' && (
@@ -351,6 +473,173 @@ const DashboardPage = () => {
         </div>
       </div>
 
+      {/* Quick Trip Popup */}
+      <Dialog
+        open={showQuickTripPopup}
+        onClose={() => setShowQuickTripPopup(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ bgcolor: '#002AFE', color: 'white' }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Start Quick Trip</Typography>
+            <IconButton onClick={() => setShowQuickTripPopup(false)} sx={{ color: 'white' }}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        
+        <DialogContent sx={{ p: 3 }}>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Quick trips start immediately. You can update details during the trip.
+            </Typography>
+          </Box>
+          
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" gutterBottom color="#002AFE">
+              Destination
+            </Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              size="small"
+              placeholder="Enter destination"
+              value={tripData.destination}
+              onChange={(e) => setTripData({ ...tripData, destination: e.target.value })}
+            />
+          </Box>
+          
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" gutterBottom color="#002AFE">
+              Estimated Amount (UGX)
+            </Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              size="small"
+              type="number"
+              value={tripData.amount}
+              onChange={(e) => setTripData({ ...tripData, amount: Number(e.target.value) })}
+              InputProps={{
+                startAdornment: <InputAdornment position="start">UGX</InputAdornment>,
+              }}
+            />
+          </Box>
+          
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" gutterBottom color="#002AFE">
+              Customer Details (Optional)
+            </Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              size="small"
+              placeholder="Customer name"
+              value={tripData.customerName}
+              onChange={(e) => setTripData({ ...tripData, customerName: e.target.value })}
+              sx={{ mb: 1 }}
+            />
+            <TextField
+              fullWidth
+              variant="outlined"
+              size="small"
+              placeholder="Customer phone"
+              value={tripData.customerPhone}
+              onChange={(e) => setTripData({ ...tripData, customerPhone: e.target.value })}
+            />
+          </Box>
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+          <Button 
+            onClick={() => setShowQuickTripPopup(false)}
+            sx={{ color: '#002AFE' }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="contained"
+            onClick={handleStartQuickTrip}
+            disabled={!tripData.destination.trim()}
+            sx={{ bgcolor: '#002AFE', '&:hover': { bgcolor: '#001FD8' } }}
+          >
+            Start Trip Now
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Cancel Trip Modal */}
+      <Dialog
+        open={showCancelTripModal}
+        onClose={() => setShowCancelTripModal(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ bgcolor: '#f44336', color: 'white' }}>
+          Cancel Trip
+        </DialogTitle>
+        
+        <DialogContent sx={{ p: 3 }}>
+          <Typography variant="body1" gutterBottom>
+            Are you sure you want to cancel this trip?
+          </Typography>
+          
+          <Box sx={{ mt: 3, mb: 2 }}>
+            <Typography variant="subtitle2" gutterBottom color="#f44336">
+              Reason for cancellation (Optional)
+            </Typography>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              variant="outlined"
+              placeholder="Enter reason for cancellation..."
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+            />
+          </Box>
+          
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="caption" color="text.secondary">
+              Trip Details: {activeTrip?.pickup} → {activeTrip?.destination}
+              <br />
+              Duration: {formatTime(timer)} | Distance: {distance.toFixed(2)} km
+            </Typography>
+          </Box>
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+          <Button 
+            onClick={() => setShowCancelTripModal(false)}
+            sx={{ color: '#666' }}
+          >
+            Back
+          </Button>
+          <Button 
+            onClick={() => handleCancelTrip(false)}
+            variant="outlined"
+            sx={{ borderColor: '#f44336', color: '#f44336' }}
+          >
+            Cancel Without Reason
+          </Button>
+          <Button 
+            onClick={() => handleCancelTrip(true)}
+            variant="contained"
+            sx={{ bgcolor: '#f44336', '&:hover': { bgcolor: '#d32f2f' } }}
+          >
+            Cancel With Reason
+          </Button>
+          <Button 
+            onClick={handleContinueTrip}
+            variant="contained"
+            sx={{ bgcolor: '#002AFE', '&:hover': { bgcolor: '#001FD8' } }}
+          >
+            Continue Trip
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Payment Modal */}
       <PaymentModal
         open={showPaymentModal}
@@ -365,10 +654,9 @@ const DashboardPage = () => {
         onClose={() => {
           setShowReceiptModal(false);
           setActiveTrip(null);
-          setCurrentView('dashboard');
           // Reset trip data
           setTripData({
-            pickup: '',
+            pickup: 'Current Location',
             destination: '',
             amount: 5000,
             duration: '',
@@ -385,16 +673,119 @@ const DashboardPage = () => {
         onExportPDF={handleExportPDF}
         onExportExcel={handleExportExcel}
         onShareWhatsApp={handleShareWhatsApp}
+        onCustomerReceipt={handleCustomerReceipt}
       />
 
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       <style jsx global>{`
+        .rider-agent-container {
+          min-height: 100vh;
+          background: #f5f5f5;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .rider-agent-dashboard {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+
+        .dashboard-header {
+          background: linear-gradient(135deg, #002AFE 0%, #001FD8 100%);
+          color: white;
+          padding: 24px;
+          border-radius: 12px;
+          margin-bottom: 24px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .dashboard-title {
+          margin: 0;
+          font-size: 24px;
+          font-weight: 600;
+        }
+
+        .tab-navigation {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 24px;
+          overflow-x: auto;
+          padding-bottom: 8px;
+        }
+
+        .tab-btn {
+          padding: 12px 24px;
+          border: none;
+          border-radius: 8px;
+          background: white;
+          color: #666;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+          border: 1px solid #e0e0e0;
+        }
+
+        .tab-btn:hover {
+          background: #f0f4ff;
+          color: #002AFE;
+        }
+
+        .tab-btn.active {
+          background: #002AFE;
+          color: white;
+          border-color: #002AFE;
+        }
+
+        .tab-btn.yellow-button {
+          background: #FEF132;
+          color: black;
+          border: 1px solid #fde047;
+        }
+
+        .tab-btn.yellow-button:hover {
+          background: #fde047;
+        }
+
+        .tab-content {
+          background: white;
+          border-radius: 12px;
+          padding: 24px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
 
+        .active-trip-banner {
+          background: linear-gradient(135deg, #002AFE 0%, #001FD8 100%);
+          color: white;
+          padding: 20px;
+          border-radius: 12px;
+          margin-bottom: 24px;
+          animation: slideUp 0.3s ease;
+        }
+
         @keyframes slideUp {
-          from { 
+          from {
             opacity: 0;
             transform: translateY(10px);
           }
@@ -402,6 +793,308 @@ const DashboardPage = () => {
             opacity: 1;
             transform: translateY(0);
           }
+        }
+
+        .trip-controls {
+          display: flex;
+          gap: 12px;
+          margin-top: 20px;
+        }
+
+        .trip-controls button {
+          flex: 1;
+          padding: 12px;
+          border-radius: 8px;
+          border: none;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+
+        .end-trip-btn {
+          background: #4CAF50;
+          color: white;
+        }
+
+        .end-trip-btn:hover {
+          background: #388E3C;
+        }
+
+        .cancel-trip-btn {
+          background: #f44336;
+          color: white;
+        }
+
+        .cancel-trip-btn:hover {
+          background: #d32f2f;
+        }
+
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+
+        .stat-card {
+          background: white;
+          border: 1px solid #e0e0e0;
+          border-radius: 8px;
+          padding: 20px;
+          text-align: center;
+        }
+
+        .stat-label {
+          font-size: 14px;
+          color: #666;
+          margin-bottom: 8px;
+        }
+
+        .stat-value {
+          margin: 0;
+          font-size: 24px;
+          font-weight: 600;
+          color: #002AFE;
+        }
+
+        .commission-overview {
+          background: white;
+          border: 1px solid #e0e0e0;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 24px;
+        }
+
+        .section-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #002AFE;
+          margin-bottom: 16px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .commission-ledger {
+          border: 1px solid #e0e0e0;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+
+        .ledger-entry {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px;
+          border-bottom: 1px solid #e0e0e0;
+        }
+
+        .ledger-entry:last-child {
+          border-bottom: none;
+        }
+
+        .entry-info {
+          flex: 1;
+        }
+
+        .entry-type {
+          font-weight: 500;
+          color: #333;
+          margin-bottom: 4px;
+        }
+
+        .entry-time {
+          font-size: 12px;
+          color: #666;
+        }
+
+        .entry-amount {
+          text-align: right;
+          font-weight: 600;
+          color: #002AFE;
+        }
+
+        .balance-card {
+          background: linear-gradient(135deg, #002AFE 0%, #001FD8 100%);
+          color: white;
+          padding: 24px;
+          border-radius: 12px;
+          margin-bottom: 24px;
+        }
+
+        .balance-label {
+          font-size: 14px;
+          opacity: 0.9;
+          margin-bottom: 8px;
+        }
+
+        .balance-amount {
+          margin: 0;
+          font-size: 32px;
+          font-weight: 700;
+        }
+
+        .activate-screen {
+          max-width: 800px;
+          margin: 0 auto;
+        }
+
+        .activate-title {
+          font-size: 24px;
+          font-weight: 600;
+          color: #002AFE;
+          margin-bottom: 8px;
+        }
+
+        .activate-subtitle {
+          font-size: 14px;
+          color: #666;
+          margin-bottom: 24px;
+        }
+
+        .promo-input-section {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+
+        .promo-input {
+          flex: 1;
+          padding: 12px 16px;
+          border: 1px solid #e0e0e0;
+          border-radius: 8px;
+          font-size: 14px;
+          transition: border-color 0.2s ease;
+        }
+
+        .promo-input:focus {
+          outline: none;
+          border-color: #002AFE;
+        }
+
+        .validate-btn {
+          padding: 12px 24px;
+          background: #002AFE;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+
+        .validate-btn:hover {
+          background: #001FD8;
+        }
+
+        .activate-code-btn {
+          padding: 12px 32px;
+          background: #002AFE;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .activate-code-btn:hover {
+          background: #001FD8;
+        }
+
+        .withdraw-commission-btn {
+          padding: 12px 32px;
+          background: #FEF132;
+          color: black;
+          border: 1px solid #fde047;
+          border-radius: 8px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .withdraw-commission-btn:hover {
+          background: #fde047;
+        }
+
+        .detail-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 12px 0;
+          border-bottom: 1px solid #e0e0e0;
+        }
+
+        .detail-row:last-child {
+          border-bottom: none;
+        }
+
+        .detail-label {
+          color: #666;
+          font-size: 14px;
+        }
+
+        .detail-value {
+          font-weight: 500;
+          color: #333;
+          text-align: right;
+        }
+
+        .commission-engine {
+          background: white;
+          border: 1px solid #e0e0e0;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 24px;
+        }
+
+        .filter-btn {
+          padding: 8px 16px;
+          border: 1px solid #002AFE;
+          background: white;
+          color: #002AFE;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 12px;
+        }
+
+        .filter-btn:hover {
+          background: #f0f4ff;
+        }
+
+        .filter-btn.active {
+          background: #002AFE;
+          color: white;
+        }
+
+        .status-badge {
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 500;
+          display: inline-block;
+        }
+
+        .status-badge.completed {
+          background: #e8f5e9;
+          color: #2e7d32;
+        }
+
+        .status-badge.cancelled {
+          background: #ffebee;
+          color: #c62828;
+        }
+
+        .payout-section {
+          background: white;
+          border: 1px solid #e0e0e0;
+          border-radius: 8px;
+          padding: 20px;
         }
 
         .back-btn {
@@ -443,14 +1136,8 @@ const DashboardPage = () => {
           background: #001FD8 !important;
         }
 
-        .yellow-button {
-          background: #FEF132 !important;
-          color: black !important;
-          border: 1px solid #fde047 !important;
-        }
-
-        .yellow-button:hover {
-          background: #fde047 !important;
+        .rider-agent-container .MuiDialog-paper {
+          border-radius: 12px !important;
         }
       `}</style>
     </div>
@@ -458,7 +1145,19 @@ const DashboardPage = () => {
 };
 
 // Deliveries Content Component
-const DeliveriesContent = ({ timeFrame, setTimeFrame, isMobile, navigate, setCurrentView }) => {
+const DeliveriesContent = ({ 
+  timeFrame, 
+  setTimeFrame, 
+  isMobile, 
+  navigate, 
+  setCurrentView,
+  activeTrip,
+  formatTime,
+  timer,
+  distance,
+  handleEndTrip,
+  setShowCancelTripModal
+}) => {
   const deliveryStats = {
     walletBalance: '40,000',
     totalDeliveries: 125,
@@ -471,8 +1170,6 @@ const DeliveriesContent = ({ timeFrame, setTimeFrame, isMobile, navigate, setCur
     trips: 10, momo: 52000, cash: 44000, fuelExpenses: 15000, totalEarnings: 96000, netEarnings: 81000
   };
   
-  const motorcycleInfo = { plate: 'UAJ 786X', model: 'Bajaj Boxer - Red', status: 'Active' };
-
   const recentTrips = [
     {
       id: 'TRP-001',
@@ -496,6 +1193,56 @@ const DeliveriesContent = ({ timeFrame, setTimeFrame, isMobile, navigate, setCur
 
   return (
     <>
+      {/* Active Trip Banner */}
+      {activeTrip?.status === 'active' && (
+        <div className="active-trip-banner">
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                <DirectionsCar sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Active Quick Trip
+              </Typography>
+              <Typography variant="body2">
+                <LocationOn sx={{ fontSize: 14, mr: 0.5, verticalAlign: 'middle' }} />
+                {activeTrip.pickup} → {activeTrip.destination}
+              </Typography>
+              <Typography variant="caption">
+                Trip ID: {activeTrip.id}
+              </Typography>
+            </Box>
+            <Box textAlign="right">
+              <Typography variant="h5" gutterBottom>
+                <AttachMoney sx={{ fontSize: 20, mr: 0.5, verticalAlign: 'middle' }} />
+                UGX {activeTrip.amount.toLocaleString()}
+              </Typography>
+              <Typography variant="caption">
+                <AccessTime sx={{ fontSize: 12, mr: 0.5, verticalAlign: 'middle' }} />
+                {formatTime(timer)} • 
+                <Route sx={{ fontSize: 12, mx: 0.5, verticalAlign: 'middle' }} />
+                {distance.toFixed(2)} km
+              </Typography>
+            </Box>
+          </Box>
+          
+          <div className="trip-controls">
+            <button 
+              className="cancel-trip-btn"
+              onClick={() => setShowCancelTripModal(true)}
+            >
+              <Cancel sx={{ fontSize: 18 }} />
+              Cancel Trip
+            </button>
+            <button 
+              className="end-trip-btn"
+              onClick={handleEndTrip}
+            >
+              <CheckCircle sx={{ fontSize: 18 }} />
+              End Trip & Collect Payment
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-label">Wallet Balance</div>
@@ -516,30 +1263,29 @@ const DeliveriesContent = ({ timeFrame, setTimeFrame, isMobile, navigate, setCur
       </div>
 
       {/* Action Buttons */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-        <button 
-          className="activate-code-btn" 
-          onClick={() => setCurrentView('start-trip')}
-        >
-          Start New Trip
-        </button>
-        <button 
-          className="withdraw-commission-btn"
-          onClick={() => setCurrentView('receive-money')}
-        >
-          Receive Money
-        </button>
-        <button 
-          className="activate-code-btn"
-          onClick={() => setCurrentView('deliveries')}
-        >
-          View All Trips
-        </button>
-      </div>
+      {!activeTrip?.status === 'active' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+          <button 
+            className="withdraw-commission-btn" 
+            onClick={() => setCurrentView('receive-money')}
+          >
+            Receive Money
+          </button>
+          <button 
+            className="activate-code-btn"
+            onClick={() => setCurrentView('deliveries')}
+          >
+            View All Trips
+          </button>
+        </div>
+      )}
 
       {/* Recent Trips */}
       <div className="commission-overview">
-        <div className="section-title">Recent Trips</div>
+        <div className="section-title">
+          <Schedule />
+          Recent Trips
+        </div>
         <div className="commission-ledger">
           {recentTrips.map((trip) => (
             <div key={trip.id} className="ledger-entry">
@@ -564,14 +1310,14 @@ const DeliveriesContent = ({ timeFrame, setTimeFrame, isMobile, navigate, setCur
           <div className="balance-label">Earnings Summary</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
             <div>
-              <div style={{ fontSize: '12px', color: '#666' }}>Total Earnings</div>
-              <div style={{ fontSize: '20px', fontWeight: '600', color: '#002AFE' }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)' }}>Total Earnings</div>
+              <div style={{ fontSize: '20px', fontWeight: '600', color: 'white' }}>
                 UGX {earningsSummary.totalEarnings.toLocaleString()}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: '12px', color: '#666' }}>Net Earnings</div>
-              <div style={{ fontSize: '20px', fontWeight: '600', color: '#002AFE' }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)' }}>Net Earnings</div>
+              <div style={{ fontSize: '20px', fontWeight: '600', color: 'white' }}>
                 UGX {earningsSummary.netEarnings.toLocaleString()}
               </div>
             </div>
@@ -579,311 +1325,6 @@ const DeliveriesContent = ({ timeFrame, setTimeFrame, isMobile, navigate, setCur
         </div>
       </div>
     </>
-  );
-};
-
-// Start Trip Content Component
-const StartTripContent = ({ tripData, setTripData, handleStartTrip, setCurrentView }) => {
-  const popularPickups = ["Mukono", "Kampala Central", "Kireka", "Banda", "Ntinda"];
-  const popularDestinations = ["Kampala", "Entebbe", "Jinja", "Uganda House", "Nakasero"];
-
-  const addStop = () => {
-    setTripData({
-      ...tripData,
-      stops: [...tripData.stops, { location: '', amount: 0 }]
-    });
-  };
-
-  const removeStop = (index) => {
-    const newStops = tripData.stops.filter((_, i) => i !== index);
-    setTripData({ ...tripData, stops: newStops });
-  };
-
-  return (
-    <div className="activate-screen">
-      <h2 className="activate-title">Start New Trip</h2>
-      <p className="activate-subtitle">Enter trip details to begin</p>
-
-      <div style={{ background: '#e3f2fd', padding: '20px', borderRadius: '8px', marginBottom: '24px', border: '1px solid #bbdefb' }}>
-        {/* Pickup and Destination */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-          <div>
-            <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
-              Pickup Location *
-            </label>
-            <input
-              type="text"
-              className="promo-input"
-              placeholder="Enter pickup location"
-              value={tripData.pickup}
-              onChange={(e) => setTripData({ ...tripData, pickup: e.target.value })}
-              style={{ width: '100%' }}
-            />
-            <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-              {popularPickups.map((loc) => (
-                <button
-                  key={loc}
-                  style={{
-                    padding: '4px 8px',
-                    background: '#f0f4ff',
-                    border: '1px solid #002AFE',
-                    borderRadius: '4px',
-                    color: '#002AFE',
-                    fontSize: '11px',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => setTripData({ ...tripData, pickup: loc })}
-                >
-                  {loc}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
-              Destination *
-            </label>
-            <input
-              type="text"
-              className="promo-input"
-              placeholder="Enter destination"
-              value={tripData.destination}
-              onChange={(e) => setTripData({ ...tripData, destination: e.target.value })}
-              style={{ width: '100%' }}
-            />
-            <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-              {popularDestinations.map((loc) => (
-                <button
-                  key={loc}
-                  style={{
-                    padding: '4px 8px',
-                    background: '#f0f4ff',
-                    border: '1px solid #002AFE',
-                    borderRadius: '4px',
-                    color: '#002AFE',
-                    fontSize: '11px',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => setTripData({ ...tripData, destination: loc })}
-                >
-                  {loc}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Trip Amount */}
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
-            Trip Amount (UGX)
-          </label>
-          <div className="promo-input-section">
-            <input
-              type="number"
-              className="promo-input"
-              value={tripData.amount}
-              onChange={(e) => setTripData({ ...tripData, amount: Number(e.target.value) })}
-              style={{ flex: 1 }}
-            />
-            <span style={{ fontSize: '14px', color: '#002AFE', fontWeight: '500' }}>UGX</span>
-          </div>
-        </div>
-
-        {/* Customer Information */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-          <div>
-            <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
-              Customer Name (Optional)
-            </label>
-            <input
-              type="text"
-              className="promo-input"
-              placeholder="Customer name"
-              value={tripData.customerName}
-              onChange={(e) => setTripData({ ...tripData, customerName: e.target.value })}
-              style={{ width: '100%' }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
-              Customer Phone (Optional)
-            </label>
-            <input
-              type="tel"
-              className="promo-input"
-              placeholder="Customer phone"
-              value={tripData.customerPhone}
-              onChange={(e) => setTripData({ ...tripData, customerPhone: e.target.value })}
-              style={{ width: '100%' }}
-            />
-          </div>
-        </div>
-
-        {/* Intermediate Stops */}
-        {tripData.stops.length > 0 && (
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
-              Intermediate Stops
-            </label>
-            {tripData.stops.map((stop, index) => (
-              <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
-                <input
-                  type="text"
-                  className="promo-input"
-                  placeholder="Stop location"
-                  value={stop.location}
-                  onChange={(e) => {
-                    const newStops = [...tripData.stops];
-                    newStops[index].location = e.target.value;
-                    setTripData({ ...tripData, stops: newStops });
-                  }}
-                  style={{ flex: 2 }}
-                />
-                <input
-                  type="number"
-                  className="promo-input"
-                  placeholder="Amount"
-                  value={stop.amount}
-                  onChange={(e) => {
-                    const newStops = [...tripData.stops];
-                    newStops[index].amount = Number(e.target.value);
-                    setTripData({ ...tripData, stops: newStops });
-                  }}
-                  style={{ flex: 1 }}
-                />
-                <button 
-                  className="validate-btn"
-                  onClick={() => removeStop(index)}
-                  style={{ minWidth: '80px' }}
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Notes */}
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
-            Trip Notes (Optional)
-          </label>
-          <textarea
-            className="promo-input"
-            placeholder="Special instructions, delivery notes, etc."
-            value={tripData.notes}
-            onChange={(e) => setTripData({ ...tripData, notes: e.target.value })}
-            rows="3"
-            style={{ width: '100%', resize: 'vertical' }}
-          />
-        </div>
-
-        <button 
-          className="validate-btn"
-          onClick={addStop}
-          style={{ marginBottom: '16px' }}
-        >
-          + Add Intermediate Stop
-        </button>
-      </div>
-
-      <div style={{ display: 'flex', gap: '12px' }}>
-        <button 
-          className="activate-code-btn"
-          style={{ background: 'transparent', border: '1px solid #002AFE', color: '#002AFE' }}
-          onClick={() => setCurrentView('dashboard')}
-        >
-          Cancel
-        </button>
-        <button 
-          className="activate-code-btn"
-          onClick={handleStartTrip}
-        >
-          Quick Trip
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// Active Trip Content Component
-const ActiveTripContent = ({ activeTrip, timer, distance, formatTime, handleEndTrip, setCurrentView }) => {
-  const totalStopsAmount = activeTrip.stops?.reduce((sum, stop) => sum + (stop.amount || 0), 0) || 0;
-  const totalAmount = activeTrip.amount + totalStopsAmount;
-
-  return (
-    <div className="activate-screen">
-      <h2 className="activate-title">Trip In Progress</h2>
-      <p className="activate-subtitle">Trip ID: {activeTrip.id}</p>
-
-      {/* Trip Stats */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-label">Elapsed Time</div>
-          <h3 className="stat-value">{formatTime(timer)}</h3>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Distance</div>
-          <h3 className="stat-value">{distance.toFixed(2)}<span style={{ fontSize: '12px', marginLeft: '2px' }}>km</span></h3>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Trip Amount</div>
-          <h3 className="stat-value">{totalAmount.toLocaleString()}<span style={{ fontSize: '12px', marginLeft: '2px' }}>UGX</span></h3>
-        </div>
-      </div>
-
-      {/* Trip Details */}
-      <div className="commission-overview">
-        <div className="section-title">Trip Details</div>
-        <div style={{ padding: '16px' }}>
-          <div className="detail-row">
-            <span className="detail-label">From</span>
-            <span className="detail-value">{activeTrip.pickup}</span>
-          </div>
-          <div className="detail-row">
-            <span className="detail-label">To</span>
-            <span className="detail-value">{activeTrip.destination}</span>
-          </div>
-          {activeTrip.customerName && (
-            <div className="detail-row">
-              <span className="detail-label">Customer</span>
-              <span className="detail-value">{activeTrip.customerName} {activeTrip.customerPhone ? `(${activeTrip.customerPhone})` : ''}</span>
-            </div>
-          )}
-          {activeTrip.stops?.map((stop, index) => (
-            <div key={index} className="detail-row">
-              <span className="detail-label">Stop {index + 1}</span>
-              <span className="detail-value">{stop.location} - UGX {stop.amount.toLocaleString()}</span>
-            </div>
-          ))}
-          {activeTrip.notes && (
-            <div className="detail-row">
-              <span className="detail-label">Notes</span>
-              <span className="detail-value">{activeTrip.notes}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-        <button 
-          className="activate-code-btn"
-          style={{ background: 'transparent', border: '1px solid #002AFE', color: '#002AFE' }}
-          onClick={() => setCurrentView('start-trip')}
-        >
-          Edit Trip
-        </button>
-        <button 
-          className="activate-code-btn"
-          onClick={handleEndTrip}
-        >
-          End Trip & Collect Payment
-        </button>
-      </div>
-    </div>
   );
 };
 
@@ -1130,7 +1571,16 @@ const PaymentModal = ({ open, onClose, amount, onPaymentComplete }) => {
 };
 
 // Receipt Modal Component
-const ReceiptModal = ({ open, onClose, receiptData, receiptRef, onExportPDF, onExportExcel, onShareWhatsApp }) => {
+const ReceiptModal = ({ 
+  open, 
+  onClose, 
+  receiptData, 
+  receiptRef, 
+  onExportPDF, 
+  onExportExcel, 
+  onShareWhatsApp,
+  onCustomerReceipt 
+}) => {
   const getPaymentMethodText = () => {
     if (!receiptData) return '';
     
@@ -1144,6 +1594,8 @@ const ReceiptModal = ({ open, onClose, receiptData, receiptRef, onExportPDF, onE
            receiptData.paymentMethod === 'visa' ? 'VISA Card' : receiptData.paymentMethod;
   };
 
+  if (!receiptData) return null;
+
   return (
     <Dialog 
       open={open} 
@@ -1154,12 +1606,12 @@ const ReceiptModal = ({ open, onClose, receiptData, receiptRef, onExportPDF, onE
         sx: { borderRadius: '8px', maxHeight: '90vh' }
       }}
     >
-      <div style={{ background: '#002AFE', padding: '20px', borderRadius: '8px 8px 0 0', color: 'white' }}>
+      <div style={{ background: receiptData?.status === 'Cancelled' ? '#f44336' : '#002AFE', padding: '20px', borderRadius: '8px 8px 0 0', color: 'white' }}>
         <Typography variant="h6" fontWeight="bold">
-          Trip Receipt
+          {receiptData?.status === 'Cancelled' ? 'Trip Cancelled' : 'Trip Receipt'}
         </Typography>
         <Typography variant="body2" sx={{ opacity: 0.9, mt: 1 }}>
-          Payment successful! Receipt generated.
+          {receiptData?.status === 'Cancelled' ? 'Trip has been cancelled' : 'Payment successful! Receipt generated.'}
         </Typography>
       </div>
 
@@ -1172,12 +1624,17 @@ const ReceiptModal = ({ open, onClose, receiptData, receiptRef, onExportPDF, onE
         }}>
           {/* Receipt Header */}
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <Typography variant="h5" fontWeight="bold" color="#002AFE" gutterBottom>
-              TRIP RECEIPT
+            <Typography variant="h5" fontWeight="bold" color={receiptData?.status === 'Cancelled' ? '#f44336' : '#002AFE'} gutterBottom>
+              {receiptData?.status === 'Cancelled' ? 'CANCELLATION RECEIPT' : 'TRIP RECEIPT'}
             </Typography>
             <Typography variant="body2" color="#666">
               Enfuna Delivery Services
             </Typography>
+            {receiptData?.header && (
+              <Typography variant="subtitle2" color="#002AFE" sx={{ mt: 1 }}>
+                {receiptData.header}
+              </Typography>
+            )}
           </div>
 
           {/* Receipt Details */}
@@ -1187,10 +1644,12 @@ const ReceiptModal = ({ open, onClose, receiptData, receiptRef, onExportPDF, onE
                 <Typography variant="caption" color="#666" display="block">Receipt No:</Typography>
                 <Typography variant="body1" fontWeight="bold">{receiptData?.tripId}</Typography>
               </div>
-              <div>
-                <Typography variant="caption" color="#666" display="block">Transaction ID:</Typography>
-                <Typography variant="body1" fontWeight="bold">{receiptData?.transactionId}</Typography>
-              </div>
+              {receiptData?.transactionId && (
+                <div>
+                  <Typography variant="caption" color="#666" display="block">Transaction ID:</Typography>
+                  <Typography variant="body1" fontWeight="bold">{receiptData?.transactionId}</Typography>
+                </div>
+              )}
             </div>
 
             <div style={{ marginBottom: '16px' }}>
@@ -1216,14 +1675,18 @@ const ReceiptModal = ({ open, onClose, receiptData, receiptRef, onExportPDF, onE
                   <Typography variant="caption" color="#666">To:</Typography>
                   <Typography variant="body1">{receiptData?.destination}</Typography>
                 </div>
-                <div>
-                  <Typography variant="caption" color="#666">Distance:</Typography>
-                  <Typography variant="body1">{receiptData?.distance} km</Typography>
-                </div>
-                <div>
-                  <Typography variant="caption" color="#666">Duration:</Typography>
-                  <Typography variant="body1">{receiptData?.duration}</Typography>
-                </div>
+                {receiptData?.distance && (
+                  <div>
+                    <Typography variant="caption" color="#666">Distance:</Typography>
+                    <Typography variant="body1">{receiptData?.distance} km</Typography>
+                  </div>
+                )}
+                {receiptData?.duration && (
+                  <div>
+                    <Typography variant="caption" color="#666">Duration:</Typography>
+                    <Typography variant="body1">{receiptData?.duration}</Typography>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1249,23 +1712,27 @@ const ReceiptModal = ({ open, onClose, receiptData, receiptRef, onExportPDF, onE
             )}
 
             {/* Payment Information */}
-            <div style={{ marginBottom: '16px' }}>
-              <Typography variant="subtitle2" fontWeight="bold" color="#002AFE" gutterBottom>
-                Payment Information
-              </Typography>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <Typography variant="caption" color="#666">Payment Method:</Typography>
-                  <Typography variant="body1">{getPaymentMethodText()}</Typography>
-                </div>
-                <div>
-                  <Typography variant="caption" color="#666">Total Amount:</Typography>
-                  <Typography variant="body1" fontWeight="bold" color="#002AFE">
-                    UGX {receiptData?.amount?.toLocaleString()}
-                  </Typography>
+            {receiptData?.paymentMethod && (
+              <div style={{ marginBottom: '16px' }}>
+                <Typography variant="subtitle2" fontWeight="bold" color="#002AFE" gutterBottom>
+                  Payment Information
+                </Typography>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <Typography variant="caption" color="#666">Payment Method:</Typography>
+                    <Typography variant="body1">{getPaymentMethodText()}</Typography>
+                  </div>
+                  {receiptData?.amount && (
+                    <div>
+                      <Typography variant="caption" color="#666">Total Amount:</Typography>
+                      <Typography variant="body1" fontWeight="bold" color="#002AFE">
+                        UGX {receiptData?.amount?.toLocaleString()}
+                      </Typography>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Rider Information */}
             <div style={{ marginBottom: '16px' }}>
@@ -1284,43 +1751,16 @@ const ReceiptModal = ({ open, onClose, receiptData, receiptRef, onExportPDF, onE
               </div>
             </div>
 
-            {/* Stops */}
-            {receiptData?.stops?.length > 0 && (
-              <div style={{ marginBottom: '16px' }}>
-                <Typography variant="subtitle2" fontWeight="bold" color="#002AFE" gutterBottom>
-                  Intermediate Stops
+            {/* Add cancellation reason if trip was cancelled */}
+            {receiptData?.status === 'Cancelled' && receiptData?.cancelReason && (
+              <Box sx={{ mt: 3, p: 2, bgcolor: '#fff3e0', borderRadius: 1 }}>
+                <Typography variant="subtitle2" color="#e65100" gutterBottom>
+                  Cancellation Reason:
                 </Typography>
-                <TableContainer>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell><Typography variant="caption" fontWeight="bold">Stop</Typography></TableCell>
-                        <TableCell><Typography variant="caption" fontWeight="bold">Location</Typography></TableCell>
-                        <TableCell align="right"><Typography variant="caption" fontWeight="bold">Amount (UGX)</Typography></TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {receiptData.stops.map((stop, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>{stop.location}</TableCell>
-                          <TableCell align="right">{stop.amount.toLocaleString()}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </div>
-            )}
-
-            {/* Notes */}
-            {receiptData?.notes && (
-              <div style={{ marginBottom: '16px' }}>
-                <Typography variant="subtitle2" fontWeight="bold" color="#002AFE" gutterBottom>
-                  Notes
+                <Typography variant="body2">
+                  {receiptData.cancelReason}
                 </Typography>
-                <Typography variant="body2">{receiptData.notes}</Typography>
-              </div>
+              </Box>
             )}
           </div>
 
@@ -1353,24 +1793,35 @@ const ReceiptModal = ({ open, onClose, receiptData, receiptRef, onExportPDF, onE
           >
             Save as PDF
           </Button>
+          {receiptData?.status !== 'Cancelled' && (
+            <Button
+              startIcon={<Receipt />}
+              onClick={onCustomerReceipt}
+              sx={{ color: '#4CAF50' }}
+            >
+              Customer Receipt
+            </Button>
+          )}
         </div>
         
         <div style={{ display: 'flex', gap: '8px' }}>
-          <Button
-            startIcon={<WhatsApp />}
-            onClick={onShareWhatsApp}
-            sx={{ 
-              backgroundColor: '#25D366',
-              color: 'white',
-              '&:hover': { backgroundColor: '#1da851' }
-            }}
-          >
-            Share
-          </Button>
+          {receiptData?.status !== 'Cancelled' && (
+            <Button
+              startIcon={<WhatsApp />}
+              onClick={onShareWhatsApp}
+              sx={{ 
+                backgroundColor: '#25D366',
+                color: 'white',
+                '&:hover': { backgroundColor: '#1da851' }
+              }}
+            >
+              Share
+            </Button>
+          )}
           <Button
             variant="contained"
             onClick={onClose}
-            sx={{ backgroundColor: '#002AFE' }}
+            sx={{ backgroundColor: receiptData?.status === 'Cancelled' ? '#f44336' : '#002AFE' }}
           >
             Done
           </Button>
