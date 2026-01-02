@@ -103,7 +103,9 @@ import {
   Speed,
   Stop,
   PlayArrow,
-  Pause
+  Pause,
+  Check,
+  Clear
 } from '@mui/icons-material';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -129,13 +131,14 @@ const DashboardPage = () => {
   const [cancelReason, setCancelReason] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [receiptData, setReceiptData] = useState(null);
+  const [finalFare, setFinalFare] = useState(5000); // Default fare to be set at end
   const receiptRef = useRef(null);
 
   // Trip data state with default values
   const [tripData, setTripData] = useState({
     pickup: 'Current Location',
     destination: 'Destination',
-    amount: 5000,
+    amount: 0, // Start with 0, set at end
     duration: '',
     distance: '',
     paymentMethod: 'cash',
@@ -169,12 +172,13 @@ const DashboardPage = () => {
   };
 
   const handleStartQuickTrip = () => {
-    // Start trip immediately with default values
+    // Start trip immediately with default values (fare = 0 initially)
     const newTrip = {
       ...tripData,
       id: `QT-${Date.now().toString().slice(-6)}`,
       startTime: new Date(),
-      status: 'active'
+      status: 'active',
+      amount: 0 // Start with 0 fare
     };
     
     setActiveTrip(newTrip);
@@ -184,7 +188,7 @@ const DashboardPage = () => {
     
     setSnackbar({
       open: true,
-      message: 'Quick Trip Started! Update details as needed.',
+      message: 'Quick Trip Started! Fare will be set at the end of trip.',
       severity: 'success'
     });
     
@@ -201,7 +205,8 @@ const DashboardPage = () => {
       endTime: new Date(),
       status: 'ended',
       duration: formatTime(timer),
-      distance: distance.toFixed(2)
+      distance: distance.toFixed(2),
+      amount: finalFare // Use the fare set by user
     };
     
     setActiveTrip(completedTrip);
@@ -225,7 +230,8 @@ const DashboardPage = () => {
       status: 'cancelled',
       duration: formatTime(timer),
       distance: distance.toFixed(2),
-      cancelReason: withReason ? cancelReason : 'No reason provided'
+      cancelReason: withReason ? cancelReason : 'No reason provided',
+      amount: 0 // Cancelled trips have 0 fare
     };
 
     setActiveTrip(cancelledTrip);
@@ -239,7 +245,7 @@ const DashboardPage = () => {
       status: 'Cancelled',
       pickup: cancelledTrip.pickup,
       destination: cancelledTrip.destination || 'Trip Cancelled',
-      amount: cancelledTrip.amount,
+      amount: 0,
       cancelReason: cancelledTrip.cancelReason,
       date: new Date().toLocaleDateString('en-US', { 
         year: 'numeric', 
@@ -283,7 +289,8 @@ const DashboardPage = () => {
       endTime: new Date(),
       status: 'completed',
       duration: formatTime(timer),
-      distance: distance.toFixed(2)
+      distance: distance.toFixed(2),
+      amount: finalFare // Use the final fare
     };
 
     setActiveTrip(completedTrip);
@@ -294,7 +301,7 @@ const DashboardPage = () => {
       tripId: completedTrip.id,
       pickup: completedTrip.pickup,
       destination: completedTrip.destination,
-      amount: completedTrip.amount,
+      amount: finalFare,
       paymentMethod: completedTrip.paymentMethod,
       splitPayment: completedTrip.splitPayment,
       date: new Date().toLocaleDateString('en-US', { 
@@ -426,6 +433,7 @@ ${customerReceipt.footer}`;
                 color="primary"
                 variant="outlined"
                 size="small"
+                sx={{ color: 'white', borderColor: 'white' }}
               />
               <Chip 
                 icon={<Route />} 
@@ -433,6 +441,7 @@ ${customerReceipt.footer}`;
                 color="secondary"
                 variant="outlined"
                 size="small"
+                sx={{ color: 'white', borderColor: 'white' }}
               />
               <Button
                 variant="contained"
@@ -440,8 +449,12 @@ ${customerReceipt.footer}`;
                 onClick={() => setShowActiveTripDrawer(true)}
                 startIcon={<DirectionsCar />}
                 sx={{ 
-                  bgcolor: '#4CAF50',
-                  '&:hover': { bgcolor: '#388E3C' }
+                  bgcolor: 'white',
+                  color: '#002AFE',
+                  '&:hover': { 
+                    bgcolor: '#f5f5f5',
+                    color: '#001FD8'
+                  }
                 }}
               >
                 View Trip
@@ -518,7 +531,7 @@ ${customerReceipt.footer}`;
         }}
       >
         <DialogTitle sx={{ 
-          bgcolor: '#002AFE', 
+          bgcolor: '#4CAF50', 
           color: 'white',
           position: 'relative',
           py: 2
@@ -544,21 +557,21 @@ ${customerReceipt.footer}`;
               width: 60,
               height: 60,
               borderRadius: '50%',
-              bgcolor: '#e3f2fd',
+              bgcolor: '#e8f5e9',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px',
-              border: '2px solid #002AFE'
+              border: '2px solid #001FD8'
             }}>
-              <DirectionsCar sx={{ fontSize: 32, color: '#002AFE' }} />
+              <DirectionsCar sx={{ fontSize: 32, color: '#001FD8' }} />
             </Box>
             
-            <Typography variant="h6" gutterBottom color="#002AFE" fontWeight="bold">
+            <Typography variant="h6" gutterBottom color="#001FD8" fontWeight="bold">
               Start Trip Immediately
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Trip will start with default values. You can update details during the trip.
+              Trip will start immediately. Set the fare at the end of the trip.
             </Typography>
           </Box>
 
@@ -569,8 +582,8 @@ ${customerReceipt.footer}`;
             mb: 3,
             border: '1px solid #e0e0e0'
           }}>
-            <Typography variant="subtitle2" color="#002AFE" gutterBottom>
-              Default Trip Settings
+            <Typography variant="subtitle2" color="#001FD8" gutterBottom>
+              Trip Information
             </Typography>
             <Box sx={{ display: 'grid', gap: 1.5 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -579,18 +592,20 @@ ${customerReceipt.footer}`;
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="body2" color="text.secondary">To:</Typography>
-                <Typography variant="body2" fontWeight="500">Destination</Typography>
+                <Typography variant="body2" fontWeight="500">Will be set during trip</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="body2" color="text.secondary">Fare:</Typography>
-                <Typography variant="body2" fontWeight="500">UGX 5,000</Typography>
+                <Typography variant="body2" fontWeight="500" color="#001FD8">
+                  Set at trip end
+                </Typography>
               </Box>
             </Box>
           </Box>
 
           {!isMobile && (
             <Typography variant="caption" color="text.secondary" display="block" textAlign="center">
-              Click "Start Trip" to begin. Update details in the trip panel.
+              Click "Start Trip" to begin. Update details during the trip.
             </Typography>
           )}
         </DialogContent>
@@ -606,11 +621,11 @@ ${customerReceipt.footer}`;
             variant="outlined"
             fullWidth={isMobile}
             sx={{ 
-              borderColor: '#002AFE', 
-              color: '#002AFE',
+              borderColor: '#666', 
+              color: '#666',
               '&:hover': {
-                borderColor: '#001FD8',
-                bgcolor: 'rgba(0, 42, 254, 0.04)'
+                borderColor: '#333',
+                bgcolor: '#f5f5f5'
               }
             }}
           >
@@ -622,8 +637,8 @@ ${customerReceipt.footer}`;
             fullWidth={isMobile}
             startIcon={<PlayArrow />}
             sx={{ 
-              bgcolor: '#4CAF50',
-              '&:hover': { bgcolor: '#388E3C' }
+              bgcolor: '#001FD8',
+              '&:hover': { bgcolor: '#001FD8' }
             }}
           >
             Start Trip Now
@@ -655,6 +670,8 @@ ${customerReceipt.footer}`;
                 formatTime={formatTime}
                 tripData={tripData}
                 setTripData={setTripData}
+                finalFare={finalFare}
+                setFinalFare={setFinalFare}
                 handleEndTrip={handleEndTrip}
                 setShowCancelTripModal={setShowCancelTripModal}
                 onClose={() => setShowActiveTripDrawer(false)}
@@ -684,6 +701,8 @@ ${customerReceipt.footer}`;
                 formatTime={formatTime}
                 tripData={tripData}
                 setTripData={setTripData}
+                finalFare={finalFare}
+                setFinalFare={setFinalFare}
                 handleEndTrip={handleEndTrip}
                 setShowCancelTripModal={setShowCancelTripModal}
                 onClose={() => setShowActiveTripDrawer(false)}
@@ -703,7 +722,10 @@ ${customerReceipt.footer}`;
         fullScreen={isMobile}
       >
         <DialogTitle sx={{ bgcolor: '#f44336', color: 'white' }}>
-          Cancel Trip
+          <Box display="flex" alignItems="center" gap={1}>
+            <Cancel />
+            Cancel Trip
+          </Box>
         </DialogTitle>
         
         <DialogContent sx={{ p: 3 }}>
@@ -767,13 +789,16 @@ ${customerReceipt.footer}`;
         </DialogActions>
       </Dialog>
 
-      {/* Payment Modal */}
+      {/* Payment Modal - Updated with fare setting */}
       <PaymentModal
         open={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
-        amount={activeTrip?.amount || 0}
+        amount={finalFare}
+        setFinalFare={setFinalFare}
         onPaymentComplete={handlePaymentComplete}
         isMobile={isMobile}
+        tripData={tripData}
+        setSnackbar={setSnackbar}
       />
 
       {/* Receipt Modal - COMPACT VERSION */}
@@ -782,11 +807,12 @@ ${customerReceipt.footer}`;
         onClose={() => {
           setShowReceiptModal(false);
           setActiveTrip(null);
+          setFinalFare(5000); // Reset to default
           // Reset trip data
           setTripData({
             pickup: 'Current Location',
             destination: 'Destination',
-            amount: 5000,
+            amount: 0,
             duration: '',
             distance: '',
             paymentMethod: 'cash',
@@ -834,12 +860,15 @@ const ActiveTripPanel = ({
   formatTime,
   tripData,
   setTripData,
+  finalFare,
+  setFinalFare,
   handleEndTrip,
   setShowCancelTripModal,
   onClose,
   isMobile
 }) => {
   const [showEditForm, setShowEditForm] = useState(false);
+  const [estimatedFare, setEstimatedFare] = useState(5000); // Initial estimate
   
   const updateTripField = (field, value) => {
     const updatedTripData = { ...tripData, [field]: value };
@@ -850,7 +879,7 @@ const ActiveTripPanel = ({
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <Box sx={{ 
-        bgcolor: '#002AFE', 
+        bgcolor: '#001FD8', 
         color: 'white',
         p: 2,
         display: 'flex',
@@ -870,15 +899,15 @@ const ActiveTripPanel = ({
 
       {/* Timer and Distance */}
       <Box sx={{ 
-        bgcolor: '#f0f4ff', 
+        bgcolor: '#f1f8e9', 
         p: 2,
         display: 'flex',
         justifyContent: 'space-around',
         borderBottom: '1px solid #e0e0e0'
       }}>
         <Box sx={{ textAlign: 'center' }}>
-          <AccessTime sx={{ color: '#002AFE', fontSize: 24 }} />
-          <Typography variant="h5" fontWeight="bold" color="#002AFE">
+          <AccessTime sx={{ color: '#001FD8', fontSize: 24 }} />
+          <Typography variant="h5" fontWeight="bold" color="#001FD8">
             {formatTime(timer)}
           </Typography>
           <Typography variant="caption" color="#666">
@@ -886,8 +915,8 @@ const ActiveTripPanel = ({
           </Typography>
         </Box>
         <Box sx={{ textAlign: 'center' }}>
-          <Route sx={{ color: '#4CAF50', fontSize: 24 }} />
-          <Typography variant="h5" fontWeight="bold" color="#4CAF50">
+          <Route sx={{ color: '#2196F3', fontSize: 24 }} />
+          <Typography variant="h5" fontWeight="bold" color="#2196F3">
             {distance.toFixed(2)}
             <Typography component="span" variant="body2" color="inherit"> km</Typography>
           </Typography>
@@ -900,13 +929,13 @@ const ActiveTripPanel = ({
       {/* Trip Details */}
       <Box sx={{ p: 2, flexGrow: 1, overflow: 'auto' }}>
         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="subtitle1" fontWeight="bold" color="#002AFE">
+          <Typography variant="subtitle1" fontWeight="bold" color="#4CAF50">
             Trip Details
           </Typography>
           <IconButton 
             size="small" 
             onClick={() => setShowEditForm(!showEditForm)}
-            sx={{ color: '#002AFE' }}
+            sx={{ color: '#4CAF50' }}
           >
             <Edit />
           </IconButton>
@@ -922,12 +951,13 @@ const ActiveTripPanel = ({
               fullWidth
             />
             <TextField
-              label="Fare (UGX)"
+              label="Estimated Fare (UGX)"
               type="number"
-              value={tripData.amount}
-              onChange={(e) => updateTripField('amount', Number(e.target.value))}
+              value={estimatedFare}
+              onChange={(e) => setEstimatedFare(Number(e.target.value))}
               size="small"
               fullWidth
+              helperText="Final fare will be set at trip end"
               InputProps={{
                 startAdornment: <InputAdornment position="start">UGX</InputAdornment>,
               }}
@@ -950,7 +980,7 @@ const ActiveTripPanel = ({
               variant="outlined" 
               onClick={() => setShowEditForm(false)}
               fullWidth
-              sx={{ mt: 1 }}
+              sx={{ mt: 1, borderColor: '#4CAF50', color: '#4CAF50' }}
             >
               Save Changes
             </Button>
@@ -970,9 +1000,9 @@ const ActiveTripPanel = ({
               <Typography variant="body2" fontWeight="500">{tripData.destination}</Typography>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2" color="text.secondary">Fare:</Typography>
+              <Typography variant="body2" color="text.secondary">Estimated Fare:</Typography>
               <Typography variant="body2" fontWeight="500" color="#4CAF50">
-                UGX {tripData.amount.toLocaleString()}
+                UGX {estimatedFare.toLocaleString()}
               </Typography>
             </Box>
             {tripData.customerName && (
@@ -983,6 +1013,19 @@ const ActiveTripPanel = ({
             )}
           </Box>
         )}
+
+        {/* Fare Estimate Note */}
+        <Box sx={{ 
+          mt: 3, 
+          p: 1.5, 
+          bgcolor: '#e8f5e9', 
+          borderRadius: 1,
+          border: '1px solid #c8e6c9'
+        }}>
+          <Typography variant="caption" color="#2e7d32" display="block">
+            <strong>Note:</strong> Final fare will be set when you end the trip.
+          </Typography>
+        </Box>
       </Box>
 
       {/* Action Buttons */}
@@ -1019,34 +1062,68 @@ const ActiveTripPanel = ({
             '&:hover': { bgcolor: '#388E3C' }
           }}
         >
-          End Trip
+          Set Fare & End Trip
         </Button>
       </Box>
     </Box>
   );
 };
 
-// Payment Modal Component - Mobile Optimized
-const PaymentModal = ({ open, onClose, amount, onPaymentComplete, isMobile }) => {
+// Payment Modal Component - UPDATED with fare setting
+const PaymentModal = ({ 
+  open, 
+  onClose, 
+  amount, 
+  setFinalFare, 
+  onPaymentComplete, 
+  isMobile, 
+  tripData,
+  setSnackbar 
+}) => {
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [splitPayment, setSplitPayment] = useState({ cash: 0, digital: 0 });
   const [digitalMethod, setDigitalMethod] = useState('mtn');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [fareInput, setFareInput] = useState(amount || 5000);
+  const [fareError, setFareError] = useState('');
 
   useEffect(() => {
     if (paymentMethod === 'split') {
-      const cashAmount = Math.floor(amount * 0.5);
-      setSplitPayment({ cash: cashAmount, digital: amount - cashAmount });
+      const cashAmount = Math.floor(fareInput * 0.5);
+      setSplitPayment({ cash: cashAmount, digital: fareInput - cashAmount });
     }
-  }, [amount, paymentMethod]);
+  }, [fareInput, paymentMethod]);
+
+  const handleFareChange = (value) => {
+    const numValue = Number(value);
+    setFareInput(numValue);
+    setFinalFare(numValue);
+    
+    if (numValue <= 0) {
+      setFareError('Fare must be greater than 0');
+    } else if (numValue > 1000000) {
+      setFareError('Fare is too high');
+    } else {
+      setFareError('');
+    }
+  };
 
   const handleSubmit = () => {
+    if (fareInput <= 0 || fareError) {
+      setSnackbar({
+        open: true,
+        message: 'Please enter a valid fare amount',
+        severity: 'error'
+      });
+      return;
+    }
+
     setIsProcessing(true);
     
     setTimeout(() => {
       setIsProcessing(false);
       const paymentData = {
-        amount: amount,
+        amount: fareInput,
         paymentMethod: paymentMethod,
         splitPayment: paymentMethod === 'split' ? {
           cash: splitPayment.cash,
@@ -1078,21 +1155,49 @@ const PaymentModal = ({ open, onClose, amount, onPaymentComplete, isMobile }) =>
       }}
     >
       <div style={{ 
-        background: 'linear-gradient(135deg, #002AFE 0%, #001FD8 100%)', 
+        background: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)', 
         padding: isMobile ? '16px' : '20px', 
         color: 'white' 
       }}>
         <Typography variant={isMobile ? "h6" : "h5"} fontWeight="bold">
-          Collect Payment
+          Set Fare & Collect Payment
         </Typography>
         <Typography variant="body2" sx={{ opacity: 0.9, mt: 1 }}>
-          Amount: <strong>UGX {amount.toLocaleString()}</strong>
+          Trip: {tripData?.pickup} → {tripData?.destination}
         </Typography>
       </div>
 
       <DialogContent sx={{ p: isMobile ? 2 : 3 }}>
+        {/* Fare Input */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" fontWeight="bold" color="#4CAF50" gutterBottom>
+            Enter Trip Fare (UGX)
+          </Typography>
+          <TextField
+            fullWidth
+            type="number"
+            value={fareInput}
+            onChange={(e) => handleFareChange(e.target.value)}
+            error={!!fareError}
+            helperText={fareError}
+            InputProps={{
+              startAdornment: <InputAdornment position="start">UGX</InputAdornment>,
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': {
+                  borderColor: '#4CAF50',
+                },
+              }
+            }}
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+            Enter the final fare amount for this trip
+          </Typography>
+        </Box>
+
         {/* Payment Methods */}
-        <Typography variant="subtitle2" fontWeight="bold" color="#002AFE" gutterBottom>
+        <Typography variant="subtitle2" fontWeight="bold" color="#4CAF50" gutterBottom>
           Select Payment Method
         </Typography>
         <Box sx={{ 
@@ -1137,13 +1242,13 @@ const PaymentModal = ({ open, onClose, amount, onPaymentComplete, isMobile }) =>
             mb: 3,
             border: '1px solid #e0e0e0'
           }}>
-            <Typography variant="subtitle2" fontWeight="bold" color="#002AFE" gutterBottom>
+            <Typography variant="subtitle2" fontWeight="bold" color="#4CAF50" gutterBottom>
               Split Payment
             </Typography>
             
             <Grid container spacing={2} sx={{ mb: 2 }}>
               <Grid item xs={6}>
-                <Typography variant="caption" color="#002AFE" fontWeight="500" gutterBottom>
+                <Typography variant="caption" color="#4CAF50" fontWeight="500" gutterBottom>
                   Cash (UGX)
                 </Typography>
                 <TextField
@@ -1153,7 +1258,7 @@ const PaymentModal = ({ open, onClose, amount, onPaymentComplete, isMobile }) =>
                   value={splitPayment.cash}
                   onChange={(e) => {
                     const cash = Number(e.target.value);
-                    setSplitPayment({ cash, digital: amount - cash });
+                    setSplitPayment({ cash, digital: fareInput - cash });
                   }}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">UGX</InputAdornment>,
@@ -1162,7 +1267,7 @@ const PaymentModal = ({ open, onClose, amount, onPaymentComplete, isMobile }) =>
               </Grid>
               
               <Grid item xs={6}>
-                <Typography variant="caption" color="#002AFE" fontWeight="500" gutterBottom>
+                <Typography variant="caption" color="#4CAF50" fontWeight="500" gutterBottom>
                   Digital (UGX)
                 </Typography>
                 <TextField
@@ -1172,7 +1277,7 @@ const PaymentModal = ({ open, onClose, amount, onPaymentComplete, isMobile }) =>
                   value={splitPayment.digital}
                   onChange={(e) => {
                     const digital = Number(e.target.value);
-                    setSplitPayment({ digital, cash: amount - digital });
+                    setSplitPayment({ digital, cash: fareInput - digital });
                   }}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">UGX</InputAdornment>,
@@ -1181,7 +1286,7 @@ const PaymentModal = ({ open, onClose, amount, onPaymentComplete, isMobile }) =>
               </Grid>
             </Grid>
 
-            <Typography variant="caption" color="#002AFE" fontWeight="500" gutterBottom>
+            <Typography variant="caption" color="#4CAF50" fontWeight="500" gutterBottom>
               Digital Method
             </Typography>
             <FormControl fullWidth size="small">
@@ -1202,7 +1307,7 @@ const PaymentModal = ({ open, onClose, amount, onPaymentComplete, isMobile }) =>
               pt: 2, 
               borderTop: '1px solid #e0e0e0' 
             }}>
-              <Typography variant="body2" color="#002AFE" fontWeight="600">
+              <Typography variant="body2" color="#4CAF50" fontWeight="600">
                 Total: UGX {(splitPayment.cash + splitPayment.digital).toLocaleString()}
               </Typography>
             </Box>
@@ -1211,17 +1316,17 @@ const PaymentModal = ({ open, onClose, amount, onPaymentComplete, isMobile }) =>
 
         {/* Payment Summary */}
         <Box sx={{ 
-          background: '#e3f2fd', 
+          background: '#e8f5e9', 
           p: 2, 
           borderRadius: 2,
-          border: '1px solid #bbdefb'
+          border: '1px solid #c8e6c9'
         }}>
-          <Typography variant="subtitle2" fontWeight="bold" color="#002AFE" gutterBottom>
+          <Typography variant="subtitle2" fontWeight="bold" color="#2e7d32" gutterBottom>
             Payment Summary
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="body2">Trip Amount:</Typography>
-            <Typography variant="body2" fontWeight="bold">UGX {amount.toLocaleString()}</Typography>
+            <Typography variant="body2">Trip Fare:</Typography>
+            <Typography variant="body2" fontWeight="bold">UGX {fareInput.toLocaleString()}</Typography>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Typography variant="body2">Payment Method:</Typography>
@@ -1246,10 +1351,10 @@ const PaymentModal = ({ open, onClose, amount, onPaymentComplete, isMobile }) =>
           variant="outlined"
           fullWidth={isMobile}
           sx={{ 
-            borderColor: '#002AFE', 
-            color: '#002AFE',
+            borderColor: '#666', 
+            color: '#666',
             '&:hover': {
-              backgroundColor: 'rgba(0, 42, 254, 0.1)'
+              backgroundColor: '#f5f5f5'
             }
           }}
         >
@@ -1258,13 +1363,13 @@ const PaymentModal = ({ open, onClose, amount, onPaymentComplete, isMobile }) =>
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={isProcessing || (paymentMethod === 'split' && (splitPayment.cash + splitPayment.digital !== amount))}
+          disabled={isProcessing || fareInput <= 0 || !!fareError || (paymentMethod === 'split' && (splitPayment.cash + splitPayment.digital !== fareInput))}
           fullWidth={isMobile}
           sx={{ 
-            backgroundColor: '#002AFE',
+            backgroundColor: '#4CAF50',
             color: 'white',
             '&:hover': {
-              backgroundColor: '#001FD8'
+              backgroundColor: '#388E3C'
             }
           }}
         >
@@ -1324,7 +1429,7 @@ const ReceiptModal = ({
       }}
     >
       <div style={{ 
-        background: receiptData?.status === 'Cancelled' ? '#f44336' : '#002AFE', 
+        background: receiptData?.status === 'Cancelled' ? '#f44336' : '#4CAF50', 
         padding: isMobile ? '16px' : '20px', 
         color: 'white' 
       }}>
@@ -1346,7 +1451,7 @@ const ReceiptModal = ({
         }}>
           {/* Compact Header */}
           <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-            <Typography variant={isMobile ? "h6" : "h5"} fontWeight="bold" color={receiptData?.status === 'Cancelled' ? '#f44336' : '#002AFE'} gutterBottom>
+            <Typography variant={isMobile ? "h6" : "h5"} fontWeight="bold" color={receiptData?.status === 'Cancelled' ? '#f44336' : '#4CAF50'} gutterBottom>
               {receiptData?.status === 'Cancelled' ? 'CANCELLED' : 'RECEIPT'}
             </Typography>
             <Typography variant="body2" color="#666" gutterBottom>
@@ -1379,7 +1484,7 @@ const ReceiptModal = ({
 
             {/* Trip Info */}
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" fontWeight="bold" color="#002AFE" gutterBottom>
+              <Typography variant="subtitle2" fontWeight="bold" color="#4CAF50" gutterBottom>
                 Trip Information
               </Typography>
               <Grid container spacing={1}>
@@ -1409,7 +1514,7 @@ const ReceiptModal = ({
             {/* Payment Info */}
             {receiptData?.paymentMethod && (
               <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" fontWeight="bold" color="#002AFE" gutterBottom>
+                <Typography variant="subtitle2" fontWeight="bold" color="#4CAF50" gutterBottom>
                   Payment
                 </Typography>
                 <Grid container spacing={1}>
@@ -1420,7 +1525,7 @@ const ReceiptModal = ({
                   {receiptData?.amount && (
                     <Grid item xs={6}>
                       <Typography variant="caption" color="#666">Amount:</Typography>
-                      <Typography variant="body2" fontWeight="bold" color="#002AFE">
+                      <Typography variant="body2" fontWeight="bold" color="#4CAF50">
                         UGX {receiptData?.amount?.toLocaleString()}
                       </Typography>
                     </Grid>
@@ -1431,7 +1536,7 @@ const ReceiptModal = ({
 
             {/* Rider Info */}
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" fontWeight="bold" color="#002AFE" gutterBottom>
+              <Typography variant="subtitle2" fontWeight="bold" color="#4CAF50" gutterBottom>
                 Rider Info
               </Typography>
               <Grid container spacing={1}>
@@ -1448,8 +1553,8 @@ const ReceiptModal = ({
 
             {/* Cancellation Reason */}
             {receiptData?.status === 'Cancelled' && receiptData?.cancelReason && (
-              <Box sx={{ mt: 2, p: 1.5, bgcolor: '#fff3e0', borderRadius: 1 }}>
-                <Typography variant="subtitle2" color="#e65100" gutterBottom>
+              <Box sx={{ mt: 2, p: 1.5, bgcolor: '#ffebee', borderRadius: 1 }}>
+                <Typography variant="subtitle2" color="#c62828" gutterBottom>
                   Cancellation Reason:
                 </Typography>
                 <Typography variant="body2">
@@ -1489,7 +1594,7 @@ const ReceiptModal = ({
             size={isMobile ? "small" : "medium"}
             startIcon={<Print />}
             onClick={() => window.print()}
-            sx={{ color: '#002AFE' }}
+            sx={{ color: '#4CAF50' }}
           >
             Print
           </Button>
@@ -1497,7 +1602,7 @@ const ReceiptModal = ({
             size={isMobile ? "small" : "medium"}
             startIcon={<Download />}
             onClick={onExportPDF}
-            sx={{ color: '#002AFE' }}
+            sx={{ color: '#4CAF50' }}
           >
             PDF
           </Button>
@@ -1506,7 +1611,7 @@ const ReceiptModal = ({
               size={isMobile ? "small" : "medium"}
               startIcon={<Receipt />}
               onClick={onCustomerReceipt}
-              sx={{ color: '#4CAF50' }}
+              sx={{ color: '#2196F3' }}
             >
               Customer
             </Button>
@@ -1537,8 +1642,11 @@ const ReceiptModal = ({
             onClick={onClose}
             size={isMobile ? "small" : "medium"}
             sx={{ 
-              backgroundColor: receiptData?.status === 'Cancelled' ? '#f44336' : '#002AFE',
-              minWidth: isMobile ? '100%' : 'auto'
+              backgroundColor: receiptData?.status === 'Cancelled' ? '#f44336' : '#4CAF50',
+              minWidth: isMobile ? '100%' : 'auto',
+              '&:hover': {
+                backgroundColor: receiptData?.status === 'Cancelled' ? '#d32f2f' : '#388E3C'
+              }
             }}
           >
             Done
@@ -1549,7 +1657,7 @@ const ReceiptModal = ({
   );
 };
 
-// Deliveries Content Component
+// Deliveries Content Component - UPDATED with white earnings text
 const DeliveriesContent = ({ 
   activeTrip,
   formatTime,
@@ -1598,11 +1706,11 @@ const DeliveriesContent = ({
         <div className="active-trip-banner">
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
             <Box>
-              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                <DirectionsCar sx={{ mr: 1, verticalAlign: 'middle', fontSize: 18 }} />
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ color: 'white' }}>
+                <DirectionsCar sx={{ mr: 1, verticalAlign: 'middle', fontSize: 18, color: 'white' }} />
                 Active Trip
               </Typography>
-              <Typography variant="caption" display="block">
+              <Typography variant="caption" display="block" sx={{ color: 'rgba(255,255,255,0.9)' }}>
                 {activeTrip.pickup} → {activeTrip.destination}
               </Typography>
               <Typography variant="caption" color="rgba(255,255,255,0.8)">
@@ -1610,10 +1718,10 @@ const DeliveriesContent = ({
               </Typography>
             </Box>
             <Box textAlign="right">
-              <Typography variant="h6" gutterBottom>
-                UGX {activeTrip.amount.toLocaleString()}
+              <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>
+                Set at end
               </Typography>
-              <Typography variant="caption">
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.9)' }}>
                 {formatTime(timer)} • {distance.toFixed(2)} km
               </Typography>
             </Box>
@@ -1626,8 +1734,11 @@ const DeliveriesContent = ({
             startIcon={<DirectionsCar />}
             sx={{ 
               bgcolor: 'white',
-              color: '#002AFE',
-              '&:hover': { bgcolor: '#f5f5f5' }
+              color: '#4CAF50',
+              '&:hover': { 
+                bgcolor: '#f5f5f5',
+                color: '#388E3C'
+              }
             }}
           >
             View Trip Details
@@ -1638,19 +1749,19 @@ const DeliveriesContent = ({
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-label">Wallet Balance</div>
-          <h3 className="stat-value">UGX {deliveryStats.walletBalance}</h3>
+          <h3 className="stat-value" style={{ color: '#4CAF50' }}>UGX {deliveryStats.walletBalance}</h3>
         </div>
         <div className="stat-card">
           <div className="stat-label">Total Trips</div>
-          <h3 className="stat-value">{deliveryStats.totalDeliveries}</h3>
+          <h3 className="stat-value" style={{ color: '#2196F3' }}>{deliveryStats.totalDeliveries}</h3>
         </div>
         <div className="stat-card">
           <div className="stat-label">Completed</div>
-          <h3 className="stat-value">{deliveryStats.completedDeliveries}</h3>
+          <h3 className="stat-value" style={{ color: '#4CAF50' }}>{deliveryStats.completedDeliveries}</h3>
         </div>
         <div className="stat-card">
           <div className="stat-label">Success Rate</div>
-          <h3 className="stat-value">84%</h3>
+          <h3 className="stat-value" style={{ color: '#FF9800' }}>84%</h3>
         </div>
       </div>
 
@@ -1678,11 +1789,11 @@ const DeliveriesContent = ({
         </div>
       </div>
 
-      {/* Earnings Summary */}
+      {/* Earnings Summary - WHITE TEXT */}
       <div className="payout-section">
         <div className="balance-card">
-          <div className="balance-label">Earnings Summary</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px', }}>
+          <div className="balance-label" style={{ color: 'rgba(255,255,255,0.9)' }}>Earnings Summary</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
             <div>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)' }}>Total Earnings</div>
               <div style={{ fontSize: '20px', fontWeight: '600', color: 'white' }}>
@@ -1696,6 +1807,44 @@ const DeliveriesContent = ({
               </div>
             </div>
           </div>
+          
+          {/* Additional Earnings Breakdown */}
+          <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.9)', display: 'block' }}>
+                  Cash Earnings
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'white', fontWeight: '500' }}>
+                  UGX {earningsSummary.cash.toLocaleString()}
+                </Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.9)', display: 'block' }}>
+                  Mobile Money
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'white', fontWeight: '500' }}>
+                  UGX {earningsSummary.momo.toLocaleString()}
+                </Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.9)', display: 'block' }}>
+                  Total Trips
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'white', fontWeight: '500' }}>
+                  {earningsSummary.trips} trips
+                </Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.9)', display: 'block' }}>
+                  Fuel Expenses
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'white', fontWeight: '500' }}>
+                  UGX {earningsSummary.fuelExpenses.toLocaleString()}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Box>
         </div>
       </div>
     </>
@@ -1775,11 +1924,11 @@ const DeliveriesHistory = ({ isMobile }) => {
 
   return (
     <div className="activate-screen">
-      <h2 className="activate-title">Trip History</h2>
+      <h2 className="activate-title" style={{ color: '#4CAF50' }}>Trip History</h2>
       <p className="activate-subtitle">View all your completed trips</p>
 
       {/* Filters */}
-      <div style={{ background: '#e3f2fd', padding: '16px', borderRadius: '8px', marginBottom: '24px', border: '1px solid #bbdefb' }}>
+      <div style={{ background: '#e8f5e9', padding: '16px', borderRadius: '8px', marginBottom: '24px', border: '1px solid #c8e6c9' }}>
         <div className="promo-input-section">
           <input
             type="text"
@@ -1793,7 +1942,7 @@ const DeliveriesHistory = ({ isMobile }) => {
             className="validate-btn"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            style={{ minWidth: '120px' }}
+            style={{ minWidth: '120px', backgroundColor: '#4CAF50', color: 'white', border: 'none' }}
           >
             <option value="all">All Status</option>
             <option value="completed">Completed</option>
@@ -1804,23 +1953,23 @@ const DeliveriesHistory = ({ isMobile }) => {
 
       {/* Trip History Table */}
       <div className="commission-engine">
-        <div className="section-title">All Trips</div>
+        <div className="section-title" style={{ color: '#4CAF50' }}>All Trips</div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#f0f4ff' }}>
-                <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Trip ID</th>
-                <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Route</th>
-                <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Customer</th>
-                <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Amount</th>
-                <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Status</th>
-                <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Date</th>
+              <tr style={{ background: '#e8f5e9' }}>
+                <th style={{ padding: '12px', textAlign: 'left', color: '#4CAF50', fontSize: '12px', fontWeight: '500' }}>Trip ID</th>
+                <th style={{ padding: '12px', textAlign: 'left', color: '#4CAF50', fontSize: '12px', fontWeight: '500' }}>Route</th>
+                <th style={{ padding: '12px', textAlign: 'left', color: '#4CAF50', fontSize: '12px', fontWeight: '500' }}>Customer</th>
+                <th style={{ padding: '12px', textAlign: 'left', color: '#4CAF50', fontSize: '12px', fontWeight: '500' }}>Amount</th>
+                <th style={{ padding: '12px', textAlign: 'left', color: '#4CAF50', fontSize: '12px', fontWeight: '500' }}>Status</th>
+                <th style={{ padding: '12px', textAlign: 'left', color: '#4CAF50', fontSize: '12px', fontWeight: '500' }}>Date</th>
               </tr>
             </thead>
             <tbody>
               {filteredTrips.map((trip) => (
                 <tr key={trip.id} style={{ borderBottom: '1px solid #e0e0e0' }}>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#002AFE', fontWeight: '500' }}>{trip.id}</td>
+                  <td style={{ padding: '12px', fontSize: '12px', color: '#4CAF50', fontWeight: '500' }}>{trip.id}</td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>
                     <div>{trip.route}</div>
                     <div style={{ fontSize: '11px', color: '#666' }}>
@@ -1828,7 +1977,7 @@ const DeliveriesHistory = ({ isMobile }) => {
                     </div>
                   </td>
                   <td style={{ padding: '12px', fontSize: '12px' }}>{trip.customerName}</td>
-                  <td style={{ padding: '12px', fontSize: '12px', color: '#002AFE', fontWeight: '600' }}>
+                  <td style={{ padding: '12px', fontSize: '12px', color: '#4CAF50', fontWeight: '600' }}>
                     UGX {trip.amount.toLocaleString()}
                     <div style={{ fontSize: '11px', color: '#666' }}>{trip.paymentMethod}</div>
                   </td>
@@ -1882,21 +2031,21 @@ const ReceiveMoneyContent = ({ handlePaymentComplete, isMobile }) => {
   };
 
   const paymentMethods = [
-    { id: 'cash', label: 'Cash', icon: <Money /> },
-    { id: 'mtn', label: 'MTN MoMo', icon: <AccountBalanceWallet /> },
-    { id: 'airtel', label: 'Airtel Money', icon: <Payment /> },
-    { id: 'visa', label: 'VISA Card', icon: <CreditCard /> }
+    { id: 'cash', label: 'Cash', icon: <Money />, color: '#4CAF50' },
+    { id: 'mtn', label: 'MTN MoMo', icon: <AccountBalanceWallet />, color: '#FFC107' },
+    { id: 'airtel', label: 'Airtel Money', icon: <Payment />, color: '#E91E63' },
+    { id: 'visa', label: 'VISA Card', icon: <CreditCard />, color: '#2196F3' }
   ];
 
   return (
     <div className="activate-screen">
-      <h2 className="activate-title">Receive Money</h2>
+      <h2 className="activate-title" style={{ color: '#4CAF50' }}>Receive Money</h2>
       <p className="activate-subtitle">Record a direct payment</p>
 
-      <div style={{ background: '#e3f2fd', padding: '20px', borderRadius: '8px', marginBottom: '24px', border: '1px solid #bbdefb' }}>
+      <div style={{ background: '#e8f5e9', padding: '20px', borderRadius: '8px', marginBottom: '24px', border: '1px solid #c8e6c9' }}>
         {/* Amount Input */}
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+          <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
             Amount Received (UGX)
           </label>
           <div className="promo-input-section">
@@ -1908,13 +2057,13 @@ const ReceiveMoneyContent = ({ handlePaymentComplete, isMobile }) => {
               onChange={(e) => setAmount(e.target.value)}
               style={{ flex: 1 }}
             />
-            <span style={{ fontSize: '14px', color: '#002AFE', fontWeight: '500' }}>UGX</span>
+            <span style={{ fontSize: '14px', color: '#4CAF50', fontWeight: '500' }}>UGX</span>
           </div>
         </div>
 
         {/* Payment Method */}
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+          <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
             Payment Method
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
@@ -1925,15 +2074,16 @@ const ReceiveMoneyContent = ({ handlePaymentComplete, isMobile }) => {
                 onClick={() => setPaymentMethod(method.id)}
                 style={{ 
                   padding: '12px',
-                  border: paymentMethod === method.id ? '2px solid #002AFE' : '1px solid #002AFE',
-                  background: paymentMethod === method.id ? '#002AFE' : 'white',
-                  color: paymentMethod === method.id ? 'white' : '#002AFE',
+                  border: paymentMethod === method.id ? '2px solid ' + method.color : '1px solid ' + method.color,
+                  background: paymentMethod === method.id ? method.color : 'white',
+                  color: paymentMethod === method.id ? 'white' : method.color,
                   borderRadius: '8px',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '8px'
+                  gap: '8px',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 {method.icon}
@@ -1946,7 +2096,7 @@ const ReceiveMoneyContent = ({ handlePaymentComplete, isMobile }) => {
         {/* Customer Information */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
           <div>
-            <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+            <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
               Customer Name (Optional)
             </label>
             <input
@@ -1960,7 +2110,7 @@ const ReceiveMoneyContent = ({ handlePaymentComplete, isMobile }) => {
           </div>
 
           <div>
-            <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+            <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
               Customer Phone (Optional)
             </label>
             <input
@@ -1976,7 +2126,7 @@ const ReceiveMoneyContent = ({ handlePaymentComplete, isMobile }) => {
 
         {/* Notes */}
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+          <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
             Notes (Optional)
           </label>
           <textarea
@@ -1991,20 +2141,20 @@ const ReceiveMoneyContent = ({ handlePaymentComplete, isMobile }) => {
 
         {/* Payment Summary */}
         <div style={{ 
-          background: '#f0f4ff', 
+          background: '#f1f8e9', 
           padding: '16px', 
           borderRadius: '8px',
-          border: '1px solid #c5cae9'
+          border: '1px solid #c5e1a5'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '14px', color: '#002AFE' }}>Amount:</span>
-            <span style={{ fontSize: '18px', fontWeight: '600', color: '#002AFE' }}>
+            <span style={{ fontSize: '14px', color: '#4CAF50' }}>Amount:</span>
+            <span style={{ fontSize: '18px', fontWeight: '600', color: '#4CAF50' }}>
               UGX {amount ? parseFloat(amount).toLocaleString() : '0'}
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '14px', color: '#002AFE' }}>Payment Method:</span>
-            <span style={{ fontSize: '14px', fontWeight: '500', color: '#002AFE' }}>
+            <span style={{ fontSize: '14px', color: '#4CAF50' }}>Payment Method:</span>
+            <span style={{ fontSize: '14px', fontWeight: '500', color: '#4CAF50' }}>
               {paymentMethod === 'cash' ? 'Cash' :
                paymentMethod === 'mtn' ? 'MTN MoMo' :
                paymentMethod === 'airtel' ? 'Airtel Money' : 'VISA Card'}
@@ -2018,8 +2168,8 @@ const ReceiveMoneyContent = ({ handlePaymentComplete, isMobile }) => {
           className="activate-code-btn"
           style={{ 
             background: 'transparent', 
-            border: '1px solid #002AFE', 
-            color: '#002AFE',
+            border: '1px solid #666', 
+            color: '#666',
             flex: 1
           }}
           onClick={() => window.history.back()}
@@ -2030,7 +2180,12 @@ const ReceiveMoneyContent = ({ handlePaymentComplete, isMobile }) => {
           className="activate-code-btn"
           onClick={handleSubmit}
           disabled={!amount || parseFloat(amount) <= 0}
-          style={{ flex: 1 }}
+          style={{ 
+            flex: 1,
+            backgroundColor: '#4CAF50',
+            border: 'none',
+            color: 'white'
+          }}
         >
           Record Payment
         </button>
@@ -2061,19 +2216,19 @@ const WithdrawMoneyContent = ({ isMobile }) => {
 
   return (
     <div className="activate-screen">
-      <h2 className="activate-title">Request Payout</h2>
+      <h2 className="activate-title" style={{ color: '#4CAF50' }}>Request Payout</h2>
       <p className="activate-subtitle">Request Payout of funds from your wallet</p>
 
       {/* Wallet Balance */}
-      <div className="balance-card" style={{ marginBottom: '24px' }}>
-        <div className="balance-label">Available Balance</div>
-        <h2 className="balance-amount">40,000<span style={{ fontSize: '16px', marginLeft: '4px' }}>UGX</span></h2>
+      <div className="balance-card" style={{ marginBottom: '24px', background: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)' }}>
+        <div className="balance-label" style={{ color: 'rgba(255,255,255,0.9)' }}>Available Balance</div>
+        <h2 className="balance-amount" style={{ color: 'white' }}>40,000<span style={{ fontSize: '16px', marginLeft: '4px', color: 'rgba(255,255,255,0.9)' }}>UGX</span></h2>
       </div>
 
-      <div style={{ background: '#e3f2fd', padding: '20px', borderRadius: '8px', marginBottom: '24px', border: '1px solid #bbdefb' }}>
+      <div style={{ background: '#e8f5e9', padding: '20px', borderRadius: '8px', marginBottom: '24px', border: '1px solid #c8e6c9' }}>
         {/* Amount Input */}
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+          <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
             Enter Amount For Payout (UGX)
           </label>
           <div className="promo-input-section">
@@ -2085,7 +2240,7 @@ const WithdrawMoneyContent = ({ isMobile }) => {
               onChange={(e) => setAmount(e.target.value)}
               style={{ flex: 1 }}
             />
-            <span style={{ fontSize: '14px', color: '#002AFE', fontWeight: '500' }}>UGX</span>
+            <span style={{ fontSize: '14px', color: '#4CAF50', fontWeight: '500' }}>UGX</span>
           </div>
           <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
             Minimum Payout: UGX 5,000
@@ -2094,7 +2249,7 @@ const WithdrawMoneyContent = ({ isMobile }) => {
 
         {/* Withdrawal Method */}
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+          <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
             Select Payout Method
           </label>
           <RadioGroup 
@@ -2108,7 +2263,7 @@ const WithdrawMoneyContent = ({ isMobile }) => {
                 value="momo"
                 checked={withdrawalMethod === 'momo'}
                 onChange={(e) => setWithdrawalMethod(e.target.value)}
-                style={{ accentColor: '#002AFE' }}
+                style={{ accentColor: '#4CAF50' }}
               />
               <span>MTN MoMo</span>
             </label>
@@ -2118,7 +2273,7 @@ const WithdrawMoneyContent = ({ isMobile }) => {
                 value="airtel"
                 checked={withdrawalMethod === 'airtel'}
                 onChange={(e) => setWithdrawalMethod(e.target.value)}
-                style={{ accentColor: '#002AFE' }}
+                style={{ accentColor: '#4CAF50' }}
               />
               <span>Airtel Money</span>
             </label>
@@ -2128,7 +2283,7 @@ const WithdrawMoneyContent = ({ isMobile }) => {
                 value="bank"
                 checked={withdrawalMethod === 'bank'}
                 onChange={(e) => setWithdrawalMethod(e.target.value)}
-                style={{ accentColor: '#002AFE' }}
+                style={{ accentColor: '#4CAF50' }}
               />
               <span>Bank Transfer</span>
             </label>
@@ -2137,7 +2292,7 @@ const WithdrawMoneyContent = ({ isMobile }) => {
 
         {/* Account Details */}
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+          <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
             {withdrawalMethod === 'momo' ? 'Mobile Money Number' :
              withdrawalMethod === 'airtel' ? 'Airtel Money Number' : 'Bank Account Details'}
           </label>
@@ -2171,30 +2326,30 @@ const WithdrawMoneyContent = ({ isMobile }) => {
 
         {/* Withdrawal Summary */}
         <div style={{ 
-          background: '#f0f4ff', 
+          background: '#f1f8e9', 
           padding: '16px', 
           borderRadius: '8px',
-          border: '1px solid #c5cae9'
+          border: '1px solid #c5e1a5'
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#002AFE', marginBottom: '12px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#4CAF50', marginBottom: '12px' }}>
             Payout Summary
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '14px', color: '#002AFE' }}>Amount:</span>
-            <span style={{ fontSize: '18px', fontWeight: '600', color: '#002AFE' }}>
+            <span style={{ fontSize: '14px', color: '#4CAF50' }}>Amount:</span>
+            <span style={{ fontSize: '18px', fontWeight: '600', color: '#4CAF50' }}>
               UGX {amount ? parseFloat(amount).toLocaleString() : '0'}
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '14px', color: '#002AFE' }}>Method:</span>
-            <span style={{ fontSize: '14px', fontWeight: '500', color: '#002AFE' }}>
+            <span style={{ fontSize: '14px', color: '#4CAF50' }}>Method:</span>
+            <span style={{ fontSize: '14px', fontWeight: '500', color: '#4CAF50' }}>
               {withdrawalMethod === 'momo' ? 'MTN MoMo' :
                withdrawalMethod === 'airtel' ? 'Airtel Money' : 'Bank Transfer'}
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '14px', color: '#002AFE' }}>Fee:</span>
-            <span style={{ fontSize: '14px', fontWeight: '500', color: '#002AFE' }}>UGX 0 (Free)</span>
+            <span style={{ fontSize: '14px', color: '#4CAF50' }}>Fee:</span>
+            <span style={{ fontSize: '14px', fontWeight: '500', color: '#4CAF50' }}>UGX 0 (Free)</span>
           </div>
         </div>
       </div>
@@ -2204,8 +2359,8 @@ const WithdrawMoneyContent = ({ isMobile }) => {
           className="activate-code-btn"
           style={{ 
             background: 'transparent', 
-            border: '1px solid #002AFE', 
-            color: '#002AFE',
+            border: '1px solid #666', 
+            color: '#666',
             flex: 1
           }}
           onClick={() => window.history.back()}
@@ -2216,7 +2371,12 @@ const WithdrawMoneyContent = ({ isMobile }) => {
           className="activate-code-btn"
           onClick={handleSubmit}
           disabled={!amount || parseFloat(amount) < 5000}
-          style={{ flex: 1 }}
+          style={{ 
+            flex: 1,
+            backgroundColor: '#4CAF50',
+            border: 'none',
+            color: 'white'
+          }}
         >
           Request Payout
         </button>
@@ -2292,10 +2452,10 @@ const AddExpenseContent = ({ isMobile }) => {
       case 0:
         return (
           <>
-            <div className="section-title" style={{ fontSize: '16px', marginBottom: '16px' }}>Expense Details</div>
+            <div className="section-title" style={{ fontSize: '16px', marginBottom: '16px', color: '#4CAF50' }}>Expense Details</div>
             
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+              <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
                 Expense Category
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
@@ -2306,9 +2466,9 @@ const AddExpenseContent = ({ isMobile }) => {
                     onClick={() => setExpenseData({ ...expenseData, category })}
                     style={{ 
                       padding: '12px',
-                      border: expenseData.category === category ? '2px solid #002AFE' : '1px solid #002AFE',
-                      background: expenseData.category === category ? '#002AFE' : 'white',
-                      color: expenseData.category === category ? 'white' : '#002AFE',
+                      border: expenseData.category === category ? '2px solid #4CAF50' : '1px solid #4CAF50',
+                      background: expenseData.category === category ? '#4CAF50' : 'white',
+                      color: expenseData.category === category ? 'white' : '#4CAF50',
                       borderRadius: '8px',
                       cursor: 'pointer',
                       fontSize: '12px',
@@ -2322,7 +2482,7 @@ const AddExpenseContent = ({ isMobile }) => {
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+              <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
                 Amount (UGX)
               </label>
               <div className="promo-input-section">
@@ -2334,12 +2494,12 @@ const AddExpenseContent = ({ isMobile }) => {
                   onChange={(e) => setExpenseData({ ...expenseData, amount: e.target.value })}
                   style={{ flex: 1 }}
                 />
-                <span style={{ fontSize: '14px', color: '#002AFE', fontWeight: '500' }}>UGX</span>
+                <span style={{ fontSize: '14px', color: '#4CAF50', fontWeight: '500' }}>UGX</span>
               </div>
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+              <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
                 Date
               </label>
               <input
@@ -2356,10 +2516,10 @@ const AddExpenseContent = ({ isMobile }) => {
       case 1:
         return (
           <>
-            <div className="section-title" style={{ fontSize: '16px', marginBottom: '16px' }}>Additional Details</div>
+            <div className="section-title" style={{ fontSize: '16px', marginBottom: '16px', color: '#4CAF50' }}>Additional Details</div>
             
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+              <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
                 Description (Optional)
               </label>
               <textarea
@@ -2373,7 +2533,7 @@ const AddExpenseContent = ({ isMobile }) => {
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+              <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
                 Payment Method
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
@@ -2384,9 +2544,9 @@ const AddExpenseContent = ({ isMobile }) => {
                     onClick={() => setExpenseData({ ...expenseData, paymentMethod: method })}
                     style={{ 
                       padding: '12px',
-                      border: expenseData.paymentMethod === method ? '2px solid #002AFE' : '1px solid #002AFE',
-                      background: expenseData.paymentMethod === method ? '#002AFE' : 'white',
-                      color: expenseData.paymentMethod === method ? 'white' : '#002AFE',
+                      border: expenseData.paymentMethod === method ? '2px solid #4CAF50' : '1px solid #4CAF50',
+                      background: expenseData.paymentMethod === method ? '#4CAF50' : 'white',
+                      color: expenseData.paymentMethod === method ? 'white' : '#4CAF50',
                       borderRadius: '8px',
                       cursor: 'pointer',
                       fontSize: '12px',
@@ -2400,7 +2560,7 @@ const AddExpenseContent = ({ isMobile }) => {
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+              <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
                 Vehicle
               </label>
               <input
@@ -2413,18 +2573,18 @@ const AddExpenseContent = ({ isMobile }) => {
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+              <label style={{ display: 'block', color: '#4CAF50', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
                 Upload Receipt (Optional)
               </label>
               <div style={{ 
-                border: '2px dashed #002AFE', 
+                border: '2px dashed #4CAF50', 
                 borderRadius: '8px', 
                 padding: '24px', 
                 textAlign: 'center',
                 cursor: 'pointer'
               }}>
-                <CloudUpload sx={{ fontSize: 48, color: '#002AFE', mb: 2 }} />
-                <Typography variant="body2" color="#002AFE" gutterBottom>
+                <CloudUpload sx={{ fontSize: 48, color: '#4CAF50', mb: 2 }} />
+                <Typography variant="body2" color="#4CAF50" gutterBottom>
                   Click to upload or drag and drop
                 </Typography>
                 <Typography variant="caption" color="#666">
@@ -2438,7 +2598,7 @@ const AddExpenseContent = ({ isMobile }) => {
       case 2:
         return (
           <>
-            <div className="section-title" style={{ fontSize: '16px', marginBottom: '16px' }}>Review Expense</div>
+            <div className="section-title" style={{ fontSize: '16px', marginBottom: '16px', color: '#4CAF50' }}>Review Expense</div>
             
             <div className="commission-ledger" style={{ marginBottom: '24px' }}>
               <div className="detail-row">
@@ -2478,7 +2638,7 @@ const AddExpenseContent = ({ isMobile }) => {
 
   return (
     <div className="activate-screen">
-      <h2 className="activate-title">Add Expense</h2>
+      <h2 className="activate-title" style={{ color: '#4CAF50' }}>Add Expense</h2>
       <p className="activate-subtitle">Record your delivery expenses</p>
 
       <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
@@ -2489,7 +2649,7 @@ const AddExpenseContent = ({ isMobile }) => {
         ))}
       </Stepper>
 
-      <div style={{ background: '#e3f2fd', padding: '20px', borderRadius: '8px', marginBottom: '24px', border: '1px solid #bbdefb' }}>
+      <div style={{ background: '#e8f5e9', padding: '20px', borderRadius: '8px', marginBottom: '24px', border: '1px solid #c8e6c9' }}>
         {renderStepContent()}
       </div>
 
@@ -2498,8 +2658,8 @@ const AddExpenseContent = ({ isMobile }) => {
           className="activate-code-btn"
           style={{ 
             background: 'transparent', 
-            border: '1px solid #002AFE', 
-            color: '#002AFE',
+            border: '1px solid #666', 
+            color: '#666',
             flex: 1
           }}
           onClick={handleBack}
@@ -2511,7 +2671,12 @@ const AddExpenseContent = ({ isMobile }) => {
           className="activate-code-btn"
           onClick={handleNext}
           disabled={activeStep === 0 && (!expenseData.category || !expenseData.amount)}
-          style={{ flex: 1 }}
+          style={{ 
+            flex: 1,
+            backgroundColor: '#4CAF50',
+            border: 'none',
+            color: 'white'
+          }}
         >
           {activeStep === steps.length - 1 ? 'Save Expense & Generate Receipt' : 'Continue'}
         </button>
@@ -2535,7 +2700,7 @@ const globalStyles = `
   }
 
   .dashboard-header {
-    background: linear-gradient(135deg, #002AFE 0%, #001FD8 100%);
+    background: linear-gradient(135deg, #001FD8 0%, #001FD8 100%);
     color: white;
     padding: 24px;
     border-radius: 12px;
@@ -2549,6 +2714,7 @@ const globalStyles = `
     margin: 0;
     font-size: 24px;
     font-weight: 600;
+    color: white;
   }
 
   .tab-navigation {
@@ -2573,24 +2739,26 @@ const globalStyles = `
   }
 
   .tab-btn:hover {
-    background: #f0f4ff;
-    color: #002AFE;
+    background: #f1f8e9;
+    color: #FFD600;
+    border-color: #FFD600;
   }
 
   .tab-btn.active {
-    background: #002AFE;
+    background: #FFD600;
     color: white;
-    border-color: #002AFE;
+    border-color: #FFD600;
   }
 
   .tab-btn.yellow-button {
-    background: #FEF132;
-    color: black;
-    border: 1px solid #fde047;
+    background: #FFEB3B;
+    color: #333;
+    border: 1px solid #FFD600;
   }
 
   .tab-btn.yellow-button:hover {
-    background: #fde047;
+    background: #FFD600;
+    color: #333;
   }
 
   .tab-content {
@@ -2606,7 +2774,7 @@ const globalStyles = `
   }
 
   .active-trip-banner {
-    background: linear-gradient(135deg, #002AFE 0%, #001FD8 100%);
+    background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
     color: white;
     padding: 16px;
     border-radius: 12px;
@@ -2638,6 +2806,12 @@ const globalStyles = `
     border-radius: 8px;
     padding: 20px;
     text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
 
   .stat-label {
@@ -2650,7 +2824,6 @@ const globalStyles = `
     margin: 0;
     font-size: 24px;
     font-weight: 600;
-    color: #002AFE;
   }
 
   .commission-overview {
@@ -2664,7 +2837,6 @@ const globalStyles = `
   .section-title {
     font-size: 16px;
     font-weight: 600;
-    color: #002AFE;
     margin-bottom: 16px;
     display: flex;
     align-items: center;
@@ -2683,6 +2855,11 @@ const globalStyles = `
     align-items: center;
     padding: 16px;
     border-bottom: 1px solid #e0e0e0;
+    transition: background 0.2s ease;
+  }
+
+  .ledger-entry:hover {
+    background: #f9f9f9;
   }
 
   .ledger-entry:last-child {
@@ -2707,11 +2884,11 @@ const globalStyles = `
   .entry-amount {
     text-align: right;
     font-weight: 600;
-    color: #002AFE;
+    color: #4CAF50;
   }
 
   .balance-card {
-    background: linear-gradient(135deg, #002AFE 0%, #001FD8 100%);
+    background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
     color: white;
     padding: 24px;
     border-radius: 12px;
@@ -2728,6 +2905,7 @@ const globalStyles = `
     margin: 0;
     font-size: 32px;
     font-weight: 700;
+    color: white;
   }
 
   .activate-screen {
@@ -2738,7 +2916,6 @@ const globalStyles = `
   .activate-title {
     font-size: 24px;
     font-weight: 600;
-    color: #002AFE;
     margin-bottom: 8px;
   }
 
@@ -2766,12 +2943,12 @@ const globalStyles = `
 
   .promo-input:focus {
     outline: none;
-    border-color: #002AFE;
+    border-color: '#4CAF50';
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
   }
 
   .validate-btn {
     padding: 12px 24px;
-    background: #002AFE;
     color: white;
     border: none;
     border-radius: 8px;
@@ -2781,13 +2958,11 @@ const globalStyles = `
   }
 
   .validate-btn:hover {
-    background: #001FD8;
+    opacity: 0.9;
   }
 
   .activate-code-btn {
     padding: 12px 32px;
-    background: #002AFE;
-    color: white;
     border: none;
     border-radius: 8px;
     font-weight: 500;
@@ -2796,14 +2971,21 @@ const globalStyles = `
   }
 
   .activate-code-btn:hover {
-    background: #001FD8;
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  .activate-code-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
   }
 
   .withdraw-commission-btn {
     padding: 12px 32px;
-    background: #FEF132;
-    color: black;
-    border: 1px solid #fde047;
+    background: #FFEB3B;
+    color: #333;
+    border: 1px solid #FFD600;
     border-radius: 8px;
     font-weight: 500;
     cursor: pointer;
@@ -2811,7 +2993,7 @@ const globalStyles = `
   }
 
   .withdraw-commission-btn:hover {
-    background: #fde047;
+    background: #FFD600;
   }
 
   .detail-row {
@@ -2846,9 +3028,9 @@ const globalStyles = `
 
   .filter-btn {
     padding: 8px 16px;
-    border: 1px solid #002AFE;
+    border: 1px solid #4CAF50;
     background: white;
-    color: #002AFE;
+    color: #4CAF50;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -2856,11 +3038,11 @@ const globalStyles = `
   }
 
   .filter-btn:hover {
-    background: #f0f4ff;
+    background: #f1f8e9;
   }
 
   .filter-btn.active {
-    background: #002AFE;
+    background: #4CAF50;
     color: white;
   }
 
