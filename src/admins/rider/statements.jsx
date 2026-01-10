@@ -169,7 +169,7 @@ const Statements = () => {
       }}>
         <div>
           <h2 className="dashboard-title">Financial Statements</h2>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+          <div style={{ fontSize: '12px', color: 'white', marginTop: '4px' }}>
             Comprehensive financial reports and analysis
           </div>
         </div>
@@ -301,23 +301,9 @@ const Statements = () => {
                   </div>
                 </div>
                 <button 
-                  onClick={loadAllData}
-                  style={{ 
-                    padding: '8px 16px',
-                    background: 'transparent',
-                    border: '1px solid #0033cc',
-                    borderRadius: '6px',
-                    color: '#0033cc',
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
+                  
                 >
-                  <RefreshCw size={12} />
-                  Refresh
+                  
                 </button>
               </div>
             </div>
