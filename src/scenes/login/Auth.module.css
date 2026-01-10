@@ -42,11 +42,6 @@
   width: auto;
 }
 
-.brandLogo {
-  height: 40px;
-  width: auto;
-}
-
 .authTitle {
   font-size: 28px;
   font-weight: 600;
@@ -203,8 +198,8 @@
   margin: 0;
 }
 
-/* Error and Success Alert Styles */
-.errorAlert {
+/* API Error Alert */
+.apiError {
   background-color: #fee;
   border: 1px solid #fcc;
   color: #c00;
@@ -213,8 +208,21 @@
   margin-bottom: 20px;
   text-align: center;
   font-size: 14px;
+  font-weight: 500;
 }
 
+.apiError ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  text-align: left;
+}
+
+.apiError li {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+/* Success Alert */
 .successAlert {
   background-color: #efe;
   border: 1px solid #cfc;
@@ -243,6 +251,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  margin-top: 8px;
 }
 
 .primaryButton:hover:not(:disabled) {
@@ -253,6 +263,7 @@
 .primaryButton:disabled {
   background-color: #b0b0e3;
   cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .secondaryButton {
@@ -265,6 +276,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: 100%;
+  margin-top: 8px;
 }
 
 .secondaryButton:hover {
@@ -290,7 +303,7 @@
 
 .authLinks p {
   font-size: 14px;
-  color: #b0b0e3;
+  color: #666;
   margin: 0;
 }
 
@@ -309,24 +322,6 @@
   color: #0119b0;
 }
 
-.linkButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.devHint {
-  margin-top: 24px;
-  padding: 16px;
-  background-color: #f5f5f9;
-  border-radius: 8px;
-  font-size: 12px;
-  color: #666;
-}
-
-.devHint p {
-  margin: 4px 0;
-}
-
 .welcomeContent {
   text-align: center;
 }
@@ -342,6 +337,67 @@
   font-size: 16px;
   color: #666;
   margin-bottom: 32px;
+}
+
+/* OTP Specific Styles */
+.otpDescription {
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.otpInput {
+  text-align: center;
+  font-size: 24px;
+  letter-spacing: 8px;
+  font-weight: 600;
+}
+
+/* Loading spinner */
+.loadingSpinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Step indicator */
+.stepIndicator {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.stepDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  transition: background-color 0.3s ease;
+}
+
+.stepDot.active {
+  background-color: #0125dc;
+  transform: scale(1.2);
+}
+
+/* Field hints */
+.fieldHint {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+  font-style: italic;
 }
 
 /* Mobile responsive styles for account type selection */
@@ -388,6 +444,11 @@
   .secondaryButton {
     padding: 10px 16px;
     font-size: 14px;
+  }
+
+  .apiError {
+    padding: 10px;
+    font-size: 13px;
   }
 }
 
@@ -481,12 +542,6 @@
     font-size: 13px;
   }
 
-  .devHint {
-    margin-top: 16px;
-    padding: 12px;
-    font-size: 11px;
-  }
-
   .welcomeTitle {
     font-size: 22px;
     margin-bottom: 6px;
@@ -495,5 +550,37 @@
   .welcomeMessage {
     font-size: 14px;
     margin-bottom: 24px;
+  }
+
+  .apiError {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  .otpInput {
+    font-size: 20px;
+    letter-spacing: 6px;
+  }
+}
+
+/* For very small screens */
+@media (max-width: 360px) {
+  .accountTypeIconContainer {
+    width: 80px;
+    height: 80px;
+  }
+
+  .accountTypeLabel {
+    font-size: 12px;
+  }
+
+  .authTitle {
+    font-size: 18px;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    padding: 8px 12px;
+    font-size: 13px;
   }
 }
