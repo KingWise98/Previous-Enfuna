@@ -5,6 +5,8 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import * as XLSX from 'xlsx'
 
+const API_BASE_URL = "http://127.0.0.1:8000/api/riders/"
+
 export default function Trips() {
   const [currentView, setCurrentView] = useState("new-trip")
   const [activeTab, setActiveTab] = useState("new-trip")
@@ -33,6 +35,13 @@ export default function Trips() {
   const [manualOverride, setManualOverride] = useState(false)
   const [isEditingAmount, setIsEditingAmount] = useState(false)
   const [amountDraft, setAmountDraft] = useState("")
+  
+  // API Data States
+  const [tripHistory, setTripHistory] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [stats, setStats] = useState(null)
+  const [summary, setSummary] = useState(null)
+  const [overview, setOverview] = useState(null)
   
   // History filters
   const [searchQuery, setSearchQuery] = useState("")
@@ -74,54 +83,6 @@ export default function Trips() {
     }
   })
   
-  // Sample trip history data
-  const [tripHistory] = useState([
-    {
-      id: "Trip-007",
-      route: "Kireka - Banda",
-      duration: "12min",
-      amount: 2000,
-      paymentMethod: "Cash",
-      status: "Completed",
-      date: "2025-01-15",
-      time: "09:30 AM",
-      manualOverride: true,
-    },
-    {
-      id: "Trip-008",
-      route: "Gulu - Nakutt",
-      duration: "17min",
-      amount: 8000,
-      paymentMethod: "MTN MoMo",
-      status: "Cancelled",
-      date: "2025-01-15",
-      time: "10:45 AM",
-      manualOverride: false,
-    },
-    {
-      id: "Trip-009",
-      route: "Kampala - Banda",
-      duration: "14min",
-      amount: 6000,
-      paymentMethod: "MTN MoMo",
-      status: "Completed",
-      date: "2025-01-15",
-      time: "11:20 AM",
-      manualOverride: false,
-    },
-    {
-      id: "Trip-010",
-      route: "Kireka - Banda",
-      duration: "30min",
-      amount: 3000,
-      paymentMethod: "MTN MoMo",
-      status: "Pending",
-      date: "2025-01-15",
-      time: "12:00 PM",
-      manualOverride: false,
-    },
-  ])
-  
   // Chart data for analytics
   const [chartData] = useState({
     tripSummary: [
@@ -152,6 +113,192 @@ export default function Trips() {
   
   const receiptRef = useRef(null)
   
+  // API Functions
+  const fetchRides = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`${API_BASE_URL}list_rides`)
+      if (!response.ok) throw new Error('Failed to fetch rides')
+      const data = await response.json()
+      setTripHistory(data)
+    } catch (error) {
+      console.error('Error fetching rides:', error)
+      // Fallback to sample data
+      setTripHistory([
+        {
+          id: "Trip-007",
+          route: "Kireka - Banda",
+          duration: "12min",
+          amount: 2000,
+          payment_method: "Cash",
+          status: "Completed",
+          created_at: "2025-01-15",
+          time: "09:30 AM",
+          manual_override: true,
+        },
+        {
+          id: "Trip-008",
+          route: "Gulu - Nakutt",
+          duration: "17min",
+          amount: 8000,
+          payment_method: "MTN MoMo",
+          status: "Cancelled",
+          created_at: "2025-01-15",
+          time: "10:45 AM",
+          manual_override: false,
+        },
+        {
+          id: "Trip-009",
+          route: "Kampala - Banda",
+          duration: "14min",
+          amount: 6000,
+          payment_method: "MTN MoMo",
+          status: "Completed",
+          created_at: "2025-01-15",
+          time: "11:20 AM",
+          manual_override: false,
+        },
+        {
+          id: "Trip-010",
+          route: "Kireka - Banda",
+          duration: "30min",
+          amount: 3000,
+          payment_method: "MTN MoMo",
+          status: "Pending",
+          created_at: "2025-01-15",
+          time: "12:00 PM",
+          manual_override: false,
+        },
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const createRide = async (rideData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}create_rides`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pickup_location: rideData.pickup,
+          destination: rideData.destination,
+          estimated_amount: rideData.amount,
+          notes: rideData.notes || "",
+          status: "pending"
+        })
+      })
+      
+      if (!response.ok) throw new Error('Failed to create ride')
+      
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Error creating ride:', error)
+      throw error
+    }
+  }
+
+  const changeRideStatus = async (rideId, status) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}change_ride_status/${rideId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status })
+      })
+      
+      if (!response.ok) throw new Error('Failed to change ride status')
+      
+      return await response.json()
+    } catch (error) {
+      console.error('Error changing ride status:', error)
+      throw error
+    }
+  }
+
+  const completeRide = async (rideId, data) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}complete_ride/${rideId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          actual_amount: data.amount,
+          duration: data.duration,
+          distance: data.distance,
+          payment_method: data.paymentMethod,
+          split_payment: data.splitPayment || null,
+          split_method: data.splitMethod || null,
+          notes: data.notes || ""
+        })
+      })
+      
+      if (!response.ok) throw new Error('Failed to complete ride')
+      
+      return await response.json()
+    } catch (error) {
+      console.error('Error completing ride:', error)
+      throw error
+    }
+  }
+
+  const fetchRideStats = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}ride_stats`)
+      if (!response.ok) throw new Error('Failed to fetch stats')
+      const data = await response.json()
+      setStats(data)
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+    }
+  }
+
+  const fetchRideSummary = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}ride_summary`)
+      if (!response.ok) throw new Error('Failed to fetch summary')
+      const data = await response.json()
+      setSummary(data)
+    } catch (error) {
+      console.error('Error fetching summary:', error)
+    }
+  }
+
+  const fetchTripOverview = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}trip_overview`)
+      if (!response.ok) throw new Error('Failed to fetch overview')
+      const data = await response.json()
+      setOverview(data)
+    } catch (error) {
+      console.error('Error fetching overview:', error)
+    }
+  }
+
+  const exportTripsToExcel = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}export_trips`)
+      if (!response.ok) throw new Error('Failed to export trips')
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `trips-export-${new Date().toISOString().split('T')[0]}.xlsx`
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error exporting trips:', error)
+      // Fallback to client-side export
+      exportToExcel()
+    }
+  }
+  
   // Handle body scrolling when modals are open
   useEffect(() => {
     if (showPaymentModal || showSuccessModal || showReceipt) {
@@ -177,6 +324,14 @@ export default function Trips() {
     return () => clearInterval(interval)
   }, [activeTrip, currentView])
   
+  // Fetch initial data
+  useEffect(() => {
+    fetchRides()
+    fetchRideStats()
+    fetchRideSummary()
+    fetchTripOverview()
+  }, [])
+  
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600)
     const mins = Math.floor((seconds % 3600) / 60)
@@ -190,20 +345,30 @@ export default function Trips() {
     return `${mins} min ${secs < 10 ? "0" : ""}${secs} sec`
   }
   
-  const handleStartTrip = () => {
+  const handleStartTrip = async () => {
     if (!tripData.pickup || !tripData.destination) {
       alert("Please fill in pickup and destination")
       return
     }
     
-    setActiveTrip({
-      ...tripData,
-      id: `TRP-${Date.now().toString().slice(-6)}`,
-      startTime: new Date(),
-    })
-    setTimer(0)
-    setDistance(0)
-    setCurrentView("active-trip")
+    try {
+      const createdRide = await createRide(tripData)
+      
+      setActiveTrip({
+        ...tripData,
+        id: createdRide.id || `TRP-${Date.now().toString().slice(-6)}`,
+        startTime: new Date(),
+        rideId: createdRide.id, // Store the API ride ID
+      })
+      
+      await changeRideStatus(createdRide.id, "active")
+      
+      setTimer(0)
+      setDistance(0)
+      setCurrentView("active-trip")
+    } catch (error) {
+      alert("Failed to start trip. Please try again.")
+    }
   }
   
   const handleEndTrip = () => {
@@ -223,7 +388,7 @@ export default function Trips() {
     }
   }
   
-  const handlePaymentContinue = () => {
+  const handlePaymentContinue = async () => {
     if (!selectedPaymentMethod) {
       alert("Please select a payment method")
       return
@@ -234,24 +399,48 @@ export default function Trips() {
       return
     }
     
-    // Generate receipt
-    const receipt = {
-      id: activeTrip?.id || `REC-${Date.now().toString().slice(-6)}`,
-      amount: paymentAmount,
-      paymentMethod: selectedPaymentMethod,
-      splitPayment: selectedPaymentMethod === "split" ? splitPayment : null,
-      splitMethod: selectedPaymentMethod === "split" ? splitMethod : null,
-      date: new Date().toLocaleDateString(),
-      time: new Date().toLocaleTimeString(),
-      pickup: activeTrip?.pickup || tripData.pickup,
-      destination: activeTrip?.destination || tripData.destination,
-      distance: distance.toFixed(1),
-      duration: formatDuration(timer),
+    try {
+      // Complete the ride via API
+      const completionData = {
+        amount: paymentAmount,
+        duration: timer,
+        distance: parseFloat(distance.toFixed(1)),
+        paymentMethod: selectedPaymentMethod === "split" ? "split" : selectedPaymentMethod,
+        splitPayment: selectedPaymentMethod === "split" ? splitPayment : null,
+        splitMethod: selectedPaymentMethod === "split" ? splitMethod : null,
+        notes: tripData.notes
+      }
+      
+      const completedRide = await completeRide(activeTrip.rideId, completionData)
+      
+      // Generate receipt
+      const receipt = {
+        id: completedRide.id || activeTrip?.id || `REC-${Date.now().toString().slice(-6)}`,
+        amount: paymentAmount,
+        paymentMethod: selectedPaymentMethod,
+        splitPayment: selectedPaymentMethod === "split" ? splitPayment : null,
+        splitMethod: selectedPaymentMethod === "split" ? splitMethod : null,
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString(),
+        pickup: activeTrip?.pickup || tripData.pickup,
+        destination: activeTrip?.destination || tripData.destination,
+        distance: distance.toFixed(1),
+        duration: formatDuration(timer),
+      }
+      
+      setReceiptData(receipt)
+      setShowPaymentModal(false)
+      setShowSuccessModal(true)
+      
+      // Refresh data
+      fetchRides()
+      fetchRideStats()
+      fetchRideSummary()
+      fetchTripOverview()
+      
+    } catch (error) {
+      alert("Failed to complete payment. Please try again.")
     }
-    
-    setReceiptData(receipt)
-    setShowPaymentModal(false)
-    setShowSuccessModal(true)
   }
   
   const handlePaymentSuccess = () => {
@@ -347,11 +536,11 @@ export default function Trips() {
   const filteredTrips = tripHistory.filter((trip) => {
     const matchesSearch =
       trip.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      trip.route.toLowerCase().includes(searchQuery.toLowerCase())
+      (trip.route || "").toLowerCase().includes(searchQuery.toLowerCase())
     
     const matchesStatus = filterStatus === "all" || trip.status.toLowerCase() === filterStatus.toLowerCase()
     const matchesPayment =
-      filterPayment === "all" || trip.paymentMethod.toLowerCase() === filterPayment.toLowerCase()
+      filterPayment === "all" || (trip.payment_method || "").toLowerCase() === filterPayment.toLowerCase()
     const matchesAmount = trip.amount >= minAmount && trip.amount <= maxAmount
     
     return matchesSearch && matchesStatus && matchesPayment && matchesAmount
@@ -381,7 +570,6 @@ export default function Trips() {
       >
         Dashboard
       </button>
-     
       <button 
         className={`tab-btn ${activeTab === "history" ? "active" : ""}`}
         onClick={() => {
@@ -391,7 +579,6 @@ export default function Trips() {
       >
         History
       </button>
-      
     </div>
   )
   
@@ -410,19 +597,19 @@ export default function Trips() {
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-label">Total Trips</div>
-            <h3 className="stat-value">45</h3>
+            <h3 className="stat-value">{stats?.total_trips || 0}</h3>
           </div>
           <div className="stat-card">
             <div className="stat-label">Total Revenue</div>
-            <h3 className="stat-value">85,000</h3>
+            <h3 className="stat-value">{stats?.total_revenue ? stats.total_revenue.toLocaleString() : "0"}</h3>
           </div>
           <div className="stat-card">
             <div className="stat-label">Completed</div>
-            <h3 className="stat-value">38</h3>
+            <h3 className="stat-value">{stats?.completed_trips || 0}</h3>
           </div>
           <div className="stat-card">
             <div className="stat-label">Failed</div>
-            <h3 className="stat-value">7</h3>
+            <h3 className="stat-value">{stats?.failed_trips || 0}</h3>
           </div>
         </div>
 
@@ -432,23 +619,23 @@ export default function Trips() {
           <div className="commission-grid">
             <div className="commission-card revenue">
               <div className="commission-label">Today's Revenue</div>
-              <h4 className="commission-amount">UGX 15,000</h4>
+              <h4 className="commission-amount">UGX {overview?.today_revenue ? overview.today_revenue.toLocaleString() : "0"}</h4>
             </div>
             <div className="commission-card today">
               <div className="commission-label">Today's Trips</div>
-              <h4 className="commission-amount">10</h4>
+              <h4 className="commission-amount">{overview?.today_trips || 0}</h4>
             </div>
             <div className="commission-card weekly">
               <div className="commission-label">Success Rate</div>
-              <h4 className="commission-amount">84%</h4>
+              <h4 className="commission-amount">{summary?.success_rate ? `${summary.success_rate}%` : "0%"}</h4>
             </div>
             <div className="commission-card lifetime">
               <div className="commission-label">Avg. Time</div>
-              <h4 className="commission-amount">18min</h4>
+              <h4 className="commission-amount">{summary?.avg_duration || "0min"}</h4>
             </div>
             <div className="commission-card pending">
               <div className="commission-label">Active Trips</div>
-              <h4 className="commission-amount">2</h4>
+              <h4 className="commission-amount">{overview?.active_trips || 0}</h4>
             </div>
           </div>
         </div>
@@ -477,7 +664,7 @@ export default function Trips() {
               <div key={trip.id} className="ledger-entry">
                 <div className="entry-info">
                   <div className="entry-type">{trip.id} - {trip.route}</div>
-                  <div className="entry-time">{trip.time}</div>
+                  <div className="entry-time">{trip.time || trip.created_at}</div>
                 </div>
                 <div className="entry-amount" style={{ 
                   color: trip.status === "Completed" ? "#2e7d32" : 
@@ -494,7 +681,7 @@ export default function Trips() {
         <div className="payout-section">
           <div className="balance-card">
             <div className="balance-label">Wallet Balance</div>
-            <h2 className="balance-amount">40,000<span style={{ fontSize: '16px', marginLeft: '4px' }}>UGX</span></h2>
+            <h2 className="balance-amount">{summary?.wallet_balance ? summary.wallet_balance.toLocaleString() : "0"}<span style={{ fontSize: '16px', marginLeft: '4px' }}>UGX</span></h2>
           </div>
           <button 
             className="withdraw-btn-large"
@@ -652,6 +839,19 @@ export default function Trips() {
                 </div>
               </div>
 
+              <div style={{ marginTop: '16px' }}>
+                <label style={{ display: 'block', color: '#002AFE', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>
+                  Notes (Optional)
+                </label>
+                <textarea
+                  className="promo-input"
+                  placeholder="Any special instructions or notes..."
+                  value={tripData.notes}
+                  onChange={(e) => setTripData({ ...tripData, notes: e.target.value })}
+                  style={{ width: '100%', minHeight: '60px' }}
+                />
+              </div>
+
               <div style={{ textAlign: 'center', marginTop: '20px', color: '#666', fontSize: '12px' }}>
                 * All fields are required to start a trip
               </div>
@@ -668,13 +868,13 @@ export default function Trips() {
               <button 
                 className="activate-code-btn"
                 onClick={handleStartTrip}
-                disabled={!tripData.pickup || !tripData.destination}
+                disabled={!tripData.pickup || !tripData.destination || loading}
                 style={{ 
-                  opacity: (!tripData.pickup || !tripData.destination) ? 0.5 : 1,
-                  cursor: (!tripData.pickup || !tripData.destination) ? 'not-allowed' : 'pointer'
+                  opacity: (!tripData.pickup || !tripData.destination || loading) ? 0.5 : 1,
+                  cursor: (!tripData.pickup || !tripData.destination || loading) ? 'not-allowed' : 'pointer'
                 }}
               >
-                Start Trip
+                {loading ? "Starting..." : "Start Trip"}
               </button>
             </div>
           </div>
@@ -902,40 +1102,46 @@ export default function Trips() {
           {/* Trip History Table */}
           <div className="commission-engine">
             <div className="section-title">All Trips</div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ background: '#f0f4ff' }}>
-                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>ID</th>
-                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Route</th>
-                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Duration</th>
-                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Amount</th>
-                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Payment</th>
-                    <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredTrips.map((trip) => (
-                    <tr key={trip.id} style={{ borderBottom: '1px solid #e0e0e0' }}>
-                      <td style={{ padding: '12px', fontSize: '12px', color: '#002AFE', fontWeight: '500' }}>{trip.id}</td>
-                      <td style={{ padding: '12px', fontSize: '12px', color: '#1e293b' }}>{trip.route}</td>
-                      <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>{trip.duration}</td>
-                      <td style={{ padding: '12px', fontSize: '12px', color: '#002AFE', fontWeight: '600' }}>UGX {trip.amount.toLocaleString()}</td>
-                      <td style={{ padding: '12px', fontSize: '12px', color: '#475569' }}>{trip.paymentMethod}</td>
-                      <td style={{ padding: '12px' }}>
-                        <span className={`status-badge ${trip.status.toLowerCase()}`}>
-                          {trip.status}
-                          {trip.manualOverride && " (Manual)"}
-                        </span>
-                      </td>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <div style={{ color: '#002AFE', fontSize: '14px' }}>Loading trips...</div>
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ background: '#f0f4ff' }}>
+                      <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>ID</th>
+                      <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Route</th>
+                      <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Duration</th>
+                      <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Amount</th>
+                      <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Payment</th>
+                      <th style={{ padding: '12px', textAlign: 'left', color: '#002AFE', fontSize: '12px', fontWeight: '500' }}>Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filteredTrips.map((trip) => (
+                      <tr key={trip.id} style={{ borderBottom: '1px solid #e0e0e0' }}>
+                        <td style={{ padding: '12px', fontSize: '12px', color: '#002AFE', fontWeight: '500' }}>{trip.id}</td>
+                        <td style={{ padding: '12px', fontSize: '12px', color: '#1e293b' }}>{trip.route}</td>
+                        <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>{trip.duration}</td>
+                        <td style={{ padding: '12px', fontSize: '12px', color: '#002AFE', fontWeight: '600' }}>UGX {trip.amount.toLocaleString()}</td>
+                        <td style={{ padding: '12px', fontSize: '12px', color: '#475569' }}>{trip.payment_method}</td>
+                        <td style={{ padding: '12px' }}>
+                          <span className={`status-badge ${trip.status.toLowerCase()}`}>
+                            {trip.status}
+                            {trip.manual_override && " (Manual)"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+          <div style={{ display: 'flex', gap: '12px', marginTop: '24px', flexWrap: 'wrap' }}>
             <button 
               className="activate-code-btn"
               style={{ background: 'transparent', border: '1px solid #002AFE', color: '#002AFE' }}
@@ -945,9 +1151,10 @@ export default function Trips() {
             </button>
             <button 
               className="activate-code-btn"
-              onClick={exportToExcel}
+              onClick={exportTripsToExcel}
+              disabled={loading}
             >
-              Export to Excel
+              {loading ? "Exporting..." : "Export to Excel"}
             </button>
             <button 
               className="activate-code-btn"
@@ -1306,8 +1513,9 @@ export default function Trips() {
             className="activate-code-btn"
             style={{ flex: 1 }}
             onClick={handlePaymentContinue}
+            disabled={loading}
           >
-            Continue
+            {loading ? "Processing..." : "Continue"}
           </button>
         </div>
       </div>

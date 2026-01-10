@@ -2774,7 +2774,7 @@ const globalStyles = `
   }
 
   .active-trip-banner {
-    background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+    background: linear-gradient(135deg, #001FD8 0%, #001FD8 100%);
     color: white;
     padding: 16px;
     border-radius: 12px;
@@ -2943,7 +2943,7 @@ const globalStyles = `
 
   .promo-input:focus {
     outline: none;
-    border-color: '#4CAF50';
+    border-color: '#001FD8';
     box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
   }
 
