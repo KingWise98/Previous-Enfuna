@@ -107,7 +107,7 @@ const Statements = () => {
   const [balanceSheet, setBalanceSheet] = useState(null);
   const [exportFormat, setExportFormat] = useState('pdf');
 
-  // Initialize data
+  // Initialize data Kure at work
   useEffect(() => {
     loadAllData();
   }, [incomePeriod]);
