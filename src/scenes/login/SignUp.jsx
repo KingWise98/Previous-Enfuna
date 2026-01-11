@@ -1,27 +1,24 @@
 "use client"
 
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import styles from "./Auth.module.css"
 
-const API_BASE_URL = "http://127.0.0.1:8000/api"
-
 function Auth({ onLogin }) {
+  const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedAccountType, setSelectedAccountType] = useState("")
-  const [apiError, setApiError] = useState("")
-  const [otpToken, setOtpToken] = useState("")
 
   const [formValues, setFormValues] = useState({
-    full_names: "",
-    phone_number: "",
+    fullName: "",
+    phoneNumber: "",
     password: "",
-    confirm_password: "",
+    confirmPassword: "",
     otp: "",
-    account_type: "",
-    username: "", // For login only
-    login_password: "",
-    // Email removed since it's not in the serializer
+    accountType: "",
+    usernameOrEmail: "",
+    loginPassword: "",
   })
 
   const [formErrors, setFormErrors] = useState({})
@@ -32,44 +29,31 @@ function Auth({ onLogin }) {
     if (formErrors[name]) {
       setFormErrors({ ...formErrors, [name]: "" })
     }
-    setApiError("")
   }
 
   const handleAccountTypeSelect = (type) => {
     setSelectedAccountType(type)
-    setFormValues({ ...formValues, account_type: type })
+    setFormValues({ ...formValues, accountType: type })
     setCurrentStep(3)
   }
 
-  // Step 3: Collect basic info - FIXED: Removed email validation
   const handleCreateAccount = (e) => {
     e.preventDefault()
     const errors = {}
-    
-    if (!formValues.full_names) {
-      errors.full_names = "Full name is required"
+    if (!formValues.fullName) {
+      errors.fullName = "Full name is required"
     }
-    if (!formValues.phone_number) {
-      errors.phone_number = "Phone number is required"
+    if (!formValues.phoneNumber) {
+      errors.phoneNumber = "Phone number is required"
+    }
+    if (Object.keys(errors).length === 0) {
+      setCurrentStep(4) // Go to password creation
     } else {
-      // Basic phone validation - at least 10 digits
-      const phoneDigits = formValues.phone_number.replace(/\D/g, '')
-      if (phoneDigits.length < 10) {
-        errors.phone_number = "Please enter a valid phone number (at least 10 digits)"
-      }
-    }
-    // Email validation removed since it's not in the serializer
-
-    if (Object.keys(errors).length > 0) {
       setFormErrors(errors)
-      return
     }
-
-    setCurrentStep(4)
   }
 
-  // Step 4: Handle registration with password
-  const handlePasswordSubmit = async (e) => {
+  const handlePasswordSubmit = (e) => {
     e.preventDefault()
     const errors = {}
     if (!formValues.password) {
@@ -77,93 +61,19 @@ function Auth({ onLogin }) {
     } else if (formValues.password.length < 6) {
       errors.password = "Password must be at least 6 characters"
     }
-    if (!formValues.confirm_password) {
-      errors.confirm_password = "Please confirm your password"
-    } else if (formValues.confirm_password !== formValues.password) {
-      errors.confirm_password = "Passwords do not match"
+    if (!formValues.confirmPassword) {
+      errors.confirmPassword = "Please confirm your password"
+    } else if (formValues.confirmPassword !== formValues.password) {
+      errors.confirmPassword = "Passwords do not match"
     }
-    
-    if (Object.keys(errors).length > 0) {
+    if (Object.keys(errors).length === 0) {
+      setCurrentStep(5) // Go to OTP verification
+    } else {
       setFormErrors(errors)
-      return
-    }
-
-    setIsLoading(true)
-    setApiError("")
-
-    try {
-      // Format phone number - remove all non-numeric characters
-      const formattedPhone = formValues.phone_number.replace(/\D/g, '')
-      
-      // Match the serializer fields exactly
-      const userData = {
-        phone_number: formattedPhone,
-        full_names: formValues.full_names,
-        password: formValues.password,
-        confirm_password: formValues.confirm_password,
-        is_staff: false, // Staff/super is not selectable in UI
-        is_driver: selectedAccountType === "driver",
-        is_rider: selectedAccountType === "rider",
-        is_vendor: selectedAccountType === "vendor",
-        is_bussiness: selectedAccountType === "business", // Note: 'is_bussiness' not 'is_business'
-      }
-
-      console.log("Sending registration data:", userData)
-
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      })
-
-      const data = await response.json()
-      console.log("Registration response:", data)
-
-      if (response.ok) {
-        // Check what the API actually returns
-        if (data.token || data.otp_token) {
-          setOtpToken(data.token || data.otp_token)
-        }
-        setCurrentStep(5)
-      } else {
-        // Handle Django validation errors
-        let errorMessage = "Registration failed"
-        
-        if (typeof data === 'object') {
-          // If errors are in array format like {phone_number: ["error message"]}
-          const errorFields = Object.keys(data)
-          if (errorFields.length > 0) {
-            const firstError = data[errorFields[0]]
-            if (Array.isArray(firstError) && firstError.length > 0) {
-              errorMessage = `${errorFields[0]}: ${firstError[0]}`
-            } else if (typeof firstError === 'string') {
-              errorMessage = `${errorFields[0]}: ${firstError}`
-            } else {
-              errorMessage = JSON.stringify(data)
-            }
-          }
-        } else if (typeof data === 'string') {
-          errorMessage = data
-        } else if (data.detail) {
-          errorMessage = data.detail
-        } else if (data.error) {
-          errorMessage = data.error
-        }
-        
-        setApiError(errorMessage)
-      }
-    } catch (error) {
-      console.error("Registration error:", error)
-      setApiError("Network error. Please try again.")
-    } finally {
-      setIsLoading(false)
     }
   }
 
-  // Step 5: Verify OTP
-  const handleVerifyCode = async (e) => {
+  const handleVerifyCode = (e) => {
     e.preventDefault()
     const errors = {}
     if (!formValues.otp) {
@@ -171,140 +81,54 @@ function Auth({ onLogin }) {
     } else if (formValues.otp.length !== 6) {
       errors.otp = "OTP must be 6 digits"
     }
-    
-    if (Object.keys(errors).length > 0) {
+    if (Object.keys(errors).length === 0) {
+      setIsLoading(true)
+      setTimeout(() => {
+        setIsLoading(false)
+        setCurrentStep(6) // Go to welcome screen
+      }, 1000)
+    } else {
       setFormErrors(errors)
-      return
-    }
-
-    setIsLoading(true)
-    setApiError("")
-
-    try {
-      // Format phone number for verification
-      const formattedPhone = formValues.phone_number.replace(/\D/g, '')
-      
-      let verificationData = {
-        phone_number: formattedPhone,
-        otp: formValues.otp
-      }
-
-      // Add token if we have it
-      if (otpToken) {
-        verificationData.token = otpToken
-      }
-
-      console.log("Verifying OTP:", verificationData)
-
-      const response = await fetch(`${API_BASE_URL}/auth/verify_token`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(verificationData),
-      })
-
-      const data = await response.json()
-      console.log("OTP verification response:", data)
-
-      if (response.ok) {
-        if (data.access_token || data.token) {
-          localStorage.setItem("auth_token", data.access_token || data.token)
-          console.log("Token saved to localStorage")
-        }
-        setCurrentStep(6)
-      } else {
-        setApiError(data.detail || data.error || "OTP verification failed")
-      }
-    } catch (error) {
-      console.error("OTP verification error:", error)
-      setApiError("Network error. Please try again.")
-    } finally {
-      setIsLoading(false)
     }
   }
 
-  // Step 1: Login
-  const handleLoginSubmit = async (e) => {
+  const handleLoginSubmit = (e) => {
     e.preventDefault()
     const errors = {}
-    
-    // For login, username is phone number (based on serializer)
-    if (!formValues.username) {
-      errors.username = "Phone number is required"
+    if (!formValues.usernameOrEmail) {
+      errors.usernameOrEmail = "Username or email is required"
     }
-    
-    if (!formValues.login_password) {
-      errors.login_password = "Password is required"
+    if (!formValues.loginPassword) {
+      errors.loginPassword = "Password is required"
     }
-    
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors)
-      return
-    }
-
-    setIsLoading(true)
-    setApiError("")
-
-    try {
-      const loginIdentifier = formValues.username.replace(/\D/g, '') // Clean phone number
-      
-      console.log("Sending login request:", { username: loginIdentifier })
-
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: loginIdentifier,
-          password: formValues.login_password
-        }),
-      })
-
-      const data = await response.json()
-      console.log("Login response:", data)
-
-      if (response.ok) {
-        if (data.access_token || data.token) {
-          const token = data.access_token || data.token
-          localStorage.setItem("auth_token", token)
-          console.log("Login token saved to localStorage")
+    if (Object.keys(errors).length === 0) {
+      setIsLoading(true)
+      setTimeout(() => {
+        setIsLoading(false)
+        let userRole = "normal"
+        const { usernameOrEmail, loginPassword } = formValues
+        if (usernameOrEmail.toLowerCase().includes("rider") && loginPassword === "password") {
+          userRole = "rider"
+        } else if (usernameOrEmail.toLowerCase().includes("driver") && loginPassword === "password") {
+          userRole = "driver"
+        } else if (usernameOrEmail.toLowerCase().includes("vendor") && loginPassword === "password") {
+          userRole = "vendor"
+        } else if (usernameOrEmail.toLowerCase().includes("business") && loginPassword === "password") {
+          userRole = "admin"
+        } else if (usernameOrEmail.toLowerCase().includes("admin") && loginPassword === "password") {
+          userRole = "admin"
+        } else {
+          userRole = "rider"
         }
-        
-        // Determine role based on serializer fields
-        let userRole = "rider" // default
-        if (data.user) {
-          const user = data.user
-          if (user.is_staff) userRole = "super"
-          else if (user.is_bussiness) userRole = "admin"
-          else if (user.is_driver) userRole = "driver"
-          else if (user.is_rider) userRole = "rider"
-          else if (user.is_vendor) userRole = "vendor"
-        } else if (data.account_type) {
-          // Fallback to account_type if user object not available
-          if (data.account_type === "super") userRole = "super"
-          else if (data.account_type === "business") userRole = "admin"
-          else if (data.account_type === "driver") userRole = "driver"
-          else if (data.account_type === "rider") userRole = "rider"
-          else if (data.account_type === "vendor") userRole = "vendor"
-        }
-        
-        console.log("Login successful, role:", userRole)
         onLogin(userRole)
-      } else {
-        setApiError(data.detail || data.error || "Invalid phone number or password")
-      }
-    } catch (error) {
-      console.error("Login error:", error)
-      setApiError("Network error. Please try again.")
-    } finally {
-      setIsLoading(false)
+      }, 1000)
+    } else {
+      setFormErrors(errors)
     }
   }
 
   const handleProceedToDashboard = () => {
-    let userRole = "rider"
+    let userRole = "normal"
     switch (selectedAccountType) {
       case "rider":
         userRole = "rider"
@@ -319,9 +143,8 @@ function Auth({ onLogin }) {
         userRole = "admin"
         break
       default:
-        userRole = "rider"
+        userRole = "normal"
     }
-    console.log("Proceeding to dashboard with role:", userRole)
     onLogin(userRole)
   }
 
@@ -338,71 +161,68 @@ function Auth({ onLogin }) {
     }
   }
 
-  const getAccountTypeImage = (type) => {
-    // Use specific image names based on account type
-    switch (type) {
-      case "business":
-        return "/business.png" 
-      case "rider":
-        return "/rider.png"  
-      case "driver":
-        return "/driver.png"  
-      case "vendor":
-        return "/vendor.png"  
-      default:
-        return `/${type}.svg`  
-    }
-  }
-
   const renderAccountTypeSelection = () => (
     <div className={styles.authCard}>
       <h1 className={styles.authTitle}>Choose Account Type</h1>
+
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoMedium} />
       </div>
+
       <p className={styles.sectionSubtitle}>Select an Account to Proceed</p>
-      <div className={styles.accountTypeGrid}>
-        {["rider", "driver", "vendor", "business"].map((type) => (
-          <button
-            key={type}
-            type="button"
-            className={`${styles.accountTypeButton} ${selectedAccountType === type ? styles.selected : ""}`}
-            onClick={() => handleAccountTypeSelect(type)}
-          >
-            <div
-              className={styles.accountTypeIconContainer}
-              style={{ backgroundColor: getAccountTypeBackground(type) }}
+
+      <div className={styles.accountTypeGridContainer}>
+        <div className={styles.accountTypeGrid}>
+          {["rider", "driver", "vendor", "business"].map((type) => (
+            <button
+              key={type}
+              type="button"
+              className={`${styles.accountTypeButton} ${selectedAccountType === type ? styles.selected : ""}`}
+              onClick={() => handleAccountTypeSelect(type)}
             >
-              <img
-                src={getAccountTypeImage(type)}
-                alt={type}
-                className={styles.accountTypeIcon}
-                onError={(e) => {
-                  e.target.style.display = "none"
-                  e.target.nextSibling.style.display = "block"
-                }}
-              />
-              <div className={styles.fallbackIcon} style={{ display: "none" }}>
-                {type.charAt(0).toUpperCase()}
+              <div
+                className={styles.accountTypeIconContainer}
+                style={{ backgroundColor: getAccountTypeBackground(type) }}
+              >
+                <img
+                  src={`/${type}.svg`}
+                  alt={type}
+                  className={styles.accountTypeIcon}
+                  onError={(e) => {
+                    e.target.style.display = "none"
+                    e.target.nextSibling.style.display = "block"
+                  }}
+                />
+                <div className={styles.fallbackIcon} style={{ display: "none" }}>
+                  {type.charAt(0).toUpperCase()}
+                </div>
               </div>
-            </div>
-            <span className={styles.accountTypeLabel}>
-              {type === "business" ? "Business" : type.charAt(0).toUpperCase() + type.slice(1)}
-            </span>
-          </button>
-        ))}
+              <span className={styles.accountTypeLabel}>{type.charAt(0).toUpperCase() + type.slice(1)}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className={styles.horizontalDivider}></div>
+        <div className={styles.verticalDivider}></div>
       </div>
+
       <div className={styles.authLinks}>
         <p>
-          Already have an account?{" "}
+          Already have an account already?{" "}
           <button type="button" className={styles.linkButton} onClick={() => setCurrentStep(1)}>
             Login
           </button>
         </p>
       </div>
-      <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(1)}>
-        Back
-      </button>
+
+      <div className={styles.buttonGroup}>
+        <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(1)}>
+          Back
+        </button>
+        <button type="button" className={styles.primaryButton} onClick={() => setCurrentStep(1)}>
+          Cancel
+        </button>
+      </div>
     </div>
   )
 
@@ -412,38 +232,36 @@ function Auth({ onLogin }) {
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
       </div>
       <h1 className={styles.authTitle}>Login to Enfuna</h1>
-      {apiError && <div className={styles.apiError}>{apiError}</div>}
       <form onSubmit={handleLoginSubmit} className={styles.authForm}>
-        <div className={`${styles.formGroup} ${formErrors.username ? styles.error : ""}`}>
-          <label htmlFor="username" className={styles.inputLabel}>
-            Phone Number:
+        <div className={`${styles.formGroup} ${formErrors.usernameOrEmail ? styles.error : ""}`}>
+          <label htmlFor="usernameOrEmail" className={styles.inputLabel}>
+            Username or Email:
           </label>
           <input
             type="text"
-            id="username"
-            name="username"
-            placeholder="Enter your phone number"
-            value={formValues.username}
+            id="usernameOrEmail"
+            name="usernameOrEmail"
+            placeholder="Enter your username or email"
+            value={formValues.usernameOrEmail}
             onChange={handleChange}
             className={styles.inputField}
           />
-          {formErrors.username && <p className={styles.errorText}>{formErrors.username}</p>}
-          <p className={styles.fieldHint}>Use your registered phone number</p>
+          {formErrors.usernameOrEmail && <p className={styles.errorText}>{formErrors.usernameOrEmail}</p>}
         </div>
-        <div className={`${styles.formGroup} ${formErrors.login_password ? styles.error : ""}`}>
-          <label htmlFor="login_password" className={styles.inputLabel}>
+        <div className={`${styles.formGroup} ${formErrors.loginPassword ? styles.error : ""}`}>
+          <label htmlFor="loginPassword" className={styles.inputLabel}>
             Password:
           </label>
           <input
             type="password"
-            id="login_password"
-            name="login_password"
+            id="loginPassword"
+            name="loginPassword"
             placeholder="Enter your password"
-            value={formValues.login_password}
+            value={formValues.loginPassword}
             onChange={handleChange}
             className={styles.inputField}
           />
-          {formErrors.login_password && <p className={styles.errorText}>{formErrors.login_password}</p>}
+          {formErrors.loginPassword && <p className={styles.errorText}>{formErrors.loginPassword}</p>}
         </div>
         <button type="submit" className={styles.primaryButton} disabled={isLoading}>
           {isLoading ? "Signing In..." : "Sign In"}
@@ -457,6 +275,13 @@ function Auth({ onLogin }) {
           </button>
         </p>
       </div>
+      <div className={styles.devHint}>
+        <p>
+          <strong>Demo Credentials:</strong>
+        </p>
+        <p>Username: rider, driver, vendor, business</p>
+        <p>Password: password</p>
+      </div>
     </div>
   )
 
@@ -465,47 +290,50 @@ function Auth({ onLogin }) {
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
       </div>
-      <h1 className={styles.authTitle}>Create Account</h1>
-      {apiError && <div className={styles.apiError}>{apiError}</div>}
+      <h1 className={styles.authTitle}>Create Enfuna Account</h1>
       <form onSubmit={handleCreateAccount} className={styles.authForm}>
-        <div className={`${styles.formGroup} ${formErrors.full_names ? styles.error : ""}`}>
-          <label htmlFor="full_names" className={styles.inputLabel}>
+        <div className={`${styles.formGroup} ${formErrors.fullName ? styles.error : ""}`}>
+          <label htmlFor="fullName" className={styles.inputLabel}>
             Full Names:
           </label>
           <input
             type="text"
-            id="full_names"
-            name="full_names"
+            id="fullName"
+            name="fullName"
             placeholder="Enter your full name"
-            value={formValues.full_names}
+            value={formValues.fullName}
             onChange={handleChange}
             className={styles.inputField}
           />
-          {formErrors.full_names && <p className={styles.errorText}>{formErrors.full_names}</p>}
+          {formErrors.fullName && <p className={styles.errorText}>{formErrors.fullName}</p>}
         </div>
-        <div className={`${styles.formGroup} ${formErrors.phone_number ? styles.error : ""}`}>
-          <label htmlFor="phone_number" className={styles.inputLabel}>
+        <div className={`${styles.formGroup} ${formErrors.phoneNumber ? styles.error : ""}`}>
+          <label htmlFor="phoneNumber" className={styles.inputLabel}>
             Phone Number:
           </label>
           <input
             type="tel"
-            id="phone_number"
-            name="phone_number"
-            placeholder="Enter your phone number (e.g., 0712345678)"
-            value={formValues.phone_number}
+            id="phoneNumber"
+            name="phoneNumber"
+            placeholder="Enter your phone number"
+            value={formValues.phoneNumber}
             onChange={handleChange}
             className={styles.inputField}
           />
-          {formErrors.phone_number && <p className={styles.errorText}>{formErrors.phone_number}</p>}
-          <p className={styles.fieldHint}>This will be your username for login</p>
+          {formErrors.phoneNumber && <p className={styles.errorText}>{formErrors.phoneNumber}</p>}
         </div>
         <button type="submit" className={styles.primaryButton}>
-          Continue
+          Continue to Password
         </button>
       </form>
-      <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(2)}>
-        Back
-      </button>
+      <div className={styles.buttonGroup}>
+        <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(2)}>
+          Back
+        </button>
+        <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(1)}>
+          Cancel
+        </button>
+      </div>
     </div>
   )
 
@@ -514,8 +342,7 @@ function Auth({ onLogin }) {
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
       </div>
-      <h1 className={styles.authTitle}>Create Password</h1>
-      {apiError && <div className={styles.apiError}>{apiError}</div>}
+      <h1 className={styles.authTitle}>Enter Password</h1>
       <form onSubmit={handlePasswordSubmit} className={styles.authForm}>
         <div className={`${styles.formGroup} ${formErrors.password ? styles.error : ""}`}>
           <label htmlFor="password" className={styles.inputLabel}>
@@ -532,28 +359,33 @@ function Auth({ onLogin }) {
           />
           {formErrors.password && <p className={styles.errorText}>{formErrors.password}</p>}
         </div>
-        <div className={`${styles.formGroup} ${formErrors.confirm_password ? styles.error : ""}`}>
-          <label htmlFor="confirm_password" className={styles.inputLabel}>
+        <div className={`${styles.formGroup} ${formErrors.confirmPassword ? styles.error : ""}`}>
+          <label htmlFor="confirmPassword" className={styles.inputLabel}>
             Confirm Password:
           </label>
           <input
             type="password"
-            id="confirm_password"
-            name="confirm_password"
+            id="confirmPassword"
+            name="confirmPassword"
             placeholder="Confirm your password"
-            value={formValues.confirm_password}
+            value={formValues.confirmPassword}
             onChange={handleChange}
             className={styles.inputField}
           />
-          {formErrors.confirm_password && <p className={styles.errorText}>{formErrors.confirm_password}</p>}
+          {formErrors.confirmPassword && <p className={styles.errorText}>{formErrors.confirmPassword}</p>}
         </div>
-        <button type="submit" className={styles.primaryButton} disabled={isLoading}>
-          {isLoading ? "Registering..." : "Register"}
+        <button type="submit" className={styles.primaryButton}>
+          Send OTP Code
         </button>
       </form>
-      <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(3)}>
-        Back
-      </button>
+      <div className={styles.buttonGroup}>
+        <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(3)}>
+          Back
+        </button>
+        <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(1)}>
+          Cancel
+        </button>
+      </div>
     </div>
   )
 
@@ -562,13 +394,9 @@ function Auth({ onLogin }) {
       <div className={styles.logoSection}>
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
       </div>
-      <h1 className={styles.authTitle}>Verify OTP</h1>
-      {apiError && <div className={styles.apiError}>{apiError}</div>}
+      <h1 className={styles.authTitle}>Enter OTP Code</h1>
       <form onSubmit={handleVerifyCode} className={styles.authForm}>
         <div className={`${styles.formGroup} ${formErrors.otp ? styles.error : ""}`}>
-          <p className={styles.otpDescription}>
-            Enter the 6-digit code sent to {formValues.phone_number}
-          </p>
           <input
             type="text"
             id="otp"
@@ -582,12 +410,22 @@ function Auth({ onLogin }) {
           {formErrors.otp && <p className={styles.errorText}>{formErrors.otp}</p>}
         </div>
         <button type="submit" className={styles.primaryButton} disabled={isLoading}>
-          {isLoading ? "Verifying..." : "Verify"}
+          {isLoading ? "Verifying..." : "Verify Code"}
         </button>
       </form>
-      <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(4)}>
-        Back
-      </button>
+      <div className={styles.authLinks}>
+        <p>
+          Didn't Receive Code?{" "}
+          <button type="button" className={styles.linkButton}>
+            Resend Code
+          </button>
+        </p>
+      </div>
+      <div className={styles.buttonGroup}>
+        <button type="button" className={styles.secondaryButton} onClick={() => setCurrentStep(4)}>
+          Back
+        </button>
+      </div>
     </div>
   )
 
@@ -597,15 +435,10 @@ function Auth({ onLogin }) {
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
       </div>
       <div className={styles.welcomeContent}>
-        <h1 className={styles.welcomeTitle}>Welcome, {formValues.full_names}!</h1>
-        <p className={styles.welcomeMessage}>
-          Your {selectedAccountType === "business" ? "Business" : selectedAccountType} account is ready
-        </p>
-        <p className={styles.fieldHint}>
-          Use your phone number ({formValues.phone_number}) to login
-        </p>
+        <h1 className={styles.welcomeTitle}>Hi {formValues.fullName || "User"}, You're in!</h1>
+        <p className={styles.welcomeMessage}>Welcome to your {selectedAccountType} dashboard</p>
         <button type="button" className={styles.primaryButton} onClick={handleProceedToDashboard}>
-          Go to Dashboard
+          Proceed to Dashboard
         </button>
       </div>
     </div>
