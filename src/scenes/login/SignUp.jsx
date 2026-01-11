@@ -115,8 +115,8 @@ function Auth({ onLogin }) {
           userRole = "vendor"
         } else if (usernameOrEmail.toLowerCase().includes("business") && loginPassword === "password") {
           userRole = "admin"
-        } else if (usernameOrEmail.toLowerCase().includes("admin") && loginPassword === "password") {
-          userRole = "admin"
+        } else if (usernameOrEmail.toLowerCase().includes("super") && loginPassword === "password") {
+          userRole = "super"
         } else {
           userRole = "rider"
         }
@@ -141,7 +141,10 @@ function Auth({ onLogin }) {
         break
       case "business":
         userRole = "admin"
+
         break
+        case "super":
+        userRole = "super"
       default:
         userRole = "normal"
     }
@@ -279,7 +282,7 @@ function Auth({ onLogin }) {
         <p>
           <strong>Demo Credentials:</strong>
         </p>
-        <p>Username: rider, driver, vendor, business</p>
+        <p>Username: rider, driver, vendor, business, super</p>
         <p>Password: password</p>
       </div>
     </div>
