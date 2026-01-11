@@ -21,7 +21,7 @@ function Auth({ onLogin }) {
     account_type: "",
     username: "", // For login only
     login_password: "",
-    email: "",
+    // Email removed since it's not in the serializer
   })
 
   const [formErrors, setFormErrors] = useState({})
@@ -41,7 +41,7 @@ function Auth({ onLogin }) {
     setCurrentStep(3)
   }
 
-  // Step 3: Collect basic info
+  // Step 3: Collect basic info - FIXED: Removed email validation
   const handleCreateAccount = (e) => {
     e.preventDefault()
     const errors = {}
@@ -58,11 +58,7 @@ function Auth({ onLogin }) {
         errors.phone_number = "Please enter a valid phone number (at least 10 digits)"
       }
     }
-    if (!formValues.email) {
-      errors.email = "Email is required"
-    } else if (!/\S+@\S+\.\S+/.test(formValues.email)) {
-      errors.email = "Email is invalid"
-    }
+    // Email validation removed since it's not in the serializer
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors)
@@ -72,7 +68,7 @@ function Auth({ onLogin }) {
     setCurrentStep(4)
   }
 
-  // Step 4: Handle registration with password - UPDATED TO MATCH SERIALIZER
+  // Step 4: Handle registration with password
   const handlePasswordSubmit = async (e) => {
     e.preventDefault()
     const errors = {}
@@ -105,15 +101,14 @@ function Auth({ onLogin }) {
         full_names: formValues.full_names,
         password: formValues.password,
         confirm_password: formValues.confirm_password,
-        is_staff: selectedAccountType === "super",  // Keep for backward compatibility
+        is_staff: false, // Staff/super is not selectable in UI
         is_driver: selectedAccountType === "driver",
         is_rider: selectedAccountType === "rider",
         is_vendor: selectedAccountType === "vendor",
-        is_bussiness: selectedAccountType === "business",  // Note: 'is_bussiness' not 'is_business'
-        // Note: email is not in the serializer, so we're not sending it
+        is_bussiness: selectedAccountType === "business", // Note: 'is_bussiness' not 'is_business'
       }
 
-      console.log("Sending registration:", userData)
+      console.log("Sending registration data:", userData)
 
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
@@ -153,6 +148,8 @@ function Auth({ onLogin }) {
           errorMessage = data
         } else if (data.detail) {
           errorMessage = data.detail
+        } else if (data.error) {
+          errorMessage = data.error
         }
         
         setApiError(errorMessage)
@@ -208,18 +205,19 @@ function Auth({ onLogin }) {
       })
 
       const data = await response.json()
-      console.log("OTP response:", data)
+      console.log("OTP verification response:", data)
 
       if (response.ok) {
         if (data.access_token || data.token) {
           localStorage.setItem("auth_token", data.access_token || data.token)
+          console.log("Token saved to localStorage")
         }
         setCurrentStep(6)
       } else {
-        setApiError(data.detail || "OTP verification failed")
+        setApiError(data.detail || data.error || "OTP verification failed")
       }
     } catch (error) {
-      console.error("OTP error:", error)
+      console.error("OTP verification error:", error)
       setApiError("Network error. Please try again.")
     } finally {
       setIsLoading(false)
@@ -231,9 +229,9 @@ function Auth({ onLogin }) {
     e.preventDefault()
     const errors = {}
     
-    // For login, username can be phone number or email
+    // For login, username is phone number (based on serializer)
     if (!formValues.username) {
-      errors.username = "Phone number or email is required"
+      errors.username = "Phone number is required"
     }
     
     if (!formValues.login_password) {
@@ -249,16 +247,17 @@ function Auth({ onLogin }) {
     setApiError("")
 
     try {
-      // Determine if input is phone number (contains only digits) or email
-      const loginIdentifier = formValues.username
+      const loginIdentifier = formValues.username.replace(/\D/g, '') // Clean phone number
       
+      console.log("Sending login request:", { username: loginIdentifier })
+
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: loginIdentifier, // Send as username field
+          username: loginIdentifier,
           password: formValues.login_password
         }),
       })
@@ -268,7 +267,9 @@ function Auth({ onLogin }) {
 
       if (response.ok) {
         if (data.access_token || data.token) {
-          localStorage.setItem("auth_token", data.access_token || data.token)
+          const token = data.access_token || data.token
+          localStorage.setItem("auth_token", token)
+          console.log("Login token saved to localStorage")
         }
         
         // Determine role based on serializer fields
@@ -276,7 +277,7 @@ function Auth({ onLogin }) {
         if (data.user) {
           const user = data.user
           if (user.is_staff) userRole = "super"
-          else if (user.is_bussiness) userRole = "admin"  // Note: 'is_bussiness' not 'is_business'
+          else if (user.is_bussiness) userRole = "admin"
           else if (user.is_driver) userRole = "driver"
           else if (user.is_rider) userRole = "rider"
           else if (user.is_vendor) userRole = "vendor"
@@ -289,9 +290,10 @@ function Auth({ onLogin }) {
           else if (data.account_type === "vendor") userRole = "vendor"
         }
         
+        console.log("Login successful, role:", userRole)
         onLogin(userRole)
       } else {
-        setApiError(data.detail || "Invalid phone number/email or password")
+        setApiError(data.detail || data.error || "Invalid phone number or password")
       }
     } catch (error) {
       console.error("Login error:", error)
@@ -310,9 +312,6 @@ function Auth({ onLogin }) {
       case "driver":
         userRole = "driver"
         break
-      case "super":
-        userRole = "super"
-        break
       case "vendor":
         userRole = "vendor"
         break
@@ -322,6 +321,7 @@ function Auth({ onLogin }) {
       default:
         userRole = "rider"
     }
+    console.log("Proceeding to dashboard with role:", userRole)
     onLogin(userRole)
   }
 
@@ -333,8 +333,6 @@ function Auth({ onLogin }) {
       case "driver":
       case "vendor":
         return "#0125DC"
-      case "super":
-        return "#4CAF50"
       default:
         return "#f5f5f5"
     }
@@ -344,15 +342,15 @@ function Auth({ onLogin }) {
     // Use specific image names based on account type
     switch (type) {
       case "business":
-        return "/business.png"  // Specific business image
+        return "/business.png" 
       case "rider":
-        return "/rider.png"  // Assuming you have rider.png
+        return "/rider.png"  
       case "driver":
-        return "/driver.png"  // Assuming you have driver.png
+        return "/driver.png"  
       case "vendor":
-        return "/vendor.png"  // Assuming you have vendor.png
+        return "/vendor.png"  
       default:
-        return `/${type}.svg`  // Fallback
+        return `/${type}.svg`  
     }
   }
 
@@ -376,7 +374,7 @@ function Auth({ onLogin }) {
               style={{ backgroundColor: getAccountTypeBackground(type) }}
             >
               <img
-                src={getAccountTypeImage(type)}  // Use specific image function
+                src={getAccountTypeImage(type)}
                 alt={type}
                 className={styles.accountTypeIcon}
                 onError={(e) => {
@@ -501,7 +499,6 @@ function Auth({ onLogin }) {
           {formErrors.phone_number && <p className={styles.errorText}>{formErrors.phone_number}</p>}
           <p className={styles.fieldHint}>This will be your username for login</p>
         </div>
-        {/* Note: Email field is removed because it's not in the serializer */}
         <button type="submit" className={styles.primaryButton}>
           Continue
         </button>
