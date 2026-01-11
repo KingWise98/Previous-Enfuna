@@ -19,7 +19,7 @@ function Auth({ onLogin }) {
     confirm_password: "",
     otp: "",
     account_type: "",
-    username: "",
+    username: "", // For login only
     login_password: "",
     email: "",
   })
@@ -51,14 +51,17 @@ function Auth({ onLogin }) {
     }
     if (!formValues.phone_number) {
       errors.phone_number = "Phone number is required"
+    } else {
+      // Basic phone validation - at least 10 digits
+      const phoneDigits = formValues.phone_number.replace(/\D/g, '')
+      if (phoneDigits.length < 10) {
+        errors.phone_number = "Please enter a valid phone number (at least 10 digits)"
+      }
     }
     if (!formValues.email) {
       errors.email = "Email is required"
     } else if (!/\S+@\S+\.\S+/.test(formValues.email)) {
       errors.email = "Email is invalid"
-    }
-    if (!formValues.username) {
-      errors.username = "Username is required"
     }
 
     if (Object.keys(errors).length > 0) {
@@ -69,7 +72,7 @@ function Auth({ onLogin }) {
     setCurrentStep(4)
   }
 
-  // Step 4: Handle registration with password
+  // Step 4: Handle registration with password - UPDATED TO MATCH SERIALIZER
   const handlePasswordSubmit = async (e) => {
     e.preventDefault()
     const errors = {}
@@ -93,19 +96,21 @@ function Auth({ onLogin }) {
     setApiError("")
 
     try {
+      // Format phone number - remove all non-numeric characters
+      const formattedPhone = formValues.phone_number.replace(/\D/g, '')
+      
+      // Match the serializer fields exactly
       const userData = {
-        username: formValues.username,
-        email: formValues.email,
-        phone_number: formValues.phone_number,
+        phone_number: formattedPhone,
         full_names: formValues.full_names,
         password: formValues.password,
         confirm_password: formValues.confirm_password,
-        is_staff: selectedAccountType === "super",
+        is_staff: selectedAccountType === "super",  // Keep for backward compatibility
         is_driver: selectedAccountType === "driver",
         is_rider: selectedAccountType === "rider",
         is_vendor: selectedAccountType === "vendor",
-        is_bussiness: selectedAccountType === "business",
-        account_type: selectedAccountType
+        is_bussiness: selectedAccountType === "business",  // Note: 'is_bussiness' not 'is_business'
+        // Note: email is not in the serializer, so we're not sending it
       }
 
       console.log("Sending registration:", userData)
@@ -179,9 +184,11 @@ function Auth({ onLogin }) {
     setApiError("")
 
     try {
-      // Try different payload formats
+      // Format phone number for verification
+      const formattedPhone = formValues.phone_number.replace(/\D/g, '')
+      
       let verificationData = {
-        phone_number: formValues.phone_number,
+        phone_number: formattedPhone,
         otp: formValues.otp
       }
 
@@ -223,9 +230,12 @@ function Auth({ onLogin }) {
   const handleLoginSubmit = async (e) => {
     e.preventDefault()
     const errors = {}
+    
+    // For login, username can be phone number or email
     if (!formValues.username) {
-      errors.username = "Username is required"
+      errors.username = "Phone number or email is required"
     }
+    
     if (!formValues.login_password) {
       errors.login_password = "Password is required"
     }
@@ -239,13 +249,16 @@ function Auth({ onLogin }) {
     setApiError("")
 
     try {
+      // Determine if input is phone number (contains only digits) or email
+      const loginIdentifier = formValues.username
+      
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: formValues.username,
+          username: loginIdentifier, // Send as username field
           password: formValues.login_password
         }),
       })
@@ -258,20 +271,27 @@ function Auth({ onLogin }) {
           localStorage.setItem("auth_token", data.access_token || data.token)
         }
         
-        // Determine role
+        // Determine role based on serializer fields
         let userRole = "rider" // default
         if (data.user) {
           const user = data.user
           if (user.is_staff) userRole = "super"
-          else if (user.is_bussiness) userRole = "admin"
+          else if (user.is_bussiness) userRole = "admin"  // Note: 'is_bussiness' not 'is_business'
           else if (user.is_driver) userRole = "driver"
           else if (user.is_rider) userRole = "rider"
           else if (user.is_vendor) userRole = "vendor"
+        } else if (data.account_type) {
+          // Fallback to account_type if user object not available
+          if (data.account_type === "super") userRole = "super"
+          else if (data.account_type === "business") userRole = "admin"
+          else if (data.account_type === "driver") userRole = "driver"
+          else if (data.account_type === "rider") userRole = "rider"
+          else if (data.account_type === "vendor") userRole = "vendor"
         }
         
         onLogin(userRole)
       } else {
-        setApiError(data.detail || "Invalid credentials")
+        setApiError(data.detail || "Invalid phone number/email or password")
       }
     } catch (error) {
       console.error("Login error:", error)
@@ -320,6 +340,22 @@ function Auth({ onLogin }) {
     }
   }
 
+  const getAccountTypeImage = (type) => {
+    // Use specific image names based on account type
+    switch (type) {
+      case "business":
+        return "/business.png"  // Specific business image
+      case "rider":
+        return "/rider.png"  // Assuming you have rider.png
+      case "driver":
+        return "/driver.png"  // Assuming you have driver.png
+      case "vendor":
+        return "/vendor.png"  // Assuming you have vendor.png
+      default:
+        return `/${type}.svg`  // Fallback
+    }
+  }
+
   const renderAccountTypeSelection = () => (
     <div className={styles.authCard}>
       <h1 className={styles.authTitle}>Choose Account Type</h1>
@@ -328,7 +364,7 @@ function Auth({ onLogin }) {
       </div>
       <p className={styles.sectionSubtitle}>Select an Account to Proceed</p>
       <div className={styles.accountTypeGrid}>
-        {["rider", "driver", "vendor", "business", "super"].map((type) => (
+        {["rider", "driver", "vendor", "business"].map((type) => (
           <button
             key={type}
             type="button"
@@ -340,7 +376,7 @@ function Auth({ onLogin }) {
               style={{ backgroundColor: getAccountTypeBackground(type) }}
             >
               <img
-                src={`/${type}.svg`}
+                src={getAccountTypeImage(type)}  // Use specific image function
                 alt={type}
                 className={styles.accountTypeIcon}
                 onError={(e) => {
@@ -353,9 +389,7 @@ function Auth({ onLogin }) {
               </div>
             </div>
             <span className={styles.accountTypeLabel}>
-              {type === "super" ? "Staff" : 
-               type === "business" ? "Business" :
-               type.charAt(0).toUpperCase() + type.slice(1)}
+              {type === "business" ? "Business" : type.charAt(0).toUpperCase() + type.slice(1)}
             </span>
           </button>
         ))}
@@ -384,18 +418,19 @@ function Auth({ onLogin }) {
       <form onSubmit={handleLoginSubmit} className={styles.authForm}>
         <div className={`${styles.formGroup} ${formErrors.username ? styles.error : ""}`}>
           <label htmlFor="username" className={styles.inputLabel}>
-            Username:
+            Phone Number:
           </label>
           <input
             type="text"
             id="username"
             name="username"
-            placeholder="Enter your username"
+            placeholder="Enter your phone number"
             value={formValues.username}
             onChange={handleChange}
             className={styles.inputField}
           />
           {formErrors.username && <p className={styles.errorText}>{formErrors.username}</p>}
+          <p className={styles.fieldHint}>Use your registered phone number</p>
         </div>
         <div className={`${styles.formGroup} ${formErrors.login_password ? styles.error : ""}`}>
           <label htmlFor="login_password" className={styles.inputLabel}>
@@ -458,43 +493,15 @@ function Auth({ onLogin }) {
             type="tel"
             id="phone_number"
             name="phone_number"
-            placeholder="Enter your phone number"
+            placeholder="Enter your phone number (e.g., 0712345678)"
             value={formValues.phone_number}
             onChange={handleChange}
             className={styles.inputField}
           />
           {formErrors.phone_number && <p className={styles.errorText}>{formErrors.phone_number}</p>}
+          <p className={styles.fieldHint}>This will be your username for login</p>
         </div>
-        <div className={`${styles.formGroup} ${formErrors.email ? styles.error : ""}`}>
-          <label htmlFor="email" className={styles.inputLabel}>
-            Email:
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            placeholder="Enter your email"
-            value={formValues.email}
-            onChange={handleChange}
-            className={styles.inputField}
-          />
-          {formErrors.email && <p className={styles.errorText}>{formErrors.email}</p>}
-        </div>
-        <div className={`${styles.formGroup} ${formErrors.username ? styles.error : ""}`}>
-          <label htmlFor="username" className={styles.inputLabel}>
-            Username:
-          </label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            placeholder="Choose a username"
-            value={formValues.username}
-            onChange={handleChange}
-            className={styles.inputField}
-          />
-          {formErrors.username && <p className={styles.errorText}>{formErrors.username}</p>}
-        </div>
+        {/* Note: Email field is removed because it's not in the serializer */}
         <button type="submit" className={styles.primaryButton}>
           Continue
         </button>
@@ -562,7 +569,9 @@ function Auth({ onLogin }) {
       {apiError && <div className={styles.apiError}>{apiError}</div>}
       <form onSubmit={handleVerifyCode} className={styles.authForm}>
         <div className={`${styles.formGroup} ${formErrors.otp ? styles.error : ""}`}>
-          <p>Enter the 6-digit code sent to your phone</p>
+          <p className={styles.otpDescription}>
+            Enter the 6-digit code sent to {formValues.phone_number}
+          </p>
           <input
             type="text"
             id="otp"
@@ -591,11 +600,12 @@ function Auth({ onLogin }) {
         <img src="/start.png" alt="Enfuna" className={styles.brandLogoLarge} />
       </div>
       <div className={styles.welcomeContent}>
-        <h1 className={styles.welcomeTitle}>Welcome!</h1>
+        <h1 className={styles.welcomeTitle}>Welcome, {formValues.full_names}!</h1>
         <p className={styles.welcomeMessage}>
-          Your {selectedAccountType === "super" ? "Staff" : 
-               selectedAccountType === "business" ? "Business" : 
-               selectedAccountType} account is ready
+          Your {selectedAccountType === "business" ? "Business" : selectedAccountType} account is ready
+        </p>
+        <p className={styles.fieldHint}>
+          Use your phone number ({formValues.phone_number}) to login
         </p>
         <button type="button" className={styles.primaryButton} onClick={handleProceedToDashboard}>
           Go to Dashboard

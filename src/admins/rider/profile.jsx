@@ -27,18 +27,11 @@ import {
   Alert,
   Tabs,
   Tab,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
   LinearProgress,
-  RadioGroup,
-  Radio,
-  Checkbox,
-  Slider,
-  FormGroup,
   InputAdornment,
-  Tooltip
+  Snackbar,
+  CircularProgress,
+  FormGroup // Added missing import
 } from '@mui/material';
 import {
   Person,
@@ -74,86 +67,94 @@ import {
   Schedule
 } from '@mui/icons-material';
 
+// Note: If you don't want to use axios, you can use fetch API instead
+const BASE_URL = 'https://funderspick-backend.onrender.com';
+
 const DriverProfilePage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [activeTab, setActiveTab] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({});
-  const [profileCompletion, setProfileCompletion] = useState(85);
+  const [profileCompletion, setProfileCompletion] = useState(0);
   const [showAccountNumber, setShowAccountNumber] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
-  // Clean, relevant dummy data
-  const initialProfileData = {
+  // Default profile structure matching API response
+  const defaultProfileData = {
     personalInfo: {
-      firstName: 'Kure',
-      lastName: 'Peter',
-      dateOfBirth: '1985-08-20',
-      gender: 'male',
-      nationality: 'Ugandan'
+      firstName: '',
+      lastName: '',
+      dateOfBirth: null,
+      gender: null,
+      nationality: null
     },
     identification: {
-      nationalId: 'CM9141515151515',
-      drivingLicense: 'UB542315678',
-      licenseClass: 'D',
-      licenseExpiry: '2025-12-31'
+      nationalId: null,
+      drivingLicense: null,
+      licenseClass: null,
+      licenseExpiry: null,
+      vehiclePhoto: null,
+      profilePhoto: null
     },
     professionalInfo: {
-      driverType: 'taxi',
-      yearsExperience: '8',
-      languages: ['English', 'Luganda', 'Swahili'],
-      availability: 'full-time',
-      preferredAreas: ['Kampala Central', 'Entebbe'],
-      hourlyRate: '15000'
+      driverType: null,
+      yearsExperience: null,
+      languages: [],
+      availability: null,
+      preferredAreas: [],
+      hourlyRate: null
     },
     vehicleInfo: {
-      vehicleType: 'sedan',
-      make: 'Toyota',
-      model: 'Noah',
-      year: '2020',
-      licensePlate: 'UBA 789K',
-      seatingCapacity: '7',
-      fuelType: 'petrol',
-      transmission: 'automatic'
+      vehicleType: null,
+      make: null,
+      model: null,
+      year: null,
+      licensePlate: null,
+      seatingCapacity: null,
+      fuelType: null,
+      transmission: null
     },
     contactInfo: {
-      phone: '+256712345678',
-      email: 'kure.peter@enfuna.com',
-      address: 'Plot 456, Entebbe Road',
-      city: 'Kampala',
+      phone: null,
+      email: '',
+      address: null,
+      city: null,
       emergencyContact: {
-        name: 'Sarafina Vangamoi',
-        phone: '+256781234567',
-        relationship: 'Wife'
+        name: null,
+        phone: null,
+        relationship: null
       }
     },
     bankingInfo: {
-      bankName: 'Stanbic Bank',
-      accountNumber: '9876543210',
-      accountName: 'Peter Kure',
-      mobileMoney: '+256712345678',
-      mobileMoneyProvider: 'mtn'
+      bankName: null,
+      accountNumber: null,
+      accountName: null,
+      mobileMoney: null,
+      mobileMoneyProvider: null
     },
     preferences: {
-      notifications: true,
-      smsAlerts: true,
-      longTrips: true,
-      shortTrips: true,
+      notifications: false,
+      smsAlerts: false,
+      longTrips: false,
+      shortTrips: false,
       nightDriving: false,
       autoAcceptRides: false
     },
     stats: {
-      totalRiders: 1247,
-      completedTrips: 1230,
-      activeHours: 856
+      totalRiders: 0,
+      completedTrips: 0,
+      activeHours: 0
     }
   };
 
-  const [profileData, setProfileData] = useState(initialProfileData);
-
-  useEffect(() => {
-    calculateProfileCompletion(profileData);
-  }, []);
+  const [profileData, setProfileData] = useState(defaultProfileData);
 
   // Driver-specific options
   const driverTypes = [
@@ -181,14 +182,212 @@ const DriverProfilePage = () => {
     { value: 'automatic', label: '⚙️ Automatic' }
   ];
 
-  const languages = ['English', 'Luganda', 'Swahili'];
+  const languages = ['English', 'Luganda', 'Swahili', 'French', 'Arabic'];
 
-  const banks = ['Stanbic Bank', 'Centenary Bank', 'DFCU Bank', 'Equity Bank'];
+  const banks = ['Stanbic Bank', 'Centenary Bank', 'DFCU Bank', 'Equity Bank', 'Bank of Africa'];
 
   const mobileMoneyProviders = [
     { value: 'mtn', label: 'MTN Mobile Money' },
-    { value: 'airtel', label: 'Airtel Money' }
+    { value: 'airtel', label: 'Airtel Money' },
+    { value: 'africell', label: 'Africell Money' }
   ];
+
+  // Get authentication token
+  const getAuthToken = () => {
+    // Replace with your actual token retrieval logic
+    return localStorage.getItem('authToken') || sessionStorage.getItem('authToken') || 'your-token-here';
+  };
+
+  // Fetch profile data from API using fetch (no axios dependency needed)
+  const fetchProfileData = async () => {
+    try {
+      setLoading(true);
+      const token = getAuthToken();
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${BASE_URL}/api/rider-profile/get_user_profile`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data) {
+        // Merge API data with default structure
+        const apiData = data;
+        const mergedData = {
+          ...defaultProfileData,
+          ...apiData,
+          // Ensure nested objects exist
+          personalInfo: { ...defaultProfileData.personalInfo, ...apiData.personalInfo },
+          identification: { ...defaultProfileData.identification, ...apiData.identification },
+          professionalInfo: { ...defaultProfileData.professionalInfo, ...apiData.professionalInfo },
+          vehicleInfo: { ...defaultProfileData.vehicleInfo, ...apiData.vehicleInfo },
+          contactInfo: { 
+            ...defaultProfileData.contactInfo, 
+            ...apiData.contactInfo,
+            emergencyContact: { 
+              ...defaultProfileData.contactInfo.emergencyContact, 
+              ...apiData.contactInfo?.emergencyContact 
+            }
+          },
+          bankingInfo: { ...defaultProfileData.bankingInfo, ...apiData.bankingInfo },
+          preferences: { ...defaultProfileData.preferences, ...apiData.preferences },
+          stats: { ...defaultProfileData.stats, ...apiData.stats }
+        };
+        
+        setProfileData(mergedData);
+        calculateProfileCompletion(mergedData);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      showSnackbar('Failed to load profile data', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update profile data to API using fetch
+  const updateProfileData = async () => {
+    try {
+      setSaving(true);
+      const token = getAuthToken();
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Prepare data in API format
+      const payload = {
+        personalInfo: profileData.personalInfo,
+        identification: profileData.identification,
+        professionalInfo: profileData.professionalInfo,
+        vehicleInfo: profileData.vehicleInfo,
+        contactInfo: profileData.contactInfo,
+        bankingInfo: profileData.bankingInfo,
+        preferences: profileData.preferences
+      };
+
+      const response = await fetch(
+        `${BASE_URL}/api/rider-profile/update_rider_profile`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data) {
+        showSnackbar('Profile updated successfully!', 'success');
+        setIsEditing(false);
+        calculateProfileCompletion(profileData);
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      showSnackbar('Failed to update profile', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Handle file uploads using fetch
+  const handleFileUpload = async (field, file) => {
+    try {
+      const token = getAuthToken();
+      if (!token) return;
+
+      const formData = new FormData();
+      formData.append(field, file);
+
+      setUploadProgress(prev => ({ ...prev, [field]: 0 }));
+      
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          const newProgress = prev[field] + 10;
+          if (newProgress >= 100) {
+            clearInterval(progressInterval);
+            return { ...prev, [field]: 100 };
+          }
+          return { ...prev, [field]: newProgress };
+        });
+      }, 100);
+
+      // Actual upload using fetch
+      const response = await fetch(
+        `${BASE_URL}/api/rider-profile/upload_document`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data) {
+        // Update the specific field in identification
+        setProfileData(prev => ({
+          ...prev,
+          identification: {
+            ...prev.identification,
+            [field]: data.url || data.fileName
+          }
+        }));
+        
+        setTimeout(() => {
+          setUploadProgress(prev => ({ ...prev, [field]: 0 }));
+        }, 500);
+        
+        showSnackbar(`${field.replace(/([A-Z])/g, ' $1')} uploaded successfully!`, 'success');
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      setUploadProgress(prev => ({ ...prev, [field]: 0 }));
+      showSnackbar(`Failed to upload ${field}`, 'error');
+    }
+  };
+
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({
+      open: true,
+      message,
+      severity
+    });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  useEffect(() => {
+    fetchProfileData();
+  }, []);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -234,26 +433,6 @@ const DriverProfilePage = () => {
     });
   };
 
-  const handleFileUpload = (section, field, file) => {
-    if (file) {
-      setUploadProgress(prev => ({ ...prev, [field]: 0 }));
-      
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          const newProgress = prev[field] + 10;
-          if (newProgress >= 100) {
-            clearInterval(progressInterval);
-            setTimeout(() => {
-              setUploadProgress(prev => ({ ...prev, [field]: 0 }));
-            }, 500);
-            return { ...prev, [field]: 100 };
-          }
-          return { ...prev, [field]: newProgress };
-        });
-      }, 100);
-    }
-  };
-
   const calculateProfileCompletion = (data) => {
     let completedFields = 0;
     let totalFields = 0;
@@ -285,7 +464,7 @@ const DriverProfilePage = () => {
     setProfileCompletion(completionPercentage);
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     const requiredFields = [
       profileData.personalInfo?.firstName,
       profileData.personalInfo?.lastName,
@@ -302,17 +481,15 @@ const DriverProfilePage = () => {
     const missingFields = requiredFields.filter(field => !field);
     
     if (missingFields.length > 0) {
-      alert('Please fill in all required fields (marked with *) before saving.');
+      showSnackbar('Please fill in all required fields (marked with *) before saving.', 'warning');
       return;
     }
 
-    calculateProfileCompletion(profileData);
-    setIsEditing(false);
-    alert('Profile updated successfully!');
+    await updateProfileData();
   };
 
   const handleCancelEdit = () => {
-    setProfileData(initialProfileData);
+    fetchProfileData(); // Reload original data
     setIsEditing(false);
   };
 
@@ -332,6 +509,29 @@ const DriverProfilePage = () => {
     { icon: <CreditCard />, label: "Banking" },
     { icon: <Security />, label: "Preferences" }
   ];
+
+  // Format date for input field
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    if (dateString.includes('T')) {
+      return dateString.split('T')[0];
+    }
+    return dateString;
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        backgroundColor: '#f8fafc'
+      }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ 
@@ -390,6 +590,7 @@ const DriverProfilePage = () => {
                     startIcon={<Cancel />}
                     variant="outlined"
                     onClick={handleCancelEdit}
+                    disabled={saving}
                     sx={{
                       borderColor: 'white',
                       color: 'white',
@@ -402,9 +603,10 @@ const DriverProfilePage = () => {
                     Cancel
                   </Button>
                   <Button
-                    startIcon={<Save />}
+                    startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <Save />}
                     variant="contained"
                     onClick={handleSaveProfile}
+                    disabled={saving}
                     sx={{
                       backgroundColor: '#fbbf24',
                       color: '#000',
@@ -415,7 +617,7 @@ const DriverProfilePage = () => {
                     }}
                     size="small"
                   >
-                    Save
+                    {saving ? 'Saving...' : 'Save'}
                   </Button>
                 </>
               )}
@@ -443,6 +645,7 @@ const DriverProfilePage = () => {
                             mb: 2,
                             border: '2px solid #1e40af'
                           }}
+                          src={profileData.identification?.profilePhoto || undefined}
                         >
                           <Person sx={{ fontSize: 40 }} />
                         </Avatar>
@@ -466,26 +669,28 @@ const DriverProfilePage = () => {
                               type="file"
                               hidden
                               accept="image/*"
-                              onChange={(e) => handleFileUpload('profileMedia', 'profilePhoto', e.target.files[0])}
+                              onChange={(e) => handleFileUpload('profilePhoto', e.target.files[0])}
                             />
                           </IconButton>
                         )}
                       </Box>
 
                       <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                        {profileData.personalInfo.firstName} {profileData.personalInfo.lastName}
+                        {profileData.personalInfo.firstName || 'First'} {profileData.personalInfo.lastName || 'Last'}
                       </Typography>
                       
-                      <Chip
-                        label={driverTypes.find(d => d.value === profileData.professionalInfo.driverType)?.label}
-                        sx={{ 
-                          backgroundColor: '#1e40af',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          mb: 1,
-                          fontSize: '0.75rem'
-                        }}
-                      />
+                      {profileData.professionalInfo?.driverType && (
+                        <Chip
+                          label={driverTypes.find(d => d.value === profileData.professionalInfo.driverType)?.label}
+                          sx={{ 
+                            backgroundColor: '#1e40af',
+                            color: 'white',
+                            fontWeight: 'bold',
+                            mb: 1,
+                            fontSize: '0.75rem'
+                          }}
+                        />
+                      )}
 
                       <Chip
                         icon={<Verified />}
@@ -525,7 +730,7 @@ const DriverProfilePage = () => {
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
                               <People sx={{ color: '#1e40af', fontSize: 14 }} />
                               <Typography variant="body2" fontWeight="bold">
-                                {profileData.stats.totalRiders.toLocaleString()}
+                                {profileData.stats?.totalRiders?.toLocaleString() || 0}
                               </Typography>
                             </Box>
                             <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>Total Riders</Typography>
@@ -534,7 +739,7 @@ const DriverProfilePage = () => {
                         <Grid item xs={4}>
                           <Paper sx={{ p: 1, textAlign: 'center', backgroundColor: '#f1f5f9' }}>
                             <Typography variant="body2" fontWeight="bold">
-                              {profileData.stats.completedTrips.toLocaleString()}
+                              {profileData.stats?.completedTrips?.toLocaleString() || 0}
                             </Typography>
                             <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>Trips</Typography>
                           </Paper>
@@ -542,7 +747,7 @@ const DriverProfilePage = () => {
                         <Grid item xs={4}>
                           <Paper sx={{ p: 1, textAlign: 'center', backgroundColor: '#f1f5f9' }}>
                             <Typography variant="body2" fontWeight="bold">
-                              {profileData.stats.activeHours}
+                              {profileData.stats?.activeHours || 0}
                             </Typography>
                             <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>Hours</Typography>
                           </Paper>
@@ -631,7 +836,7 @@ const DriverProfilePage = () => {
                             <TextField
                               fullWidth
                               label="First Name *"
-                              value={profileData.personalInfo.firstName}
+                              value={profileData.personalInfo.firstName || ''}
                               onChange={(e) => handleInputChange('personalInfo', 'firstName', e.target.value)}
                               disabled={!isEditing}
                               size="small"
@@ -642,7 +847,7 @@ const DriverProfilePage = () => {
                             <TextField
                               fullWidth
                               label="Last Name *"
-                              value={profileData.personalInfo.lastName}
+                              value={profileData.personalInfo.lastName || ''}
                               onChange={(e) => handleInputChange('personalInfo', 'lastName', e.target.value)}
                               disabled={!isEditing}
                               size="small"
@@ -654,7 +859,7 @@ const DriverProfilePage = () => {
                               fullWidth
                               label="Date of Birth"
                               type="date"
-                              value={profileData.personalInfo.dateOfBirth}
+                              value={formatDateForInput(profileData.personalInfo.dateOfBirth)}
                               onChange={(e) => handleInputChange('personalInfo', 'dateOfBirth', e.target.value)}
                               disabled={!isEditing}
                               InputLabelProps={{ shrink: true }}
@@ -665,14 +870,26 @@ const DriverProfilePage = () => {
                             <FormControl fullWidth size="small" disabled={!isEditing}>
                               <InputLabel>Gender</InputLabel>
                               <Select
-                                value={profileData.personalInfo.gender}
+                                value={profileData.personalInfo.gender || ''}
                                 onChange={(e) => handleInputChange('personalInfo', 'gender', e.target.value)}
                                 label="Gender"
                               >
                                 <MenuItem value="male">Male</MenuItem>
                                 <MenuItem value="female">Female</MenuItem>
+                                <MenuItem value="other">Other</MenuItem>
                               </Select>
                             </FormControl>
+                          </Grid>
+                          <Grid item xs={12}>
+                            <TextField
+                              fullWidth
+                              label="Nationality"
+                              value={profileData.personalInfo.nationality || ''}
+                              onChange={(e) => handleInputChange('personalInfo', 'nationality', e.target.value)}
+                              disabled={!isEditing}
+                              size="small"
+                              InputLabelProps={{ shrink: true }}
+                            />
                           </Grid>
                         </Grid>
                       </Box>
@@ -690,7 +907,7 @@ const DriverProfilePage = () => {
                             <FormControl fullWidth size="small" disabled={!isEditing}>
                               <InputLabel>Rider Type *</InputLabel>
                               <Select
-                                value={profileData.professionalInfo.driverType}
+                                value={profileData.professionalInfo.driverType || ''}
                                 onChange={(e) => handleInputChange('professionalInfo', 'driverType', e.target.value)}
                                 label="Rider Type *"
                               >
@@ -707,7 +924,7 @@ const DriverProfilePage = () => {
                               fullWidth
                               label="Years of Experience"
                               type="number"
-                              value={profileData.professionalInfo.yearsExperience}
+                              value={profileData.professionalInfo.yearsExperience || ''}
                               onChange={(e) => handleInputChange('professionalInfo', 'yearsExperience', e.target.value)}
                               disabled={!isEditing}
                               size="small"
@@ -720,7 +937,7 @@ const DriverProfilePage = () => {
                             <Typography variant="caption" gutterBottom display="block">Languages Spoken</Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                               {languages.map((language) => {
-                                const isSelected = profileData.professionalInfo.languages.includes(language);
+                                const isSelected = profileData.professionalInfo.languages?.includes(language);
                                 return (
                                   <Chip
                                     key={language}
@@ -759,7 +976,7 @@ const DriverProfilePage = () => {
                             <FormControl fullWidth size="small" disabled={!isEditing}>
                               <InputLabel>Vehicle Type *</InputLabel>
                               <Select
-                                value={profileData.vehicleInfo.vehicleType}
+                                value={profileData.vehicleInfo.vehicleType || ''}
                                 onChange={(e) => handleInputChange('vehicleInfo', 'vehicleType', e.target.value)}
                                 label="Vehicle Type *"
                               >
@@ -775,7 +992,7 @@ const DriverProfilePage = () => {
                             <TextField
                               fullWidth
                               label="License Plate *"
-                              value={profileData.vehicleInfo.licensePlate}
+                              value={profileData.vehicleInfo.licensePlate || ''}
                               onChange={(e) => handleInputChange('vehicleInfo', 'licensePlate', e.target.value)}
                               disabled={!isEditing}
                               size="small"
@@ -786,7 +1003,7 @@ const DriverProfilePage = () => {
                             <TextField
                               fullWidth
                               label="Vehicle Make"
-                              value={profileData.vehicleInfo.make}
+                              value={profileData.vehicleInfo.make || ''}
                               onChange={(e) => handleInputChange('vehicleInfo', 'make', e.target.value)}
                               disabled={!isEditing}
                               size="small"
@@ -797,7 +1014,7 @@ const DriverProfilePage = () => {
                             <TextField
                               fullWidth
                               label="Vehicle Model"
-                              value={profileData.vehicleInfo.model}
+                              value={profileData.vehicleInfo.model || ''}
                               onChange={(e) => handleInputChange('vehicleInfo', 'model', e.target.value)}
                               disabled={!isEditing}
                               size="small"
@@ -842,6 +1059,16 @@ const DriverProfilePage = () => {
                                     }}
                                   />
                                   
+                                  {profileData.identification?.[doc.field] && (
+                                    <Chip
+                                      label="Uploaded"
+                                      color="success"
+                                      size="small"
+                                      sx={{ mb: 1 }}
+                                      icon={<CheckCircle />}
+                                    />
+                                  )}
+                                  
                                   {uploadProgress[doc.field] > 0 && uploadProgress[doc.field] < 100 ? (
                                     <Box sx={{ mt: 1 }}>
                                       <LinearProgress 
@@ -861,13 +1088,14 @@ const DriverProfilePage = () => {
                                         width: '100%',
                                         fontSize: '0.75rem'
                                       }}
+                                      disabled={!isEditing}
                                     >
-                                      Upload
+                                      {profileData.identification?.[doc.field] ? 'Re-upload' : 'Upload'}
                                       <input
                                         type="file"
                                         hidden
                                         accept="image/*,.pdf"
-                                        onChange={(e) => handleFileUpload('profileMedia', doc.field, e.target.files[0])}
+                                        onChange={(e) => handleFileUpload(doc.field, e.target.files[0])}
                                       />
                                     </Button>
                                   )}
@@ -891,7 +1119,7 @@ const DriverProfilePage = () => {
                             <TextField
                               fullWidth
                               label="Phone Number *"
-                              value={profileData.contactInfo.phone}
+                              value={profileData.contactInfo.phone || ''}
                               onChange={(e) => handleInputChange('contactInfo', 'phone', e.target.value)}
                               disabled={!isEditing}
                               size="small"
@@ -903,7 +1131,7 @@ const DriverProfilePage = () => {
                               fullWidth
                               label="Email Address"
                               type="email"
-                              value={profileData.contactInfo.email}
+                              value={profileData.contactInfo.email || ''}
                               onChange={(e) => handleInputChange('contactInfo', 'email', e.target.value)}
                               disabled={!isEditing}
                               size="small"
@@ -914,7 +1142,7 @@ const DriverProfilePage = () => {
                             <TextField
                               fullWidth
                               label="Address"
-                              value={profileData.contactInfo.address}
+                              value={profileData.contactInfo.address || ''}
                               onChange={(e) => handleInputChange('contactInfo', 'address', e.target.value)}
                               disabled={!isEditing}
                               size="small"
@@ -930,7 +1158,7 @@ const DriverProfilePage = () => {
                             <TextField
                               fullWidth
                               label="Contact Name"
-                              value={profileData.contactInfo.emergencyContact.name}
+                              value={profileData.contactInfo.emergencyContact?.name || ''}
                               onChange={(e) => handleNestedInputChange('contactInfo', 'emergencyContact', 'name', e.target.value)}
                               disabled={!isEditing}
                               size="small"
@@ -941,7 +1169,7 @@ const DriverProfilePage = () => {
                             <TextField
                               fullWidth
                               label="Emergency Phone"
-                              value={profileData.contactInfo.emergencyContact.phone}
+                              value={profileData.contactInfo.emergencyContact?.phone || ''}
                               onChange={(e) => handleNestedInputChange('contactInfo', 'emergencyContact', 'phone', e.target.value)}
                               disabled={!isEditing}
                               size="small"
@@ -964,7 +1192,7 @@ const DriverProfilePage = () => {
                             <FormControl fullWidth size="small" disabled={!isEditing}>
                               <InputLabel>Bank Name *</InputLabel>
                               <Select
-                                value={profileData.bankingInfo.bankName}
+                                value={profileData.bankingInfo.bankName || ''}
                                 onChange={(e) => handleInputChange('bankingInfo', 'bankName', e.target.value)}
                                 label="Bank Name *"
                               >
@@ -981,7 +1209,7 @@ const DriverProfilePage = () => {
                               fullWidth
                               label="Account Number *"
                               type={showAccountNumber ? "text" : "password"}
-                              value={profileData.bankingInfo.accountNumber}
+                              value={profileData.bankingInfo.accountNumber || ''}
                               onChange={(e) => handleInputChange('bankingInfo', 'accountNumber', e.target.value)}
                               disabled={!isEditing}
                               size="small"
@@ -1005,7 +1233,7 @@ const DriverProfilePage = () => {
                             <FormControl fullWidth size="small" disabled={!isEditing}>
                               <InputLabel>Mobile Money</InputLabel>
                               <Select
-                                value={profileData.bankingInfo.mobileMoneyProvider}
+                                value={profileData.bankingInfo.mobileMoneyProvider || ''}
                                 onChange={(e) => handleInputChange('bankingInfo', 'mobileMoneyProvider', e.target.value)}
                                 label="Mobile Money"
                               >
@@ -1021,7 +1249,7 @@ const DriverProfilePage = () => {
                             <TextField
                               fullWidth
                               label="Mobile Money Number"
-                              value={profileData.bankingInfo.mobileMoney}
+                              value={profileData.bankingInfo.mobileMoney || ''}
                               onChange={(e) => handleInputChange('bankingInfo', 'mobileMoney', e.target.value)}
                               disabled={!isEditing}
                               size="small"
@@ -1123,6 +1351,22 @@ const DriverProfilePage = () => {
           </CardContent>
         </Card>
       </Box>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity} 
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
