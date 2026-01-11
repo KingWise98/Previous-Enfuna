@@ -1,123 +1,228 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import "./agent.css"
+
+const BASE_URL = "http://127.0.0.1:8000/api/rider-agent/"
 
 const RiderAgent = () => {
   const [currentView, setCurrentView] = useState("welcome")
   const [activeTab, setActiveTab] = useState("referral-tools")
-  const [promoCode, setPromoCode] = useState("")
-  const [isValidCode, setIsValidCode] = useState(null)
+  const [activationCode, setActivationCode] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  
+  // State for API data
+  const [stats, setStats] = useState({
+    todayOnboardedUsers: 0,
+    activeToday: 0,
+    teamTrips: 0,
+    todayDeliveries: 0
+  })
+  
+  const [commissionData, setCommissionData] = useState({
+    todayRevenue: 0,
+    todayCommission: 0,
+    weeklyCommission: 0,
+    lifeCommission: 0
+  })
+  
+  const [referralAlerts, setReferralAlerts] = useState([])
+  const [commissionEngine, setCommissionEngine] = useState({
+    todayComission: null,
+    weeklyComission: null
+  })
+  
+  const [teamData, setTeamData] = useState([])
+  const [referralLink, setReferralLink] = useState("")
+  const [trackingData, setTrackingData] = useState({
+    clicksToday: 0,
+    signupsToday: 0,
+    activatedRiders: 0
+  })
+
+  // UI state
   const [teamFilter, setTeamFilter] = useState("all")
   const [analyticsView, setAnalyticsView] = useState("daily")
   const [withdrawMethod, setWithdrawMethod] = useState("wallet")
-  const [withdrawAmount, setWithdrawAmount] = useState("15000")
+  const [withdrawAmount, setWithdrawAmount] = useState("")
   const [expandedRider, setExpandedRider] = useState(null)
 
-  // Sample data
-  const stats = {
-    ridersOnboarded: 14,
-    activeToday: 12,
-    teamTrips: 98,
-    deliveriesToday: 21,
-    todaysRevenue: 165000,
-    todaysCommission: 15000,
-    weeklyCommission: 75000,
-    lifetimeCommissions: 1265000,
-    pendingPayout: 31000,
-  }
+  // Fetch initial data
+  useEffect(() => {
+    if (currentView === "dashboard") {
+      fetchDashboardData()
+    }
+  }, [currentView])
 
-  const referralData = {
-    link: "https://enfuna.com/r/ABX92",
-    code: "ABX92",
-    clicksToday: 34,
-    signupsToday: 4,
-    activatedRiders: 2,
-  }
+  const fetchDashboardData = async () => {
+    try {
+      const token = localStorage.getItem("access_token")
+      
+      // Fetch stats summary
+      const statsRes = await fetch(`${BASE_URL}agents_stats_summary`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (statsRes.ok) {
+        const statsData = await statsRes.json()
+        setStats(statsData)
+      }
 
-  const teamMembers = [
-    {
-      id: 1,
-      name: "John M.",
-      status: "active",
-      todayTrips: 8,
-      todayRevenue: 45000,
-      lifetimeRevenue: 780000,
-      commission: 62000,
-    },
-    {
-      id: 2,
-      name: "Peter. L",
-      status: "inactive",
-      todayTrips: 0,
-      todayRevenue: 0,
-      lifetimeRevenue: 450000,
-      commission: 38000,
-    },
-    {
-      id: 3,
-      name: "Ahmed S.",
-      status: "active",
-      todayTrips: 12,
-      todayRevenue: 68000,
-      lifetimeRevenue: 920000,
-      commission: 85000,
-    },
-    {
-      id: 4,
-      name: "Sarah K.",
-      status: "active",
-      todayTrips: 6,
-      todayRevenue: 32000,
-      lifetimeRevenue: 560000,
-      commission: 48000,
-    },
-  ]
+      // Fetch commission overview
+      const commissionRes = await fetch(`${BASE_URL}comission_overview`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (commissionRes.ok) {
+        const commissionData = await commissionRes.json()
+        setCommissionData(commissionData)
+      }
 
-  const commissionLedger = [
-    { id: 1, type: "Trip by John M.", amount: 3200, time: "10 : 12 AM", status: "completed" },
-    { id: 2, type: "Delivery by Peter S.", amount: 1500, time: "10 : 12 AM", status: "completed" },
-    { id: 3, type: "Activation Bonus", amount: 200, time: "Yesterday", status: "completed" },
-  ]
+      // Fetch referral alerts
+      const alertsRes = await fetch(`${BASE_URL}list_referral_alerts`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (alertsRes.ok) {
+        const alertsData = await alertsRes.json()
+        setReferralAlerts(alertsData)
+      }
 
-  const payoutHistory = [
-    { id: 1, amount: 45000, date: "03 NOV 2025", status: "successful" },
-    { id: 2, amount: 62000, date: "21 DEC 2025", status: "failed" },
-    { id: 3, amount: 38000, date: "03 AUG 2025", status: "successful" },
-  ]
+      // Fetch commission engine
+      const engineRes = await fetch(`${BASE_URL}commission_engine`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (engineRes.ok) {
+        const engineData = await engineRes.json()
+        setCommissionEngine(engineData)
+      }
 
-  const notifications = [
-    { id: 1, type: "New Rider Onboarded", message: "John M Joined your team", time: "10 : 12 AM", badge: "new" },
-    { id: 2, type: "Commission Earned", message: "UGX 3,200  from John M.", time: "10 : 12 AM", badge: "new" },
-    {
-      id: 3,
-      type: "Rider Completed First Trip",
-      message: "James P. completed his first trip",
-      time: "Yesterday",
-      badge: "",
-    },
-  ]
+      // Fetch team data
+      const teamRes = await fetch(`${BASE_URL}view_referred_team`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (teamRes.ok) {
+        const teamData = await teamRes.json()
+        setTeamData(teamData)
+      }
 
-  const handleValidatePromoCode = () => {
-    if (promoCode.toUpperCase() === "RIDER2025") {
-      setIsValidCode(true)
-    } else {
-      setIsValidCode(false)
+      // Fetch tracking activity
+      const trackingRes = await fetch(`${BASE_URL}track_activity`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (trackingRes.ok) {
+        const trackingData = await trackingRes.json()
+        setTrackingData(trackingData)
+      }
+
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err)
+      setError("Failed to load dashboard data")
     }
   }
 
-  const handleActivateCode = () => {
-    setCurrentView("dashboard")
+  const handleRequestActivationCode = async () => {
+    setIsLoading(true)
+    setError("")
+    
+    try {
+      const token = localStorage.getItem("access_token")
+      const response = await fetch(`${BASE_URL}request_agent_activation_code`, {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        alert(`Activation code sent to: ${data.email || "your registered email"}`)
+        setCurrentView("activate")
+      } else {
+        const errorData = await response.json()
+        setError(errorData.detail || "Failed to request activation code")
+      }
+    } catch (err) {
+      setError("Network error. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleVerifyActivationCode = async () => {
+    if (!activationCode.trim()) {
+      setError("Please enter activation code")
+      return
+    }
+
+    setIsLoading(true)
+    setError("")
+    
+    try {
+      const token = localStorage.getItem("access_token")
+      const response = await fetch(`${BASE_URL}verify_agent_activation_code`, {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ code: activationCode })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Store agent status
+        localStorage.setItem("is_agent", "true")
+        setCurrentView("dashboard")
+        fetchDashboardData()
+      } else {
+        const errorData = await response.json()
+        setError(errorData.detail || "Invalid activation code")
+      }
+    } catch (err) {
+      setError("Network error. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
+    alert("Copied to clipboard!")
   }
 
-  const filteredTeam = teamMembers.filter((member) => {
+  const filteredTeam = teamData.filter((member) => {
     if (teamFilter === "all") return true
     return member.status === teamFilter
   })
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString)
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  // Get referral link from localStorage or generate default
+  const getReferralLink = () => {
+    const referralCode = localStorage.getItem("referral_code") || "YOUR_CODE"
+    return `http://127.0.0.1:8000/api/rider-agent/r/${referralCode}/`
+  }
 
   if (currentView === "welcome") {
     return (
@@ -125,17 +230,29 @@ const RiderAgent = () => {
         <div className="welcome-screen">
           <div className="logo-section">
             <img src="/start.png" alt="Enfuna" className="enfuna-logo" />
-            
           </div>
 
           <h1 className="welcome-title">Welcome to Rider - Agent Mode</h1>
 
-          <button className="request-promo-btn" onClick={() => setCurrentView("activate")}>
-            Request for Promo Code
+          <button 
+            className="request-promo-btn" 
+            onClick={handleRequestActivationCode}
+            disabled={isLoading}
+          >
+            {isLoading ? "Requesting..." : "Request for Activation Code"}
           </button>
 
+          {error && <div className="error-message">{error}</div>}
+
           <p className="resend-text">
-            Didn't receive Code? <span className="resend-link">Resend</span>
+            Didn't receive Code?{" "}
+            <span 
+              className="resend-link" 
+              onClick={handleRequestActivationCode}
+              style={{cursor: 'pointer'}}
+            >
+              Resend
+            </span>
           </p>
         </div>
       </div>
@@ -146,36 +263,40 @@ const RiderAgent = () => {
     return (
       <div className="rider-agent-container">
         <div className="activate-screen">
-          <h1 className="activate-title">Activate Promo Code</h1>
+          <h1 className="activate-title">Activate Agent Code</h1>
           <p className="activate-subtitle">Upgrade to Rider - Agent Mode</p>
 
           <div className="promo-input-section">
             <input
               type="text"
               className="promo-input"
-              placeholder="RIDER2025"
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value)}
+              placeholder="Enter activation code"
+              value={activationCode}
+              onChange={(e) => setActivationCode(e.target.value)}
+              disabled={isLoading}
             />
-            <button className="validate-btn" onClick={handleValidatePromoCode}>
-              Validate
-            </button>
           </div>
 
-          {isValidCode !== null && (
-            <div className="promo-status">
-              <h3 className="status-title">Promo Code Status</h3>
-              <div className={`status-badge ${isValidCode ? "valid" : "invalid"}`}>
-                {isValidCode ? "✓ Valid Code" : "✗ Invalid Code"}
-              </div>
-            </div>
-          )}
+          {error && <div className="error-message">{error}</div>}
 
-          {isValidCode && <div className="upgrade-message">Your account will be upgraded to Rider-Agent Mode</div>}
-
-          <button className="activate-code-btn" onClick={handleActivateCode} disabled={!isValidCode}>
-            Activate Code
+          <button 
+            className="activate-code-btn" 
+            onClick={handleVerifyActivationCode}
+            disabled={isLoading || !activationCode.trim()}
+          >
+            {isLoading ? "Verifying..." : "Activate Code"}
           </button>
+
+          <p className="resend-text">
+            Didn't receive Code?{" "}
+            <span 
+              className="resend-link" 
+              onClick={handleRequestActivationCode}
+              style={{cursor: 'pointer'}}
+            >
+              Resend
+            </span>
+          </p>
         </div>
       </div>
     )
@@ -186,6 +307,12 @@ const RiderAgent = () => {
       <div className="rider-agent-dashboard">
         <div className="dashboard-header">
           <h1 className="dashboard-title">Rider-Agent Dashboard</h1>
+          <button 
+            className="refresh-btn"
+            onClick={fetchDashboardData}
+          >
+            ↻ Refresh
+          </button>
         </div>
 
         <div className="tab-navigation">
@@ -221,12 +348,14 @@ const RiderAgent = () => {
           </button>
         </div>
 
+        {error && <div className="error-message">{error}</div>}
+
         {activeTab === "referral-tools" && (
           <div className="tab-content">
             <div className="stats-grid">
               <div className="stat-card">
-                <p className="stat-label">Total Riders Onboarded</p>
-                <h2 className="stat-value">{stats.ridersOnboarded}</h2>
+                <p className="stat-label">Riders Onboarded Today</p>
+                <h2 className="stat-value">{stats.todayOnboardedUsers}</h2>
               </div>
               <div className="stat-card">
                 <p className="stat-label">Active Today</p>
@@ -238,7 +367,7 @@ const RiderAgent = () => {
               </div>
               <div className="stat-card">
                 <p className="stat-label">Deliveries Today</p>
-                <h2 className="stat-value">{stats.deliveriesToday}</h2>
+                <h2 className="stat-value">{stats.todayDeliveries}</h2>
               </div>
             </div>
 
@@ -247,23 +376,19 @@ const RiderAgent = () => {
               <div className="commission-grid">
                 <div className="commission-card revenue">
                   <p className="commission-label">Today's Revenue</p>
-                  <h3 className="commission-amount">UGX {stats.todaysRevenue.toLocaleString()}</h3>
+                  <h3 className="commission-amount">UGX {commissionData.todayRevenue.toLocaleString()}</h3>
                 </div>
                 <div className="commission-card today">
                   <p className="commission-label">Today's Commission</p>
-                  <h3 className="commission-amount">UGX {stats.todaysCommission.toLocaleString()}</h3>
+                  <h3 className="commission-amount">UGX {commissionData.todayCommission.toLocaleString()}</h3>
                 </div>
                 <div className="commission-card weekly">
                   <p className="commission-label">Weekly Commission</p>
-                  <h3 className="commission-amount">UGX {stats.weeklyCommission.toLocaleString()}</h3>
+                  <h3 className="commission-amount">UGX {commissionData.weeklyCommission.toLocaleString()}</h3>
                 </div>
                 <div className="commission-card lifetime">
                   <p className="commission-label">Lifetime Commissions</p>
-                  <h3 className="commission-amount">UGX {stats.lifetimeCommissions.toLocaleString()}</h3>
-                </div>
-                <div className="commission-card pending">
-                  <p className="commission-label">pending Payout</p>
-                  <h3 className="commission-amount">UGX {stats.pendingPayout.toLocaleString()}</h3>
+                  <h3 className="commission-amount">UGX {commissionData.lifeCommission.toLocaleString()}</h3>
                 </div>
               </div>
             </div>
@@ -271,67 +396,45 @@ const RiderAgent = () => {
             <div className="alerts-section">
               <div className="referral-alerts">
                 <h3 className="alerts-title">Referral Alerts</h3>
-                {notifications.map((notif) => (
-                  <div key={notif.id} className="alert-item">
-                    <div className="alert-content">
-                      <h4 className="alert-type">{notif.type}</h4>
-                      <p className="alert-message">{notif.message}</p>
-                      <span className="alert-time">{notif.time}</span>
+                {referralAlerts.length > 0 ? (
+                  referralAlerts.map((alert, index) => (
+                    <div key={index} className="alert-item">
+                      <div className="alert-content">
+                        <h4 className="alert-type">{alert.type || "Notification"}</h4>
+                        <p className="alert-message">{alert.message || alert.detail}</p>
+                        <span className="alert-time">
+                          {alert.timestamp ? formatDate(alert.timestamp) : "Recently"}
+                        </span>
+                      </div>
+                      {alert.is_new && <span className="new-badge">new</span>}
                     </div>
-                    {notif.badge && <span className="new-badge">{notif.badge}</span>}
+                  ))
+                ) : (
+                  <div className="alert-item">
+                    <div className="alert-content">
+                      <p className="alert-message">No alerts at the moment</p>
+                    </div>
                   </div>
-                ))}
-              </div>
-
-              <div className="milestone-section">
-                <div className="milestone-card">
-                  <h4 className="milestone-title">Milestone Achieved</h4>
-                  <p className="milestone-text">You reached 100 active riders</p>
-                  <span className="milestone-time">3 days ago</span>
-                </div>
-
-                <div className="milestone-card">
-                  <h4 className="milestone-title">Monthly Referral Report Ready</h4>
-                  <p className="milestone-text">Your December report is now available</p>
-                  <span className="milestone-time">2 days ago</span>
-                </div>
+                )}
               </div>
             </div>
-
-            <button className="withdraw-commission-btn">Withdraw Commission</button>
 
             <div className="referral-tools-section">
               <div className="share-section">
                 <h3 className="share-title">Share Your Referral Link</h3>
                 <div className="share-input-group">
-                  <input type="text" value={referralData.link} readOnly className="share-input" />
-                  <button className="share-btn" onClick={() => copyToClipboard(referralData.link)}>
-                    📋 Share
+                  <input 
+                    type="text" 
+                    value={getReferralLink()} 
+                    readOnly 
+                    className="share-input" 
+                  />
+                  <button 
+                    className="share-btn" 
+                    onClick={() => copyToClipboard(getReferralLink())}
+                  >
+                    📋 Copy
                   </button>
-                </div>
-              </div>
-
-              <div className="share-section">
-                <h3 className="share-title">Share Your Referral Code</h3>
-                <div className="share-input-group">
-                  <div className="code-display">{referralData.code}</div>
-                  <button className="share-btn" onClick={() => copyToClipboard(referralData.code)}>
-                    📋 Share
-                  </button>
-                </div>
-              </div>
-
-              <div className="qr-section">
-                <h3 className="qr-title">Referral QR Code</h3>
-                <div className="qr-display">
-                  <div className="qr-placeholder">
-                    <div className="qr-icon">
-                      ⊞⊡
-                      <br />
-                      ⊟⊠
-                    </div>
-                    <p className="qr-label">QR Code</p>
-                  </div>
                 </div>
               </div>
 
@@ -340,15 +443,15 @@ const RiderAgent = () => {
                 <div className="activity-stats">
                   <div className="activity-card">
                     <p className="activity-label">Clicks Today</p>
-                    <h2 className="activity-value">{referralData.clicksToday}</h2>
+                    <h2 className="activity-value">{trackingData.clicksToday || 0}</h2>
                   </div>
                   <div className="activity-card">
                     <p className="activity-label">Signups Today</p>
-                    <h2 className="activity-value">{referralData.signupsToday}</h2>
+                    <h2 className="activity-value">{trackingData.signupsToday || 0}</h2>
                   </div>
                   <div className="activity-card">
                     <p className="activity-label">Activated Riders</p>
-                    <h2 className="activity-value">{referralData.activatedRiders}</h2>
+                    <h2 className="activity-value">{trackingData.activatedRiders || 0}</h2>
                   </div>
                 </div>
               </div>
@@ -379,53 +482,65 @@ const RiderAgent = () => {
                 >
                   Inactive
                 </button>
-                <button
-                  className={`filter-btn ${teamFilter === "suspended" ? "active" : ""}`}
-                  onClick={() => setTeamFilter("suspended")}
-                >
-                  Suspended
-                </button>
               </div>
             </div>
 
             <div className="team-list">
-              {filteredTeam.map((member) => (
-                <div key={member.id} className="team-member-card">
-                  <div
-                    className="member-header"
-                    onClick={() => setExpandedRider(expandedRider === member.id ? null : member.id)}
-                  >
-                    <div className="member-info">
-                      <h3 className="member-name">Rider: {member.name}</h3>
-                      <span className={`status-badge ${member.status}`}>{member.status}</span>
-                    </div>
-                    <div className="member-stats-preview">
-                      <div className="stat-preview">
-                        <span className="preview-label">Today's Trips</span>
-                        <span className="preview-value">{member.todayTrips}</span>
+              {teamData && teamData.length > 0 ? (
+                filteredTeam.map((member, index) => (
+                  <div key={index} className="team-member-card">
+                    <div
+                      className="member-header"
+                      onClick={() => setExpandedRider(expandedRider === member.id ? null : member.id)}
+                    >
+                      <div className="member-info">
+                        <h3 className="member-name">
+                          {member.name || `Rider ${index + 1}`}
+                        </h3>
+                        <span className={`status-badge ${member.status || 'inactive'}`}>
+                          {member.status || 'inactive'}
+                        </span>
                       </div>
-                      <button className="expand-btn">{expandedRider === member.id ? "▲" : "▼"}</button>
+                      <div className="member-stats-preview">
+                        <div className="stat-preview">
+                          <span className="preview-label">Today's Trips</span>
+                          <span className="preview-value">{member.today_trips || 0}</span>
+                        </div>
+                        <button className="expand-btn">
+                          {expandedRider === member.id ? "▲" : "▼"}
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
-                  {expandedRider === member.id && (
-                    <div className="member-details">
-                      <div className="detail-row">
-                        <span className="detail-label">Today's Revenue</span>
-                        <span className="detail-value">UGX {member.todayRevenue.toLocaleString()}</span>
+                    {expandedRider === member.id && (
+                      <div className="member-details">
+                        <div className="detail-row">
+                          <span className="detail-label">Today's Revenue</span>
+                          <span className="detail-value">
+                            UGX {(member.today_revenue || 0).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="detail-row">
+                          <span className="detail-label">Lifetime Revenue</span>
+                          <span className="detail-value">
+                            UGX {(member.lifetime_revenue || 0).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="detail-row highlight">
+                          <span className="detail-label">Your Commission</span>
+                          <span className="detail-value">
+                            UGX {(member.commission || 0).toLocaleString()}
+                          </span>
+                        </div>
                       </div>
-                      <div className="detail-row">
-                        <span className="detail-label">Lifetime Revenue</span>
-                        <span className="detail-value">UGX {member.lifetimeRevenue.toLocaleString()}</span>
-                      </div>
-                      <div className="detail-row highlight">
-                        <span className="detail-label">Your Commission</span>
-                        <span className="detail-value">UGX {member.commission.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <p>No team members yet. Share your referral link to start building your team!</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}
@@ -435,78 +550,24 @@ const RiderAgent = () => {
             <div className="commission-engine">
               <h2 className="section-title">Commission Engine</h2>
 
-              <div className="commission-rate-card">
-                <p className="rate-label">Your Commission Rate</p>
-                <h2 className="rate-value">10% of Enfuna Revenue</h2>
-              </div>
-
-              <div className="tier-levels">
-                <h3 className="tier-title">Tier Levels</h3>
-                <div className="tiers-grid">
-                  <div className="tier-card bronze">
-                    <h4 className="tier-name">Bronze</h4>
-                    <p className="tier-rate">5%</p>
-                  </div>
-                  <div className="tier-card silver">
-                    <h4 className="tier-name">Silver</h4>
-                    <p className="tier-rate">7%</p>
-                  </div>
-                  <div className="tier-card gold active-tier">
-                    <h4 className="tier-name">Gold</h4>
-                    <p className="tier-rate">10%</p>
-                    <span className="current-badge">Current</span>
-                  </div>
-                  <div className="tier-card platinum">
-                    <h4 className="tier-name">Platinum</h4>
-                    <p className="tier-rate">12%</p>
-                  </div>
-                </div>
-              </div>
-
               <div className="commission-summary-grid">
                 <div className="summary-card">
                   <p className="summary-label">Daily Commission</p>
-                  <h3 className="summary-value">UGX 12,400</h3>
+                  <h3 className="summary-value">
+                    UGX {(commissionEngine.todayComission || 0).toLocaleString()}
+                  </h3>
                 </div>
                 <div className="summary-card">
                   <p className="summary-label">Weekly Commission</p>
-                  <h3 className="summary-value">UGX 78,200</h3>
+                  <h3 className="summary-value">
+                    UGX {(commissionEngine.weeklyComission || 0).toLocaleString()}
+                  </h3>
                 </div>
               </div>
 
-              <button className="withdraw-btn-large">Withdraw Commission</button>
-
-              <div className="commission-ledger">
-                <h3 className="ledger-title">Commission Ledger</h3>
-                {commissionLedger.map((entry) => (
-                  <div key={entry.id} className="ledger-entry">
-                    <div className="entry-indicator"></div>
-                    <div className="entry-info">
-                      <h4 className="entry-type">{entry.type}</h4>
-                      <span className="entry-time">{entry.time}</span>
-                    </div>
-                    <span className="entry-amount">+UGX {entry.amount.toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="status-tracking">
-                <div className="tracking-header">
-                  <h3 className="tracking-title">Status Tracking</h3>
-                  <button className="export-btn">Export Statement</button>
-                </div>
-                <div className="tracking-row">
-                  <span className="tracking-label">Pending</span>
-                  <span className="tracking-amount">UGX 14,000</span>
-                </div>
-                <div className="tracking-row">
-                  <span className="tracking-label">Approved</span>
-                  <span className="tracking-amount">UGX 62,000</span>
-                </div>
-                <div className="tracking-row">
-                  <span className="tracking-label">Paid</span>
-                  <span className="tracking-amount">UGX 1,168,000</span>
-                </div>
+              <div className="commission-rate-card">
+                <p className="rate-label">Your Commission Rate</p>
+                <h2 className="rate-value">Based on your tier level</h2>
               </div>
             </div>
           </div>
@@ -519,16 +580,19 @@ const RiderAgent = () => {
 
               <div className="balance-card">
                 <p className="balance-label">Commission Balance</p>
-                <h2 className="balance-amount">UGX 32,000</h2>
+                <h2 className="balance-amount">
+                  UGX {commissionData.lifeCommission.toLocaleString()}
+                </h2>
               </div>
 
               <div className="payout-form">
                 <label className="form-label">Enter Amount</label>
                 <input
-                  type="text"
+                  type="number"
                   className="amount-input"
-                  value={`UGX ${withdrawAmount}`}
-                  onChange={(e) => setWithdrawAmount(e.target.value.replace(/[^0-9]/g, ""))}
+                  placeholder="UGX"
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
                 />
 
                 <label className="form-label">Withdraw to:</label>
@@ -548,21 +612,6 @@ const RiderAgent = () => {
                 </div>
 
                 <button className="initiate-withdrawal-btn">Initiate Withdrawal</button>
-              </div>
-
-              <div className="payout-history">
-                <h3 className="history-title">Payout History</h3>
-                {payoutHistory.map((payout) => (
-                  <div key={payout.id} className="history-item">
-                    <div className="history-info">
-                      <h4 className="history-amount">UGX {payout.amount.toLocaleString()}</h4>
-                      <span className="history-date">{payout.date}</span>
-                    </div>
-                    <span className={`history-status ${payout.status}`}>
-                      {payout.status === "successful" ? "Successful" : "Failed, Retry"}
-                    </span>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
@@ -597,101 +646,23 @@ const RiderAgent = () => {
 
               <div className="analytics-stats">
                 <div className="analytics-card">
-                  <p className="analytics-label">Activation Rates</p>
-                  <h2 className="analytics-value">24%</h2>
-                  <span className="analytics-subtext">Week average</span>
+                  <p className="analytics-label">Team Size</p>
+                  <h2 className="analytics-value">{teamData.length}</h2>
+                  <span className="analytics-subtext">Total riders</span>
                 </div>
                 <div className="analytics-card">
-                  <p className="analytics-label">Total Revenue This Week</p>
-                  <h2 className="analytics-value">UGX 864,000</h2>
-                  <span className="analytics-trend positive">+ 15% from last week</span>
+                  <p className="analytics-label">Today's Revenue</p>
+                  <h2 className="analytics-value">
+                    UGX {commissionData.todayRevenue.toLocaleString()}
+                  </h2>
+                  <span className="analytics-subtext">Generated today</span>
                 </div>
                 <div className="analytics-card">
-                  <p className="analytics-label">Total Revenue This Week</p>
-                  <h2 className="analytics-value">UGX 3,420,000</h2>
-                  <span className="analytics-subtext">All - time High</span>
-                </div>
-              </div>
-
-              <div className="chart-section">
-                <h3 className="chart-title">Team Revenue Trend</h3>
-                <div className="chart-container">
-                  <div className="chart-bars">
-                    <div className="bar-group">
-                      <div className="bar commission" style={{ height: "60%" }}></div>
-                      <div className="bar revenue" style={{ height: "75%" }}></div>
-                      <span className="bar-label">Day 1</span>
-                    </div>
-                    <div className="bar-group">
-                      <div className="bar commission" style={{ height: "55%" }}></div>
-                      <div className="bar revenue" style={{ height: "40%" }}></div>
-                      <span className="bar-label">Day 2</span>
-                    </div>
-                    <div className="bar-group">
-                      <div className="bar commission" style={{ height: "85%" }}></div>
-                      <div className="bar revenue" style={{ height: "70%" }}></div>
-                      <span className="bar-label">Day 3</span>
-                    </div>
-                    <div className="bar-group">
-                      <div className="bar commission" style={{ height: "25%" }}></div>
-                      <div className="bar revenue" style={{ height: "80%" }}></div>
-                      <span className="bar-label">Day 4</span>
-                    </div>
-                    <div className="bar-group">
-                      <div className="bar commission" style={{ height: "50%" }}></div>
-                      <div className="bar revenue" style={{ height: "78%" }}></div>
-                      <span className="bar-label">Day 5</span>
-                    </div>
-                    <div className="bar-group">
-                      <div className="bar commission" style={{ height: "32%" }}></div>
-                      <div className="bar revenue" style={{ height: "75%" }}></div>
-                      <span className="bar-label">Day 6</span>
-                    </div>
-                  </div>
-                  <div className="chart-legend">
-                    <div className="legend-item">
-                      <span className="legend-color commission"></span>
-                      <span className="legend-text">Commission</span>
-                    </div>
-                    <div className="legend-item">
-                      <span className="legend-color revenue"></span>
-                      <span className="legend-text">Revenue</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="conversion-funnel">
-                <h3 className="funnel-title">Referral Conversion Funnel</h3>
-                <div className="funnel-stage">
-                  <div className="funnel-bar" style={{ width: "100%" }}>
-                    <span className="funnel-label">Clicks</span>
-                    <span className="funnel-value">250 (100%)</span>
-                  </div>
-                </div>
-                <div className="funnel-stage">
-                  <div className="funnel-bar" style={{ width: "34%" }}>
-                    <span className="funnel-label">Clicks</span>
-                    <span className="funnel-value">85 (34%)</span>
-                  </div>
-                </div>
-                <div className="funnel-stage">
-                  <div className="funnel-bar" style={{ width: "49%" }}>
-                    <span className="funnel-label">Signups</span>
-                    <span className="funnel-value">42 (49%)</span>
-                  </div>
-                </div>
-                <div className="funnel-stage">
-                  <div className="funnel-bar" style={{ width: "90%" }}>
-                    <span className="funnel-label">Activated</span>
-                    <span className="funnel-value">33 (90%)</span>
-                  </div>
-                </div>
-                <div className="funnel-stage">
-                  <div className="funnel-bar" style={{ width: "92%" }}>
-                    <span className="funnel-label">First Trip</span>
-                    <span className="funnel-value">35 (92%)</span>
-                  </div>
+                  <p className="analytics-label">Total Commission</p>
+                  <h2 className="analytics-value">
+                    UGX {commissionData.lifeCommission.toLocaleString()}
+                  </h2>
+                  <span className="analytics-subtext">All-time earnings</span>
                 </div>
               </div>
             </div>
