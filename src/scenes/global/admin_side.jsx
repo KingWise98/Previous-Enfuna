@@ -207,6 +207,13 @@ const POSSidebar = () => {
                 setSelected={handleItemClick} 
               />
               <Item 
+                title="Rider Management" 
+                to="/super/data" 
+                icon={<PeopleOutlinedIcon />} 
+                selected={selected} 
+                setSelected={handleItemClick} 
+              />
+              <Item 
                 title="Billing Management" 
                 to="/super/subs" 
                 icon={<MonetizationOnOutlinedIcon />} 
