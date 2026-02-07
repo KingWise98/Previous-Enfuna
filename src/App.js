@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-
 import Admin from "./admins/admin";
 
 import Sidebar from "./scenes/global/Sidebar";
-import {  Box, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 //Driver
 import Drive from "./admins/driver/drive";
@@ -208,24 +208,26 @@ import Manage_Payment from "./scenes/user/payments";
 import Manage_Customer from "./scenes/user/customers";
 import Manage_Report from "./scenes/user/reports";
 
-// Login
+// Login/Signup Component (combined)
 import Login from "./scenes/login/SignUp";
 
 // Splash Screen
 import SplashScreen from "./components/SplashScreen";
+//Landing Page
+import LandingPage from "./components/landing_page";
 
 function App() {
   const [theme, colorMode] = useMode();
   const [isSidebar, setIsSidebar] = useState(true);
   const [userRole, setUserRole] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    // Check localStorage to see if splash has been shown before
+    const splashShown = localStorage.getItem('splashShown');
+    return splashShown !== 'true';
+  });
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Added port configuration (for logging/debugging)
-  const port = process.env.PORT || 1000;
-  console.log(`Application configured to run on port: ${port}`);
 
   // Check for logout when navigating to root
   useEffect(() => {
@@ -243,8 +245,8 @@ function App() {
       
       if (savedRole && savedRole !== "null" && savedRole !== "undefined") {
         setUserRole(savedRole);
-        // If user is logged in but on login page, redirect to appropriate dashboard
-        if (currentPath === "/") {
+        // If user is logged in but on login/landing page, redirect to appropriate dashboard
+        if (currentPath === "/" || currentPath === "/landing") {
           if (savedRole === "admin") {
             navigate("/pos/all");
           } else if (savedRole === "super") {
@@ -260,9 +262,9 @@ function App() {
           }
         }
       } else {
-        // If no user role and not on login page, redirect to login
-        if (currentPath !== "/") {
-          navigate("/");
+        // If no user role and not on login/landing pages, redirect to landing page
+        if (currentPath !== "/" && currentPath !== "/landing") {
+          navigate("/landing");
         }
       }
       
@@ -274,6 +276,8 @@ function App() {
 
   const handleGetStarted = () => {
     setShowSplash(false);
+    localStorage.setItem('splashShown', 'true');
+    navigate("/landing");
   };
 
   const handleLogin = (role) => {
@@ -298,13 +302,28 @@ function App() {
     console.log("Logging out user...");
     setUserRole(null);
     localStorage.removeItem('userRole');
-    // The navigation to "/" will happen naturally from the sidebar link
+    navigate("/landing");
+  };
+
+  const handleSignupRedirect = () => {
+    navigate("/");
+  };
+
+  const handleLoginRedirect = () => {
+    navigate("/");
+  };
+
+  // Check if current route is public (no sidebar/topbar)
+  const isPublicRoute = () => {
+    return location.pathname === "/" || 
+           location.pathname === "/landing" || 
+           location.pathname.includes("/splash");
   };
 
   // Protected Route component
   const ProtectedRoute = ({ children, allowedRoles }) => {
     if (!userRole) {
-      return <Navigate to="/" replace />;
+      return <Navigate to="/landing" replace />;
     }
     if (allowedRoles && !allowedRoles.includes(userRole)) {
       return <Navigate to={userRole === "admin" ? "/dashboard" : "/user/new_sales"} replace />;
@@ -312,7 +331,7 @@ function App() {
     return children;
   };
 
-  // Show splash screen while loading
+  // Show splash screen only if it hasn't been shown before
   if (showSplash) {
     return (
       <ColorModeContext.Provider value={colorMode}>
@@ -351,21 +370,39 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <div className="app">
-          {/* Conditionally render Sidebar or Pos_Sidebar based on user role - ONLY when user is authenticated */}
-          {userRole && userRole === "admin" && <Sidebar isSidebar={isSidebar} onLogout={handleLogout} />}
-          {userRole && userRole === "normal" && <Pos_Sidebar isSidebar={isSidebar} onLogout={handleLogout} />}
-          {userRole && userRole === "super" && <Admin_side isSidebar={isSidebar} onLogout={handleLogout} />}
-          {userRole && userRole === "vendor" && <Vendor_side isSidebar={isSidebar} onLogout={handleLogout} />}
-          {userRole && userRole === "rider" && <Rider_side isSidebar={isSidebar} onLogout={handleLogout} />}
-          {userRole && userRole === "driver" && <Driver_side isSidebar={isSidebar} onLogout={handleLogout} />}
+          {/* Conditionally render Sidebar or Pos_Sidebar based on user role - ONLY when user is authenticated AND NOT on public routes */}
+          {userRole && !isPublicRoute() && userRole === "admin" && <Sidebar isSidebar={isSidebar} onLogout={handleLogout} />}
+          {userRole && !isPublicRoute() && userRole === "normal" && <Pos_Sidebar isSidebar={isSidebar} onLogout={handleLogout} />}
+          {userRole && !isPublicRoute() && userRole === "super" && <Admin_side isSidebar={isSidebar} onLogout={handleLogout} />}
+          {userRole && !isPublicRoute() && userRole === "vendor" && <Vendor_side isSidebar={isSidebar} onLogout={handleLogout} />}
+          {userRole && !isPublicRoute() && userRole === "rider" && <Rider_side isSidebar={isSidebar} onLogout={handleLogout} />}
+          {userRole && !isPublicRoute() && userRole === "driver" && <Driver_side isSidebar={isSidebar} onLogout={handleLogout} />}
 
-          <main className="content">
-            {/* Render Topbar only if user is logged in */}
-         
+          <main className={`content ${isPublicRoute() ? 'public-route' : ''}`}>
+            {/* Render Topbar only if user is logged in AND NOT on public routes */}
+            
 
             <Routes>
-              {/* Default route to Login */}
-              <Route path="/" element={<Login onLogin={handleLogin} />} />
+              {/* Landing Page - Public route (no sidebar/topbar) */}
+              <Route path="/landing" element={
+                <div className="public-container">
+                  <LandingPage 
+                    onSignupRedirect={handleSignupRedirect} 
+                    onLoginRedirect={handleLoginRedirect} 
+                  />
+                </div>
+              } />
+
+              {/* Login/Signup Page - Public route (no sidebar/topbar) */}
+              <Route path="/" element={
+                <div className="public-container">
+                  <Login 
+                    onLogin={handleLogin} 
+                    onSignupRedirect={handleSignupRedirect} 
+                    onLandingRedirect={() => navigate("/landing")}
+                  />
+                </div>
+              } />
 
               {/* Admin Routes */}
               <Route path="/dashboard" element={
@@ -1237,8 +1274,8 @@ function App() {
                 </ProtectedRoute>
               } />
 
-              {/* Catch-all route redirects to login */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              {/* Catch-all route redirects to landing page */}
+              <Route path="*" element={<Navigate to="/landing" replace />} />
             </Routes>
           </main>
         </div>
