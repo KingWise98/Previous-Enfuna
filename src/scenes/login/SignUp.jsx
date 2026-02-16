@@ -3,7 +3,7 @@
 import { useState } from "react"
 import styles from "./Auth.module.css"
 
-const API_BASE_URL = "https://funderspick-backend.onrender.com/api"
+const API_BASE_URL = "https://enfuna-backend.onrender.com/api"
 
 function Auth({ onLogin }) {
   const [currentStep, setCurrentStep] = useState(1)
